@@ -1,7 +1,16 @@
-<h1>{{ restaurantName }}</h1>
+<h1>{{ predicate.restaurant.name }}</h1>
 
-{{ restaurantText}} </br></br>
+{{ predicate.restaurant.text}} </br></br>
 
-{{ questionText }}
+{{ predicate.question }} </br></br>
 
-{{ debug }}
+Error Message:{{ errorMessage }}
+
+<form action={% url 'dynamicfilterapp:enter_task'} method="post">
+{% csrf_token %}
+<input type="radio" name="answer" value="yes" checked>Yes
+<br>
+<input type="radio" name="answer" value="no">No
+
+<input type="submit" value="Submit">
+</form>
