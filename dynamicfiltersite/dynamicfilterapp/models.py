@@ -28,6 +28,9 @@ class RestaurantPredicate(models.Model):
 	leftToAsk = models.IntegerField('Number of times to ask workers', 
 		default = RESPONSES_REQUIRED)
 
+	def __unicode__(self):
+		return self.question
+
 class Task(models.Model):
 	# the predicate that this task is answering
 	restaurantPredicate = models.ForeignKey(RestaurantPredicate)
