@@ -1,6 +1,7 @@
-<form action="/completed_question/" method="post">
+<form action="/dynamicfilterapp/answer_question/" method="post">
     {% csrf_token %}
-    <h1>{{ predicate.restaurant.name }}</h1>
+    <h1>Answer a Question!</h1>
+    Restaurant: {{ predicate.restaurant.name }} </br>
     {{ predicate.restaurant.text }} </br>
     {{ predicate.question }} </br>
     {{ form }}

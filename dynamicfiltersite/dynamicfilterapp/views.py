@@ -12,7 +12,7 @@ def answer_question(request):
     toBeAnswered = find_unanswered_predicate()
 
     if toBeAnswered == None:
-        return render(request, 'dynamicfilterapp/index.html')
+        return render(request, 'dynamicfilterapp/')
         # TODO make a page informing that there are no predicates to be answered (instead
         # of redirecting to index)
     # if this is a POST request we need to process the form data
@@ -26,7 +26,7 @@ def answer_question(request):
             #TODO fill in real worker ID, not 000
             task.save()
             # redirect to a new URL:
-            return HttpResponseRedirect('/index/')
+            return HttpResponseRedirect('/dynamicfilterapp/')
 
     # if a GET (or any other method) we'll create a blank form
     else:
