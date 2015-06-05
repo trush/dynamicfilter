@@ -21,12 +21,17 @@ def answer_question(request):
         form = WorkerForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
-            # process the data in form.cleaned_data as required
+            # create a new Task with relevant information and store it in the database
             task = Task(restaurantPredicate = toBeAnswered, answer = form.cleaned_data['answer'], workerID = 000)
             #TODO fill in real worker ID, not 000
             task.save()
+
+            # decrement the number of times this question still needs to be asked
+            toBeAnswered.leftToAsk = toBeAnswered.leftToAsk-1
+            toBeAnswered.save() #TODO this doesn't work -- why?
+
             # redirect to a new URL:
-            return HttpResponseRedirect('/dynamicfilterapp/')
+            return HttpResponseRedirect('/dynamicfilterapp/completed_question')
 
     # if a GET (or any other method) we'll create a blank form
     else:
@@ -53,7 +58,7 @@ def find_unanswered_predicate():
     nextUnanswered = None
     assert restaurantPredicates.exists()
     for predicate in restaurantPredicates:
-        if predicate.value == None:
+        if predicate.leftToAsk > 0:
             nextUnanswered = predicate
             break
     
