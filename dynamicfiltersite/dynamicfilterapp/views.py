@@ -8,6 +8,10 @@ def index(request):
     return render(request, 'dynamicfilterapp/index.html')
 
 def answer_question(request, IDnumber):
+    """
+    Displays and processes input from a form where the user can answer a question about a
+    predicate.
+    """
 
     toBeAnswered = find_unanswered_predicate(IDnumber)
 
@@ -41,24 +45,40 @@ def answer_question(request, IDnumber):
         'workerID': IDnumber })
 
 def completed_question(request, IDnumber):
+    """
+    Displays a page informing the worker that their answer was recorded, with a link to
+    answer another question.
+    """
     return render(request, 'dynamicfilterapp/completed_question.html', {'workerID': IDnumber})
 
 def no_questions(request):
+    """
+    Displays a page informing the worker that no questions need answering by them.
+    """
     return render(request, 'dynamicfilterapp/no_questions.html')
+
+def aggregate_responses():
+    """
+    Checks for predicates that need to be answered 0 more times. 
+    Combines worker responses into one value for the predicate.
+    post: All predicates with leftToAsk = 0 have a set value.
+    """
+    eligiblePredicates = RestaurantPredicate.objects.filter(leftToAsk = 0).filter(value.null = True)
 
 def find_unanswered_predicate(IDnumber):
     """
-    A helper for the answer_question method. Finds the first predicate that the worker hasn't
-    answered and that still needs answers. Returns the predicate, or None if there isn't one.
+    Finds the first predicate that the worker hasn't answered and that still needs answers.
+    params: IDnumber, the ID of the worker filling out the form
+    returns: a predicate matching the above criteria, or None if no predicates match.
     """
     # get all the RestaurantPredicates in the database that still need answers
-    restaurantPredicates = RestaurantPredicate.objects.filter(leftToAsk__gte = 0)
+    restaurantPredicates = RestaurantPredicate.objects.filter(leftToAsk__gt = 0)
 
     # if there aren't any RestaurantPredicates needing answers return None
     if not restaurantPredicates.exists():
         return None
 
-    # find the first unanswered predicate if it exists
+    # set the return value to a default of None
     toBeAnswered = None
 
     for predicate in restaurantPredicates:

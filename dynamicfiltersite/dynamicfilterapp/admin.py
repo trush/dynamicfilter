@@ -13,7 +13,11 @@ class RestaurantAdmin(admin.ModelAdmin):
     fieldsets = [
         ('Restaurant Information', {'fields': ['name', 'url', 'text']}),
     ]
+    list_display = ('name',)
     inlines = [RestaurantPredicateInline]
 
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('restaurantPredicate', 'workerID', 'answer')
+
 admin.site.register(Restaurant, RestaurantAdmin)
-admin.site.register(Task)
+admin.site.register(Task, TaskAdmin)
