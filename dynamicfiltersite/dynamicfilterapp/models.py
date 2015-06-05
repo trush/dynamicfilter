@@ -22,7 +22,7 @@ class RestaurantPredicate(models.Model):
 	question = models.CharField(max_length=200, default='')
 
 	# the predicate value, null until worker responses are aggregated
-	value = models.NullBooleanField(null=True)
+	value = models.NullBooleanField(default = None)
 
 	# number of remaining times a worker needs to answer this predicate
 	leftToAsk = models.IntegerField('Number of times to ask workers', 
@@ -36,7 +36,7 @@ class Task(models.Model):
 	restaurantPredicate = models.ForeignKey(RestaurantPredicate)
 
 	# the answer provided by the worker, null until answered
-	answer = models.NullBooleanField(null=True)
+	answer = models.NullBooleanField(default = None)
 
 	workerID = models.IntegerField(default = 0)
 

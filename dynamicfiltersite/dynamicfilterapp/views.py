@@ -49,6 +49,7 @@ def completed_question(request, IDnumber):
     Displays a page informing the worker that their answer was recorded, with a link to
     answer another question.
     """
+    aggregate_responses() #TODO should this be here
     return render(request, 'dynamicfilterapp/completed_question.html', {'workerID': IDnumber})
 
 def no_questions(request):
@@ -63,7 +64,26 @@ def aggregate_responses():
     Combines worker responses into one value for the predicate.
     post: All predicates with leftToAsk = 0 have a set value.
     """
-    eligiblePredicates = RestaurantPredicate.objects.filter(leftToAsk = 0).filter(value.null = True)
+    eligiblePredicates = RestaurantPredicate.objects.filter(leftToAsk = 0).filter(value = None)
+    
+    # If no predicates need evaluation, exit
+    if not eligiblePredicates.exists():
+        return
+
+    # TODO some mechanism for deciding which answer has the majority, or if more responses
+    # need to be collected
+    for predicate in eligiblePredicates:
+        numYes = len(Task.objects.filter(restaurantPredicate = predicate, answer = True))
+        numNo = len(Task.objects.filter(restaurantPredicate = predicate, answer = False))
+        if numYes > numNo:
+            predicate.value = True
+        elif numNo < numYes:
+            predicate.value = False
+        else:
+            # collect three more responses from workers
+            predicate.leftToAsk += 3
+        predicate.save()
+
 
 def find_unanswered_predicate(IDnumber):
     """

@@ -8,6 +8,7 @@ class RestaurantPredicateInline(admin.StackedInline):
     model = RestaurantPredicate
     # have space for 3 RestaurantPredicates by default
     extra = 3
+    readonly_fields = ('value',)
 
 class RestaurantAdmin(admin.ModelAdmin):
     fieldsets = [
