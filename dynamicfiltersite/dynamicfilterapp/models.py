@@ -41,3 +41,6 @@ class Task(models.Model):
 	workerID = models.IntegerField(default = 0)
 
 	# TODO add field to store completion time
+
+	def __unicode__(self):
+		return "Task from worker " + str(self.workerID)

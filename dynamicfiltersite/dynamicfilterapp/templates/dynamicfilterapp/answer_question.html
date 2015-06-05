@@ -1,4 +1,4 @@
-<form action="/dynamicfilterapp/answer_question/" method="post">
+<form action= "{% url 'answer_question' workerID %}" method="post">
     {% csrf_token %}
     <h1>Answer a Question!</h1>
     Restaurant: {{ predicate.restaurant.name }} </br>
