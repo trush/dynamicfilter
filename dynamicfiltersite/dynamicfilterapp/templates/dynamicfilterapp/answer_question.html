@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<script type="text/javascript">
+var start_ms;
+var end_ms;
+
+function startTime() {
+   start = new Date();
+   start_ms = start.getTime();
+}
+
+function endTime() {
+   end = new Date();
+   end_ms = end.getTime();
+   var elem = document.getElementById("elapsed_time");
+   elem.value = end_ms-start_ms;
+}
+</script>
+</head>
+
+<body onload='startTime()'>
+
+<form name = 'input_form' action="{% url 'answer_question' workerID %}" method='post'>
+
+{% csrf_token %}
+<h1>Answer a Question</h1>
+
+{{ predicate.restaurant.text }} </br> </br>
+Restaurant: {{ predicate.restaurant.name }} </br>
+Website: <a href='{{ predicate.restaurant.url }}' >{{ predicate.restaurant.url }} </a> </br>
+Question: {{ predicate.question }} </br></br>
+
+{{ form }}
+
+<input type="hidden" id="elapsed_time" name = "elapsed_time" value="555">
+<br>
+<input type="submit" value="Submit" onclick='endTime()'>
+
+</form>
+
+</body>
+</html>
