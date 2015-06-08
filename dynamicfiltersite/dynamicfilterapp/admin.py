@@ -9,7 +9,7 @@ class RestaurantPredicateInline(admin.StackedInline):
     # have space for 3 RestaurantPredicates by default
     extra = 3
     #readonly_fields = ('value',)
-    
+
 
 class RestaurantAdmin(admin.ModelAdmin):
     fieldsets = [
@@ -19,7 +19,7 @@ class RestaurantAdmin(admin.ModelAdmin):
     inlines = [RestaurantPredicateInline]
 
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ('restaurantPredicate', 'workerID', 'answer')
+    list_display = ('restaurantPredicate', 'workerID', 'answer', 'completionTime')
 
 admin.site.register(Restaurant, RestaurantAdmin)
 admin.site.register(Task, TaskAdmin)

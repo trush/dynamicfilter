@@ -1,10 +1,14 @@
+var start_ms;
+var end_ms;
+
 function startTime() {
-    var start=new Date();
-    m = checkTime(m);
-    s = checkTime(s);
+   start = new Date();
+   start_ms = start.getTime();
 }
 
-function checkTime(i) {
-    if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
-    return i;
+function endTime() {
+   end = new Date();
+   end_ms = end.getTime();
+   var elem = document.getElementById("elapsed_time");
+   elem.value = end_ms-start_ms;
 }

@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from models import Restaurant, RestaurantPredicate, Task
 from django.db import models
 from .forms import WorkerForm
+from django import forms
 
 def index(request):
     return render(request, 'dynamicfilterapp/index.html')
@@ -25,8 +26,11 @@ def answer_question(request, IDnumber):
         form = WorkerForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
+            # get time to complete in number of milliseconds
+            timeToComplete = request.POST.get('elapsed_time', 666)
             # create a new Task with relevant information and store it in the database
-            task = Task(restaurantPredicate = toBeAnswered, answer = form.cleaned_data['answer'], workerID = IDnumber)
+            task = Task(restaurantPredicate = toBeAnswered, answer = form.cleaned_data['answer'], 
+                workerID = IDnumber, completionTime = timeToComplete)
             #TODO fill in real worker ID, not 000
             task.save()
 
@@ -40,6 +44,7 @@ def answer_question(request, IDnumber):
     # if a GET (or any other method) we'll create a blank form
     else:
         form = WorkerForm()
+        #form.fields['elapsedTime'].widget = forms.HiddenInput()
 
     return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 
         'workerID': IDnumber })
