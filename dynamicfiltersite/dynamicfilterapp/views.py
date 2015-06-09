@@ -76,13 +76,12 @@ def aggregate_responses():
         numNo = len(Task.objects.filter(restaurantPredicate = predicate, answer = False))
         if numYes > numNo:
             predicate.value = True
-        elif numNo < numYes:
+        elif numNo > numYes:
             predicate.value = False
         else:
             # collect three more responses from workers
             predicate.leftToAsk += 3
         predicate.save()
-
 
 def find_unanswered_predicate(IDnumber):
     """

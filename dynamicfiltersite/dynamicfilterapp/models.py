@@ -4,7 +4,7 @@ class Restaurant(models.Model):
 	# the name of the restaurant
 	name = models.CharField(max_length=50)
 
-	url = models.URLField(max_length=200)
+	url = models.URLField(max_length=200, default="", blank=True)
 
 	# TODO is this for a restaurant description or worker instructions?
 	text = models.CharField(max_length=200)
@@ -39,7 +39,7 @@ class Task(models.Model):
 	answer = models.NullBooleanField(default = None)
 
 	workerID = models.IntegerField(default = 0)
-	
+
 	completionTime = models.IntegerField(default = 0)
 
 	def __unicode__(self):
