@@ -39,8 +39,7 @@ class Task(models.Model):
 	answer = models.NullBooleanField(default = None)
 
 	workerID = models.IntegerField(default = 0)
-
-	# TODO add field to store completion time
+	
 	completionTime = models.IntegerField(default = 0)
 
 	def __unicode__(self):

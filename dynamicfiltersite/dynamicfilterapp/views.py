@@ -18,25 +18,22 @@ def answer_question(request, IDnumber):
 
     if toBeAnswered == None:
         return render(request, 'dynamicfilterapp/no_questions.html')
-        # TODO make a page informing that there are no predicates to be answered (instead
-        # of redirecting to index)
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
         form = WorkerForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
-            # get time to complete in number of milliseconds
+            # get time to complete in number of milliseconds, or use flag value if there's no elapsed_time
             timeToComplete = request.POST.get('elapsed_time', 666)
             # create a new Task with relevant information and store it in the database
             task = Task(restaurantPredicate = toBeAnswered, answer = form.cleaned_data['answer'], 
                 workerID = IDnumber, completionTime = timeToComplete)
-            #TODO fill in real worker ID, not 000
             task.save()
 
             # decrement the number of times this question still needs to be asked
             toBeAnswered.leftToAsk = toBeAnswered.leftToAsk-1
-            toBeAnswered.save() #TODO this doesn't work -- why?
+            toBeAnswered.save()
 
             # redirect to a new URL:
             return HttpResponseRedirect('/dynamicfilterapp/completed_question/id=' + IDnumber)
@@ -44,7 +41,6 @@ def answer_question(request, IDnumber):
     # if a GET (or any other method) we'll create a blank form
     else:
         form = WorkerForm()
-        #form.fields['elapsedTime'].widget = forms.HiddenInput()
 
     return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 
         'workerID': IDnumber })
@@ -54,7 +50,7 @@ def completed_question(request, IDnumber):
     Displays a page informing the worker that their answer was recorded, with a link to
     answer another question.
     """
-    aggregate_responses() #TODO should this be here
+    aggregate_responses()
     return render(request, 'dynamicfilterapp/completed_question.html', {'workerID': IDnumber})
 
 def no_questions(request):
@@ -75,8 +71,6 @@ def aggregate_responses():
     if not eligiblePredicates.exists():
         return
 
-    # TODO some mechanism for deciding which answer has the majority, or if more responses
-    # need to be collected
     for predicate in eligiblePredicates:
         numYes = len(Task.objects.filter(restaurantPredicate = predicate, answer = True))
         numNo = len(Task.objects.filter(restaurantPredicate = predicate, answer = False))
