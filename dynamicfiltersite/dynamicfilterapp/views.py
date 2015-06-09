@@ -17,7 +17,7 @@ def answer_question(request, IDnumber):
     toBeAnswered = find_unanswered_predicate(IDnumber)
 
     if toBeAnswered == None:
-        return render(request, 'dynamicfilterapp/no_questions.html')
+        return HttpResponseRedirect('/dynamicfilterapp/no_questions/id=' + IDnumber)
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
@@ -53,11 +53,11 @@ def completed_question(request, IDnumber):
     aggregate_responses()
     return render(request, 'dynamicfilterapp/completed_question.html', {'workerID': IDnumber})
 
-def no_questions(request):
+def no_questions(request, IDnumber):
     """
     Displays a page informing the worker that no questions need answering by them.
     """
-    return render(request, 'dynamicfilterapp/no_questions.html')
+    return render(request, 'dynamicfilterapp/no_questions.html', {'workerID': IDnumber})
 
 def aggregate_responses():
     """

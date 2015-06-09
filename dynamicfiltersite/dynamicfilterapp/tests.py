@@ -4,7 +4,7 @@ from django.test import TestCase
 from .models import Restaurant, RestaurantPredicate, Task
 from django.test.utils import setup_test_environment
 from .views import aggregate_responses
-
+from django.core.urlresolvers import reverse
 
 """
 Tests the aggregate_responses() function
@@ -46,4 +46,43 @@ class AggregateResponsesTestCase(TestCase):
 
 		# all predicates with leftToAsk = 0 should have a value of True or False
 		self.assertEqual(len(RestaurantPredicate.objects.filter(leftToAsk=0).filter(value=None)), 0)
+
+	# def setUp(self):
+	# 	Restaurant.objects.create(name="Chipotle", url="www.chipotle.com", text="Good burritos")
+	# 	Restaurant.objects.create(name="", url="www.chipotle.com", text="Good burritos")
+	# 	Restaurant.objects.create(name="Chipotle", url="", text="Good burritos")
+	# 	Restaurant.objects.create(name="Chipotle", url="www.chipotle.com", text="")
+	# 	Restaurant.objects.create(name="", url="", text="Good burritos")
+	# 	Restaurant.objects.create(name="Chipotle", url="", text="")
+	# 	Restaurant.objects.create(name="", url="www.chipotle.com", text="")
+	# 	Restaurant.objects.create(name="", url="", text="")
+
+class IndexViewTests(TestCase):
+
+	def test_index_view_content(self):
+		response = self.client.get(reverse('index'))
+		self.assertContains(response, 
+			"For now, this page uses a dummy ID value of 222.")
+
+
+class AnswerQuestionViewTests(TestCase):
+
+	def test_answer_question_view_no_work_with_no_digit(self):
+		response = self.client.get('/dynamicfilterapp/answer_question/')
+		self.assertEqual(response.status_code, 404)
+
+	def test_answer_question_view_works_with_3_digits(self):
+		response = self.client.get('/dynamicfilterapp/answer_question/id=000/')
+		self.assertEqual(response.status_code, 200)
+
+class NoQuestionViewTests(TestCase):
+
+	def test_index_view_content(self):
+		response = self.client.get(reverse('no_questions'))
+		self.assertContains(response, 
+			"There are no more questions to be answered at this time.")
+
+
+
+
 
