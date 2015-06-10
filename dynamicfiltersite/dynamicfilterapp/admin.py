@@ -13,7 +13,8 @@ class RestaurantPredicateInline(admin.StackedInline):
 
 class RestaurantAdmin(admin.ModelAdmin):
     fieldsets = [
-        ('Restaurant Information', {'fields': ['name', 'url', 'text']}),
+        ('General Information', {'fields': ['name', 'url', 'text']}),
+        ('Address', {'fields': ['street' ,'city', 'state', 'zipCode', 'country']})
     ]
     list_display = ('name',)
     inlines = [RestaurantPredicateInline]

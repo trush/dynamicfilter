@@ -6,11 +6,22 @@ class Restaurant(models.Model):
 
 	url = models.URLField(max_length=200, default="", blank=True)
 
+	# fields to record physical address
+	street = models.CharField(max_length=50, default = "")
+	city = models.CharField(max_length=20, default = "")
+	state = models.CharField(max_length=2, default = "")
+	zipCode = models.CharField(max_length=9, default = "")
+	country = models.CharField(max_length=30, default = "")
+
 	# TODO is this for a restaurant description or worker instructions?
 	text = models.CharField(max_length=200)
 
 	def __unicode__(self):
 		return self.name
+
+	class Meta:
+		unique_together = ("street", "city", "state", "zipCode", "country")
+
 
 RESPONSES_REQUIRED = 5
 
@@ -44,3 +55,4 @@ class Task(models.Model):
 
 	def __unicode__(self):
 		return "Task from worker " + str(self.workerID)
+

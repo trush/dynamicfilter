@@ -51,6 +51,7 @@ class FindUnansweredPredicatesTestCase(TestCase):
     """
     Tests the aggregate_responses() function
     """
+    WORKER_ID = 100
 
     def test_no_predicates(self):
         """
@@ -58,7 +59,7 @@ class FindUnansweredPredicatesTestCase(TestCase):
         """
         self.assertEqual(len(RestaurantPredicate.objects.all()), 0)
 
-        self.assertEqual(find_unanswered_predicate(100), None)
+        self.assertEqual(find_unanswered_predicate(self.WORKER_ID), None)
 
     def test_one_completed_predicate(self):
         """
@@ -69,7 +70,7 @@ class FindUnansweredPredicatesTestCase(TestCase):
         r = Restaurant(name = "Find Unanswered Predicate Restaurant", text="Text")
         r.save()
         RestaurantPredicate.objects.create(restaurant=r, question="Question 1?", leftToAsk=0)
-        self.assertEqual(find_unanswered_predicate(100), None)
+        self.assertEqual(find_unanswered_predicate(self.WORKER_ID), None)
 
     def test_one_unanswered_predicate(self):
         """
@@ -82,7 +83,7 @@ class FindUnansweredPredicatesTestCase(TestCase):
         r.save()
         p1 = RestaurantPredicate(restaurant=r, question="Question 1?", leftToAsk=5)
         p1.save()
-        self.assertEqual(find_unanswered_predicate(100), p1)
+        self.assertEqual(find_unanswered_predicate(self.WORKER_ID), p1)
 
 
     def test_one_answered_predicate(self):
@@ -98,42 +99,59 @@ class FindUnansweredPredicatesTestCase(TestCase):
         p1.save()
         self.assertEqual(find_unanswered_predicate(100), p1)
 
-
-
-	# def setUp(self):
-	# 	Restaurant.objects.create(name="Chipotle", url="www.chipotle.com", text="Good burritos")
-	# 	Restaurant.objects.create(name="", url="www.chipotle.com", text="Good burritos")
-	# 	Restaurant.objects.create(name="Chipotle", url="", text="Good burritos")
-	# 	Restaurant.objects.create(name="Chipotle", url="www.chipotle.com", text="")
-	# 	Restaurant.objects.create(name="", url="", text="Good burritos")
-	# 	Restaurant.objects.create(name="Chipotle", url="", text="")
-	# 	Restaurant.objects.create(name="", url="www.chipotle.com", text="")
-	# 	Restaurant.objects.create(name="", url="", text="")
+    # def setUp(self):
+    #   Restaurant.objects.create(name="Chipotle", url="www.chipotle.com", text="Good burritos")
+    #   Restaurant.objects.create(name="", url="www.chipotle.com", text="Good burritos")
+    #   Restaurant.objects.create(name="Chipotle", url="", text="Good burritos")
+    #   Restaurant.objects.create(name="Chipotle", url="www.chipotle.com", text="")
+    #   Restaurant.objects.create(name="", url="", text="Good burritos")
+    #   Restaurant.objects.create(name="Chipotle", url="", text="")
+    #   Restaurant.objects.create(name="", url="www.chipotle.com", text="")
+    #   Restaurant.objects.create(name="", url="", text="")
 
 class IndexViewTests(TestCase):
 
-	def test_index_view_content(self):
-		response = self.client.get(reverse('index'))
-		self.assertContains(response, 
-			"For now, this page uses a dummy ID value of 222.")
+    def test_index_view_content(self):
+        """
+        Tests that the index template is loaded correctly by making sure
+        a piece of the textual content is present.
+        """
+        response = self.client.get(reverse('index'))
+        self.assertContains(response, 
+            "For now, this page uses a dummy ID value of 222.")
 
 
 class AnswerQuestionViewTests(TestCase):
 
-	def test_answer_question_view_no_work_with_no_digit(self):
-		response = self.client.get('/dynamicfilterapp/answer_question/')
-		self.assertEqual(response.status_code, 404)
+    def test_answer_question_no_id(self):
+        """
+        Trying to access the answer_question URL with no ID should cause a 404.
+        """
+        response = self.client.get('/dynamicfilterapp/answer_question/')
+        self.assertEqual(response.status_code, 404)
 
-	def test_answer_question_view_works_with_3_digits(self):
-		response = self.client.get('/dynamicfilterapp/answer_question/id=000/')
-		self.assertEqual(response.status_code, 200)
+    def test_answer_question_view_works_with_3_digits(self):
+        self.assertEqual(len(RestaurantPredicate.objects.all()), 0)
+        response = self.client.get('/dynamicfilterapp/answer_question/id=000/', follow=True)
+        print "REDIRECT CHAIN:"
+        print response.redirect_chain
+        # Expect code 302 because this URL redirects to the no_questions page, since no
+        # predicates have been created for the worker to answer (?)
+        self.assertEqual(response.status_code, 200)
 
-class NoQuestionViewTests(TestCase):
+    def test_no_blank_fields(self):
+        """
+        Tests that the Restaurant name, text, and URL and the RestaurantPredicate 
+        question are not empty.
+        """
 
-	def test_index_view_content(self):
-		response = self.client.get(reverse('no_questions'))
-		self.assertContains(response, 
-			"There are no more questions to be answered at this time.")
+
+# class NoQuestionViewTests(TestCase):
+
+#   def test_index_view_content(self):
+#       response = self.client.get(reverse('no_questions'))
+#       self.assertContains(response, 
+#           "There are no more questions to be answered at this time.")
 
 
 
