@@ -2,7 +2,27 @@ from django import forms
 from models import Restaurant, RestaurantPredicate
 
 class WorkerForm(forms.Form):
-    answer = forms.NullBooleanField(label='Your answer')
+
+    #choice fields for worker answering predicates
+    WORKER_ANSWER_CHOICES = (
+        (None, "------"),
+        (True, 'Yes'),
+        (False, 'No'),
+    )
+
+    #how confident a worker is in his/her answer
+    CONFIDENCE_LEVELS = (
+        ('50', '50%'),
+        ('60', '60%'),
+        ('70', '70%'),
+        ('80', '80%'),
+        ('90', '90%'),
+        ('100', '100%'),
+    )
+
+    #sets up form for answering predicate and worker's confidence level
+    answerToQuestion = forms.ChoiceField(choices=WORKER_ANSWER_CHOICES, label='Your answer')
+    confidenceLevel = forms.ChoiceField(choices=CONFIDENCE_LEVELS, label='Confidence level')
 
 class RestaurantAdminForm(forms.ModelForm):
 
