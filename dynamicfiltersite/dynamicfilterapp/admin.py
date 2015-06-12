@@ -24,8 +24,21 @@ class RestaurantAdmin(admin.ModelAdmin):
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('restaurantPredicate', 'workerID', 'answer', 'completionTime')
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False   
+
 class RestaurantPredicateAdmin(admin.ModelAdmin):
-    list_display = ('question', 'restaurant')
+    list_display = ('restaurant', 'question')
+    readonly_fields = ('restaurant', 'question', 'value', 'leftToAsk')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False   
 
 admin.site.register(Restaurant, RestaurantAdmin)
 admin.site.register(Task, TaskAdmin)
