@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 
-<body>
-
-<a href="{% url 'answer_question' 222 %}" >Answer a question</a> </br>
-For now, this page uses a dummy ID value of 222.
-
-</body>
+<form name = 'ID_form' action="{% url 'index' %}" method='post'>
+	{% csrf_token %}
+	<h1>Index</h1>
+	<br>
+	Enter in your Worker ID</br>
+	<br>
+    {{ form }}
+	<br>
+	<input type="submit" value="Submit">
+</form>
