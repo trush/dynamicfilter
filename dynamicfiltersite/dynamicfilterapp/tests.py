@@ -5,6 +5,7 @@ from .models import Restaurant, RestaurantPredicate, Task
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
 from .views import aggregate_responses, find_unanswered_predicate
+from .forms import RestaurantAdminForm
 
 
 class AggregateResponsesTestCase(TestCase):
@@ -129,11 +130,18 @@ class AnswerQuestionViewTests(TestCase):
         # predicates have been created for the worker to answer (?)
         self.assertEqual(response.status_code, 200)
 
-    def test_no_blank_fields(self):
-        """
-        Tests that the Restaurant name, text, and URL and the RestaurantPredicate 
-        question are not empty.
-        """
+
+class RestaurantCreationTests(TestCase):
+
+    def test_predicates_created(self):
+
+        # make a new RestaurantAdminForm and get the Restaurant created
+        rForm = RestaurantAdminForm()
+        r = rForm.save()
+
+        # Ensure that three predicates have been created to go with this restaurant
+        self.assertEqual(len(RestaurantPredicate.objects.filter(restaurant=r)), 3)
+
 
 class NoQuestionViewTests(TestCase):
 
