@@ -42,8 +42,16 @@ def answer_question(request, IDnumber):
         if form.is_valid():
             # get time to complete in number of milliseconds, or use flag value if there's no elapsed_time
             timeToComplete = request.POST.get('elapsed_time', 666)
+
+            # Convert entered answer to type compatible with NullBooleanField
+            form_answer = None
+            if form.cleaned_data['answerToQuestion'] == "True":
+                form_answer = True
+            elif form.cleaned_data['answerToQuestion'] == "False":
+                form_answer = False
+
             # create a new Task with relevant information and store it in the database
-            task = Task(restaurantPredicate = toBeAnswered, answer = form.cleaned_data['answer'], 
+            task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, 
                 workerID = IDnumber, completionTime = timeToComplete)
             task.save()
 
