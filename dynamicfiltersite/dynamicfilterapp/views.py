@@ -2,11 +2,27 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from models import Restaurant, RestaurantPredicate, Task
 from django.db import models
-from .forms import WorkerForm
+from .forms import WorkerForm, IDForm
 from django import forms
 
 def index(request):
-    return render(request, 'dynamicfilterapp/index.html')
+    IDnumber = 888
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = IDForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+
+            IDnumber = request.POST.get('workerID', 777)
+            # redirect to a new URL:
+            return HttpResponseRedirect('/dynamicfilterapp/answer_question/id=' + IDnumber)
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = IDForm()
+
+    return render(request, 'dynamicfilterapp/index.html', {'form': form, 'workerID' : IDnumber})
 
 def answer_question(request, IDnumber):
     """
