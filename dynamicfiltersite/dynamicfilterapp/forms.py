@@ -4,7 +4,6 @@ from models import Restaurant, RestaurantPredicate
 class WorkerForm(forms.Form):
     answer = forms.NullBooleanField(label='Your answer')
 
-<<<<<<< HEAD
 class RestaurantAdminForm(forms.ModelForm):
 
 	class Meta:
@@ -19,7 +18,6 @@ class RestaurantAdminForm(forms.ModelForm):
 		RestaurantPredicate.objects.create(restaurant=instance, question="Would you recommend the Kate Reed?")
 		RestaurantPredicate.objects.create(restaurant=instance, question="Are you Prof Beth?")
 		return instance
-=======
+
 class IDForm(forms.Form):
-    workerID = forms.CharField(label='Worker ID')
->>>>>>> origin/master
+	workerID = forms.IntegerField(label='Worker ID')
