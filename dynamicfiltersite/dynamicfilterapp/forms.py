@@ -12,6 +12,7 @@ class WorkerForm(forms.Form):
 
     #how confident a worker is in his/her answer
     CONFIDENCE_LEVELS = (
+        (None, '------'),
         ('50', '50%'),
         ('60', '60%'),
         ('70', '70%'),
@@ -41,6 +42,7 @@ class RestaurantAdminForm(forms.ModelForm):
 		RestaurantPredicate.objects.get_or_create(restaurant=instance, question="Is this a good restaurant for kids?")
 		RestaurantPredicate.objects.get_or_create(restaurant=instance, question="Does this restaurant serve Choco Pies?")
 		return instance
+
 
 class IDForm(forms.Form):
 	workerID = forms.IntegerField(label='Worker ID', min_value=0)

@@ -85,7 +85,6 @@ class FindUnansweredPredicatesTestCase(TestCase):
         p1.save()
         self.assertEqual(find_unanswered_predicate(self.WORKER_ID), p1)
 
-
     def test_one_answered_predicate(self):
         """
         If this worker has answered all possible predicates, 
@@ -99,15 +98,6 @@ class FindUnansweredPredicatesTestCase(TestCase):
         p1.save()
         self.assertEqual(find_unanswered_predicate(100), p1)
 
-    # def setUp(self):
-    #   Restaurant.objects.create(name="Chipotle", url="www.chipotle.com", text="Good burritos")
-    #   Restaurant.objects.create(name="", url="www.chipotle.com", text="Good burritos")
-    #   Restaurant.objects.create(name="Chipotle", url="", text="Good burritos")
-    #   Restaurant.objects.create(name="Chipotle", url="www.chipotle.com", text="")
-    #   Restaurant.objects.create(name="", url="", text="Good burritos")
-    #   Restaurant.objects.create(name="Chipotle", url="", text="")
-    #   Restaurant.objects.create(name="", url="www.chipotle.com", text="")
-    #   Restaurant.objects.create(name="", url="", text="")
 
 class IndexViewTests(TestCase):
 
@@ -118,7 +108,7 @@ class IndexViewTests(TestCase):
         """
         response = self.client.get(reverse('index'))
         self.assertContains(response, 
-            "For now, this page uses a dummy ID value of 222.")
+            "Index")
 
 
 class AnswerQuestionViewTests(TestCase):
@@ -145,15 +135,11 @@ class AnswerQuestionViewTests(TestCase):
         question are not empty.
         """
 
+class NoQuestionViewTests(TestCase):
 
-# class NoQuestionViewTests(TestCase):
+    WORKER_ID = 001
 
-#   def test_index_view_content(self):
-#       response = self.client.get(reverse('no_questions'))
-#       self.assertContains(response, 
-#           "There are no more questions to be answered at this time.")
-
-
-
-
-
+    def test_index_view_content(self):
+       response = self.client.get(reverse('no_questions', args=[WORKER_ID]))
+       self.assertContains(response, 
+           "There are no more questions to be answered at this time.")

@@ -42,6 +42,7 @@ class RestaurantPredicate(models.Model):
 	def __unicode__(self):
 		return self.question
 
+
 class Task(models.Model):
 	# the predicate that this task is answering
 	restaurantPredicate = models.ForeignKey(RestaurantPredicate)
@@ -55,4 +56,3 @@ class Task(models.Model):
 
 	def __unicode__(self):
 		return "Task from worker " + str(self.workerID)
-

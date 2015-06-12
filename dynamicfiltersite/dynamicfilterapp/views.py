@@ -5,6 +5,7 @@ from django.db import models
 from .forms import WorkerForm, IDForm
 from django import forms
 
+
 def index(request):
     IDnumber = 888
     # if this is a POST request we need to process the form data
@@ -24,6 +25,7 @@ def index(request):
 
     return render(request, 'dynamicfilterapp/index.html', {'form': form, 'workerID' : IDnumber})
 
+
 def answer_question(request, IDnumber):
     """
     Displays and processes input from a form where the user can answer a question about a
@@ -34,17 +36,22 @@ def answer_question(request, IDnumber):
 
     if toBeAnswered == None:
         return HttpResponseRedirect('/dynamicfilterapp/no_questions/id=' + IDnumber)
+
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
+
         # create a form instance and populate it with data from the request:
         form = WorkerForm(request.POST)
+
         # check whether it's valid:
         if form.is_valid():
+
             # get time to complete in number of milliseconds, or use flag value if there's no elapsed_time
             timeToComplete = request.POST.get('elapsed_time', 666)
 
             # Convert entered answer to type compatible with NullBooleanField
             form_answer = None
+
             if form.cleaned_data['answerToQuestion'] == "True":
                 form_answer = True
             elif form.cleaned_data['answerToQuestion'] == "False":
@@ -69,6 +76,7 @@ def answer_question(request, IDnumber):
     return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 
         'workerID': IDnumber })
 
+
 def completed_question(request, IDnumber):
     """
     Displays a page informing the worker that their answer was recorded, with a link to
@@ -77,11 +85,13 @@ def completed_question(request, IDnumber):
     aggregate_responses()
     return render(request, 'dynamicfilterapp/completed_question.html', {'workerID': IDnumber})
 
+
 def no_questions(request, IDnumber):
     """
     Displays a page informing the worker that no questions need answering by them.
     """
     return render(request, 'dynamicfilterapp/no_questions.html', {'workerID': IDnumber})
+
 
 def aggregate_responses():
     """
@@ -96,8 +106,10 @@ def aggregate_responses():
         return
 
     for predicate in eligiblePredicates:
+
         numYes = len(Task.objects.filter(restaurantPredicate = predicate, answer = True))
         numNo = len(Task.objects.filter(restaurantPredicate = predicate, answer = False))
+
         if numYes > numNo:
             predicate.value = True
         elif numNo > numYes:
@@ -106,6 +118,7 @@ def aggregate_responses():
             # collect three more responses from workers
             predicate.leftToAsk += 3
         predicate.save()
+
 
 def find_unanswered_predicate(IDnumber):
     """
@@ -124,8 +137,10 @@ def find_unanswered_predicate(IDnumber):
     toBeAnswered = None
 
     for predicate in restaurantPredicates:
+
         # find all the tasks associated with a particular predicate and this worker
         tasks = Task.objects.filter(restaurantPredicate = predicate, workerID = IDnumber)
+        
         # if that set is empty, break
         if not tasks.exists():
             toBeAnswered = predicate
