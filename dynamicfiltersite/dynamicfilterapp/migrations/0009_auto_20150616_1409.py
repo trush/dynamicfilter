@@ -7,13 +7,12 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dynamicfilterapp', '0011_auto_20150616_1004'),
+        ('dynamicfilterapp', '0008_restaurant_inttest'),
     ]
 
     operations = [
-        migrations.AlterField(
+        migrations.RemoveField(
             model_name='restaurant',
-            name='predicateStatus',
-            field=models.CommaSeparatedIntegerField(max_length=5),
+            name='intTest',
         ),
     ]

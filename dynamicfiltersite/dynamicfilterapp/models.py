@@ -68,6 +68,7 @@ class PredicateBranch(models.Model):
 	numTickets = models.IntegerField(default = 1)
 
 	#the question associated with this predicate branch
+
 	question = models.CharField(max_length=20)
 
 	#foreign keys
