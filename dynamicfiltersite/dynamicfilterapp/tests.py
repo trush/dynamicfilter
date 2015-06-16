@@ -70,6 +70,7 @@ class FindUnansweredPredicatesTestCase(TestCase):
 
         r = Restaurant(name = "Find Unanswered Predicate Restaurant", text="Text")
         r.save()
+        
         RestaurantPredicate.objects.create(restaurant=r, question="Question 1?", leftToAsk=0)
         self.assertEqual(find_unanswered_predicate(self.WORKER_ID), None)
 
@@ -82,8 +83,10 @@ class FindUnansweredPredicatesTestCase(TestCase):
 
         r = Restaurant(name = "Find Unanswered Predicate Restaurant", text="Text")
         r.save()
+        
         p1 = RestaurantPredicate(restaurant=r, question="Question 1?", leftToAsk=5)
         p1.save()
+        
         self.assertEqual(find_unanswered_predicate(self.WORKER_ID), p1)
 
     def test_one_answered_predicate(self):
@@ -95,8 +98,10 @@ class FindUnansweredPredicatesTestCase(TestCase):
 
         r = Restaurant(name = "Find Unanswered Predicate Restaurant", text="Text")
         r.save()
+        
         p1 = RestaurantPredicate(restaurant=r, question="Question 1?", leftToAsk=5)
         p1.save()
+        
         self.assertEqual(find_unanswered_predicate(100), p1)
 
 
@@ -122,19 +127,26 @@ class AnswerQuestionViewTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_answer_question_view_works_with_3_digits(self):
+        """
+        tests answer_question view to see if it works with an ID number with 3 digits
+        """
         self.assertEqual(len(RestaurantPredicate.objects.all()), 0)
         response = self.client.get('/dynamicfilterapp/answer_question/id=000/', follow=True)
+        
         print "REDIRECT CHAIN:"
         print response.redirect_chain
+        
         # Expect code 302 because this URL redirects to the no_questions page, since no
         # predicates have been created for the worker to answer (?)
         self.assertEqual(response.status_code, 200)
 
 
 class RestaurantCreationTests(TestCase):
-
+    
     def test_predicates_created(self):
-
+        """
+        tests to see if three predicates are created with each restaurant
+        """
         # make a new RestaurantAdminForm and get the Restaurant created
         rForm = RestaurantAdminForm()
         r = rForm.save()
@@ -148,6 +160,9 @@ class NoQuestionViewTests(TestCase):
     WORKER_ID = 001
 
     def test_no_questions_view_content(self):
+        """
+        tests the no_questions view to make sure it displays the correct web page
+        """
        response = self.client.get(reverse('no_questions', args=[self.WORKER_ID]))
        self.assertContains(response, 
            "There are no more questions to be answered at this time.")

@@ -1,7 +1,6 @@
 from django.contrib import admin
 from forms import RestaurantAdminForm
 
-# Register models so they're accessible from admin site
 from .models import Restaurant, RestaurantPredicate, Task
 
 class RestaurantAdmin(admin.ModelAdmin):
@@ -26,6 +25,7 @@ class RestaurantPredicateAdmin(admin.ModelAdmin):
     # def has_delete_permission(self, request, obj=None):
     #     return False   
 
+# Register models so they're accessible from admin site
 admin.site.register(Restaurant, RestaurantAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(RestaurantPredicate, RestaurantPredicateAdmin)
