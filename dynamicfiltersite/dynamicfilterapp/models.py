@@ -23,7 +23,7 @@ class Restaurant(models.Model):
         
     # a reference to the next item in a the linked list (used if this
     # restaurant is part of a linked list)
-    nextRestaurant = models.ForeignKey(Restaurant, blank=True, null=True)
+    nextRestaurantID = models.IntegerField(blank=True, default=None)
 
     def __unicode__(self):
         return self.name
@@ -74,8 +74,8 @@ class PredicateBranch(models.Model):
     question = models.CharField(max_length=20)
 
     # linked list pointers for the fixed-size queue
-    start = models.ForeignKey(Restaurant, related_name="restaurant1")
-    end = models.ForeignKey(Restaurant, related_name="restaurant2")
+    start = models.IntegerField(null=True, blank=True)
+    end = models.IntegerField(null=True, blank=True)
     queueLength = models.IntegerField(default=0)
 
 

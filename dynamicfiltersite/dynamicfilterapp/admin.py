@@ -17,7 +17,7 @@ class TaskAdmin(admin.ModelAdmin):
 
 class RestaurantPredicateAdmin(admin.ModelAdmin):
     list_display = ('restaurant', 'question')
-    readonly_fields = ('restaurant', 'question', 'value', 'leftToAsk')
+    readonly_fields = ('restaurant', 'question', 'value')
 
     def has_add_permission(self, request):
         return False

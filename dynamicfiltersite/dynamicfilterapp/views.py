@@ -239,7 +239,7 @@ def insertIntoQueue(restaurant, predicateBranch):
     if predicateBranch.queueLength == 0:
         predicateBranch.start = restaurant
     else:
-        predicateBranch.end.nextRestaurant = restaurant
+        predicateBranch.end.nextRestaurantID = restaurant.id
         
     #newly added restaurant goes to end of linked list (queue)    
     predicateBranch.end = restaurant
