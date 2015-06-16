@@ -68,11 +68,11 @@ class PredicateBranch(models.Model):
 	numTickets = models.IntegerField(default = 1)
 
 	#the question associated with this predicate branch
-	question = models.CharField()
+	question = models.CharField(max_length=20)
 
 	#foreign keys
-	restaurant1 = models.ForeignKey(Restaurant)
-	restaurant2 = models.ForeignKey(Restaurant)
-	restaurant3 = models.ForeignKey(Restaurant)
-	restaurant4 = models.ForeignKey(Restaurant)
+	#restaurant1 = models.ForeignKey(Restaurant, related_name="")
+	#restaurant2 = models.ForeignKey(Restaurant, related_name="")
+	#restaurant3 = models.ForeignKey(Restaurant, related_name="")
+	#restaurant4 = models.ForeignKey(Restaurant, related_name="")
 
