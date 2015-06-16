@@ -16,6 +16,8 @@ class Restaurant(models.Model):
 	# TODO is this for a restaurant description or worker instructions?
 	text = models.CharField(max_length=200)
 
+	predicateStatus = models.CommaSeparatedIntegerField(max_length=5, default ='5,5,5')
+
 	def __unicode__(self):
 		return self.name
 
