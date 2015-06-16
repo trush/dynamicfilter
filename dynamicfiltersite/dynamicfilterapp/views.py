@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
-from models import Restaurant, RestaurantPredicate, Task
+from models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 from django.db import models
 from .forms import WorkerForm, IDForm
 from django import forms
@@ -163,12 +163,10 @@ def eddy(ID):
     completedTasks = Task.objects.filter(workerID=ID)
     # find all the predicates matching these completed tasks
     completedPredicates = RestaurantPredicate.objects.filter(
-        id__in=completedTasks.values('predicate_id'))
+        id__in=completedTasks.values('restaurantPredicate_id'))
        
     # Find all PredicateBranches with open space and that haven't been completed by this worker
-    allPredicateBranches = PredicateBranch.objects.
-        filter(length<MAX_QUEUE_LENGTH).
-        exclude(question__in=completedPredicates.values('question'))
+    allPredicateBranches = PredicateBranch.objects.filter(queueLength__lt=MAX_QUEUE_LENGTH).exclude(question__in=completedPredicates.values('question'))
     
     totalTickets = 0
     for predicateBranch in allPredicateBranches:
