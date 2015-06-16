@@ -58,3 +58,21 @@ class Task(models.Model):
 
 	def __unicode__(self):
 		return "Task from worker " + str(self.workerID)
+
+
+class PredicateBranch(models.Model):
+	#the predicate that this branch is associated with
+	restaurantPredicate = models.ForeignKey(RestaurantPredicate)
+
+	#num of tickets this predicate branch has
+	numTickets = models.IntegerField(default = 1)
+
+	#the question associated with this predicate branch
+	question = models.CharField()
+
+	#foreign keys
+	restaurant1 = models.ForeignKey(Restaurant)
+	restaurant2 = models.ForeignKey(Restaurant)
+	restaurant3 = models.ForeignKey(Restaurant)
+	restaurant4 = models.ForeignKey(Restaurant)
+
