@@ -78,3 +78,4 @@ class PredicateBranch(models.Model):
     end = models.ForeignKey(Restaurant, related_name="restaurant2")
     queueLength = models.IntegerField(default=0)
 
+
