@@ -137,42 +137,13 @@ def aggregate_responses():
             predicate.leftToAsk += 3
         predicate.save()
 
-
-# def find_unanswered_predicate(IDnumber):
-#     """
-#     Finds the first predicate that the worker hasn't answered and that still needs answers.
-#     params: IDnumber, the ID of the worker filling out the form
-#     returns: a predicate matching the above criteria, or None if no predicates match.
-#     """
-#     # get all the RestaurantPredicates in the database that still need answers
-#     restaurantPredicates = RestaurantPredicate.objects.filter(leftToAsk__gt = 0)
-
-#     # if there aren't any RestaurantPredicates needing answers return None
-#     if not restaurantPredicates.exists():
-#         return None
-
-#     # set the return value to a default of None
-#     toBeAnswered = None
-
-#     for predicate in restaurantPredicates:
-
-#         # find all the tasks associated with a particular predicate and this worker
-#         tasks = Task.objects.filter(restaurantPredicate = predicate, workerID = IDnumber)
-        
-#         # if that set is empty, break
-#         if not tasks.exists():
-#             toBeAnswered = predicate
-#             break
-
-#     return toBeAnswered
-
 def eddy(request, ID):
     """
     Uses a random lottery system to determine which eligible predicate should be
     evaluated next.
     """
     debug = True
-    if debug: print "------STARTED eddy()------"
+    if debug: print "------FINDING ELIGIBLE BRANCHES FOR LOTTERY-----"
 
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
@@ -185,64 +156,62 @@ def eddy(request, ID):
     
     if debug: print "------STARTING LOTTERY------"
 
-    totalTickets = findTotalTickets()
-        
-    # generate random number between 1 and totalTickets
-    if totalTickets > 0: # this is when there is a predicate branch that is not full and not completed by the worker
-        randomNum = random.randint(1,totalTickets)
-    else: # if worker has answered all of them, return None
-        return None
-
-    if debug: print "------FINDING PREDICATE BRANCH------"
-    #generates the predicate branch that the next restaurant will be sent to
-    predicateBranchResult = findPredicateBranch(allPredicateBranches, randomNum)
-    selectedPredicateBranch = predicateBranchResult[0]
-    selectedBranchIndex = predicateBranchResult[1]
+    chosenBranch = runLottery(allPredicateBranches)
     
     if debug: print "------FINDING RESTAURANT------"
     # generates the restaurant with the highest priority for the specified predicate branch
-    selectedRestaurant = findRestaurant(selectedBranchIndex)
+    chosenRestaurant = findRestaurant(chosenBranch)
     
     # put Restaurant into queue of corresponding PredicateBranch (increment tickets)
-    insertIntoQueue(selectedRestaurant, selectedPredicateBranch)
+    insertIntoQueue(chosenRestaurant, chosenBranch)
 
     # Find the RestaurantPredicate corresponding to this Restaurant and PredicateBranch
-    predicateResult = RestaurantPredicate.objects.filter(restaurant = selectedRestaurant, question = selectedPredicateBranch.question)
+    predicateResult = RestaurantPredicate.objects.filter(restaurant = chosenRestaurant, question = selectedPredicateBranch.question)
     print "Predicate to answer: " + str(predicateResult)
     return predicateResult
     
 
-def findPredicateBranch(allPredicateBranches, randomNum):
+def findTotalTickets(predicateBranchSet):
     """
-    finds predicate branch to send tuple to based on the lottery system
+    Finds the total number of "tickets" held by a set of PredicateBranches,
+    by turning selectivity into a useful integer.
+    Selectivity = (no's)/(total evaluated)
     """
-    lowBound = 1
-    highBound = allPredicateBranches[0].numTickets
+    totalTickets = 0
+    # award tickets based on computed selectivity
+    for pb in predicateBranchSet:
+        selectivity = float(pb.returnedNo)/float(pb.returnedTotal)
+        totalTickets += int(selectivity*1000)
+    return int(totalTickets)
+
+def runLottery(predicateBranchSet):
+    totalTickets = findTotalTickets(predicateBranchSet)
+    rand = randint(1, totalTickets)
+    # check if rand falls in the range corresponding to each predicate
+    lowBound = 0
+    highBound = predicateBranchSet.selectivity*1000
     
-    # create an empty PredicateBranch (this is NOT saved into the database)
-    selectedPredicateBranch = PredicateBranch()
-    branchIndex = -1
-    
-    # check if the random number falls into the range corresponding to each predicate
-    for i in range(0, len(allPredicateBranches)):
-        if lowBound <= randomNum <= highBound:
-            # choose this PredicateBranch
-            selectedPredicateBranch = allPredicateBranches[i]
-            branchIndex = i
+    # an empty PredicateBranch object NOT saved in the database
+    chosenBranch = PredicateBranch()
+    for j in range(len(predicateBranchSet)):
+        if lowBound <= rand <= highBound:
+            chosenBranch = predicateBranchSet[j]
+            break
         else:
-            # We should never hit this case on the last predicate
-            lowBound = highBound+1
-            highBound += allPredicateBranches[i+1].numTickets
-            
-    return [selectedPredicateBranch, branchIndex]
+            lowBound = highBound
+            nextPredicateBranch = predicateBranchSet[j+1]
+            highBound += nextPredicateBranch.selectivity*1000
+
+    return chosenBranch
     
-def findRestaurant(branchIndex):
+def findRestaurant(predicateBranch):
     """
     finds the restaurant with the highest priority for a specified predicate branch
     """
     allRestaurants = Restaurant.objects.all()
     selectedRestaurant = Restaurant()
     highestPriority = -1
+    branchIndex = predicateBranch.index
     
     # find highest priority restaurant for that predicate based on predicateStatus
     for i in range(0, len(allRestaurants)):
