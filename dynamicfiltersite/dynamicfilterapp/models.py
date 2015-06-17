@@ -1,4 +1,5 @@
 from django.db import models
+from fields import CustomCommaSeparatedIntegerField
 from django.core.validators import RegexValidator
 
 class Restaurant(models.Model):
@@ -19,12 +20,16 @@ class Restaurant(models.Model):
     text = models.CharField(max_length=200)
 
     # the bits associated with the restaurant to see which predicates it still need to be evaluated by
-    predicateStatus = models.CommaSeparatedIntegerField(max_length=10, default ='5,5,5', validators=[RegexValidator(r'^[0-9]+,[0-9]+,[0-9]+$', 
-        'Only 3 integers separated by commas are allowed.')])
+    predicateStatus = CustomCommaSeparatedIntegerField(max_length=10, default ='5,5,5')
         
     # a reference to the next item in a the linked list (used if this
     # restaurant is part of a linked list)
     nextRestaurantID = models.IntegerField(blank=True, null=True, default=None)
+
+    def clean(self):
+        # Don't allow draft entries to have a pub_date.
+        if self.predicateStatus == '':   
+            raise ValidationError('Needs 3 integers.')
 
     def __unicode__(self):
         return self.name
