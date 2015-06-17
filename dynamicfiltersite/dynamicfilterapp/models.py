@@ -24,7 +24,7 @@ class Restaurant(models.Model):
         
     # a reference to the next item in a the linked list (used if this
     # restaurant is part of a linked list)
-    nextRestaurantID = models.IntegerField(blank=True, default=None)
+    nextRestaurantID = models.IntegerField(blank=True, null=True, default=None)
 
     def __unicode__(self):
         return self.name
@@ -46,7 +46,6 @@ class RestaurantPredicate(models.Model):
     def __unicode__(self):
         return self.question
 
-# [0-9]+,[0-9]+,[0-9]+
 class Task(models.Model):
     # the predicate that this task is answering
     restaurantPredicate = models.ForeignKey(RestaurantPredicate)
@@ -68,18 +67,16 @@ class Task(models.Model):
 
 
 class PredicateBranch(models.Model):
-    #the predicate that this branch is associated with
-    restaurantPredicate = models.ForeignKey(RestaurantPredicate)
-
-    #num of tickets this predicate branch has
-    numTickets = models.IntegerField(default = 1)
-
-    #the question associated with this predicate branch
+    # the same as the question of the corresponding RestaurantPredicate
     question = models.CharField(max_length=20)
 
-    # linked list pointers for the fixed-size queue
+    # the IDs of the Restaurants at the beginning and end
+    # of this PredicateBranch's queue
     start = models.IntegerField(null=True, blank=True)
     end = models.IntegerField(null=True, blank=True)
-    queueLength = models.IntegerField(default=0)
+
+    # fields to keep track of selectivity
+    returnedTotal = models.IntegerField(default=1)
+    returnedNo = models.IntegerField(default=1)
 
 

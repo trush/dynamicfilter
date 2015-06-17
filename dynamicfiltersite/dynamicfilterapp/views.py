@@ -34,7 +34,6 @@ def answer_question(request, IDnumber):
     Displays and processes input from a form where the user can answer a question about a
     predicate.
     """
-    #TODO eddy does not return anything, needs to return restaurantPredicate
     toBeAnswered = eddy(request, IDnumber)
 
     # if there are no predicates to be answered by the worker with this ID number
@@ -172,6 +171,9 @@ def eddy(request, ID):
     Uses a random lottery system to determine which eligible predicate should be
     evaluated next.
     """
+    debug = True
+    if debug: print "------STARTED eddy()------"
+
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
     # find all the predicates matching these completed tasks
@@ -181,26 +183,33 @@ def eddy(request, ID):
     # Find all PredicateBranches with open space and that haven't been completed by this worker
     allPredicateBranches = PredicateBranch.objects.exclude(question__in=completedPredicates.values('question'))
     
-    totalTickets = 0
-    for predicateBranch in allPredicateBranches:
-        totalTickets += predicateBranch.numTickets
+    if debug: print "------STARTING LOTTERY------"
+
+    totalTickets = findTotalTickets()
         
     # generate random number between 1 and totalTickets
     if totalTickets > 0: # this is when there is a predicate branch that is not full and not completed by the worker
         randomNum = random.randint(1,totalTickets)
-    else: # if worker has answered all of them, then go to no_questions page?
-        return render(request, 'dynamicfilterapp/no_questions.html', {'workerID': ID})
+    else: # if worker has answered all of them, return None
+        return None
 
-    #generates the predicate that the next restaurant will be sent to
-    predicateResult = findPredicateBranch(allPredicateBranches, randomNum)
-    selectedPredicateBranch = predicateResult[0]
-    selectedBranchIndex = predicateResult[1]
+    if debug: print "------FINDING PREDICATE BRANCH------"
+    #generates the predicate branch that the next restaurant will be sent to
+    predicateBranchResult = findPredicateBranch(allPredicateBranches, randomNum)
+    selectedPredicateBranch = predicateBranchResult[0]
+    selectedBranchIndex = predicateBranchResult[1]
     
+    if debug: print "------FINDING RESTAURANT------"
     # generates the restaurant with the highest priority for the specified predicate branch
     selectedRestaurant = findRestaurant(selectedBranchIndex)
     
     # put Restaurant into queue of corresponding PredicateBranch (increment tickets)
     insertIntoQueue(selectedRestaurant, selectedPredicateBranch)
+
+    # Find the RestaurantPredicate corresponding to this Restaurant and PredicateBranch
+    predicateResult = RestaurantPredicate.objects.filter(restaurant = selectedRestaurant, question = selectedPredicateBranch.question)
+    print "Predicate to answer: " + str(predicateResult)
+    return predicateResult
     
 
 def findPredicateBranch(allPredicateBranches, randomNum):
