@@ -26,10 +26,8 @@ class Restaurant(models.Model):
     # restaurant is part of a linked list)
     nextRestaurantID = models.IntegerField(blank=True, null=True, default=None)
 
-    def clean(self):
-        # Don't allow draft entries to have a pub_date.
-        if self.predicateStatus == '':   
-            raise ValidationError('Needs 3 integers.')
+    # boolean value for whether or not predicateStatus contains all zeros
+    isAllZeros = models.NullBooleanField(default = False)
 
     def __unicode__(self):
         return self.name
@@ -41,6 +39,9 @@ class Restaurant(models.Model):
 class RestaurantPredicate(models.Model):
     # the restaurant with which this predicate is affiliated
     restaurant = models.ForeignKey(Restaurant)
+
+    #index number associated with question
+    index = models.IntegerField(default = None)
 
     # question to ask the worker
     question = models.CharField(max_length=200, default='')

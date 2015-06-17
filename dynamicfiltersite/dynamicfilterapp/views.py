@@ -4,6 +4,7 @@ from models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 from django.db import models
 from .forms import WorkerForm, IDForm
 from django import forms
+from scipy.special import btdtr
 import random
 
 
@@ -67,7 +68,8 @@ def answer_question(request, IDnumber):
             task.save()
 
             # decrement the number of times this question still needs to be asked
-            toBeAnswered.leftToAsk = toBeAnswered.leftToAsk-1
+            toBeAnswered.restaurant.predicateStatus[toBeAnswered.index] -= 1
+            toBeAnswered.restaurant.isAllZeros = checkPredicateStatus(toBeAnswered.restaurant.predicateStatus)
             toBeAnswered.save()
 
             # redirect to a new URL:
@@ -79,6 +81,16 @@ def answer_question(request, IDnumber):
 
     return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 
         'workerID': IDnumber })
+
+
+def checkPredicateStatus(array):
+    """
+    Checks through the bits of a predicateStatus in order to see if it contains nonzero values
+    """
+    for integer in array:
+        if integer != 0:
+            return False
+    return True
 
 
 def completed_question(request, IDnumber):
@@ -103,8 +115,7 @@ def aggregate_responses():
     Combines worker responses into one value for the predicate.
     post: All predicates with leftToAsk = 0 have a set value.
     """
-    #TODO leftToAsk value does not exist anymore
-    eligiblePredicates = RestaurantPredicate.objects.filter(leftToAsk = 0).filter(value = None)
+    eligiblePredicates = RestaurantPredicate.objects.filter(isAllZeros = True).filter(value = None)
     
     # If no predicates need evaluation, exit
     if not eligiblePredicates.exists():
@@ -133,8 +144,8 @@ def aggregate_responses():
             predicate.value = False
         else:
             # collect three more responses from workers when there are same number of yes and no
-            #TODO predicate does not have leftToAsk value anymore
-            predicate.leftToAsk += 3
+            predicate.restaurant.predicateStatus[predicate.index] += 3
+            predicate.restaurant.isAllZeros = False
         predicate.save()
 
 def eddy(request, ID):

@@ -43,9 +43,9 @@ class RestaurantAdminForm(forms.ModelForm):
         instance.save()
         
         # Create the three associated predicates if they don't exist  yet
-        RestaurantPredicate.objects.get_or_create(restaurant=instance, question="Does this restaurant accept credit cards?")
-        RestaurantPredicate.objects.get_or_create(restaurant=instance, question="Is this a good restaurant for kids?")
-        RestaurantPredicate.objects.get_or_create(restaurant=instance, question="Does this restaurant serve Choco Pies?")
+        RestaurantPredicate.objects.get_or_create(index=0, restaurant=instance, question="Does this restaurant accept credit cards?")
+        RestaurantPredicate.objects.get_or_create(index=1, restaurant=instance, question="Is this a good restaurant for kids?")
+        RestaurantPredicate.objects.get_or_create(index=2, restaurant=instance, question="Does this restaurant serve Choco Pies?")
         
         return instance
 
