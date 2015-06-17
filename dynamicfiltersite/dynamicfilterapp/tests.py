@@ -126,20 +126,6 @@ class AnswerQuestionViewTests(TestCase):
         response = self.client.get('/dynamicfilterapp/answer_question/')
         self.assertEqual(response.status_code, 404)
 
-    def test_answer_question_view_works_with_3_digits(self):
-        """
-        tests answer_question view to see if it works with an ID number with 3 digits
-        """
-        self.assertEqual(len(RestaurantPredicate.objects.all()), 0)
-        response = self.client.get('/dynamicfilterapp/answer_question/id=000/', follow=True)
-        
-        print "REDIRECT CHAIN:"
-        print response.redirect_chain
-        
-        # Expect code 302 because this URL redirects to the no_questions page, since no
-        # predicates have been created for the worker to answer (?)
-        self.assertEqual(response.status_code, 200)
-
 
 class RestaurantCreationTests(TestCase):
     

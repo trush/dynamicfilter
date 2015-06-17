@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import RegexValidator
 
 class Restaurant(models.Model):
     # the name of the restaurant
@@ -18,8 +19,8 @@ class Restaurant(models.Model):
     text = models.CharField(max_length=200)
 
     # the bits associated with the restaurant to see which predicates it still need to be evaluated by
-    predicateStatus = models.CommaSeparatedIntegerField(max_length=5, 
-        default ='5,5,5')
+    predicateStatus = models.CommaSeparatedIntegerField(max_length=10, default ='5,5,5', validators=[RegexValidator(r'^[0-9]+,[0-9]+,[0-9]+$', 
+        'Only 3 integers separated by commas are allowed.')])
         
     # a reference to the next item in a the linked list (used if this
     # restaurant is part of a linked list)
@@ -45,7 +46,7 @@ class RestaurantPredicate(models.Model):
     def __unicode__(self):
         return self.question
 
-
+# [0-9]+,[0-9]+,[0-9]+
 class Task(models.Model):
     # the predicate that this task is answering
     restaurantPredicate = models.ForeignKey(RestaurantPredicate)
@@ -53,8 +54,11 @@ class Task(models.Model):
     # the answer provided by the worker, null until answered
     answer = models.NullBooleanField(default = None)
 
+    # the confidence level provided by the worker in his/her answer
+    confidenceLevel = models.IntegerField(default = None)
+
     # the worker's ID number
-    workerID = models.IntegerField(default = 0)
+    workerID = models.IntegerField(default = 0, unique=True)
 
     # the time it takes for the worker to complete a question
     completionTime = models.IntegerField(default = 0)

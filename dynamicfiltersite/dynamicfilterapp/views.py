@@ -6,8 +6,6 @@ from .forms import WorkerForm, IDForm
 from django import forms
 import random
 
-# The maximum length for the PredicateBranches' fixed-length queues
-MAX_QUEUE_LENGTH = 5
 
 def index(request):
     IDnumber = 888
@@ -36,7 +34,8 @@ def answer_question(request, IDnumber):
     Displays and processes input from a form where the user can answer a question about a
     predicate.
     """
-    toBeAnswered = eddy(IDnumber)
+    #TODO eddy does not return anything, needs to return restaurantPredicate
+    toBeAnswered = eddy(request, IDnumber)
 
     # if there are no predicates to be answered by the worker with this ID number
     if toBeAnswered == None:
@@ -63,6 +62,7 @@ def answer_question(request, IDnumber):
                 form_answer = False
 
             # create a new Task with relevant information and store it in the database
+            #TODO program breaks down at this line because toBeAnswered is nothing
             task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, 
                 workerID = IDnumber, completionTime = timeToComplete)
             task.save()
@@ -104,6 +104,7 @@ def aggregate_responses():
     Combines worker responses into one value for the predicate.
     post: All predicates with leftToAsk = 0 have a set value.
     """
+    #TODO leftToAsk value does not exist anymore
     eligiblePredicates = RestaurantPredicate.objects.filter(leftToAsk = 0).filter(value = None)
     
     # If no predicates need evaluation, exit
@@ -111,50 +112,62 @@ def aggregate_responses():
         return
 
     for predicate in eligiblePredicates:
-        # retrieves the number of yes answers and number of no answers for the predicate
-        numYes = len(Task.objects.filter(restaurantPredicate = predicate, answer = True))
-        numNo = len(Task.objects.filter(restaurantPredicate = predicate, answer = False))
+        # retrieves the number of yes answers and number of no answers for the predicate relative to the answers' confidence levels
+        yes = Task.objects.filter(restaurantPredicate = predicate, answer = True)
+        no = Task.objects.filter(restaurantPredicate = predicate, answer = False)
+
+        totalYes = 0
+        totalNo = 0
+
+        for pred in yes:
+            totalYes += pred.confidenceLevel
+            totalNo += 100 - pred.confidenceLevel
+
+        for pred in no:
+            totalYes += 100 - pred.confidenceLevel
+            totalNo += pred.confidenceLevel
 
         # a majority vote system
-        if numYes > numNo:
+        if totalYes > totalNo:
             predicate.value = True
-        elif numNo > numYes:
+        elif totalNo > totalYes:
             predicate.value = False
         else:
             # collect three more responses from workers when there are same number of yes and no
+            #TODO predicate does not have leftToAsk value anymore
             predicate.leftToAsk += 3
         predicate.save()
 
 
-def find_unanswered_predicate(IDnumber):
-    """
-    Finds the first predicate that the worker hasn't answered and that still needs answers.
-    params: IDnumber, the ID of the worker filling out the form
-    returns: a predicate matching the above criteria, or None if no predicates match.
-    """
-    # get all the RestaurantPredicates in the database that still need answers
-    restaurantPredicates = RestaurantPredicate.objects.filter(leftToAsk__gt = 0)
+# def find_unanswered_predicate(IDnumber):
+#     """
+#     Finds the first predicate that the worker hasn't answered and that still needs answers.
+#     params: IDnumber, the ID of the worker filling out the form
+#     returns: a predicate matching the above criteria, or None if no predicates match.
+#     """
+#     # get all the RestaurantPredicates in the database that still need answers
+#     restaurantPredicates = RestaurantPredicate.objects.filter(leftToAsk__gt = 0)
 
-    # if there aren't any RestaurantPredicates needing answers return None
-    if not restaurantPredicates.exists():
-        return None
+#     # if there aren't any RestaurantPredicates needing answers return None
+#     if not restaurantPredicates.exists():
+#         return None
 
-    # set the return value to a default of None
-    toBeAnswered = None
+#     # set the return value to a default of None
+#     toBeAnswered = None
 
-    for predicate in restaurantPredicates:
+#     for predicate in restaurantPredicates:
 
-        # find all the tasks associated with a particular predicate and this worker
-        tasks = Task.objects.filter(restaurantPredicate = predicate, workerID = IDnumber)
+#         # find all the tasks associated with a particular predicate and this worker
+#         tasks = Task.objects.filter(restaurantPredicate = predicate, workerID = IDnumber)
         
-        # if that set is empty, break
-        if not tasks.exists():
-            toBeAnswered = predicate
-            break
+#         # if that set is empty, break
+#         if not tasks.exists():
+#             toBeAnswered = predicate
+#             break
 
-    return toBeAnswered
+#     return toBeAnswered
 
-def eddy(ID):
+def eddy(request, ID):
     """
     Uses a random lottery system to determine which eligible predicate should be
     evaluated next.
@@ -166,15 +179,18 @@ def eddy(ID):
         id__in=completedTasks.values('restaurantPredicate_id'))
        
     # Find all PredicateBranches with open space and that haven't been completed by this worker
-    allPredicateBranches = PredicateBranch.objects.filter(queueLength__lt=MAX_QUEUE_LENGTH).exclude(question__in=completedPredicates.values('question'))
+    allPredicateBranches = PredicateBranch.objects.exclude(question__in=completedPredicates.values('question'))
     
     totalTickets = 0
     for predicateBranch in allPredicateBranches:
         totalTickets += predicateBranch.numTickets
         
     # generate random number between 1 and totalTickets
-    randomNum = random.randint(1,totalTickets)
-            
+    if totalTickets > 0: # this is when there is a predicate branch that is not full and not completed by the worker
+        randomNum = random.randint(1,totalTickets)
+    else: # if worker has answered all of them, then go to no_questions page?
+        return render(request, 'dynamicfilterapp/no_questions.html', {'workerID': ID})
+
     #generates the predicate that the next restaurant will be sent to
     predicateResult = findPredicateBranch(allPredicateBranches, randomNum)
     selectedPredicateBranch = predicateResult[0]
@@ -230,9 +246,6 @@ def insertIntoQueue(restaurant, predicateBranch):
     """
     Inserts a restaurant into the queue for a predicateBranch
     """
-    if __debug__:
-        if predicateBranch.length >= MAX_QUEUE_LENGTH: raise AssertionError
-            
     #checks whether or not predicateBranch has any restaurants in its queue
     if predicateBranch.queueLength == 0:
         predicateBranch.start = restaurant
