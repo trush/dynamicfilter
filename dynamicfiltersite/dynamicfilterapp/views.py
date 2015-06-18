@@ -1,12 +1,13 @@
+from django import forms
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
-from models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 from django.db import models
+
+from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 from .forms import WorkerForm, IDForm
-from django import forms
+
 from scipy.special import btdtr
 import random
-
 
 def index(request):
     # if this is a POST request we need to process the form data
@@ -217,13 +218,15 @@ def runLottery(predicateBranchSet):
 
     # check if rand falls in the range corresponding to each predicate
     lowBound = 0
-    selectivity = float(predicateBranchSet[0].returnedNo)/predicateBranchSet[0].returnedTotal
+    selectivity = float(predicateBranchSet[0].returnedNo)/
+        predicateBranchSet[0].returnedTotal
     highBound = selectivity*1000
     
     # an empty PredicateBranch object NOT saved in the database
     chosenBranch = PredicateBranch()
 
-    # loops through all predicate branches to see in which predicate branch rand falls in
+    # loops through all predicate branches to see in which predicate branch rand
+    # falls in
     for j in range(len(predicateBranchSet)):
         if lowBound <= rand <= highBound:
             chosenBranch = predicateBranchSet[j]
@@ -231,21 +234,24 @@ def runLottery(predicateBranchSet):
         else:
             lowBound = highBound
             nextPredicateBranch = predicateBranchSet[j+1]
-            nextSelectivity = float(nextPredicateBranch.returnedNo)/nextPredicateBranch.returnedTotal
-            highBound += nextSelectivity*1000
+            nextSelectivity = float(predicateBranchSet[0].returnedNo)/
+                predicateBranchSet[0].returnedTotal
+            highBound = nextSelectivity*1000
 
     return chosenBranch
     
 def findRestaurant(predicateBranch):
     """
-    finds the restaurant with the highest priority for a specified predicate branch
+    Finds the restaurant with the highest priority for a specified predicate 
+    branch
     """
     allRestaurants = Restaurant.objects.all()
     selectedRestaurant = Restaurant()
     highestPriority = -1
     branchIndex = predicateBranch.index
     
-    # find highest priority restaurant for that predicate based on predicateStatus
+    # find highest priority restaurant for that predicate based on 
+    # predicateStatus
     for i in range(0, len(allRestaurants)):
         if allRestaurants[i].predicateStatus[branchIndex] < highestPriority:
             highestPriority = allRestaurants[i].predicateStatus[branchIndex]
@@ -265,7 +271,8 @@ def insertIntoQueue(restaurant, predicateBranch):
     # newly added restaurant goes to end of linked list (queue)    
     predicateBranch.end = restaurant
     
-    # increase variable that is keeping track of how many restaurants are in the queue
+    # increase variable that is keeping track of how many restaurants are in the
+    # queue
     predicateBranch.queueLength += 1
     
     # increases the number of tickets the predicate has
