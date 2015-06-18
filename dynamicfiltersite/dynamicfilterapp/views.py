@@ -36,7 +36,7 @@ def answer_question(request, IDnumber):
     predicate.
     """
     toBeAnswered = eddy(request, IDnumber)
-
+    print "toBeAnswered: " + str(toBeAnswered)
     # if there are no predicates to be answered by the worker with this ID number
     if toBeAnswered == None:
         return HttpResponseRedirect('/dynamicfilterapp/no_questions/id=' + IDnumber)
