@@ -9,7 +9,7 @@ class CustomCommaSeparatedIntegerField(models.CharField):
 
     # contains additional custom RegexValidator
     default_validators = [validators.validate_comma_separated_integer_list, RegexValidator(r'^[0-9]+,[0-9]+,[0-9]+$')]
-
+    
     def formfield(self, **kwargs):
         # contains custom error message
         defaults = {
