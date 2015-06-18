@@ -62,7 +62,7 @@ class Task(models.Model):
     confidenceLevel = models.IntegerField(default=None)
 
     # the worker's ID number
-    workerID = models.IntegerField(default=0, unique=True)
+    workerID = models.IntegerField(default=0)
 
     # the time it takes for the worker to complete a question
     completionTime = models.IntegerField(default=0)

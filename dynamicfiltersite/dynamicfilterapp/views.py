@@ -218,8 +218,7 @@ def runLottery(predicateBranchSet):
 
     # check if rand falls in the range corresponding to each predicate
     lowBound = 0
-    selectivity = float(predicateBranchSet[0].returnedNo)/
-        predicateBranchSet[0].returnedTotal
+    selectivity = float(predicateBranchSet[0].returnedNo)/predicateBranchSet[0].returnedTotal 
     highBound = selectivity*1000
     
     # an empty PredicateBranch object NOT saved in the database
@@ -234,8 +233,7 @@ def runLottery(predicateBranchSet):
         else:
             lowBound = highBound
             nextPredicateBranch = predicateBranchSet[j+1]
-            nextSelectivity = float(predicateBranchSet[0].returnedNo)/
-                predicateBranchSet[0].returnedTotal
+            nextSelectivity = float(predicateBranchSet[0].returnedNo)/predicateBranchSet[0].returnedTotal
             highBound = nextSelectivity*1000
 
     return chosenBranch
