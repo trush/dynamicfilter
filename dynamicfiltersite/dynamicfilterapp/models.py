@@ -21,12 +21,15 @@ class Restaurant(models.Model):
 
     # keep track of how many times each predicate still needs to be evaluated
     # hard-coded to three predicates for now
+    predicate0Status = models.IntegerField(default=5)
     predicate1Status = models.IntegerField(default=5)
     predicate2Status = models.IntegerField(default=5)
-    predicate3Status = models.IntegerField(default=5)
 
     # boolean value for whether or not predicateStatus contains all zeros
     isAllZeros = models.NullBooleanField(default = False)
+
+    # the index of the PredicateBranch currently evaluating this Restaurant (None if it's not currently being evaluated)
+    evaluator = models.IntegerField(null=True,blank=True,default=None)
 
     def __unicode__(self):
         return self.name
@@ -72,8 +75,12 @@ class Task(models.Model):
 
 
 class PredicateBranch(models.Model):
+    # the index of this branch of the eddy 
+    # corresponds to the index in the matching RestaurantPredicates
+    index = models.IntegerField(default=None)
+
     # the same as the question of the corresponding RestaurantPredicate
-    question = models.CharField(max_length=20)
+    question = models.CharField(max_length=200)
 
     # the IDs of the Restaurants at the beginning and end of this 
     # PredicateBranch's queue

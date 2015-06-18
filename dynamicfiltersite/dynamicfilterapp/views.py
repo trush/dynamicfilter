@@ -10,6 +10,7 @@ from scipy.special import btdtr
 import random
 
 def index(request):
+    # Filler ID number value
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
@@ -26,7 +27,7 @@ def index(request):
     else:
         form = IDForm()
 
-    return render(request, 'dynamicfilterapp/index.html', {'form': form, 'workerID' : IDnumber})
+    return render(request, 'dynamicfilterapp/index.html', {'form': form})
 
 
 def answer_question(request, IDnumber):
@@ -118,16 +119,19 @@ def aggregate_responses():
     Combines worker responses into one value for the predicate.
     post: All predicates with leftToAsk = 0 have a set value.
     """
-    eligiblePredicates = RestaurantPredicate.objects.filter(isAllZeros = True).filter(value = None)
+    eligiblePredicates = RestaurantPredicate.objects.filter(isAllZeros=True).filter(value=None)
     
     # If no predicates need evaluation, exit
     if not eligiblePredicates.exists():
         return
 
     for predicate in eligiblePredicates:
-        # retrieves the number of yes answers and number of no answers for the predicate relative to the answers' confidence levels
-        yes = Task.objects.filter(restaurantPredicate = predicate, answer = True)
-        no = Task.objects.filter(restaurantPredicate = predicate, answer = False)
+        # retrieves the number of yes answers and number of no answers for the 
+        # predicate relative to the answers' confidence levels
+        yes = Task.objects.filter(restaurantPredicate=predicate, 
+            answer = True)
+        no = Task.objects.filter(restaurantPredicate=predicate, 
+            answer = False)
 
         # initialize the number of yes's and no's to 0
         totalYes = 0.0
@@ -142,7 +146,8 @@ def aggregate_responses():
 
         # for all predicates answered no
         for pred in no:
-            # increase total number of no by 100 - the confidence level indicated
+            # increase total number of no by 100 - the confidence level 
+            # indicated
             totalYes += 1 - pred.confidenceLevel/100.0
             # increase total number of no by confidence level indicated
             totalNo += pred.confidenceLevel/100.0
@@ -153,7 +158,8 @@ def aggregate_responses():
         elif totalNo > totalYes:
             predicate.value = False
         else:
-            # collect three more responses from workers when there are same number of yes and no
+            # collect three more responses from workers when there are same 
+            # number of yes and no
             predicate.restaurant.predicateStatus[predicate.index] += 3
             predicate.restaurant.isAllZeros = False
         predicate.save()
@@ -172,8 +178,10 @@ def eddy(request, ID):
     completedPredicates = RestaurantPredicate.objects.filter(
         id__in=completedTasks.values('restaurantPredicate_id'))
        
-    # Find all PredicateBranches with open space and that haven't been completed by this worker
-    allPredicateBranches = PredicateBranch.objects.exclude(question__in=completedPredicates.values('question'))
+    # Find all PredicateBranches with open space and that haven't been completed
+    # by this worker
+    allPredicateBranches = PredicateBranch.objects.exclude(
+        question__in=completedPredicates.values('question'))
     
     if debug: print "------STARTING LOTTERY------"
 
@@ -181,28 +189,32 @@ def eddy(request, ID):
     
     if debug: print "------FINDING RESTAURANT------"
 
-    # generates the restaurant with the highest priority for the specified predicate branch
+    # generates the restaurant with the highest priority for the specified 
+    # predicate branch
     chosenRestaurant = findRestaurant(chosenBranch)
     
-    # put Restaurant into queue of corresponding PredicateBranch (increment tickets)
-    insertIntoQueue(chosenRestaurant, chosenBranch)
+    #  mark chosenRestaurant as being in chosenBranch
+    chosenRestaurant.evaluator = chosenBranch.index
 
-    # Find the RestaurantPredicate corresponding to this Restaurant and PredicateBranch
-    predicateResult = RestaurantPredicate.objects.filter(restaurant = chosenRestaurant, question = selectedPredicateBranch.question)
-    print "Predicate to answer: " + str(predicateResult)
+    # Find the RestaurantPredicate corresponding to this Restaurant and 
+    # PredicateBranch
+    chosenPredicate = RestaurantPredicate.objects.filter(restaurant = 
+        chosenRestaurant, question = chosenBranch.question)
+    print "Predicate to answer: " + str(chosenPredicate)
 
-    return predicateResult
+    return chosenPredicate
     
 
-def findTotalTickets(predicateBranchSet):
+def findTotalTickets(pbSet):
     """
-    Finds the total number of "tickets" held by a set of PredicateBranches, by turning selectivity into a useful integer.
+    Finds the total number of "tickets" held by a set of PredicateBranches, by 
+    turning selectivity into a useful integer.
     Selectivity = (no's)/(total evaluated)
     """
     totalTickets = 0
 
     # award tickets based on computed selectivity
-    for pb in predicateBranchSet:
+    for pb in pbSet:
         selectivity = float(pb.returnedNo)/float(pb.returnedTotal)
         totalTickets += int(selectivity*1000)
 
@@ -210,53 +222,47 @@ def findTotalTickets(predicateBranchSet):
 
     return int(totalTickets)
 
-def runLottery(predicateBranchSet):
-    totalTickets = findTotalTickets(predicateBranchSet)
+def runLottery(pbSet):
+    totalTickets = findTotalTickets(pbSet)
 
     # generate random number between 1 and totalTickets
     rand = random.randint(1, totalTickets)
 
     # check if rand falls in the range corresponding to each predicate
     lowBound = 0
-    selectivity = float(predicateBranchSet[0].returnedNo)/
-        predicateBranchSet[0].returnedTotal
+    selectivity = float(pbSet[0].returnedNo)/pbSet[0].returnedTotal
     highBound = selectivity*1000
     
     # an empty PredicateBranch object NOT saved in the database
     chosenBranch = PredicateBranch()
-
     # loops through all predicate branches to see in which predicate branch rand
     # falls in
-    for j in range(len(predicateBranchSet)):
+    print "-------Check ranges --------"
+    for j in range(len(pbSet)):
+        print "random number: " + str(rand)
+        print "range: " + str(lowBound) + " to " + str(highBound)
         if lowBound <= rand <= highBound:
-            chosenBranch = predicateBranchSet[j]
+            chosenBranch = pbSet[j]
             break
         else:
             lowBound = highBound
-            nextPredicateBranch = predicateBranchSet[j+1]
-            nextSelectivity = float(predicateBranchSet[0].returnedNo)/
-                predicateBranchSet[0].returnedTotal
-            highBound = nextSelectivity*1000
+            nextPredicateBranch = pbSet[j+1]
+            nextSelectivity = float(pbSet[0].returnedNo)/pbSet[0].returnedTotal
+            highBound += nextSelectivity*1000
 
     return chosenBranch
     
 def findRestaurant(predicateBranch):
     """
     Finds the restaurant with the highest priority for a specified predicate 
-    branch
+    branch. Hard-coded to three predicates for now.
     """
-    allRestaurants = Restaurant.objects.all()
-    selectedRestaurant = Restaurant()
-    highestPriority = -1
-    branchIndex = predicateBranch.index
-    
-    # find highest priority restaurant for that predicate based on 
-    # predicateStatus
-    for i in range(0, len(allRestaurants)):
-        if allRestaurants[i].predicateStatus[branchIndex] < highestPriority:
-            highestPriority = allRestaurants[i].predicateStatus[branchIndex]
-            selectedRestaurant = allRestaurants[i]
-    return selectedRestaurant
+    if predicateBranch.index==0:
+        return Restaurant.objects.order_by('-predicate0Status')[0]
+    elif predicateBranch.index==1:
+        return Restaurant.objects.order_by('-predicate1Status')[0]
+    elif predicateBranch.index==2:
+        return Restaurant.objects.order_by('-predicate2Status')[0]
 
 def insertIntoQueue(restaurant, predicateBranch):
     """
