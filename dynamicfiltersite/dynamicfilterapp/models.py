@@ -2,6 +2,8 @@ from django.db import models
 from fields import CustomCommaSeparatedIntegerField
 from django.core.validators import RegexValidator
 
+fields = ['predicate0', 'predicate1', 'predicate2']
+
 class Restaurant(models.Model):
     # the name of the restaurant
     name = models.CharField(max_length=50)
@@ -25,6 +27,8 @@ class Restaurant(models.Model):
     predicate1Status = models.IntegerField(default=5)
     predicate2Status = models.IntegerField(default=5)
 
+    numOfPredicates = models.IntegerField(default=3)
+
     # boolean value for whether or not predicateStatus contains all zeros
     isAllZeros = models.NullBooleanField(default = False)
 
@@ -37,6 +41,9 @@ class Restaurant(models.Model):
     class Meta:
         # no two restaurants can have the same address
         unique_together = ("street", "city", "state", "zipCode", "country")
+
+for field in fields:
+    Restaurant.add_to_class(field, models.IntegerField(default=5))
 
 class RestaurantPredicate(models.Model):
     # the restaurant with which this predicate is affiliated

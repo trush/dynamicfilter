@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'dynamicfiltersite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dynamicfilter2',
+        'NAME': 'dynamicfilter4',
         'USER': 'webapp',
         'PASSWORD': 'dynamicfilter',
     }
