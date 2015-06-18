@@ -20,10 +20,9 @@ class Restaurant(models.Model):
     text = models.CharField(max_length=200)
 
     # the bits associated with the restaurant to see which predicates it still need to be evaluated by
-    predicateStatus = CustomCommaSeparatedIntegerField(max_length=10, default ='5,5,5')
+    numOfPredicates = models.IntegerField(min_value=1, default=None)
         
-    # a reference to the next item in a the linked list (used if this
-    # restaurant is part of a linked list)
+    # a reference to the next item in a the linked list (used if this restaurant is part of a linked list)
     nextRestaurantID = models.IntegerField(blank=True, null=True, default=None)
 
     # boolean value for whether or not predicateStatus contains all zeros
@@ -40,7 +39,7 @@ class RestaurantPredicate(models.Model):
     # the restaurant with which this predicate is affiliated
     restaurant = models.ForeignKey(Restaurant)
 
-    #index number associated with question
+    # index number associated with question
     index = models.IntegerField(default = None)
 
     # question to ask the worker
@@ -76,8 +75,7 @@ class PredicateBranch(models.Model):
     # the same as the question of the corresponding RestaurantPredicate
     question = models.CharField(max_length=20)
 
-    # the IDs of the Restaurants at the beginning and end
-    # of this PredicateBranch's queue
+    # the IDs of the Restaurants at the beginning and end of this PredicateBranch's queue
     start = models.IntegerField(null=True, blank=True)
     end = models.IntegerField(null=True, blank=True)
 

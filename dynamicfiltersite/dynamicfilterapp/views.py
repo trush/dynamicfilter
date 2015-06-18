@@ -9,8 +9,6 @@ import random
 
 
 def index(request):
-    IDnumber = 888
-    
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
@@ -56,19 +54,23 @@ def answer_question(request, IDnumber):
             # Convert entered answer to type compatible with NullBooleanField
             form_answer = None
 
+            # if worker answered Yes
             if form.cleaned_data['answerToQuestion'] == "True":
                 form_answer = True
+
+            # if worker answered No
             elif form.cleaned_data['answerToQuestion'] == "False":
                 form_answer = False
 
             # create a new Task with relevant information and store it in the database
-            #TODO program breaks down at this line because toBeAnswered is nothing
             task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, 
                 workerID = IDnumber, completionTime = timeToComplete)
             task.save()
 
-            # decrement the number of times this question still needs to be asked
+            # decrement the number of times this question still needs to be asked by 1
             toBeAnswered.restaurant.predicateStatus[toBeAnswered.index] -= 1
+
+            # check if restaurant has been evaluated fully by all predicates
             toBeAnswered.restaurant.isAllZeros = checkPredicateStatus(toBeAnswered.restaurant.predicateStatus)
             toBeAnswered.save()
 
@@ -126,16 +128,23 @@ def aggregate_responses():
         yes = Task.objects.filter(restaurantPredicate = predicate, answer = True)
         no = Task.objects.filter(restaurantPredicate = predicate, answer = False)
 
-        totalYes = 0
-        totalNo = 0
+        # initialize the number of yes's and no's to 0
+        totalYes = 0.0
+        totalNo = 0.0
 
+        # for all predicates answered yes
         for pred in yes:
-            totalYes += pred.confidenceLevel
-            totalNo += 100 - pred.confidenceLevel
+            # increase total number of yes by the confidence level indicated
+            totalYes += pred.confidenceLevel/100.0
+            # increase total number of no by 100 - confidence level indicated
+            totalNo += 1 - pred.confidenceLevel/100.0
 
+        # for all predicates answered no
         for pred in no:
-            totalYes += 100 - pred.confidenceLevel
-            totalNo += pred.confidenceLevel
+            # increase total number of no by 100 - the confidence level indicated
+            totalYes += 1 - pred.confidenceLevel/100.0
+            # increase total number of no by confidence level indicated
+            totalNo += pred.confidenceLevel/100.0
 
         # a majority vote system
         if totalYes > totalNo:
@@ -170,6 +179,7 @@ def eddy(request, ID):
     chosenBranch = runLottery(allPredicateBranches)
     
     if debug: print "------FINDING RESTAURANT------"
+
     # generates the restaurant with the highest priority for the specified predicate branch
     chosenRestaurant = findRestaurant(chosenBranch)
     
@@ -179,31 +189,38 @@ def eddy(request, ID):
     # Find the RestaurantPredicate corresponding to this Restaurant and PredicateBranch
     predicateResult = RestaurantPredicate.objects.filter(restaurant = chosenRestaurant, question = selectedPredicateBranch.question)
     print "Predicate to answer: " + str(predicateResult)
+
     return predicateResult
     
 
 def findTotalTickets(predicateBranchSet):
     """
-    Finds the total number of "tickets" held by a set of PredicateBranches,
-    by turning selectivity into a useful integer.
+    Finds the total number of "tickets" held by a set of PredicateBranches, by turning selectivity into a useful integer.
     Selectivity = (no's)/(total evaluated)
     """
     totalTickets = 0
+
     # award tickets based on computed selectivity
     for pb in predicateBranchSet:
         selectivity = float(pb.returnedNo)/float(pb.returnedTotal)
         totalTickets += int(selectivity*1000)
+
     return int(totalTickets)
 
 def runLottery(predicateBranchSet):
     totalTickets = findTotalTickets(predicateBranchSet)
+
+    # generate random number between 1 and totalTickets
     rand = randint(1, totalTickets)
+
     # check if rand falls in the range corresponding to each predicate
     lowBound = 0
     highBound = predicateBranchSet.selectivity*1000
     
     # an empty PredicateBranch object NOT saved in the database
     chosenBranch = PredicateBranch()
+
+    # loops through all predicate branches to see in which predicate branch rand falls in
     for j in range(len(predicateBranchSet)):
         if lowBound <= rand <= highBound:
             chosenBranch = predicateBranchSet[j]
@@ -241,11 +258,11 @@ def insertIntoQueue(restaurant, predicateBranch):
     else:
         predicateBranch.end.nextRestaurantID = restaurant.id
         
-    #newly added restaurant goes to end of linked list (queue)    
+    # newly added restaurant goes to end of linked list (queue)    
     predicateBranch.end = restaurant
     
-    #increase variable that is keeping track of how many restaurants are in the queue
+    # increase variable that is keeping track of how many restaurants are in the queue
     predicateBranch.queueLength += 1
     
-    #increases the number of tickets the predicate has
+    # increases the number of tickets the predicate has
     predicateBranch.numTickets += 1

@@ -5,14 +5,14 @@ class WorkerForm(forms.Form):
     """
     sets up a form for the worker to answer questions
     """
-    #choice fields for worker answering predicates
+    # choice fields for worker answering predicates
     WORKER_ANSWER_CHOICES = (
         (None, "------"),
         (True, 'Yes'),
         (False, 'No'),
     )
 
-    #how confident a worker is in his/her answer
+    # how confident a worker is in his/her answer
     CONFIDENCE_LEVELS = (
         (None, '------'),
         ('50', '50%'),
@@ -23,7 +23,7 @@ class WorkerForm(forms.Form):
         ('100', '100%'),
     )
 
-    #sets up form for answering predicate and worker's confidence level
+    # sets up form for answering predicate and worker's confidence level
     answerToQuestion = forms.ChoiceField(choices=WORKER_ANSWER_CHOICES, label='Your answer')
     confidenceLevel = forms.ChoiceField(choices=CONFIDENCE_LEVELS, label='Confidence level')
 

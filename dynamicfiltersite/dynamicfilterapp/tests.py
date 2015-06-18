@@ -151,8 +151,4 @@ class NoQuestionViewTests(TestCase):
         """
        response = self.client.get(reverse('no_questions', args=[self.WORKER_ID]))
        self.assertContains(response, 
-           "There are no more questions to be answered at this time.")
-
-
-
-       
+           "There are no more questions to be answered at this time.")   
