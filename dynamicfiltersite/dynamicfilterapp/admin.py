@@ -1,7 +1,7 @@
 from django.contrib import admin
 from forms import RestaurantAdminForm
 
-from .models import Restaurant, RestaurantPredicate, Task
+from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 
 class RestaurantAdmin(admin.ModelAdmin):
     form = RestaurantAdminForm
@@ -29,3 +29,4 @@ class RestaurantPredicateAdmin(admin.ModelAdmin):
 admin.site.register(Restaurant, RestaurantAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(RestaurantPredicate, RestaurantPredicateAdmin)
+admin.site.register(PredicateBranch)

@@ -1,3 +1,5 @@
+# A draft version of the eddy lottery code (to build independently and then 
+# integrate)
 # -*- coding: utf-8 -*-
 from random import randint, choice, random
 
@@ -24,17 +26,21 @@ class LotteryTestClass:
             lowBound = 0
             highBound = self.predicates[0][3]*100
             for j in range(len(self.predicates)):
-                if self.debug: print "Finding if in range of predicate " + str(j) + "low: " + str(lowBound) + ", high: " + str(highBound)
+                if self.debug: print "Finding if in range of predicate " + 
+                    str(j) + "low: " + str(lowBound) + ", high: " + 
+                    str(highBound)
                 if lowBound <= rand <= highBound:
                     self.evaluatePredicate(self.predicates[j])
                     break
                 else:
-                    if self.debug: print "Moving to next range on predicate " + str(j)
+                    if self.debug: print "Moving to next range on predicate " + 
+                        str(j)
                     lowBound = highBound
                     if self.debug: print "j: " + str(j) 
                     nextPredicate = self.predicates[j+1]
                     highBound += nextPredicate[3]*100
-                    if self.debug: print "new low: " + str(lowBound) + "new high: " + str(highBound)
+                    if self.debug: print "new low: " + str(lowBound) + 
+                        "new high: " + str(highBound)
 
         # print results
         print "\n"

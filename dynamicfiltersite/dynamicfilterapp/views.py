@@ -193,14 +193,16 @@ def findTotalTickets(predicateBranchSet):
     for pb in predicateBranchSet:
         selectivity = float(pb.returnedNo)/float(pb.returnedTotal)
         totalTickets += int(selectivity*1000)
+    print "TOTAL TICKETS: " + str(totalTickets)
     return int(totalTickets)
 
 def runLottery(predicateBranchSet):
     totalTickets = findTotalTickets(predicateBranchSet)
-    rand = randint(1, totalTickets)
+    rand = random.randint(1, totalTickets)
     # check if rand falls in the range corresponding to each predicate
     lowBound = 0
-    highBound = predicateBranchSet.selectivity*1000
+    selectivity = float(predicateBranchSet[0].returnedNo)/predicateBranchSet[0].returnedTotal
+    highBound = selectivity*1000
     
     # an empty PredicateBranch object NOT saved in the database
     chosenBranch = PredicateBranch()
@@ -211,7 +213,8 @@ def runLottery(predicateBranchSet):
         else:
             lowBound = highBound
             nextPredicateBranch = predicateBranchSet[j+1]
-            highBound += nextPredicateBranch.selectivity*1000
+            nextSelectivity = float(nextPredicateBranch.returnedNo)/nextPredicateBranch.returnedTotal
+            highBound += nextSelectivity*1000
 
     return chosenBranch
     
