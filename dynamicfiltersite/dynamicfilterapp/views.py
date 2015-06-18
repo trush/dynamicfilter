@@ -65,15 +65,18 @@ def answer_question(request, IDnumber):
                 form_answer = False
 
             # create a new Task with relevant information and store it in the database
-            task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, 
+            task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, confidenceLevel=form.cleaned_data['confidenceLevel'],
                 workerID = IDnumber, completionTime = timeToComplete)
             task.save()
 
             # decrement the number of times this question still needs to be asked by 1
-            toBeAnswered.restaurant.predicateStatus[toBeAnswered.index] -= 1
+            if toBeAnswered.index==0:
+                toBeAnswered.restaurant.predicate0Status += -1
+            elif toBeAnswered.index==1:
+                toBeAnswered.restaurant.predicate1Status += -1
+            elif toBeAnswered.index==2:
+                toBeAnswered.restaurant.predicate2Status += -1
 
-            # check if restaurant has been evaluated fully by all predicates
-            toBeAnswered.restaurant.isAllZeros = checkPredicateStatus(toBeAnswered.restaurant.predicateStatus)
             toBeAnswered.save()
 
             # redirect to a new URL:
@@ -187,7 +190,8 @@ def eddy(request, ID):
 
     chosenBranch = runLottery(allPredicateBranches)
     
-    if debug: print "------FINDING RESTAURANT------"
+    if chosenBranch==None:
+        return None
 
     # generates the restaurant with the highest priority for the specified 
     # predicate branch
@@ -199,7 +203,7 @@ def eddy(request, ID):
     # Find the RestaurantPredicate corresponding to this Restaurant and 
     # PredicateBranch
     chosenPredicate = RestaurantPredicate.objects.filter(restaurant = 
-        chosenRestaurant, question = chosenBranch.question)
+        chosenRestaurant, question = chosenBranch.question)[0]
     print "Predicate to answer: " + str(chosenPredicate)
 
     return chosenPredicate
@@ -223,7 +227,10 @@ def findTotalTickets(pbSet):
     return int(totalTickets)
 
 def runLottery(pbSet):
+    #TODO check that there are possible predicates
     totalTickets = findTotalTickets(pbSet)
+    if totalTickets==0:
+        return None
 
     # generate random number between 1 and totalTickets
     rand = random.randint(1, totalTickets)
