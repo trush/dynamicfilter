@@ -15,7 +15,7 @@ DECISION_THRESHOLD = 0.5
 
 # the uncertainty level determined by the beta distribution function needs to be less than 0.15
 # for us to fix the predicate's value
-UNCERTAINTY_THRESHOLD = 0.15
+UNCERTAINTY_THRESHOLD = 0.10
 
 def index(request):
     # Filler ID number value
@@ -178,8 +178,9 @@ def aggregate_responses(predicate):
             for field in predicate.restaurant._meta.fields:
                 # verbose_name is the field's name with underscores replaced with spaces
                 if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
-                    # sets value of the field with -1
-                    setattr(predicate.restaurant, field.verbose_name, -1)
+                    # sets value of the field with -1 if we don't have to ask the predicate any more times
+                    if getattr(restaurant, field.verbose_name) == 0:
+                        setattr(predicate.restaurant, field.verbose_name, -1)
 
             predicate.restaurant.save()
 
