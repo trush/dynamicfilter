@@ -9,7 +9,12 @@ from .forms import WorkerForm, IDForm
 from scipy.special import btdtr
 import random
 
+# we need at least half of the answers to be True in order for the value of the predicate to be True
+# and same for False's
 DECISION_THRESHOLD = 0.5
+
+# the uncertainty level determined by the beta distribution function needs to be less than 0.15
+# for us to fix the predicate's value
 UNCERTAINTY_THRESHOLD = 0.15
 
 def index(request):
@@ -43,8 +48,7 @@ def answer_question(request, IDnumber):
         # create a form instance and populate it with data from the request:
         form = WorkerForm(request.POST)
         toBeAnswered = RestaurantPredicate.objects.filter(id=request.POST.get('pred_id'))[0]
-        print toBeAnswered.restaurant._meta.get_all_field_names()
-
+        
         # check whether it's valid:
         if form.is_valid():
 
@@ -78,11 +82,14 @@ def answer_question(request, IDnumber):
                 pB.returnedNo += 1
             pB.save()
 
+            #decreases status of one predicate in the restaurant by 1 because it was just answered
             decrementStatus(toBeAnswered.index, toBeAnswered.restaurant)
 
+            # then aggregate responses to check if the predicate has been answered enough times to have a fixed value
             aggregate_responses(toBeAnswered)     
 
-            toBeAnswered.evaluator = None
+            # now the toBeAnswered restaurant comes out of the predicate branch and is not being evaluated anymore 
+            toBeAnswered.restaurant.evaluator = None
             
             toBeAnswered.save()
 
@@ -99,15 +106,6 @@ def answer_question(request, IDnumber):
         form = WorkerForm()
 
     return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 'workerID': IDnumber })
-
-def checkPredicateStatus(array):
-    """
-    Checks through the bits of a predicateStatus in order to see if it contains nonzero values
-    """
-    for integer in array:
-        if integer != 0:
-            return False
-    return True
 
 def completed_question(request, IDnumber):
     """
@@ -161,12 +159,13 @@ def aggregate_responses(predicate):
         uncertaintyLevel = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
         if uncertaintyLevel < UNCERTAINTY_THRESHOLD:
             predicate.value = False
-            predicate.restaurant.predicate0Status = -1
-            predicate.restaurant.predicate1Status = -1
-            predicate.restaurant.predicate2Status = -1
+            for field in predicate.restaurant._meta.fields:
+                if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
+                    setattr(predicate.restaurant, field.verbose_name, -1)
+            restaurant.save()
     
     if predicate.value==None:
-        # collect three more responses from workers when there are same 
+        # collect five more responses from workers when there are same 
         # number of yes and no
         incrementStatusByFive(predicate.index, predicate.restaurant)
 
@@ -214,21 +213,20 @@ def eddy(request, ID):
     return chosenPredicate
     
 def decrementStatus(index, restaurant):
-    if index==0 and restaurant.predicate0Status > 0:
-        restaurant.predicate0Status += -1
-    elif index==1 and restaurant.predicate1Status > 0:
-        restaurant.predicate1Status += -1
-    elif index==2 and restaurant.predicate2Status > 0:
-        restaurant.predicate2Status += -1
+    check = 'predicate' + str(index)
+    for field in restaurant._meta.fields:
+        if field.verbose_name.startswith(check) and field.verbose_name.endswith('Status'):
+            currentLeftToAsk = getattr(restaurant, field.verbose_name)
+            setattr(restaurant, field.verbose_name, currentLeftToAsk-1)
     restaurant.save()
 
 def incrementStatusByFive(index, restaurant):
-    if index==0:
-        restaurant.predicate0Status += 5
-    elif index==1:
-        restaurant.predicate1Status += 5
-    elif index==2:
-        restaurant.predicate2Status += 5
+    check = 'predicate' + str(index)
+    for field in restaurant._meta.fields:
+        if field.verbose_name.startswith(check) and field.verbose_name.endswith('Status'):
+            currentLeftToAsk = getattr(restaurant, field.verbose_name)
+            if currentLeftToAsk == 0:
+                setattr(restaurant, field.verbose_name, currentLeftToAsk+5)
     restaurant.save()
 
 def findTotalTickets(pbSet):
@@ -287,9 +285,6 @@ def findRestaurant(predicateBranch):
     Finds the restaurant with the highest priority for a specified predicate 
     branch. Hard-coded to three predicates for now.
     """
-    if predicateBranch.index==0:
-        return Restaurant.objects.order_by('-predicate0Status')[0]
-    elif predicateBranch.index==1:
-        return Restaurant.objects.order_by('-predicate1Status')[0]
-    elif predicateBranch.index==2:
-        return Restaurant.objects.order_by('-predicate2Status')[0]
+    orderByThisStatus = '-predicate' + str(predicateBranch.index) + 'Status'
+    return Restaurant.objects.order_by(orderByThisStatus)[0]
+    
