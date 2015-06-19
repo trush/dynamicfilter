@@ -104,26 +104,26 @@ class NoQuestionViewTests(TestCase):
         response = self.client.get(reverse('no_questions', args=[self.WORKER_ID]))
         self.assertContains(response, "There are no more questions to be answered at this time.")   
 
-class PredicateFailTest(TestCase):
-    def test_failed_flag(self):
-        """
-        Makes sure predicate status values are all set to -1 when one predicate fails,
-        """
-        r = enterRestaurant("Chipotle", 1)
+# class PredicateFailTest(TestCase):
+#     def test_failed_flag(self):
+#         """
+#         Makes sure predicate status values are all set to -1 when one predicate fails,
+#         """
+#         r = enterRestaurant("Chipotle", 1)
 
-        firstPredicate = RestaurantPredicate.objects.filter(restaurant=r)[0]
+#         firstPredicate = RestaurantPredicate.objects.filter(restaurant=r)[0]
 
-        # Answer no five times to one question
-        for i in range(5):
-            enterTask(i, False, 100, firstPredicate)
-            decrementStatus(firstPredicate.index, firstPredicate.restaurant)
+#         # Answer no five times to one question
+#         for i in range(5):
+#             enterTask(i, False, 100, firstPredicate)
+#             decrementStatus(firstPredicate.index, firstPredicate.restaurant)
 
-        aggregate_responses(firstPredicate)
+#         aggregate_responses(firstPredicate)
 
-        # Check that all three statuses are -1
-        self.assertEqual(r.predicate0Status,-1)
-        self.assertEqual(r.predicate1Status,-1)
-        self.assertEqual(r.predicate2Status,-1)
+#         # Check that all three statuses are -1
+#         self.assertEqual(r.predicate0Status,-1)
+#         self.assertEqual(r.predicate1Status,-1)
+#         self.assertEqual(r.predicate2Status,-1)
 
 
 
