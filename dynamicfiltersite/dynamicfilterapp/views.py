@@ -92,7 +92,7 @@ def answer_question(request, IDnumber):
     # if a GET (or any other method) we'll create a blank form
     else:
         toBeAnswered = eddy(request, IDnumber)
-        print "toBeAnswered: " + str(toBeAnswered)
+        #print "toBeAnswered: " + str(toBeAnswered)
         # if there are no predicates to be answered by the worker with this ID number
         if toBeAnswered == None:
             return HttpResponseRedirect('/dynamicfilterapp/no_questions/id=' + IDnumber)
@@ -178,7 +178,7 @@ def eddy(request, ID):
     evaluated next.
     """
     debug = True
-    if debug: print "------FINDING ELIGIBLE BRANCHES FOR LOTTERY-----"
+    #if debug: print "------FINDING ELIGIBLE BRANCHES FOR LOTTERY-----"
 
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
@@ -191,13 +191,13 @@ def eddy(request, ID):
     allPredicateBranches = PredicateBranch.objects.exclude(
         question__in=completedPredicates.values('question'))
     
-    if debug: print "------STARTING LOTTERY------"
-    print "size of all predicate branches: " + str(len(allPredicateBranches))
+    #if debug: print "------STARTING LOTTERY------"
+    #print "size of all predicate branches: " + str(len(allPredicateBranches))
     chosenBranch = runLottery(allPredicateBranches)
     
     if chosenBranch==None:
         return None
-    print "chosen branch: " + str(chosenBranch)
+    #print "chosen branch: " + str(chosenBranch)
     # generates the restaurant with the highest priority for the specified 
     # predicate branch
     chosenRestaurant = findRestaurant(chosenBranch)
@@ -209,7 +209,7 @@ def eddy(request, ID):
     # PredicateBranch
     chosenPredicate = RestaurantPredicate.objects.filter(restaurant = 
         chosenRestaurant, question = chosenBranch.question)[0]
-    print "Predicate to answer: " + str(chosenPredicate)
+    #print "Predicate to answer: " + str(chosenPredicate)
 
     return chosenPredicate
     
@@ -243,9 +243,9 @@ def findTotalTickets(pbSet):
     for pb in pbSet:
         selectivity = float(pb.returnedNo)/float(pb.returnedTotal)
         totalTickets += int(selectivity*1000)
-        print "total so far: " + str(totalTickets)
+        #print "total so far: " + str(totalTickets)
 
-    print "TOTAL TICKETS: " + str(totalTickets)
+    #print "TOTAL TICKETS: " + str(totalTickets)
 
     return int(totalTickets)
 
@@ -267,10 +267,10 @@ def runLottery(pbSet):
     chosenBranch = PredicateBranch()
     # loops through all predicate branches to see in which predicate branch rand
     # falls in
-    print "-------Check ranges --------"
+    #print "-------Check ranges --------"
     for j in range(len(pbSet)):
-        print "random number: " + str(rand)
-        print "range: " + str(lowBound) + " to " + str(highBound)
+        #print "random number: " + str(rand)
+        #print "range: " + str(lowBound) + " to " + str(highBound)
         if lowBound <= rand <= highBound:
             chosenBranch = pbSet[j]
             break
