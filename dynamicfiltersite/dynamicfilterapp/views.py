@@ -69,9 +69,10 @@ def answer_question(request, IDnumber):
              # get the PredicateBranch associated with this predicate
             pB = PredicateBranch.objects.filter(question=toBeAnswered.question)[0]
 
-            if task.answer = True:
+            # update the predicate branch's counts
+            if task.answer==rue:
                 pB.returnedTotal += 1
-            elif task.answer = False:
+            elif task.answer==False:
                 pB.returnedTotal += 1
                 pB.returnedNo += 1
 
@@ -162,7 +163,7 @@ def aggregate_responses(predicate):
             predicate.restaurant.predicate1Status = -1
             predicate.restaurant.predicate2Status = -1
     
-    if predicate.value = None:
+    if predicate.value==None:
         # collect three more responses from workers when there are same 
         # number of yes and no
         incrementStatusByFive(predicate.index, predicate.restaurant)
