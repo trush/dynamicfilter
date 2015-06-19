@@ -181,9 +181,9 @@ def aggregate_responses(predicate):
                     # sets value of the field with -1
                     setattr(predicate.restaurant, field.verbose_name, -1)
 
-            restaurant.save()
+            predicate.restaurant.save()
     
-    
+
     if predicate.value==None:
         # collect five more responses from workers when there are same 
         # number of yes and no
@@ -233,19 +233,34 @@ def eddy(request, ID):
     return chosenPredicate
     
 def decrementStatus(index, restaurant):
+    """
+    decrease the status by 1 once an answer has been submitted for that predicate
+    """
     check = 'predicate' + str(index)
+
+    # iterates through all the fields in restaurant
     for field in restaurant._meta.fields:
         if field.verbose_name.startswith(check) and field.verbose_name.endswith('Status'):
+            # gets the number times the predicate still needs to be asked to this restaurant
             currentLeftToAsk = getattr(restaurant, field.verbose_name)
+            #sets the field to currentLeftToAsk-1
             setattr(restaurant, field.verbose_name, currentLeftToAsk-1)
     restaurant.save()
 
 def incrementStatusByFive(index, restaurant):
+    """
+    increases the status by 5 because the answer is not certain
+    """
     check = 'predicate' + str(index)
+
+    # loops through all the fields in a model
     for field in restaurant._meta.fields:
         if field.verbose_name.startswith(check) and field.verbose_name.endswith('Status'):
+            # gets the number times the predicate still needs to be asked to this restaurant
             currentLeftToAsk = getattr(restaurant, field.verbose_name)
+            #if we don't have to ask the predicate again
             if currentLeftToAsk == 0:
+                #make it ask the predicate 5 more times because the answer is not certain enough
                 setattr(restaurant, field.verbose_name, currentLeftToAsk+5)
     restaurant.save()
 
@@ -268,7 +283,11 @@ def findTotalTickets(pbSet):
     return int(totalTickets)
 
 def runLottery(pbSet):
-    #TODO check that there are possible predicates
+    """
+    runs the lottery algorithm
+    """
+
+    #retrieves total num of tickets in valid predicates branches
     totalTickets = findTotalTickets(pbSet)
     if totalTickets==0:
         return None
@@ -283,16 +302,20 @@ def runLottery(pbSet):
     
     # an empty PredicateBranch object NOT saved in the database
     chosenBranch = PredicateBranch()
-    # loops through all predicate branches to see in which predicate branch rand
-    # falls in
+    # loops through all predicate branches to see in which predicate branch rand falls in
     #print "-------Check ranges --------"
+
+    # loops through all valid predicate branches
     for j in range(len(pbSet)):
         #print "random number: " + str(rand)
         #print "range: " + str(lowBound) + " to " + str(highBound)
+
+        # if rand is in this range, then go to this predicateBranch
         if lowBound <= rand <= highBound:
             chosenBranch = pbSet[j]
             break
         else:
+            # move on to next range of predicateBranch
             lowBound = highBound
             nextPredicateBranch = pbSet[j+1]
             nextSelectivity = float(nextPredicateBranch.returnedNo)/nextPredicateBranch.returnedTotal
