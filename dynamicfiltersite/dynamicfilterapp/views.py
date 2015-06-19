@@ -182,7 +182,6 @@ def aggregate_responses(predicate):
                     setattr(predicate.restaurant, field.verbose_name, -1)
 
             predicate.restaurant.save()
-    
 
     if predicate.value==None:
         # collect five more responses from workers when there are same 
