@@ -35,18 +35,13 @@ def answer_question(request, IDnumber):
     Displays and processes input from a form where the user can answer a question about a
     predicate.
     """
-    toBeAnswered = eddy(request, IDnumber)
-    print "toBeAnswered: " + str(toBeAnswered)
-    # if there are no predicates to be answered by the worker with this ID number
-    if toBeAnswered == None:
-        return HttpResponseRedirect('/dynamicfilterapp/no_questions/id=' + IDnumber)
 
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
 
         # create a form instance and populate it with data from the request:
         form = WorkerForm(request.POST)
-
+        toBeAnswered = RestaurantPredicate.objects.filter(id=request.POST.get('pred_id'))[0]
         # check whether it's valid:
         if form.is_valid():
 
@@ -69,13 +64,9 @@ def answer_question(request, IDnumber):
                 workerID = IDnumber, completionTime = timeToComplete)
             task.save()
 
-            # decrement the number of times this question still needs to be asked by 1
-            if toBeAnswered.index==0:
-                toBeAnswered.restaurant.predicate0Status += -1
-            elif toBeAnswered.index==1:
-                toBeAnswered.restaurant.predicate1Status += -1
-            elif toBeAnswered.index==2:
-                toBeAnswered.restaurant.predicate2Status += -1
+            decrementStatus(toBeAnswered.index, toBeAnswered.restaurant)
+
+            aggregate_responses(toBeAnswered)
 
             toBeAnswered.save()
 
@@ -84,10 +75,14 @@ def answer_question(request, IDnumber):
 
     # if a GET (or any other method) we'll create a blank form
     else:
+        toBeAnswered = eddy(request, IDnumber)
+        print "toBeAnswered: " + str(toBeAnswered)
+        # if there are no predicates to be answered by the worker with this ID number
+        if toBeAnswered == None:
+            return HttpResponseRedirect('/dynamicfilterapp/no_questions/id=' + IDnumber)
         form = WorkerForm()
 
-    return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 
-        'workerID': IDnumber })
+    return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 'workerID': IDnumber })
 
 
 def checkPredicateStatus(array):
@@ -105,7 +100,6 @@ def completed_question(request, IDnumber):
     Displays a page informing the worker that their answer was recorded, with a link to
     answer another question.
     """
-    aggregate_responses()
     return render(request, 'dynamicfilterapp/completed_question.html', {'workerID': IDnumber})
 
 
@@ -116,56 +110,48 @@ def no_questions(request, IDnumber):
     return render(request, 'dynamicfilterapp/no_questions.html', {'workerID': IDnumber})
 
 
-def aggregate_responses():
+def aggregate_responses(predicate):
     """
-    Checks for predicates that need to be answered 0 more times. 
+    Checks if predicate needs to be answered 0 more times. 
     Combines worker responses into one value for the predicate.
-    post: All predicates with leftToAsk = 0 have a set value.
     """
-    eligiblePredicates = RestaurantPredicate.objects.filter(isAllZeros=True).filter(value=None)
+    # If we still need to collect more responses
     
-    # If no predicates need evaluation, exit
-    if not eligiblePredicates.exists():
-        return
 
-    for predicate in eligiblePredicates:
-        # retrieves the number of yes answers and number of no answers for the 
-        # predicate relative to the answers' confidence levels
-        yes = Task.objects.filter(restaurantPredicate=predicate, 
-            answer = True)
-        no = Task.objects.filter(restaurantPredicate=predicate, 
-            answer = False)
+    # retrieves the number of yes answers and number of no answers for the 
+    # predicate relative to the answers' confidence levels
+    yes = Task.objects.filter(restaurantPredicate=predicate, answer = True)
+    no = Task.objects.filter(restaurantPredicate=predicate, answer = False)
 
-        # initialize the number of yes's and no's to 0
-        totalYes = 0.0
-        totalNo = 0.0
+    # initialize the number of yes's and no's to 0
+    totalYes = 0.0
+    totalNo = 0.0
 
-        # for all predicates answered yes
-        for pred in yes:
-            # increase total number of yes by the confidence level indicated
-            totalYes += pred.confidenceLevel/100.0
-            # increase total number of no by 100 - confidence level indicated
-            totalNo += 1 - pred.confidenceLevel/100.0
+    # for all predicates answered yes
+    for pred in yes:
+        # increase total number of yes by the confidence level indicated
+        totalYes += pred.confidenceLevel/100.0
+        # increase total number of no by 100 - confidence level indicated
+        totalNo += 1 - pred.confidenceLevel/100.0
 
-        # for all predicates answered no
-        for pred in no:
-            # increase total number of no by 100 - the confidence level 
-            # indicated
-            totalYes += 1 - pred.confidenceLevel/100.0
-            # increase total number of no by confidence level indicated
-            totalNo += pred.confidenceLevel/100.0
+    # for all predicates answered no
+    for pred in no:
+        # increase total number of no by 100 - the confidence level 
+        # indicated
+        totalYes += 1 - pred.confidenceLevel/100.0
+        # increase total number of no by confidence level indicated
+        totalNo += pred.confidenceLevel/100.0
 
-        # a majority vote system
-        if totalYes > totalNo:
-            predicate.value = True
-        elif totalNo > totalYes:
-            predicate.value = False
-        else:
-            # collect three more responses from workers when there are same 
-            # number of yes and no
-            predicate.restaurant.predicateStatus[predicate.index] += 3
-            predicate.restaurant.isAllZeros = False
-        predicate.save()
+    # a majority vote system
+    if totalYes > totalNo:
+        predicate.value = True
+    elif totalNo > totalYes:
+        predicate.value = False
+    else:
+        # collect three more responses from workers when there are same 
+        # number of yes and no
+        incrementStatusByFive(predicate.index, predicate.restaurant)
+    predicate.save()
 
 def eddy(request, ID):
     """
@@ -192,7 +178,7 @@ def eddy(request, ID):
     
     if chosenBranch==None:
         return None
-
+    print "chosen branch: " + str(chosenBranch)
     # generates the restaurant with the highest priority for the specified 
     # predicate branch
     chosenRestaurant = findRestaurant(chosenBranch)
@@ -208,6 +194,23 @@ def eddy(request, ID):
 
     return chosenPredicate
     
+def decrementStatus(index, restaurant):
+    if index==0:
+        restaurant.predicate0Status += -1
+    elif index==1:
+        restaurant.predicate1Status += -1
+    elif index==2:
+        restaurant.predicate2Status += -1
+    restaurant.save()
+
+def incrementStatusByFive(index, restaurant):
+    if index==0:
+        restaurant.predicate0Status += 500
+    elif index==1:
+        restaurant.predicate1Status += 500
+    elif index==2:
+        restaurant.predicate2Status += 500
+    restaurant.save()
 
 def findTotalTickets(pbSet):
     """

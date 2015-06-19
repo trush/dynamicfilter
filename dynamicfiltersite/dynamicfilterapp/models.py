@@ -98,4 +98,6 @@ class PredicateBranch(models.Model):
     returnedTotal = models.IntegerField(default=1)
     returnedNo = models.IntegerField(default=1)
 
+    def __unicode__(self):
+        return "Predicate branch with question: " + str(self.question)
 
