@@ -29,7 +29,6 @@ def index(request):
 
     return render(request, 'dynamicfilterapp/index.html', {'form': form})
 
-
 def answer_question(request, IDnumber):
     """
     Displays and processes input from a form where the user can answer a question about a
@@ -68,6 +67,8 @@ def answer_question(request, IDnumber):
 
             aggregate_responses(toBeAnswered)
 
+            toBeAnswered.evaluator = None
+            
             toBeAnswered.save()
 
             # redirect to a new URL:
@@ -84,7 +85,6 @@ def answer_question(request, IDnumber):
 
     return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 'workerID': IDnumber })
 
-
 def checkPredicateStatus(array):
     """
     Checks through the bits of a predicateStatus in order to see if it contains nonzero values
@@ -94,7 +94,6 @@ def checkPredicateStatus(array):
             return False
     return True
 
-
 def completed_question(request, IDnumber):
     """
     Displays a page informing the worker that their answer was recorded, with a link to
@@ -102,22 +101,17 @@ def completed_question(request, IDnumber):
     """
     return render(request, 'dynamicfilterapp/completed_question.html', {'workerID': IDnumber})
 
-
 def no_questions(request, IDnumber):
     """
     Displays a page informing the worker that no questions need answering by them.
     """
     return render(request, 'dynamicfilterapp/no_questions.html', {'workerID': IDnumber})
 
-
 def aggregate_responses(predicate):
     """
     Checks if predicate needs to be answered 0 more times. 
     Combines worker responses into one value for the predicate.
     """
-    # If we still need to collect more responses
-    
-
     # retrieves the number of yes answers and number of no answers for the 
     # predicate relative to the answers' confidence levels
     yes = Task.objects.filter(restaurantPredicate=predicate, answer = True)
@@ -142,15 +136,23 @@ def aggregate_responses(predicate):
         # increase total number of no by confidence level indicated
         totalNo += pred.confidenceLevel/100.0
 
+    # get the PredicateBranch associated with this predicate
+    pB = PredicateBranch.objects.filter(question=predicate.question)[0]
+
     # a majority vote system
     if totalYes > totalNo:
         predicate.value = True
+        pB.returnedTotal += 1
     elif totalNo > totalYes:
         predicate.value = False
+        pB.returnedTotal += 1
+        pB.returnedNo += 1
     else:
         # collect three more responses from workers when there are same 
         # number of yes and no
         incrementStatusByFive(predicate.index, predicate.restaurant)
+
+    pB.save()
     predicate.save()
 
 def eddy(request, ID):
@@ -195,11 +197,11 @@ def eddy(request, ID):
     return chosenPredicate
     
 def decrementStatus(index, restaurant):
-    if index==0:
+    if index==0 and restaurant.predicate0Status > 0:
         restaurant.predicate0Status += -1
-    elif index==1:
+    elif index==1 and restaurant.predicate1Status > 0:
         restaurant.predicate1Status += -1
-    elif index==2:
+    elif index==2 and restaurant.predicate2Status > 0:
         restaurant.predicate2Status += -1
     restaurant.save()
 
@@ -273,23 +275,3 @@ def findRestaurant(predicateBranch):
         return Restaurant.objects.order_by('-predicate1Status')[0]
     elif predicateBranch.index==2:
         return Restaurant.objects.order_by('-predicate2Status')[0]
-
-def insertIntoQueue(restaurant, predicateBranch):
-    """
-    Inserts a restaurant into the queue for a predicateBranch
-    """
-    #checks whether or not predicateBranch has any restaurants in its queue
-    if predicateBranch.queueLength == 0:
-        predicateBranch.start = restaurant
-    else:
-        predicateBranch.end.nextRestaurantID = restaurant.id
-        
-    # newly added restaurant goes to end of linked list (queue)    
-    predicateBranch.end = restaurant
-    
-    # increase variable that is keeping track of how many restaurants are in the
-    # queue
-    predicateBranch.queueLength += 1
-    
-    # increases the number of tickets the predicate has
-    predicateBranch.numTickets += 1
