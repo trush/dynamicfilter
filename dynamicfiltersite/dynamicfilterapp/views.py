@@ -74,13 +74,7 @@ def answer_question(request, IDnumber):
              # get the PredicateBranch associated with this predicate
             pB = PredicateBranch.objects.filter(question=toBeAnswered.question)[0]
 
-            # update the predicate branch's counts
-            if task.answer==True:
-                pB.returnedTotal += 1
-            elif task.answer==False:
-                pB.returnedTotal += 1
-                pB.returnedNo += 1
-            pB.save()
+            updateCounts(pB, task)
 
             #decreases status of one predicate in the restaurant by 1 because it was just answered
             decrementStatus(toBeAnswered.index, toBeAnswered.restaurant)
@@ -107,6 +101,17 @@ def answer_question(request, IDnumber):
 
     return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 'workerID': IDnumber })
 
+def updateCounts(pB, task):
+    """
+    updates the predicate branch's total and "No!" counts
+    """
+    if task.answer==True:
+        pB.returnedTotal += 1
+    elif task.answer==False:
+        pB.returnedTotal += 1
+        pB.returnedNo += 1
+    pB.save()
+
 def completed_question(request, IDnumber):
     """
     Displays a page informing the worker that their answer was recorded, with a link to
@@ -122,8 +127,9 @@ def no_questions(request, IDnumber):
 
 def aggregate_responses(predicate):
     """
-    Checks if predicate needs to be answered 0 more times. 
-    Combines worker responses into one value for the predicate.
+    Checks if predicate needs to be answered 0 more times. If uncertainty criteria are met,
+    combines worker responses into one value for the predicate. Otherwise, adds five to the 
+    appropriate predicateStatus so that more answers will be collected.
     """
     # retrieves the number of yes answers and number of no answers for the 
     # predicate relative to the answers' confidence levels
@@ -149,20 +155,34 @@ def aggregate_responses(predicate):
         # increase total number of no by confidence level indicated
         totalNo += pred.confidenceLevel/100.0
 
+    # uncertainty level with specified number of yes's and no's
     uncertaintyLevel = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
 
+    # if more yes's than no's
     if totalYes > totalNo:
         uncertaintyLevel = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
+
+        # if we fulfill the uncertainty threshold
         if uncertaintyLevel < UNCERTAINTY_THRESHOLD:
             predicate.value = True
+
+    # if more no's than yes's
     elif totalNo > totalYes:
         uncertaintyLevel = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
+
+        # if we fulfill the uncertainty threshold
         if uncertaintyLevel < UNCERTAINTY_THRESHOLD:
             predicate.value = False
+
+            # iterates through all the fields in this restaurant's model
             for field in predicate.restaurant._meta.fields:
+                # verbose_name is the field's name with underscores replaced with spaces
                 if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
+                    # sets value of the field with -1
                     setattr(predicate.restaurant, field.verbose_name, -1)
+
             restaurant.save()
+    
     
     if predicate.value==None:
         # collect five more responses from workers when there are same 

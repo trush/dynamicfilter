@@ -1,121 +1,75 @@
 from django.test import TestCase
 
 # Create your tests here.
-from .models import Restaurant, RestaurantPredicate, Task
+from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
-from .views import aggregate_responses, find_unanswered_predicate
+from .views import aggregate_responses, decrementStatus
 from .forms import RestaurantAdminForm
 
+def enterTask(ID, workerAnswer, confidence, predicate):
+    task = Task(workerID=ID, completionTime=1000, answer=workerAnswer, confidenceLevel=confidence, restaurantPredicate=predicate)
+    task.save()
 
-class AggregateResponsesTestCase(TestCase):
+def enterRestaurant(restaurantName, zipNum):
     """
-    Tests the aggregate_responses() function
+    Makes a new restaurant with a given name and zip code, which the caller provides to ensure uniqueness.
+    Also creates corresponding predicates and predicate branches.
     """
-    def test_aggregation(self):
-        # Create a restaurant with three predicates
-        r = Restaurant(name="Aggregation Test Restaurant", url="www.aggregationtest.com",
-            text = "Aggregation test text.")
-        r.save()
+    r = Restaurant(name=restaurantName, url="www.test.com", street="Test Address", city="Berkeley", state="CA",
+        zipCode=zipNum, country="USA", text="Please answer a question!")
+    r.save()
 
-        # set leftToAsk = 0 so that these predicates will be evaluated by aggregate_responses()
-        p1 = RestaurantPredicate(restaurant=r, question="Question 1?", leftToAsk=0)
-        p1.save()
-        p2 = RestaurantPredicate(restaurant=r, question="Question 2?", leftToAsk=0)
-        p2.save()
-        p3 = RestaurantPredicate(restaurant=r, question="Question 3?", leftToAsk=0)
-        p3.save()
-
-        Task.objects.create(restaurantPredicate=p1, answer=True, workerID=001, completionTime=1000)
-        Task.objects.create(restaurantPredicate=p1, answer=True, workerID=002, completionTime=1000)
-        Task.objects.create(restaurantPredicate=p1, answer=False, workerID=003, completionTime=1000)
-
-        Task.objects.create(restaurantPredicate=p2, answer=True, workerID=001, completionTime=1000)
-        Task.objects.create(restaurantPredicate=p2, answer=False, workerID=002, completionTime=1000)
-        Task.objects.create(restaurantPredicate=p2, answer=False, workerID=003, completionTime=1000)
-
-        Task.objects.create(restaurantPredicate=p3, answer=True, workerID=001, completionTime=1000)
-        Task.objects.create(restaurantPredicate=p3, answer=False, workerID=002, completionTime=1000)
-        Task.objects.create(restaurantPredicate=p3, answer=None, workerID=003, completionTime=1000)
-
-        aggregate_responses()
-
-        # there should be one predicate each with a value of True, False, and None
-        self.assertEqual(len(RestaurantPredicate.objects.filter(value=True)), 1)
-        self.assertEqual(len(RestaurantPredicate.objects.filter(value=False)), 1)
-        self.assertEqual(len(RestaurantPredicate.objects.filter(value=None)), 1)
-
-        # all predicates with leftToAsk = 0 should have a value of True or False
-        self.assertEqual(len(RestaurantPredicate.objects.filter(leftToAsk=0).filter(value=None)), 0)
-
-class FindUnansweredPredicatesTestCase(TestCase):
-    """
-    Tests the aggregate_responses() function
-    """
-    WORKER_ID = 100
-
-    def test_no_predicates(self):
-        """
-        If no predicates have been created, find_unanswered_predicate() should return None.
-        """
-        self.assertEqual(len(RestaurantPredicate.objects.all()), 0)
-
-        self.assertEqual(find_unanswered_predicate(self.WORKER_ID), None)
-
-    def test_one_completed_predicate(self):
-        """
-        If the only predicate needs no more answers, find_unanswered_predicate() should return None.
-        """
-        self.assertEqual(len(RestaurantPredicate.objects.all()), 0)
-
-        r = Restaurant(name = "Find Unanswered Predicate Restaurant", text="Text")
-        r.save()
+    # Create the three associated predicates
+    RestaurantPredicate.objects.create(index=0, restaurant=r, question="Does this restaurant accept credit cards?")
+    RestaurantPredicate.objects.create(index=1, restaurant=r, question="Is this a good restaurant for kids?")
+    RestaurantPredicate.objects.create(index=2, restaurant=r, question="Does this restaurant serve Choco Pies?")
         
-        RestaurantPredicate.objects.create(restaurant=r, question="Question 1?", leftToAsk=0)
-        self.assertEqual(find_unanswered_predicate(self.WORKER_ID), None)
+    # Create the three predicate branches if they don't exist yet
+    for predicate in RestaurantPredicate.objects.all():
+        PredicateBranch.objects.get_or_create(index=predicate.index, question=predicate.question)
 
-    def test_one_unanswered_predicate(self):
-        """
-        If the only predicate needs an answer from this worker,
-        find_unanswered_predicate() should return that predicate.
-        """
-        self.assertEqual(len(RestaurantPredicate.objects.all()), 0)
+    return r
 
-        r = Restaurant(name = "Find Unanswered Predicate Restaurant", text="Text")
-        r.save()
-        
-        p1 = RestaurantPredicate(restaurant=r, question="Question 1?", leftToAsk=5)
-        p1.save()
-        
-        self.assertEqual(find_unanswered_predicate(self.WORKER_ID), p1)
+# class AggregateResponsesTestCase(TestCase):
+#     """
+#     Tests the aggregate_responses() function
+#     """
+#     def test_aggregation(self):
+#         # Create a restaurant with three predicates
+#         r = Restaurant(name="Aggregation Test Restaurant", url="www.aggregationtest.com",
+#             text = "Aggregation test text.")
+#         r.save()
 
-    def test_one_answered_predicate(self):
-        """
-        If this worker has answered all possible predicates, 
-        find_unanswered_predicate() should return None.
-        """
-        self.assertEqual(len(RestaurantPredicate.objects.all()), 0)
+#         # set leftToAsk = 0 so that these predicates will be evaluated by aggregate_responses()
+#         p1 = RestaurantPredicate(restaurant=r, question="Question 1?", leftToAsk=0)
+#         p1.save()
+#         p2 = RestaurantPredicate(restaurant=r, question="Question 2?", leftToAsk=0)
+#         p2.save()
+#         p3 = RestaurantPredicate(restaurant=r, question="Question 3?", leftToAsk=0)
+#         p3.save()
 
-        r = Restaurant(name = "Find Unanswered Predicate Restaurant", text="Text")
-        r.save()
-        
-        p1 = RestaurantPredicate(restaurant=r, question="Question 1?", leftToAsk=5)
-        p1.save()
-        
-        self.assertEqual(find_unanswered_predicate(100), p1)
+#         Task.objects.create(restaurantPredicate=p1, answer=True, workerID=001, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p1, answer=True, workerID=002, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p1, answer=False, workerID=003, completionTime=1000)
 
+#         Task.objects.create(restaurantPredicate=p2, answer=True, workerID=001, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p2, answer=False, workerID=002, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p2, answer=False, workerID=003, completionTime=1000)
 
-class IndexViewTests(TestCase):
+#         Task.objects.create(restaurantPredicate=p3, answer=True, workerID=001, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p3, answer=False, workerID=002, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p3, answer=None, workerID=003, completionTime=1000)
 
-    def test_index_view_content(self):
-        """
-        Tests that the index template is loaded correctly by making sure
-        a piece of the textual content is present.
-        """
-        response = self.client.get(reverse('index'))
-        self.assertContains(response, 
-            "Index")
+#         aggregate_responses()
 
+#         # there should be one predicate each with a value of True, False, and None
+#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=True)), 1)
+#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=False)), 1)
+#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=None)), 1)
+
+#         # all predicates with leftToAsk = 0 should have a value of True or False
+#         self.assertEqual(len(RestaurantPredicate.objects.filter(leftToAsk=0).filter(value=None)), 0)
 
 class AnswerQuestionViewTests(TestCase):
 
@@ -125,7 +79,6 @@ class AnswerQuestionViewTests(TestCase):
         """
         response = self.client.get('/dynamicfilterapp/answer_question/')
         self.assertEqual(response.status_code, 404)
-
 
 class RestaurantCreationTests(TestCase):
     
@@ -140,7 +93,6 @@ class RestaurantCreationTests(TestCase):
         # Ensure that three predicates have been created to go with this restaurant
         self.assertEqual(len(RestaurantPredicate.objects.filter(restaurant=r)), 3)
 
-
 class NoQuestionViewTests(TestCase):
 
     WORKER_ID = 001
@@ -149,6 +101,32 @@ class NoQuestionViewTests(TestCase):
         """
         tests the no_questions view to make sure it displays the correct web page
         """
-       response = self.client.get(reverse('no_questions', args=[self.WORKER_ID]))
-       self.assertContains(response, 
-           "There are no more questions to be answered at this time.")   
+        response = self.client.get(reverse('no_questions', args=[self.WORKER_ID]))
+        self.assertContains(response, "There are no more questions to be answered at this time.")   
+
+class PredicateFailTest(TestCase):
+    def test_failed_flag(self):
+        """
+        Makes sure predicate status values are all set to -1 when one predicate fails,
+        """
+        r = enterRestaurant("Chipotle", 1)
+
+        firstPredicate = RestaurantPredicate.objects.filter(restaurant=r)[0]
+
+        # Answer no five times to one question
+        for i in range(5):
+            enterTask(i, False, 100, firstPredicate)
+
+        decrementStatus(firstPredicate.index, firstPredicate.restaurant)
+        aggregate_responses(firstPredicate)
+
+        # Check that all three statuses are -1
+        self.assertEqual(r.predicate0Status,-1)
+        self.assertEqual(r.predicate1Status,-1)
+        self.assertEqual(r.predicate2Status,-1)
+
+
+
+
+
+
