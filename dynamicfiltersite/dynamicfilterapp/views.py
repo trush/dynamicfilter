@@ -51,7 +51,7 @@ def answer_question(request, IDnumber):
         if form.is_valid():
 
             # get time to complete in number of milliseconds, or use flag value if there's no elapsed_time
-            timeToComplete = request.POST.get('elapsed_time', 666)
+            timeToComplete = request.POST.get('elapsed_time', 42)
 
             # Convert entered answer to type compatible with NullBooleanField
             form_answer = None
