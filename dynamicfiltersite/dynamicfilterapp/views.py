@@ -70,11 +70,13 @@ def answer_question(request, IDnumber):
             pB = PredicateBranch.objects.filter(question=toBeAnswered.question)[0]
 
             # update the predicate branch's counts
-            if task.answer==rue:
+            if task.answer==True:
                 pB.returnedTotal += 1
             elif task.answer==False:
                 pB.returnedTotal += 1
                 pB.returnedNo += 1
+
+            pB.save()
 
             decrementStatus(toBeAnswered.index, toBeAnswered.restaurant)
 
@@ -168,7 +170,6 @@ def aggregate_responses(predicate):
         # number of yes and no
         incrementStatusByFive(predicate.index, predicate.restaurant)
 
-    pB.save()
     predicate.save()
 
 def eddy(request, ID):
@@ -191,7 +192,7 @@ def eddy(request, ID):
         question__in=completedPredicates.values('question'))
     
     if debug: print "------STARTING LOTTERY------"
-
+    print "size of all predicate branches: " + str(len(allPredicateBranches))
     chosenBranch = runLottery(allPredicateBranches)
     
     if chosenBranch==None:
@@ -242,6 +243,7 @@ def findTotalTickets(pbSet):
     for pb in pbSet:
         selectivity = float(pb.returnedNo)/float(pb.returnedTotal)
         totalTickets += int(selectivity*1000)
+        print "total so far: " + str(totalTickets)
 
     print "TOTAL TICKETS: " + str(totalTickets)
 
@@ -275,7 +277,7 @@ def runLottery(pbSet):
         else:
             lowBound = highBound
             nextPredicateBranch = pbSet[j+1]
-            nextSelectivity = float(pbSet[0].returnedNo)/pbSet[0].returnedTotal
+            nextSelectivity = float(nextPredicateBranch.returnedNo)/nextPredicateBranch.returnedTotal
             highBound += nextSelectivity*1000
 
     return chosenBranch
