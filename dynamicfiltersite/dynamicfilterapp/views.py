@@ -9,6 +9,9 @@ from .forms import WorkerForm, IDForm
 from scipy.special import btdtr
 import random
 
+DECISION_THRESHOLD = 0.5
+UNCERTAINTY_THRESHOLD = 0.15
+
 def index(request):
     # Filler ID number value
     # if this is a POST request we need to process the form data
@@ -142,12 +145,21 @@ def aggregate_responses(predicate):
         # increase total number of no by confidence level indicated
         totalNo += pred.confidenceLevel/100.0
 
-    # a majority vote system
+    uncertaintyLevel = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
+
     if totalYes > totalNo:
-        predicate.value = True
+        uncertaintyLevel = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
+        if uncertaintyLevel < UNCERTAINTY_THRESHOLD:
+            predicate.value = True
     elif totalNo > totalYes:
-        predicate.value = False
-    else:
+        uncertaintyLevel = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
+        if uncertaintyLevel < UNCERTAINTY_THRESHOLD:
+            predicate.value = False
+            predicate.restaurant.predicate0Status = -1
+            predicate.restaurant.predicate1Status = -1
+            predicate.restaurant.predicate2Status = -1
+    
+    if predicate.value = None:
         # collect three more responses from workers when there are same 
         # number of yes and no
         incrementStatusByFive(predicate.index, predicate.restaurant)
@@ -205,11 +217,11 @@ def decrementStatus(index, restaurant):
 
 def incrementStatusByFive(index, restaurant):
     if index==0:
-        restaurant.predicate0Status += 500
+        restaurant.predicate0Status += 5
     elif index==1:
-        restaurant.predicate1Status += 500
+        restaurant.predicate1Status += 5
     elif index==2:
-        restaurant.predicate2Status += 500
+        restaurant.predicate2Status += 5
     restaurant.save()
 
 def findTotalTickets(pbSet):
