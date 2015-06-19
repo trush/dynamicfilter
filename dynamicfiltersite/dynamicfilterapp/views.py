@@ -70,13 +70,7 @@ def answer_question(request, IDnumber):
              # get the PredicateBranch associated with this predicate
             pB = PredicateBranch.objects.filter(question=toBeAnswered.question)[0]
 
-            # update the predicate branch's counts
-            if task.answer==True:
-                pB.returnedTotal += 1
-            elif task.answer==False:
-                pB.returnedTotal += 1
-                pB.returnedNo += 1
-            pB.save()
+            updateCounts(pB, task)
 
             decrementStatus(toBeAnswered.index, toBeAnswered.restaurant)
 
@@ -99,6 +93,14 @@ def answer_question(request, IDnumber):
         form = WorkerForm()
 
     return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 'workerID': IDnumber })
+
+def updateCounts(pB, task):
+    if task.answer==True:
+        pB.returnedTotal += 1
+    elif task.answer==False:
+        pB.returnedTotal += 1
+        pB.returnedNo += 1
+    pB.save()
 
 def checkPredicateStatus(array):
     """
@@ -124,8 +126,9 @@ def no_questions(request, IDnumber):
 
 def aggregate_responses(predicate):
     """
-    Checks if predicate needs to be answered 0 more times. 
-    Combines worker responses into one value for the predicate.
+    Checks if predicate needs to be answered 0 more times. If uncertainty criteria are met,
+    combines worker responses into one value for the predicate. Otherwise, adds five to the 
+    appropriate predicateStatus so that more answers will be collected.
     """
     # retrieves the number of yes answers and number of no answers for the 
     # predicate relative to the answers' confidence levels
