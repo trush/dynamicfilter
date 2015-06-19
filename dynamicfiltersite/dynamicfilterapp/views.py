@@ -37,13 +37,14 @@ def answer_question(request, IDnumber):
     Displays and processes input from a form where the user can answer a question about a
     predicate.
     """
-
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
 
         # create a form instance and populate it with data from the request:
         form = WorkerForm(request.POST)
         toBeAnswered = RestaurantPredicate.objects.filter(id=request.POST.get('pred_id'))[0]
+        print toBeAnswered.restaurant._meta.get_all_field_names()
+
         # check whether it's valid:
         if form.is_valid():
 
@@ -75,6 +76,7 @@ def answer_question(request, IDnumber):
             elif task.answer==False:
                 pB.returnedTotal += 1
                 pB.returnedNo += 1
+            pB.save()
 
             pB.save()
 
