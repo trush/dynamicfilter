@@ -27,7 +27,7 @@ class Restaurant(models.Model):
     predicate1Status = models.IntegerField(default=5)
     predicate2Status = models.IntegerField(default=5)
 
-    numOfPredicates = models.IntegerField(default=3)
+ #   numOfPredicates = models.IntegerField(default=3)
 
     # the index of the PredicateBranch currently evaluating this Restaurant (None if it's not currently being evaluated)
     evaluator = models.IntegerField(null=True,blank=True,default=None)
