@@ -116,8 +116,8 @@ class PredicateFailTest(TestCase):
         # Answer no five times to one question
         for i in range(5):
             enterTask(i, False, 100, firstPredicate)
+            decrementStatus(firstPredicate.index, firstPredicate.restaurant)
 
-        decrementStatus(firstPredicate.index, firstPredicate.restaurant)
         aggregate_responses(firstPredicate)
 
         # Check that all three statuses are -1

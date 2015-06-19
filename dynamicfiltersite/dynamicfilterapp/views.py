@@ -181,7 +181,7 @@ def aggregate_responses(predicate):
                     # sets value of the field with -1
                     setattr(predicate.restaurant, field.verbose_name, -1)
 
-            restaurant.save()
+            predicate.restaurant.save()
     
     
     if predicate.value==None:
