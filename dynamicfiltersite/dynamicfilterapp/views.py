@@ -78,8 +78,6 @@ def answer_question(request, IDnumber):
                 pB.returnedNo += 1
             pB.save()
 
-            pB.save()
-
             decrementStatus(toBeAnswered.index, toBeAnswered.restaurant)
 
             aggregate_responses(toBeAnswered)     
