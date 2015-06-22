@@ -352,11 +352,12 @@ def findRestaurant(predicateBranch,ID):
 
     # order the eligible restaurants by priority
     orderByThisStatus = 'predicate' + str(predicateBranch.index) + 'Status'
-    prioritized = Restaurant.objects.order_by(orderByThisStatus)[0]
+    prioritized = Restaurant.objects.order_by(orderByThisStatus)
 
+    print " Prioriotized: " + str(prioritized)
     # filter out restaurants where the relevant status is not 0 or
-    predStatus = 'predicate' + str(predicateBranch.index) = 'status'
-    for restaurant in rSet:
+    predStatus = 'predicate' + str(predicateBranch.index) + 'Status'
+    for restaurant in prioritized:
         status = getattr(restaurant, predStatus)
         #sets the field to currentLeftToAsk-1
         if status > 0:
