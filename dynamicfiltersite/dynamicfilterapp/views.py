@@ -154,15 +154,9 @@ def aggregate_responses(predicate):
         # increase total number of no by confidence level indicated
         totalNo += pred.confidenceLevel/100.0
 
-    print "totalNo: " + str(totalNo)
-    print "totalYes: " + str(totalYes)
-
     # How we compute the uncertaintly level changes depending on whether the answer is True or False
     uncertaintyLevelTrue = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
     uncertaintyLevelFalse = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
-
-    print "uncertaintyLevelTrue: " + str(uncertaintyLevelTrue)
-    print "uncertaintyLevelFalse: " + str(uncertaintyLevelFalse)
 
     # if more yes's than no's
     if totalYes > totalNo and uncertaintyLevelTrue < UNCERTAINTY_THRESHOLD:
@@ -188,7 +182,7 @@ def aggregate_responses(predicate):
     if predicate.value==None:
         # collect five more responses from workers when there are same 
         # number of yes and no
-        incrementStatusByFive(predicate.index, predicate.restaurant)
+        predicate.restaurant = incrementStatusByFive(predicate.index, predicate.restaurant)
 
     predicate.save()
 
@@ -306,18 +300,12 @@ def incrementStatusByFive(index, restaurant):
     """
     increases the status by 5 because the answer is not certain
     """
-    check = 'predicate' + str(index)
+    statusName = 'predicate' + str(index) + 'Status'
 
-    # loops through all the fields in a model
-    for field in restaurant._meta.fields:
-        if field.verbose_name.startswith(check) and field.verbose_name.endswith('Status'):
-            # gets the number times the predicate still needs to be asked to this restaurant
-            currentLeftToAsk = getattr(restaurant, field.verbose_name)
-            #if we don't have to ask the predicate again
-            if currentLeftToAsk == 0:
-                #make it ask the predicate 5 more times because the answer is not certain enough
-                setattr(restaurant, field.verbose_name, currentLeftToAsk+5)
+    if getattr(restaurant, statusName)==0:
+        setattr(restaurant, statusName, 5)
     restaurant.save()
+    return restaurant
 
 def findTotalTickets(pbSet):
     """

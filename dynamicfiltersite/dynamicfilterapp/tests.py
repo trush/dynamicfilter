@@ -65,6 +65,70 @@ class AggregateResponsesTestCase(TestCase):
         self.assertEqual(r.predicate2Status,-1)
 
 
+    def test_aggregate_five_yes(self):
+        """
+        Entering five yes votes should result in all predicate statuses being set to -1.
+        """
+        r = enterRestaurant("Chipotle", 20349)
+        # get the zeroeth predicate
+        p = RestaurantPredicate.objects.filter(restaurant=r).order_by('-index')[0]
+
+        # Enter five "No" answers with 100% confidence
+        for i in range(5):
+            enterTask(i, True, 100, p)
+
+        r.predicate0Status = 0
+        r.save()
+        r = aggregate_responses(p)
+
+        # All the predicate statuses should be -1 since this restaurant failed one
+        self.assertEqual(r.predicate0Status,0)
+        self.assertEqual(r.predicate1Status,5)
+        self.assertEqual(r.predicate2Status,5)
+
+    def test_aggregate_uncertain_responses(self):
+        """
+        Entering five votes with 80 percent confidence (three yes) should cause
+        5 more responses to be required
+        """
+        r = enterRestaurant("Chipotle", 20349)
+        # get the zeroeth predicate
+        p = RestaurantPredicate.objects.filter(restaurant=r).order_by('index')[0]
+
+        # Enter three "Yes" answers with 80% confidence
+        for i in range(3):
+            enterTask(i, True, 80, p)
+        # Enter three "No" answers with 80% confidence
+        for i in range(2):
+            enterTask(i+3, False, 80, p)
+
+        r.predicate0Status = 0
+        r.save()
+        r = aggregate_responses(p)
+
+        # All the predicate statuses should be -1 since this restaurant failed one
+        self.assertEqual(r.predicate0Status,5)
+        self.assertEqual(r.predicate1Status,5)
+        self.assertEqual(r.predicate2Status,5)
+
+    def test_aggregate_no_responses(self):
+        """
+        If no responses have been entered, all statuses should stay at 5.
+        """
+        r = enterRestaurant("Chipotle", 20349)
+        # get the zeroeth predicate
+        p = RestaurantPredicate.objects.filter(restaurant=r).order_by('index')[0]
+
+        r.predicate0Status = 0
+        r.save()
+        r = aggregate_responses(p)
+
+        # All the predicate statuses should be -1 since this restaurant failed one
+        self.assertEqual(r.predicate0Status,5)
+        self.assertEqual(r.predicate1Status,5)
+        self.assertEqual(r.predicate2Status,5)
+        
+
 class AnswerQuestionViewTests(TestCase):
 
     def test_answer_question_no_id(self):
