@@ -73,7 +73,6 @@ def answer_question(request, IDnumber):
 
              # get the PredicateBranch associated with this predicate
             pB = PredicateBranch.objects.filter(question=toBeAnswered.question)[0]
-
             updateCounts(pB, task)
 
             #decreases status of one predicate in the restaurant by 1 because it was just answered
@@ -93,7 +92,7 @@ def answer_question(request, IDnumber):
     # if a GET (or any other method) we'll create a blank form
     else:
         toBeAnswered = eddy(request, IDnumber)
-        #print "toBeAnswered: " + str(toBeAnswered)
+        print "toBeAnswered: " + str(toBeAnswered)
         # if there are no predicates to be answered by the worker with this ID number
         if toBeAnswered == None:
             return HttpResponseRedirect('/dynamicfilterapp/no_questions/id=' + IDnumber)
@@ -194,6 +193,17 @@ def aggregate_responses(predicate):
 
     predicate.save()
 
+    # If there are no more predicates to be evalutated, print results to terminal
+    # TODO is this the best place for this code?
+    left = RestaurantPredicate.objects.filter(value=None)
+    if len(left)==0:
+        print "----------RESULTS-----------"
+        print "The following restaurants satisfied all predicates"
+        filtered = Restaurant.objects.exclude(predicate0Status=-1)
+        for restaurant in filtered:
+            print restaurant
+        print "----------------------------"
+
 def eddy(request, ID):
     """
     Uses a random lottery system to determine which eligible predicate should be
@@ -244,7 +254,7 @@ def eddy(request, ID):
     #print "chosen branch: " + str(chosenBranch)
     # generates the restaurant with the highest priority for the specified 
     # predicate branch
-    chosenRestaurant = findRestaurant(chosenBranch)
+    chosenRestaurant = findRestaurant(chosenBranch, ID)
     
     #  mark chosenRestaurant as being in chosenBranch
     chosenRestaurant.evaluator = chosenBranch.index
@@ -270,6 +280,7 @@ def decrementStatus(index, restaurant):
             currentLeftToAsk = getattr(restaurant, field.verbose_name)
             #sets the field to currentLeftToAsk-1
             setattr(restaurant, field.verbose_name, currentLeftToAsk-1)
+            print "Decremented " + field.verbose_name
     restaurant.save()
 
 def incrementStatusByFive(index, restaurant):
@@ -348,11 +359,31 @@ def runLottery(pbSet):
 
     return chosenBranch
     
-def findRestaurant(predicateBranch):
+def findRestaurant(predicateBranch,ID):
     """
     Finds the restaurant with the highest priority for a specified predicate 
-    branch. Hard-coded to three predicates for now.
+    branch.
     """
-    orderByThisStatus = '-predicate' + str(predicateBranch.index) + 'Status'
-    return Restaurant.objects.order_by(orderByThisStatus)[0]
-    
+    # find all the tasks this worker has completed
+    completedTasks = Task.objects.filter(workerID=ID)
+    # find all the predicates for this branch that have been done by the worker
+    completedPredicates = RestaurantPredicate.objects.filter(question=predicateBranch.question).filter(
+        id__in=completedTasks.values('restaurantPredicate_id'))
+
+    # get the Restaurants NOT associated with the completed predicates
+    rSet = Restaurant.objects.exclude(id__in=completedPredicates.values('restaurant_id'))
+
+    # order the eligible restaurants by priority
+    orderByThisStatus = 'predicate' + str(predicateBranch.index) + 'Status'
+    prioritized = Restaurant.objects.order_by(orderByThisStatus)[0]
+
+    # filter out restaurants where the relevant status is not 0 or
+    predStatus = 'predicate' + str(predicateBranch.index) = 'status'
+    for restaurant in rSet:
+        status = getattr(restaurant, predStatus)
+        #sets the field to currentLeftToAsk-1
+        if status > 0:
+            return restaurant
+
+    # We should never reach this statement
+    return None
