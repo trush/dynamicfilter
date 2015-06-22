@@ -4,7 +4,7 @@ from django.test import TestCase
 from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
-from .views import aggregate_responses, decrementStatus, updateCounts, incrementStatusByFive
+from .views import aggregate_responses, decrementStatus, updateCounts, incrementStatusByFive, findRestaurant
 from .forms import RestaurantAdminForm
 
 def enterTask(ID, workerAnswer, confidence, predicate):
@@ -30,6 +30,7 @@ def enterRestaurant(restaurantName, zipNum):
         PredicateBranch.objects.get_or_create(index=predicate.index, question=predicate.question)
 
     return r
+
 
 def enterPredicateBranch(question, index, returnedTotal, returnedNo):
     PredicateBranch.objects.create(index=index, question=question, returnedTotal=returnedTotal, returnedNo=returnedNo)
@@ -73,6 +74,31 @@ def enterPredicateBranch(question, index, returnedTotal, returnedNo):
 
 #         # all predicates with leftToAsk = 0 should have a value of True or False
 #         self.assertEqual(len(RestaurantPredicate.objects.filter(leftToAsk=0).filter(value=None)), 0)
+
+class AggregateResponsesTestCase(TestCase):
+    """
+    Tests the aggregate_responses() function
+    """
+    def test_aggregate_five_no(self):
+        """
+        Entering five no votes should result in all predicate statuses being set to -1.
+        """
+        r = enterRestaurant("Chipotle", 20349)
+        # get the zeroeth predicate
+        p = RestaurantPredicate.objects.filter(restaurant=r).order_by('-index')[0]
+
+        # Enter five "No" answers with 100% confidence
+        for i in range(5):
+            enterTask(i, False, 100, p)
+
+        r.predicate0Status = 0
+        r.save()
+        r = aggregate_responses(p)
+
+        # All the predicate statuses should be -1 since this restaurant failed one
+        self.assertEqual(r.predicate0Status,-1)
+        self.assertEqual(r.predicate1Status,-1)
+        self.assertEqual(r.predicate2Status,-1)
 
 class AnswerQuestionViewTests(TestCase):
 
@@ -156,6 +182,110 @@ class UpdateCountsTests(TestCase):
         # total answers should be 3 and total no's should be 2
         self.assertEqual(PB.returnedTotal,2.6)
         self.assertEqual(PB.returnedNo, 1.6)
+
+
+class FindRestaurantTests(TestCase):
+    def test_no_tasks_done(self):
+        """
+        Given three possible restaurants, should choose the one with the lowest value for the relevant
+        predicateStatus that's not -1 or 0. (Test for three predicates)
+        """
+        r1 = enterRestaurant("Chipotle", 100)
+        r1.predicate0Status = -1 # in practice all fields would be -1 if one was
+        r1.predicate1Status = 0
+        r1.predicate2Status = 3
+        r1.save()
+
+        r2 = enterRestaurant("In n' Out", 200)
+        r2.predicate0Status = 3
+        r2.predicate1Status = 10
+        r2.predicate2Status = 2
+        r2.save()
+
+        r3 = enterRestaurant("Subway", 300)
+        r3.predicate0Status = 4
+        r3.predicate1Status = 1
+        r3.predicate2Status = 5
+        r3.save()
+
+        pb0=PredicateBranch.objects.all()[0]
+        self.assertEqual(findRestaurant(pb0,100), r2)
+
+        pb1=PredicateBranch.objects.all()[1]
+        self.assertEqual(findRestaurant(pb1,100), r3)
+
+        pb2=PredicateBranch.objects.all()[2]
+        self.assertEqual(findRestaurant(pb2,100), r2)
+
+    def test_two_eligible_restaurants(self):
+        """
+        The worker has answered all three questions for the second restaurant.
+        """
+        r1 = enterRestaurant("Chipotle", 100)
+        r1.predicate0Status = -1 # in practice all fields would be -1 if one was
+        r1.predicate1Status = 0
+        r1.predicate2Status = 3
+        r1.save()
+
+        r2 = enterRestaurant("In n' Out", 200)
+        r2.predicate0Status = 3
+        r2.predicate1Status = 10
+        r2.predicate2Status = 2
+        r2.save()
+
+        r3 = enterRestaurant("Subway", 300)
+        r3.predicate0Status = 4
+        r3.predicate1Status = 1
+        r3.predicate2Status = 5
+        r3.save()
+
+        for predicate in RestaurantPredicate.objects.filter(restaurant=r2):
+            enterTask(100, True, 100, predicate)
+
+        pb0=PredicateBranch.objects.all()[0]
+        self.assertEqual(findRestaurant(pb0,100), r3)
+
+        pb1=PredicateBranch.objects.all()[1]
+        self.assertEqual(findRestaurant(pb1,100), r3)
+
+        pb2=PredicateBranch.objects.all()[2]
+        self.assertEqual(findRestaurant(pb2,100), r1)
+
+    def test_one_eligible_restaurant(self):
+        """
+        The first restaurant has already failed a predicate.
+        The worker has answered all three questions for the second restaurant.
+        """
+        r1 = enterRestaurant("Chipotle", 100)
+        r1.predicate0Status = -1
+        r1.predicate1Status = -1
+        r1.predicate2Status = -1
+        r1.save()
+
+        r2 = enterRestaurant("In n' Out", 200)
+        r2.predicate0Status = 3
+        r2.predicate1Status = 10
+        r2.predicate2Status = 2
+        r2.save()
+
+        r3 = enterRestaurant("Subway", 300)
+        r3.predicate0Status = 4
+        r3.predicate1Status = 1
+        r3.predicate2Status = 5
+        r3.save()
+
+        for predicate in RestaurantPredicate.objects.filter(restaurant=r2):
+            enterTask(100, True, 100, predicate)
+
+        pb0=PredicateBranch.objects.all()[0]
+        self.assertEqual(findRestaurant(pb0,100), r3)
+
+        pb1=PredicateBranch.objects.all()[1]
+        self.assertEqual(findRestaurant(pb1,100), r3)
+
+        pb2=PredicateBranch.objects.all()[2]
+        self.assertEqual(findRestaurant(pb2,100), r3)
+
 
 class DecrementStatusTests(TestCase):
 
