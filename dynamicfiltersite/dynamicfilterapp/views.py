@@ -319,9 +319,6 @@ def findTotalTickets(pbSet):
     for pb in pbSet:
         selectivity = float(pb.returnedNo)/float(pb.returnedTotal)
         totalTickets += int(selectivity*1000)
-        #print "total so far: " + str(totalTickets)
-
-    #print "TOTAL TICKETS: " + str(totalTickets)
 
     return int(totalTickets)
 

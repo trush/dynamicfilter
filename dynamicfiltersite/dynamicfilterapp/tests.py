@@ -2,7 +2,7 @@ from django.test import TestCase
 from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
-from .views import aggregate_responses, decrementStatus, updateCounts, incrementStatusByFive, findRestaurant
+from .views import aggregate_responses, decrementStatus, updateCounts, incrementStatusByFive, findRestaurant, findTotalTickets
 from .forms import RestaurantAdminForm
 
 
@@ -34,6 +34,10 @@ def enterRestaurant(restaurantName, zipNum):
 
     return r
 
+
+def enterPredicateBranch(question, index, returnedTotal, returnedNo):
+    #(RestaurantPredicate.objects.all()[0].question, 0, 1, 1)
+    PredicateBranch.objects.get_or_create(question=question, index=index, returnedTotal=returnedTotal, returnedNo=returnedNo)
 
 class AggregateResponsesTestCase(TestCase):
     """
@@ -127,7 +131,7 @@ class AggregateResponsesTestCase(TestCase):
         self.assertEqual(r.predicate0Status,5)
         self.assertEqual(r.predicate1Status,5)
         self.assertEqual(r.predicate2Status,5)
-        
+
 
 class AnswerQuestionViewTests(TestCase):
 
@@ -353,13 +357,34 @@ class IncrementStatusByFiveTests(TestCase):
         incrementStatusByFive(0, restaurant)
         self.assertEqual(restaurant.predicate0Status, 5)
 
-class findTotalTickets(TestCase):
+class findTotalTicketsTests(TestCase):
 
     def test_find_Total_Tickets(self):
         """
         tests findTotalTickets() to correctly find the total number of tickets
         """
+        # make restaurant
+        enterRestaurant('Kate', 10000)
 
+        # adjusting first predicate branch
+        pb0 = PredicateBranch.objects.all()[0]
+        pb0.returnedTotal = 10
+        pb0.returnedNo = 6
+
+        # adjusting second predicate branch
+        pb1 = PredicateBranch.objects.all()[1]
+        pb1.returnedTotal = 5
+        pb1.returnedNo = 2
+
+        # save edits
+        pb0.save()
+        pb1.save()
+
+        # store result of findTotalTickets
+        result = findTotalTickets(PredicateBranch.objects.all())
+
+        # should equal 2000
+        self.assertEqual(result, 2000)
 
 
 
