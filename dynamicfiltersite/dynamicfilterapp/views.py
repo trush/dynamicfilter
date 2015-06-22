@@ -204,21 +204,43 @@ def eddy(request, ID):
 
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
+
     # find all the predicates matching these completed tasks
     completedPredicates = RestaurantPredicate.objects.filter(
         id__in=completedTasks.values('restaurantPredicate_id'))
        
+    # excludes all completed predicates from all restaurant predicates to get only incompleted ones
+    incompletePredicates = RestaurantPredicate.objects.exclude(id__in=completedPredicates)
+
+    # all fields for a restaurant referenced by an incomplete predicate
+    restaurantFields = incompletePredicates[0].restaurant._meta.fields
+
+    #finds number of predicate statuses
+    numOfPredicateStatuses = 0
+    for field in restaurantFields:
+        if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
+            numOfPredicateStatuses += 1
+
+    #finds eligible predicate branches
+    eligiblePredicateBranches = []
+    for i in range(numOfPredicateStatuses):
+        for pred in incompletePredicates:
+            if pred.index == i:
+                eligiblePredicateBranches.append(PredicateBranches.objects.filter(index=i)[0])
+                break
+
     # Find all PredicateBranches with open space and that haven't been completed
     # by this worker
-    allPredicateBranches = PredicateBranch.objects.exclude(
-        question__in=completedPredicates.values('question'))
+    # allPredicateBranches = PredicateBranch.objects.exclude(
+    #     question__in=completedPredicates.values('question'))
     
     #if debug: print "------STARTING LOTTERY------"
-    #print "size of all predicate branches: " + str(len(allPredicateBranches))
-    chosenBranch = runLottery(allPredicateBranches)
-    
-    if chosenBranch==None:
+    #print "size of all predicate branches: " + str(len(eligiblePredicateBranches))
+    if (len(eligiblePredicateBranches) != 0):
+        chosenBranch = runLottery(eligiblePredicateBranches)
+    else:
         return None
+
     #print "chosen branch: " + str(chosenBranch)
     # generates the restaurant with the highest priority for the specified 
     # predicate branch
