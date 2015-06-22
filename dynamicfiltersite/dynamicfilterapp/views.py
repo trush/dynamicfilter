@@ -75,11 +75,11 @@ def answer_question(request, IDnumber):
             pB = PredicateBranch.objects.filter(question=toBeAnswered.question)[0]
             updateCounts(pB, task)
 
-            #decreases status of one predicate in the restaurant by 1 because it was just answered
+            # decreases status of one predicate in the restaurant by 1 because it was just answered
             decrementStatus(toBeAnswered.index, toBeAnswered.restaurant)
 
             # then aggregate responses to check if the predicate has been answered enough times to have a fixed value
-            aggregate_responses(toBeAnswered)     
+            toBeAnswered.restaurant = aggregate_responses(toBeAnswered)     
 
             # now the toBeAnswered restaurant comes out of the predicate branch and is not being evaluated anymore 
             toBeAnswered.restaurant.evaluator = None
@@ -154,37 +154,36 @@ def aggregate_responses(predicate):
         # increase total number of no by confidence level indicated
         totalNo += pred.confidenceLevel/100.0
 
-    # uncertainty level with specified number of yes's and no's
-    uncertaintyLevel = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
+    print "totalNo: " + str(totalNo)
+    print "totalYes: " + str(totalYes)
+
+    # How we compute the uncertaintly level changes depending on whether the answer is True or False
+    uncertaintyLevelTrue = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
+    uncertaintyLevelFalse = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
+
+    print "uncertaintyLevelTrue: " + str(uncertaintyLevelTrue)
+    print "uncertaintyLevelFalse: " + str(uncertaintyLevelFalse)
 
     # if more yes's than no's
-    if totalYes > totalNo:
-        uncertaintyLevel = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
-
-        # if we fulfill the uncertainty threshold
-        if uncertaintyLevel < UNCERTAINTY_THRESHOLD:
-            predicate.value = True
+    if totalYes > totalNo and uncertaintyLevelTrue < UNCERTAINTY_THRESHOLD:
+        predicate.value = True
 
     # if more no's than yes's
-    elif totalNo > totalYes:
-        uncertaintyLevel = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
+    elif totalNo > totalYes and uncertaintyLevelFalse < UNCERTAINTY_THRESHOLD:
+        predicate.value = False
 
-        # if we fulfill the uncertainty threshold
-        if uncertaintyLevel < UNCERTAINTY_THRESHOLD:
-            predicate.value = False
+        # flag for the Restaurant failing a predicate (and thus not passing all the predicates)
+        predicateFailed = False
 
-            # iterates through all the fields in this restaurant's model
-            for field in predicate.restaurant._meta.fields:
-                # verbose_name is the field's name with underscores replaced with spaces
-                if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
-                    # if we don't have to ask the predicate any more times
-                    if getattr(predicate.restaurant, field.verbose_name) == 0:
-                        # set all predicate status fields to -1 for no further evaluation
-                        for field in predicate.restaurant._meta.fields:
-                            if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
-                                setattr(predicate.restaurant, field.verbose_name, -1)
+        # iterates through all the fields in this restaurant's model
+        for field in predicate.restaurant._meta.fields:
+            # verbose_name is the field's name with underscores replaced with spaces
+            if field.verbose_name.startswith('predicate') and field.verbose_name.endswith(
+                'Status') and getattr(predicate.restaurant, field.verbose_name) == 0:
+                        predicateFailed = True
+                        break
 
-            predicate.restaurant.save()
+        if predicateFailed: predicate = setFieldsToNegOne(predicate)
 
     if predicate.value==None:
         # collect five more responses from workers when there are same 
@@ -193,8 +192,16 @@ def aggregate_responses(predicate):
 
     predicate.save()
 
-    # If there are no more predicates to be evalutated, print results to terminal
-    # TODO is this the best place for this code?
+    printResults()
+
+    return predicate.restaurant
+
+
+def printResults():
+    """
+    If there are no more predicates to be evaluated, print the restaurants satisfying all
+    predicates to the terminal.
+    """
     left = RestaurantPredicate.objects.filter(value=None)
     if len(left)==0:
         print "----------RESULTS-----------"
@@ -203,6 +210,18 @@ def aggregate_responses(predicate):
         for restaurant in filtered:
             print restaurant
         print "----------------------------"
+
+def setFieldsToNegOne(predicate):
+    """
+    Set all predicate status fields to -1 to indicate that it needs no further evaluation (because
+    it has failed a predicate)
+    """
+    for field in predicate.restaurant._meta.fields:
+        if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
+            setattr(predicate.restaurant, field.verbose_name, -1)
+
+    return predicate
+
 
 def eddy(request, ID):
     """

@@ -31,45 +31,31 @@ def enterRestaurant(restaurantName, zipNum):
 
     return r
 
-# class AggregateResponsesTestCase(TestCase):
-#     """
-#     Tests the aggregate_responses() function
-#     """
-#     def test_aggregation(self):
-#         # Create a restaurant with three predicates
-#         r = Restaurant(name="Aggregation Test Restaurant", url="www.aggregationtest.com",
-#             text = "Aggregation test text.")
-#         r.save()
+class AggregateResponsesTestCase(TestCase):
+    """
+    Tests the aggregate_responses() function
+    """
+    def test_aggregate_five_no(self):
+        """
+        Entering five no votes should result in all predicate statuses being set to -1.
+        """
+        r = enterRestaurant("Chipotle", 20349)
+        # get the zeroeth predicate
+        p = RestaurantPredicate.objects.filter(restaurant=r).order_by('-index')[0]
 
-#         # set leftToAsk = 0 so that these predicates will be evaluated by aggregate_responses()
-#         p1 = RestaurantPredicate(restaurant=r, question="Question 1?", leftToAsk=0)
-#         p1.save()
-#         p2 = RestaurantPredicate(restaurant=r, question="Question 2?", leftToAsk=0)
-#         p2.save()
-#         p3 = RestaurantPredicate(restaurant=r, question="Question 3?", leftToAsk=0)
-#         p3.save()
+        # Enter five "No" answers with 100% confidence
+        for i in range(5):
+            enterTask(i, False, 100, p)
 
-#         Task.objects.create(restaurantPredicate=p1, answer=True, workerID=001, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p1, answer=True, workerID=002, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p1, answer=False, workerID=003, completionTime=1000)
+        r.predicate0Status = 0
+        r.save()
+        r = aggregate_responses(p)
 
-#         Task.objects.create(restaurantPredicate=p2, answer=True, workerID=001, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p2, answer=False, workerID=002, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p2, answer=False, workerID=003, completionTime=1000)
+        # All the predicate statuses should be -1 since this restaurant failed one
+        self.assertEqual(r.predicate0Status,-1)
+        self.assertEqual(r.predicate1Status,-1)
+        self.assertEqual(r.predicate2Status,-1)
 
-#         Task.objects.create(restaurantPredicate=p3, answer=True, workerID=001, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p3, answer=False, workerID=002, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p3, answer=None, workerID=003, completionTime=1000)
-
-#         aggregate_responses()
-
-#         # there should be one predicate each with a value of True, False, and None
-#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=True)), 1)
-#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=False)), 1)
-#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=None)), 1)
-
-#         # all predicates with leftToAsk = 0 should have a value of True or False
-#         self.assertEqual(len(RestaurantPredicate.objects.filter(leftToAsk=0).filter(value=None)), 0)
 
 class AnswerQuestionViewTests(TestCase):
 
