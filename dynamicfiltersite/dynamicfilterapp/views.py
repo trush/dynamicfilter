@@ -102,13 +102,13 @@ def answer_question(request, IDnumber):
 
 def updateCounts(pB, task):
     """
-    updates the predicate branch's total and "No!" counts
+    updates the predicate branch's total and "No!" counts relative to the confidence levels
     """
     if task.answer==True:
-        pB.returnedTotal += 1
+        pB.returnedTotal += task.confidenceLevel/100.0
     elif task.answer==False:
-        pB.returnedTotal += 1
-        pB.returnedNo += 1
+        pB.returnedTotal += task.confidenceLevel/100.0
+        pB.returnedNo += task.confidenceLevel/100.0
     pB.save()
 
 def completed_question(request, IDnumber):

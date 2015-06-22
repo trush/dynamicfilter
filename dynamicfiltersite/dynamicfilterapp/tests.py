@@ -4,7 +4,7 @@ from django.test import TestCase
 from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
-from .views import aggregate_responses, decrementStatus, findRestaurant
+from .views import aggregate_responses, decrementStatus, updateCounts, incrementStatusByFive, findRestaurant
 from .forms import RestaurantAdminForm
 
 def enterTask(ID, workerAnswer, confidence, predicate):
@@ -31,6 +31,50 @@ def enterRestaurant(restaurantName, zipNum):
 
     return r
 
+
+def enterPredicateBranch(question, index, returnedTotal, returnedNo):
+    PredicateBranch.objects.create(index=index, question=question, returnedTotal=returnedTotal, returnedNo=returnedNo)
+
+# class AggregateResponsesTestCase(TestCase):
+#     """
+#     Tests the aggregate_responses() function
+#     """
+#     def test_aggregation(self):
+#         # Create a restaurant with three predicates
+#         r = Restaurant(name="Aggregation Test Restaurant", url="www.aggregationtest.com",
+#             text = "Aggregation test text.")
+#         r.save()
+
+#         # set leftToAsk = 0 so that these predicates will be evaluated by aggregate_responses()
+#         p1 = RestaurantPredicate(restaurant=r, question="Question 1?", leftToAsk=0)
+#         p1.save()
+#         p2 = RestaurantPredicate(restaurant=r, question="Question 2?", leftToAsk=0)
+#         p2.save()
+#         p3 = RestaurantPredicate(restaurant=r, question="Question 3?", leftToAsk=0)
+#         p3.save()
+
+#         Task.objects.create(restaurantPredicate=p1, answer=True, workerID=001, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p1, answer=True, workerID=002, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p1, answer=False, workerID=003, completionTime=1000)
+
+#         Task.objects.create(restaurantPredicate=p2, answer=True, workerID=001, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p2, answer=False, workerID=002, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p2, answer=False, workerID=003, completionTime=1000)
+
+#         Task.objects.create(restaurantPredicate=p3, answer=True, workerID=001, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p3, answer=False, workerID=002, completionTime=1000)
+#         Task.objects.create(restaurantPredicate=p3, answer=None, workerID=003, completionTime=1000)
+
+#         aggregate_responses()
+
+#         # there should be one predicate each with a value of True, False, and None
+#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=True)), 1)
+#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=False)), 1)
+#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=None)), 1)
+
+#         # all predicates with leftToAsk = 0 should have a value of True or False
+#         self.assertEqual(len(RestaurantPredicate.objects.filter(leftToAsk=0).filter(value=None)), 0)
+
 class AggregateResponsesTestCase(TestCase):
     """
     Tests the aggregate_responses() function
@@ -56,6 +100,7 @@ class AggregateResponsesTestCase(TestCase):
         self.assertEqual(r.predicate1Status,-1)
         self.assertEqual(r.predicate2Status,-1)
 
+<<<<<<< HEAD
     def test_aggregate_five_yes(self):
         """
         Entering five yes votes should result in all predicate statuses being set to -1.
@@ -119,9 +164,6 @@ class AggregateResponsesTestCase(TestCase):
         self.assertEqual(r.predicate1Status,5)
         self.assertEqual(r.predicate2Status,5)
 
-
-
-
 class AnswerQuestionViewTests(TestCase):
 
     def test_answer_question_no_id(self):
@@ -175,6 +217,36 @@ class NoQuestionViewTests(TestCase):
 #         self.assertEqual(r.predicate0Status,-1)
 #         self.assertEqual(r.predicate1Status,-1)
 #         self.assertEqual(r.predicate2Status,-1)
+
+class UpdateCountsTests(TestCase):
+
+    def test_update_counts(self):
+        # made a restaurant
+        restaurant = enterRestaurant('Kate', 91871)
+
+        # entered a predicate branch
+        enterPredicateBranch(RestaurantPredicate.objects.all()[0].question, 0, 1, 1)
+        PB = PredicateBranch.objects.all()[0]
+
+        # entered a task
+        enterTask(001, True, 100, RestaurantPredicate.objects.all()[0])
+
+        # updated count of total answers and total no's
+        updateCounts(PB, Task.objects.all()[0])
+
+        # total answer should now be 2
+        self.assertEqual(PB.returnedTotal,2)
+
+        # entered another task
+        enterTask(002, False, 60, RestaurantPredicate.objects.all()[0])
+
+        # updated its counts of total answers and total no's
+        updateCounts(PB, Task.objects.all()[1])
+
+        # total answers should be 3 and total no's should be 2
+        self.assertEqual(PB.returnedTotal,2.6)
+        self.assertEqual(PB.returnedNo, 1.6)
+
 
 class FindRestaurantTests(TestCase):
     def test_no_tasks_done(self):
@@ -279,5 +351,49 @@ class FindRestaurantTests(TestCase):
         self.assertEqual(findRestaurant(pb2,100), r3)
 
 
+class DecrementStatusTests(TestCase):
 
+    def test_decrement_status(self):
+        # made a restaurant
+        restaurant = enterRestaurant('Kate', 91871)
 
+        # decremented each status bit as if each one received an answer
+        decrementStatus(0, restaurant)
+        decrementStatus(1, restaurant)
+        decrementStatus(2, restaurant)
+
+        # because each status bit is defaulted to 5, it should now be 4
+        self.assertEqual(restaurant.predicate0Status, 4)
+        self.assertEqual(restaurant.predicate1Status, 4)
+        self.assertEqual(restaurant.predicate2Status, 4)
+
+class IncrementStatusByFiveTests(TestCase):
+
+    def test_increment_by_five_when_not_zero(self):
+        # made a restaurant
+        restaurant = enterRestaurant('Kate', 91871)
+
+        # incremented each status bit by 5
+        incrementStatusByFive(0, restaurant)
+        self.assertEqual(restaurant.predicate0Status, 5)
+
+    def test_increment_by_five_when_zero(self):
+        # made a restaurant
+        restaurant = enterRestaurant('Kate', 91871)
+
+        # decrement status 5 times to make its predicate0Status equal to zero
+        decrementStatus(0, restaurant)
+        decrementStatus(0, restaurant)
+        decrementStatus(0, restaurant)
+        decrementStatus(0, restaurant)
+        decrementStatus(0, restaurant)
+        self.assertEqual(restaurant.predicate0Status, 0)
+
+        # because predicate0Status equals 0, it should increase it back to 5
+        incrementStatusByFive(0, restaurant)
+        self.assertEqual(restaurant.predicate0Status, 5)
+
+class findTotalTickets(TestCase):
+
+    def test_find_Total_Tickets(self):
+        
