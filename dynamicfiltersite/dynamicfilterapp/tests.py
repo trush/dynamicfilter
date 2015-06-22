@@ -1,10 +1,11 @@
+# Django tools
 from django.test import TestCase
-from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
+# Things we wrote
 from .views import aggregate_responses, decrementStatus, updateCounts, incrementStatusByFive, findRestaurant
 from .forms import RestaurantAdminForm
-
+from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 
 def enterTask(ID, workerAnswer, confidence, predicate):
     """
