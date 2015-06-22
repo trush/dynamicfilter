@@ -361,29 +361,32 @@ def runLottery(pbSet):
     
 def findRestaurant(predicateBranch,ID):
     """
-    Finds the restaurant with the highest priority for a specified predicate 
-    branch.
+    Finds the restaurant with the highest priority for a specified predicate such that the relevant worker
+    has not answered the relevant question about the restaurant.
     """
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
+    # print "Completed Tasks: " + str(completedTasks)
     # find all the predicates for this branch that have been done by the worker
     completedPredicates = RestaurantPredicate.objects.filter(question=predicateBranch.question).filter(
         id__in=completedTasks.values('restaurantPredicate_id'))
-
+    # print "Completed predicates: " + str(completedPredicates)
     # get the Restaurants NOT associated with the completed predicates
     rSet = Restaurant.objects.exclude(id__in=completedPredicates.values('restaurant_id'))
-
+    # print "rSet: " + str(rSet)
     # order the eligible restaurants by priority
     orderByThisStatus = 'predicate' + str(predicateBranch.index) + 'Status'
-    prioritized = Restaurant.objects.order_by(orderByThisStatus)
+    prioritized = rSet.order_by(orderByThisStatus)
 
-    print " Prioriotized: " + str(prioritized)
+    # print "Predicate Branch Index: " + str(predicateBranch.index)
+    # print " Prioritized: " + str(prioritized)
     # filter out restaurants where the relevant status is not 0 or
     predStatus = 'predicate' + str(predicateBranch.index) + 'Status'
     for restaurant in prioritized:
         status = getattr(restaurant, predStatus)
         #sets the field to currentLeftToAsk-1
         if status > 0:
+            # print "Satisfied with status " + str(status) + " on restaurant " + str(restaurant)
             return restaurant
 
     # We should never reach this statement
