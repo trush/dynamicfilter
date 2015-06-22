@@ -1,0 +1,5 @@
+from dynamicfilterapp.views import findRestaurant
+from dynamicfilterapp.models import PredicateBranch
+
+pb=PredicateBranch.objects.all()[0]
+findRestaurant(pb,100)
