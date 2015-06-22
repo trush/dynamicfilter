@@ -1,13 +1,5 @@
-from django import forms
-from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
-from django.db import models
-
-from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
-from .forms import WorkerForm, IDForm
-
+from models import Task, RestaurantPredicate, Restaurant, PredicateBranch
 from scipy.special import btdtr
-import random
 
 # we need at least half of the answers to be True in order for the value of the predicate to be True
 # and same for False's
@@ -16,113 +8,6 @@ DECISION_THRESHOLD = 0.5
 # the uncertainty level determined by the beta distribution function needs to be less than 0.15
 # for us to fix the predicate's value
 UNCERTAINTY_THRESHOLD = 0.15
-
-def index(request):
-    # Filler ID number value
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = IDForm(request.POST)
-        
-        # check whether it's valid:
-        if form.is_valid():
-            IDnumber = request.POST.get('workerID', 777)
-            
-            # redirect to a new URL:
-            return HttpResponseRedirect('/dynamicfilterapp/answer_question/id=' + IDnumber)
-
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = IDForm()
-
-    return render(request, 'dynamicfilterapp/index.html', {'form': form})
-
-def answer_question(request, IDnumber):
-    """
-    Displays and processes input from a form where the user can answer a question about a
-    predicate.
-    """
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-
-        # create a form instance and populate it with data from the request:
-        form = WorkerForm(request.POST)
-        toBeAnswered = RestaurantPredicate.objects.filter(id=request.POST.get('pred_id'))[0]
-        
-        # check whether it's valid:
-        if form.is_valid():
-
-            # get time to complete in number of milliseconds, or use flag value if there's no elapsed_time
-            timeToComplete = request.POST.get('elapsed_time', 42)
-
-            # Convert entered answer to type compatible with NullBooleanField
-            form_answer = None
-
-            # if worker answered Yes
-            if form.cleaned_data['answerToQuestion'] == "True":
-                form_answer = True
-
-            # if worker answered No
-            elif form.cleaned_data['answerToQuestion'] == "False":
-                form_answer = False
-
-            # create a new Task with relevant information and store it in the database
-            task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, confidenceLevel=form.cleaned_data['confidenceLevel'],
-                workerID = IDnumber, completionTime = timeToComplete)
-            task.save()
-
-             # get the PredicateBranch associated with this predicate
-            pB = PredicateBranch.objects.filter(question=toBeAnswered.question)[0]
-            updateCounts(pB, task)
-
-            # decreases status of one predicate in the restaurant by 1 because it was just answered
-            decrementStatus(toBeAnswered.index, toBeAnswered.restaurant)
-
-            # then aggregate responses to check if the predicate has been answered enough times to have a fixed value
-            toBeAnswered.restaurant = aggregate_responses(toBeAnswered)     
-
-            # now the toBeAnswered restaurant comes out of the predicate branch and is not being evaluated anymore 
-            toBeAnswered.restaurant.evaluator = None
-            
-            toBeAnswered.save()
-
-            # redirect to a new URL:
-            return HttpResponseRedirect('/dynamicfilterapp/completed_question/id=' + IDnumber)
-
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        toBeAnswered = eddy(request, IDnumber)
-        print "toBeAnswered: " + str(toBeAnswered)
-        # if there are no predicates to be answered by the worker with this ID number
-        if toBeAnswered == None:
-            return HttpResponseRedirect('/dynamicfilterapp/no_questions/id=' + IDnumber)
-        form = WorkerForm()
-
-    return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 'workerID': IDnumber })
-
-def updateCounts(pB, task):
-    """
-    updates the predicate branch's total and "No!" counts relative to the confidence levels
-    """
-    if task.answer==True:
-        pB.returnedTotal += task.confidenceLevel/100.0
-    elif task.answer==False:
-        pB.returnedTotal += task.confidenceLevel/100.0
-        pB.returnedNo += task.confidenceLevel/100.0
-    pB.save()
-
-def completed_question(request, IDnumber):
-    """
-    Displays a page informing the worker that their answer was recorded, with a link to
-    answer another question.
-    """
-    return render(request, 'dynamicfilterapp/completed_question.html', {'workerID': IDnumber})
-
-def no_questions(request, IDnumber):
-    """
-    Displays a page informing the worker that no questions need answering by them.
-    """
-    return render(request, 'dynamicfilterapp/no_questions.html', {'workerID': IDnumber})
 
 def aggregate_responses(predicate):
     """
