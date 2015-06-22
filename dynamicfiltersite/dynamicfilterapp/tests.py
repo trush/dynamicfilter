@@ -1,15 +1,18 @@
 from django.test import TestCase
-
-# Create your tests here.
 from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
 from .views import aggregate_responses, decrementStatus, updateCounts, incrementStatusByFive, findRestaurant
 from .forms import RestaurantAdminForm
 
+
 def enterTask(ID, workerAnswer, confidence, predicate):
+    """
+    shortcut to making tasks
+    """
     task = Task(workerID=ID, completionTime=1000, answer=workerAnswer, confidenceLevel=confidence, restaurantPredicate=predicate)
     task.save()
+
 
 def enterRestaurant(restaurantName, zipNum):
     """
@@ -32,49 +35,6 @@ def enterRestaurant(restaurantName, zipNum):
     return r
 
 
-def enterPredicateBranch(question, index, returnedTotal, returnedNo):
-    PredicateBranch.objects.create(index=index, question=question, returnedTotal=returnedTotal, returnedNo=returnedNo)
-
-# class AggregateResponsesTestCase(TestCase):
-#     """
-#     Tests the aggregate_responses() function
-#     """
-#     def test_aggregation(self):
-#         # Create a restaurant with three predicates
-#         r = Restaurant(name="Aggregation Test Restaurant", url="www.aggregationtest.com",
-#             text = "Aggregation test text.")
-#         r.save()
-
-#         # set leftToAsk = 0 so that these predicates will be evaluated by aggregate_responses()
-#         p1 = RestaurantPredicate(restaurant=r, question="Question 1?", leftToAsk=0)
-#         p1.save()
-#         p2 = RestaurantPredicate(restaurant=r, question="Question 2?", leftToAsk=0)
-#         p2.save()
-#         p3 = RestaurantPredicate(restaurant=r, question="Question 3?", leftToAsk=0)
-#         p3.save()
-
-#         Task.objects.create(restaurantPredicate=p1, answer=True, workerID=001, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p1, answer=True, workerID=002, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p1, answer=False, workerID=003, completionTime=1000)
-
-#         Task.objects.create(restaurantPredicate=p2, answer=True, workerID=001, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p2, answer=False, workerID=002, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p2, answer=False, workerID=003, completionTime=1000)
-
-#         Task.objects.create(restaurantPredicate=p3, answer=True, workerID=001, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p3, answer=False, workerID=002, completionTime=1000)
-#         Task.objects.create(restaurantPredicate=p3, answer=None, workerID=003, completionTime=1000)
-
-#         aggregate_responses()
-
-#         # there should be one predicate each with a value of True, False, and None
-#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=True)), 1)
-#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=False)), 1)
-#         self.assertEqual(len(RestaurantPredicate.objects.filter(value=None)), 1)
-
-#         # all predicates with leftToAsk = 0 should have a value of True or False
-#         self.assertEqual(len(RestaurantPredicate.objects.filter(leftToAsk=0).filter(value=None)), 0)
-
 class AggregateResponsesTestCase(TestCase):
     """
     Tests the aggregate_responses() function
@@ -83,7 +43,9 @@ class AggregateResponsesTestCase(TestCase):
         """
         Entering five no votes should result in all predicate statuses being set to -1.
         """
+        # make new restaurant Chipotle
         r = enterRestaurant("Chipotle", 20349)
+
         # get the zeroeth predicate
         p = RestaurantPredicate.objects.filter(restaurant=r).order_by('-index')[0]
 
@@ -91,14 +53,17 @@ class AggregateResponsesTestCase(TestCase):
         for i in range(5):
             enterTask(i, False, 100, p)
 
+        # set predicate0Status to not be asked anymore
         r.predicate0Status = 0
         r.save()
+
         r = aggregate_responses(p)
 
-        # All the predicate statuses should be -1 since this restaurant failed one
+        # All the predicate statuses should be -1 since this restaurant failed one predicate
         self.assertEqual(r.predicate0Status,-1)
         self.assertEqual(r.predicate1Status,-1)
         self.assertEqual(r.predicate2Status,-1)
+
 
 class AnswerQuestionViewTests(TestCase):
 
@@ -108,6 +73,7 @@ class AnswerQuestionViewTests(TestCase):
         """
         response = self.client.get('/dynamicfilterapp/answer_question/')
         self.assertEqual(response.status_code, 404)
+
 
 class RestaurantCreationTests(TestCase):
     
@@ -122,6 +88,7 @@ class RestaurantCreationTests(TestCase):
         # Ensure that three predicates have been created to go with this restaurant
         self.assertEqual(len(RestaurantPredicate.objects.filter(restaurant=r)), 3)
 
+
 class NoQuestionViewTests(TestCase):
 
     WORKER_ID = 001
@@ -133,30 +100,13 @@ class NoQuestionViewTests(TestCase):
         response = self.client.get(reverse('no_questions', args=[self.WORKER_ID]))
         self.assertContains(response, "There are no more questions to be answered at this time.")   
 
-# class PredicateFailTest(TestCase):
-#     def test_failed_flag(self):
-#         """
-#         Makes sure predicate status values are all set to -1 when one predicate fails,
-#         """
-#         r = enterRestaurant("Chipotle", 1)
-
-#         firstPredicate = RestaurantPredicate.objects.filter(restaurant=r)[0]
-
-#         # Answer no five times to one question
-#         for i in range(5):
-#             enterTask(i, False, 100, firstPredicate)
-#             decrementStatus(firstPredicate.index, firstPredicate.restaurant)
-
-#         aggregate_responses(firstPredicate)
-
-#         # Check that all three statuses are -1
-#         self.assertEqual(r.predicate0Status,-1)
-#         self.assertEqual(r.predicate1Status,-1)
-#         self.assertEqual(r.predicate2Status,-1)
 
 class UpdateCountsTests(TestCase):
 
     def test_update_counts(self):
+        """
+        tests updateCounts() to make sure it increments returnedTotal and returnedNo appropriately
+        """
         # made a restaurant
         restaurant = enterRestaurant('Kate', 91871)
 
@@ -185,6 +135,7 @@ class UpdateCountsTests(TestCase):
 
 
 class FindRestaurantTests(TestCase):
+
     def test_no_tasks_done(self):
         """
         Given three possible restaurants, should choose the one with the lowest value for the relevant
@@ -290,6 +241,9 @@ class FindRestaurantTests(TestCase):
 class DecrementStatusTests(TestCase):
 
     def test_decrement_status(self):
+        """
+        tests decrementStatus() method to make sure it can decrement each status bit
+        """
         # made a restaurant
         restaurant = enterRestaurant('Kate', 91871)
 
@@ -306,14 +260,20 @@ class DecrementStatusTests(TestCase):
 class IncrementStatusByFiveTests(TestCase):
 
     def test_increment_by_five_when_not_zero(self):
+        """
+        tests incrementStatusByFive() when the status bit is not 0. it should do nothing
+        """
         # made a restaurant
         restaurant = enterRestaurant('Kate', 91871)
 
-        # incremented each status bit by 5
+        # should not increase default value of 5 to 10 because it should only increment when status is 0
         incrementStatusByFive(0, restaurant)
         self.assertEqual(restaurant.predicate0Status, 5)
 
     def test_increment_by_five_when_zero(self):
+        """
+        tests incrementStatusByFive() when the status bit is 0.
+        """
         # made a restaurant
         restaurant = enterRestaurant('Kate', 91871)
 
@@ -332,4 +292,11 @@ class IncrementStatusByFiveTests(TestCase):
 class findTotalTickets(TestCase):
 
     def test_find_Total_Tickets(self):
+        """
+        tests findTotalTickets() to correctly find the total number of tickets
+        """
+
+
+
+
         
