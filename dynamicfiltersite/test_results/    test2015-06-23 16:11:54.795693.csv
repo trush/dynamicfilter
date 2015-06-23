@@ -1,0 +1,54 @@
+Results of Simulation Test
+Timestamp:,2015-06-23 16:11:54.795693
+Number of tasks completed by workers:,294
+Total Restaurants: ,20
+Total completion time of all tasks (minutes):,290.6782166666667
+
+PredicateBranch,Selectivity,Total Returned,Returned No
+Does this restaurant accept credit cards?,0.14285714285714285,35,5
+Is this a good restaurant for kids?,0.1956521739130435,46,9
+Does this restaurant serve Choco Pies?,0.9305555555555556,216,201
+
+Restaurant,Predicate 0,Predicate 1,Predicate 2,Passed Filter
+Kate 0,True,,False,False
+Kate 1,,,False,False
+Kate 2,,,False,False
+Kate 3,,,False,False
+Kate 4,,,False,False
+Kate 5,,,False,False
+Kate 6,True,True,False,False
+Kate 7,,,False,False
+Kate 8,,,False,False
+Kate 9,,,False,False
+Kate 10,,,False,False
+Kate 11,,,False,False
+Kate 12,,,False,False
+Kate 13,,,False,False
+Kate 14,,,False,False
+Kate 15,,,False,False
+Kate 16,,,False,False
+Kate 17,,,False,False
+Kate 18,,,False,False
+Kate 19,,,False,False
+
+Restaurant,Predicate 0 Status,Predicate 1 Status,Predicate 2 Status
+Kate 0,0,1,0
+Kate 1,4,4,0
+Kate 2,2,3,0
+Kate 3,3,3,0
+Kate 4,4,4,0
+Kate 5,2,1,0
+Kate 6,0,0,0
+Kate 7,4,3,0
+Kate 8,5,3,0
+Kate 9,4,4,0
+Kate 10,1,4,0
+Kate 11,4,5,0
+Kate 12,4,3,0
+Kate 13,5,4,0
+Kate 14,4,2,0
+Kate 15,4,5,0
+Kate 16,4,4,0
+Kate 17,5,3,0
+Kate 18,3,1,0
+Kate 19,4,3,0

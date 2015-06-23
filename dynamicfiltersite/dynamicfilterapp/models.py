@@ -94,8 +94,8 @@ class PredicateBranch(models.Model):
     end = models.IntegerField(null=True, blank=True)
 
     # fields to keep track of selectivity
-    returnedTotal = models.IntegerField(default=1)
-    returnedNo = models.IntegerField(default=1)
+    returnedTotal = models.FloatField(default=1)
+    returnedNo = models.FloatField(default=1)
 
     def __unicode__(self):
         return "Predicate branch with question: " + str(self.question)

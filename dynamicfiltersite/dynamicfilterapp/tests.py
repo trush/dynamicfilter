@@ -46,33 +46,33 @@ def enterPredicateBranch(question, index, returnedTotal, returnedNo):
     PredicateBranch.objects.get_or_create(question=question, index=index, returnedTotal=returnedTotal, returnedNo=returnedNo)
 
 class AggregateResponsesTestCase(TestCase):
-    """
-    Tests the aggregate_responses() function
-    """
-    def test_aggregate_five_no(self):
-        """
-        Entering five no votes should result in all predicate statuses being set to -1.
-        """
-        # make new restaurant Chipotle
-        r = enterRestaurant("Chipotle", 20349)
+    # """
+    # Tests the aggregate_responses() function
+    # """
+    # def test_aggregate_five_no(self):
+    #     """
+    #     Entering five no votes should result in all predicate statuses being set to -1.
+    #     """
+    #     # make new restaurant Chipotle
+    #     r = enterRestaurant("Chipotle", 20349)
 
-        # get the zeroeth predicate
-        p = RestaurantPredicate.objects.filter(restaurant=r).order_by('-index')[0]
+    #     # get the zeroeth predicate
+    #     p = RestaurantPredicate.objects.filter(restaurant=r).order_by('-index')[0]
 
-        # Enter five "No" answers with 100% confidence
-        for i in range(5):
-            enterTask(i, False, 1000, 100, p)
+    #     # Enter five "No" answers with 100% confidence
+    #     for i in range(5):
+    #         enterTask(i, False, 1000, 100, p)
 
-        # set predicate0Status to not be asked anymore
-        r.predicate0Status = 0
-        r.save()
+    #     # set predicate0Status to not be asked anymore
+    #     r.predicate0Status = 0
+    #     r.save()
 
-        r = aggregate_responses(p)
+    #     r = aggregate_responses(p)
 
-        # All the predicate statuses should be -1 since this restaurant failed one predicate
-        self.assertEqual(r.predicate0Status,-1)
-        self.assertEqual(r.predicate1Status,-1)
-        self.assertEqual(r.predicate2Status,-1)
+    #     # All the predicate statuses should be -1 since this restaurant failed one predicate
+    #     self.assertEqual(r.predicate0Status,-1)
+    #     self.assertEqual(r.predicate1Status,-1)
+    #     self.assertEqual(r.predicate2Status,-1)
 
 
     def test_aggregate_five_yes(self):
@@ -390,10 +390,10 @@ class SimulationTest(TestCase):
 
     def test_simulation(self):
         print "------STARTING SIMULATION------"
-        NUM_RESTAURANTS = 2
-        PROBABILITY_TRUE_Q0 = 0.4
+        NUM_RESTAURANTS = 10
+        PROBABILITY_TRUE_Q0 = 0.8
         PROBABILITY_TRUE_Q1 = 0.8
-        PROBABILITY_TRUE_Q2 = 0.7
+        PROBABILITY_TRUE_Q2 = 0.8
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
         CONFIDENCE_OPTIONS = [50,60,70,80,90,100]
@@ -428,7 +428,7 @@ class SimulationTest(TestCase):
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
             # randomly select a confidence level
-            confidenceLevel = 100
+            confidenceLevel = choice(CONFIDENCE_OPTIONS)
             # make Task answering the predicate, using answer and time
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
 
@@ -454,25 +454,43 @@ class SimulationTest(TestCase):
         l.append(["Results of Simulation Test"])
         l.append(["Timestamp:", str(now)])
         l.append(["Number of tasks completed by workers:", str(len(Task.objects.all()))])
-        l.append(["Total Restaurants: " + str(NUM_RESTAURANTS)])
+        l.append(["Total Restaurants: ",NUM_RESTAURANTS])
 
         totalCompletionTime = 0
         for task in Task.objects.all():
             totalCompletionTime += task.completionTime
-        l.append(["Total completion time of all tasks:", totalCompletionTime])
+        l.append(["Total completion time of all tasks (minutes):", totalCompletionTime/60000.0])
 
+        l.append([])
+        l.append(["PredicateBranch", "Selectivity", "Total Returned", "Returned No"])
+        for branch in PredicateBranch.objects.all():
+            predicateBranchRow = []
+            predicateBranchRow.append(branch.question)
+            predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
+            predicateBranchRow.append(branch.returnedTotal)
+            predicateBranchRow.append(branch.returnedNo)
+            l.append(predicateBranchRow)
+
+        l.append([])
         l.append(["Restaurant", "Predicate 0", "Predicate 1", "Predicate 2", "Passed Filter"])
         for rest in Restaurant.objects.all():
             restaurantRow = []
             restaurantRow.append(rest.name)
-            passedAllPredicates = True
             for predicate in RestaurantPredicate.objects.filter(restaurant=rest):
-                restaurantRow.append(rest.predicate0Status)
-                if predicate.value == False or predicate.value == None:
-                    passedAllPredicates = False
-            restaurantRow.append(passedAllPredicates)
+                restaurantRow.append(predicate.value)
+            restaurantRow.append(not rest.hasFailed)
             l.append(restaurantRow)
-            
+
+        l.append([])
+        l.append(["Restaurant", "Predicate 0 Status", "Predicate 1 Status", "Predicate 2 Status"])
+        for rest in Restaurant.objects.all():
+            restaurantRow = []
+            restaurantRow.append(rest.name)
+            restaurantRow.append(rest.predicate0Status)
+            restaurantRow.append(rest.predicate1Status)
+            restaurantRow.append(rest.predicate2Status)
+            l.append(restaurantRow)
+
         with open('test_results/    test' + str(now) + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in l]
