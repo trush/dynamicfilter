@@ -71,8 +71,10 @@ def answer_question(request, IDnumber):
             # decreases status of one predicate in the restaurant by 1 because it was just answered
             decrementStatus(toBeAnswered.index, toBeAnswered.restaurant)
 
-            # then aggregate responses to check if the predicate has been answered enough times to have a fixed value
-            toBeAnswered.restaurant = aggregate_responses(toBeAnswered)     
+            statusName = "predicate" + str(toBeAnswered.index) + "Status"
+            if getattr(toBeAnswered.restaurant, statusName)==0:
+                # then aggregate responses to check if the predicate has been answered enough times to have a fixed value
+                toBeAnswered.restaurant = aggregate_responses(toBeAnswered)     
 
             # now the toBeAnswered restaurant comes out of the predicate branch and is not being evaluated anymore 
             toBeAnswered.restaurant.evaluator = None
@@ -84,7 +86,7 @@ def answer_question(request, IDnumber):
 
     # if a GET (or any other method) we'll create a blank form
     else:
-        toBeAnswered = eddy(request, IDnumber)
+        toBeAnswered = eddy(IDnumber)
         print "toBeAnswered: " + str(toBeAnswered)
         # if there are no predicates to be answered by the worker with this ID number
         if toBeAnswered == None:
@@ -92,17 +94,6 @@ def answer_question(request, IDnumber):
         form = WorkerForm()
 
     return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 'workerID': IDnumber })
-
-def updateCounts(pB, task):
-    """
-    updates the predicate branch's total and "No!" counts relative to the confidence levels
-    """
-    if task.answer==True:
-        pB.returnedTotal += task.confidenceLevel/100.0
-    elif task.answer==False:
-        pB.returnedTotal += task.confidenceLevel/100.0
-        pB.returnedNo += task.confidenceLevel/100.0
-    pB.save()
 
 def completed_question(request, IDnumber):
     """

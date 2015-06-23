@@ -1,5 +1,6 @@
 from models import Task, RestaurantPredicate, Restaurant, PredicateBranch
 from scipy.special import btdtr
+from random import randint
 
 # we need at least half of the answers to be True in order for the value of the predicate to be True
 # and same for False's
@@ -45,36 +46,39 @@ def aggregate_responses(predicate):
 
     # if more yes's than no's
     if totalYes > totalNo and uncertaintyLevelTrue < UNCERTAINTY_THRESHOLD:
+        print "predicate value set to true"
         predicate.value = True
 
     # if more no's than yes's
     elif totalNo > totalYes and uncertaintyLevelFalse < UNCERTAINTY_THRESHOLD:
         predicate.value = False
+        print "predicate value set to false"
 
         # flag for the Restaurant failing a predicate (and thus not passing all the predicates)
         predicateFailed = False
 
         # iterates through all the fields in this restaurant's model
         for field in predicate.restaurant._meta.fields:
+            #print "Field " + str(field)
             # verbose_name is the field's name with underscores replaced with spaces
-            if field.verbose_name.startswith('predicate') and field.verbose_name.endswith(
-                'Status') and getattr(predicate.restaurant, field.verbose_name) == 0:
-                        predicateFailed = True
-                        break
+            if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status') and getattr(predicate.restaurant, field.verbose_name) == 0:
+                predicateFailed = True
+                print "PREDICATE FAILED :("
+                break
 
-        if predicateFailed: predicate = setFieldsToNegOne(predicate)
+        if predicateFailed:
+            predicate = setFieldsToNegOne(predicate)
 
     if predicate.value==None:
         # collect five more responses from workers when there are same 
         # number of yes and no
         predicate.restaurant = incrementStatusByFive(predicate.index, predicate.restaurant)
-
+    predicate.restaurant.save()
     predicate.save()
-
+    #print predicate.restaurant.predicate0Status 
     printResults()
 
     return predicate.restaurant
-
 
 def printResults():
     """
@@ -87,7 +91,7 @@ def printResults():
         print "The following restaurants satisfied all predicates"
         filtered = Restaurant.objects.exclude(predicate0Status=-1)
         for restaurant in filtered:
-            print restaurant
+            print str(restaurant) + " " + str(restaurant.predicate0Status) + " " + str(restaurant.predicate1Status) + " " + str(restaurant.predicate2Status)
         print "----------------------------"
 
 def setFieldsToNegOne(predicate):
@@ -95,14 +99,26 @@ def setFieldsToNegOne(predicate):
     Set all predicate status fields to -1 to indicate that it needs no further evaluation (because
     it has failed a predicate)
     """
+    print "Setting fields to -1"
     for field in predicate.restaurant._meta.fields:
         if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
+            print "actually setting to -1 now"
             setattr(predicate.restaurant, field.verbose_name, -1)
-
+    predicate.save()
     return predicate
 
+def updateCounts(pB, task):
+    """
+    updates the predicate branch's total and "No!" counts relative to the confidence levels
+    """
+    if task.answer==True:
+        pB.returnedTotal += task.confidenceLevel/100.0
+    elif task.answer==False:
+        pB.returnedTotal += task.confidenceLevel/100.0
+        pB.returnedNo += task.confidenceLevel/100.0
+    pB.save()
 
-def eddy(request, ID):
+def eddy(ID):
     """
     Uses a random lottery system to determine which eligible predicate should be
     evaluated next.
@@ -112,29 +128,34 @@ def eddy(request, ID):
 
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
+    #print "Completed Tasks: " + str(completedTasks)
 
     # find all the predicates matching these completed tasks
     completedPredicates = RestaurantPredicate.objects.filter(
         id__in=completedTasks.values('restaurantPredicate_id'))
-       
-    # excludes all completed predicates from all restaurant predicates to get only incompleted ones
-    incompletePredicates = RestaurantPredicate.objects.exclude(id__in=completedPredicates)
+    #print "Completed Predicates: " + str(completedTasks)
 
     # all fields for a restaurant referenced by an incomplete predicate
-    restaurantFields = incompletePredicates[0].restaurant._meta.fields
+    restaurantFields = RestaurantPredicate.objects.all()[0].restaurant._meta.fields
 
-    #finds number of predicate statuses
+    # finds number of predicate statuses
     numOfPredicateStatuses = 0
     for field in restaurantFields:
         if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
             numOfPredicateStatuses += 1
+
+    # excludes all completed predicates from all restaurant predicates to get only incompleted ones
+    incompletePredicates1 = RestaurantPredicate.objects.exclude(id__in=completedPredicates)
+    print "incompletePredicates1: " + str(incompletePredicates1)
+    incompletePredicates = incompletePredicates1.filter(value=None)
+    print "incompletePredicates: " + str(incompletePredicates)
 
     #finds eligible predicate branches
     eligiblePredicateBranches = []
     for i in range(numOfPredicateStatuses):
         for pred in incompletePredicates:
             if pred.index == i:
-                eligiblePredicateBranches.append(PredicateBranches.objects.filter(index=i)[0])
+                eligiblePredicateBranches.append(PredicateBranch.objects.filter(index=i)[0])
                 break
 
     # Find all PredicateBranches with open space and that haven't been completed
@@ -143,17 +164,17 @@ def eddy(request, ID):
     #     question__in=completedPredicates.values('question'))
     
     #if debug: print "------STARTING LOTTERY------"
-    #print "size of all predicate branches: " + str(len(eligiblePredicateBranches))
+    print "size of all predicate branches: " + str(len(eligiblePredicateBranches))
     if (len(eligiblePredicateBranches) != 0):
         chosenBranch = runLottery(eligiblePredicateBranches)
     else:
         return None
 
-    #print "chosen branch: " + str(chosenBranch)
+    print "chosen branch: " + str(chosenBranch)
     # generates the restaurant with the highest priority for the specified 
     # predicate branch
     chosenRestaurant = findRestaurant(chosenBranch, ID)
-    
+    print "chosen restaurant: " + str(chosenRestaurant)
     #  mark chosenRestaurant as being in chosenBranch
     chosenRestaurant.evaluator = chosenBranch.index
 
@@ -178,7 +199,7 @@ def decrementStatus(index, restaurant):
             currentLeftToAsk = getattr(restaurant, field.verbose_name)
             #sets the field to currentLeftToAsk-1
             setattr(restaurant, field.verbose_name, currentLeftToAsk-1)
-            print "Decremented " + field.verbose_name
+            #print "Decremented " + field.verbose_name
     restaurant.save()
 
 def incrementStatusByFive(index, restaurant):
@@ -215,10 +236,11 @@ def runLottery(pbSet):
     #retrieves total num of tickets in valid predicates branches
     totalTickets = findTotalTickets(pbSet)
     if totalTickets==0:
+        print "Total tickets is zero"
         return None
 
     # generate random number between 1 and totalTickets
-    rand = random.randint(1, totalTickets)
+    rand = randint(1, totalTickets)
 
     # check if rand falls in the range corresponding to each predicate
     lowBound = 0
@@ -258,7 +280,12 @@ def findRestaurant(predicateBranch,ID):
     # print "Completed Tasks: " + str(completedTasks)
     # find all the predicates for this branch that have been done by the worker
     completedPredicates = RestaurantPredicate.objects.filter(question=predicateBranch.question).filter(
-        id__in=completedTasks.values('restaurantPredicate_id'))
+        id__in=completedTasks.values('restaurantPredicate_id')).filter(restaurant.hasFailed=False)
+
+    for i in range(numOfPredicateStatuses):
+        statusName = "predicate" + i + "Status"
+        completedPredicates = completedPredicates.filter(statusName>0)
+
     # print "Completed predicates: " + str(completedPredicates)
     # get the Restaurants NOT associated with the completed predicates
     rSet = Restaurant.objects.exclude(id__in=completedPredicates.values('restaurant_id'))
@@ -268,15 +295,15 @@ def findRestaurant(predicateBranch,ID):
     prioritized = rSet.order_by(orderByThisStatus)
 
     # print "Predicate Branch Index: " + str(predicateBranch.index)
-    # print " Prioritized: " + str(prioritized)
+    print " Prioritized: " + str(prioritized)
     # filter out restaurants where the relevant status is not 0 or
     predStatus = 'predicate' + str(predicateBranch.index) + 'Status'
     for restaurant in prioritized:
         status = getattr(restaurant, predStatus)
         #sets the field to currentLeftToAsk-1
+        print "Restaurant " + str(restaurant) + "has status " + str(status)
         if status > 0:
-            # print "Satisfied with status " + str(status) + " on restaurant " + str(restaurant)
+            #print "Satisfied with status " + str(status) + " on restaurant " + str(restaurant)
             return restaurant
-
     # We should never reach this statement
     return None

@@ -2,18 +2,23 @@
 from django.test import TestCase
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
-# What we wrote
-from .views import aggregate_responses, decrementStatus, updateCounts, incrementStatusByFive, findRestaurant, findTotalTickets
+# What we wrote 
+from views_helpers import eddy, aggregate_responses, decrementStatus, updateCounts, incrementStatusByFive, findRestaurant, findTotalTickets
 from .forms import RestaurantAdminForm
 from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
+# Python tools
+from numpy.random import normal, random
+from random import choice
+import datetime
+import csv
 
-def enterTask(ID, workerAnswer, confidence, predicate):
+def enterTask(ID, workerAnswer, time, confidence, predicate):
     """
     shortcut to making tasks
     """
-    task = Task(workerID=ID, completionTime=1000, answer=workerAnswer, confidenceLevel=confidence, restaurantPredicate=predicate)
+    task = Task(workerID=ID, completionTime=time, answer=workerAnswer, confidenceLevel=confidence, restaurantPredicate=predicate)
     task.save()
-
+    return task
 
 def enterRestaurant(restaurantName, zipNum):
     """
@@ -56,7 +61,7 @@ class AggregateResponsesTestCase(TestCase):
 
         # Enter five "No" answers with 100% confidence
         for i in range(5):
-            enterTask(i, False, 100, p)
+            enterTask(i, False, 1000, 100, p)
 
         # set predicate0Status to not be asked anymore
         r.predicate0Status = 0
@@ -80,7 +85,7 @@ class AggregateResponsesTestCase(TestCase):
 
         # Enter five "No" answers with 100% confidence
         for i in range(5):
-            enterTask(i, True, 100, p)
+            enterTask(i, True, 1000, 100, p)
 
         r.predicate0Status = 0
         r.save()
@@ -102,10 +107,10 @@ class AggregateResponsesTestCase(TestCase):
 
         # Enter three "Yes" answers with 80% confidence
         for i in range(3):
-            enterTask(i, True, 80, p)
+            enterTask(i, True, 1000, 80, p)
         # Enter three "No" answers with 80% confidence
         for i in range(2):
-            enterTask(i+3, False, 80, p)
+            enterTask(i+3, False, 1000, 80, p)
 
         r.predicate0Status = 0
         r.save()
@@ -133,7 +138,6 @@ class AggregateResponsesTestCase(TestCase):
         self.assertEqual(r.predicate1Status,5)
         self.assertEqual(r.predicate2Status,5)
 
-
 class AnswerQuestionViewTests(TestCase):
 
     def test_answer_question_no_id(self):
@@ -142,7 +146,6 @@ class AnswerQuestionViewTests(TestCase):
         """
         response = self.client.get('/dynamicfilterapp/answer_question/')
         self.assertEqual(response.status_code, 404)
-
 
 class RestaurantCreationTests(TestCase):
     
@@ -157,7 +160,6 @@ class RestaurantCreationTests(TestCase):
         # Ensure that three predicates have been created to go with this restaurant
         self.assertEqual(len(RestaurantPredicate.objects.filter(restaurant=r)), 3)
 
-
 class NoQuestionViewTests(TestCase):
 
     WORKER_ID = 001
@@ -168,7 +170,6 @@ class NoQuestionViewTests(TestCase):
         """
         response = self.client.get(reverse('no_questions', args=[self.WORKER_ID]))
         self.assertContains(response, "There are no more questions to be answered at this time.")   
-
 
 class UpdateCountsTests(TestCase):
 
@@ -184,7 +185,7 @@ class UpdateCountsTests(TestCase):
         PB = PredicateBranch.objects.all()[0]
 
         # entered a task
-        enterTask(001, True, 100, RestaurantPredicate.objects.all()[0])
+        enterTask(001, True, 1000, 100, RestaurantPredicate.objects.all()[0])
 
         # updated count of total answers and total no's
         updateCounts(PB, Task.objects.all()[0])
@@ -193,7 +194,7 @@ class UpdateCountsTests(TestCase):
         self.assertEqual(PB.returnedTotal,2)
 
         # entered another task
-        enterTask(002, False, 60, RestaurantPredicate.objects.all()[0])
+        enterTask(002, False, 1000, 60, RestaurantPredicate.objects.all()[0])
 
         # updated its counts of total answers and total no's
         updateCounts(PB, Task.objects.all()[1])
@@ -201,7 +202,6 @@ class UpdateCountsTests(TestCase):
         # total answers should be 3 and total no's should be 2
         self.assertEqual(PB.returnedTotal,2.6)
         self.assertEqual(PB.returnedNo, 1.6)
-
 
 class FindRestaurantTests(TestCase):
 
@@ -260,7 +260,7 @@ class FindRestaurantTests(TestCase):
         r3.save()
 
         for predicate in RestaurantPredicate.objects.filter(restaurant=r2):
-            enterTask(100, True, 100, predicate)
+            enterTask(100, True, 1000, 100, predicate)
 
         pb0=PredicateBranch.objects.all()[0]
         self.assertEqual(findRestaurant(pb0,100), r3)
@@ -295,7 +295,7 @@ class FindRestaurantTests(TestCase):
         r3.save()
 
         for predicate in RestaurantPredicate.objects.filter(restaurant=r2):
-            enterTask(100, True, 100, predicate)
+            enterTask(100, True, 1000, 100, predicate)
 
         pb0=PredicateBranch.objects.all()[0]
         self.assertEqual(findRestaurant(pb0,100), r3)
@@ -305,7 +305,6 @@ class FindRestaurantTests(TestCase):
 
         pb2=PredicateBranch.objects.all()[2]
         self.assertEqual(findRestaurant(pb2,100), r3)
-
 
 class DecrementStatusTests(TestCase):
 
@@ -387,6 +386,96 @@ class findTotalTicketsTests(TestCase):
         # should equal 2000
         self.assertEqual(result, 2000)
 
+class SimulationTest(TestCase):
+
+    def test_simulation(self):
+        print "------STARTING SIMULATION------"
+        NUM_RESTAURANTS = 2
+        PROBABILITY_TRUE_Q0 = 0.4
+        PROBABILITY_TRUE_Q1 = 0.8
+        PROBABILITY_TRUE_Q2 = 0.7
+        AVERAGE_TIME = 60000 # 60 seconds
+        STANDARD_DEV = 20000 # 20 seconds
+        CONFIDENCE_OPTIONS = [50,60,70,80,90,100]
+
+        # Save the time and date of simulation
+        now = datetime.datetime.now()
+
+        # Create restaurants with PBs and RPs
+        for i in range(NUM_RESTAURANTS):
+            enterRestaurant("Kate " + str(i), i)
+
+        IDcounter = 100
+
+        # choose one predicate to start
+        predicate = eddy(IDcounter)
+        # while loop
+        while (predicate != None):
+            #print "Running loop on predicate " + str(predicate)
+            #default answer is False
+            answer = False
+            #generate random decimal from 0 to 1
+            randNum = random()
+            
+            # Set the answer to True if dictated by the random number
+            if predicate.index == 0 and randNum < PROBABILITY_TRUE_Q0:
+                answer = True
+            elif predicate.index == 1 and randNum < PROBABILITY_TRUE_Q1:
+                answer = True
+            elif predicate.index == 2 and randNum < PROBABILITY_TRUE_Q2:
+                answer = True
+                
+            # choose a time by sampling from a distribution
+            completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
+            # randomly select a confidence level
+            confidenceLevel = 100
+            # make Task answering the predicate, using answer and time
+            task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
+
+            # get the associated PredicateBranch
+            pB = PredicateBranch.objects.filter(question=predicate.question)[0]
+            updateCounts(pB, task)
+            decrementStatus(predicate.index, predicate.restaurant)
+            
+            statusName = "predicate" + str(predicate.index) + "Status"
+            if getattr(predicate.restaurant, statusName)==0:
+                predicate.restaurant = aggregate_responses(predicate)
+
+            predicate.restaurant.evaluator = None
+            predicate.save()
+
+            # increase IDcounter
+            IDcounter += 1
+            # get a predicate from the eddy
+            predicate = eddy(IDcounter)
+            
+        # write results to file
+        l = []
+        l.append(["Results of Simulation Test"])
+        l.append(["Timestamp:", str(now)])
+        l.append(["Number of tasks completed by workers:", str(len(Task.objects.all()))])
+        l.append(["Total Restaurants: " + str(NUM_RESTAURANTS)])
+
+        totalCompletionTime = 0
+        for task in Task.objects.all():
+            totalCompletionTime += task.completionTime
+        l.append(["Total completion time of all tasks:", totalCompletionTime])
+
+        l.append(["Restaurant", "Predicate 0", "Predicate 1", "Predicate 2", "Passed Filter"])
+        for rest in Restaurant.objects.all():
+            restaurantRow = []
+            restaurantRow.append(rest.name)
+            passedAllPredicates = True
+            for predicate in RestaurantPredicate.objects.filter(restaurant=rest):
+                restaurantRow.append(rest.predicate0Status)
+                if predicate.value == False or predicate.value == None:
+                    passedAllPredicates = False
+            restaurantRow.append(passedAllPredicates)
+            l.append(restaurantRow)
+            
+        with open('test_results/    test' + str(now) + '.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            [writer.writerow(r) for r in l]
 
 
         
