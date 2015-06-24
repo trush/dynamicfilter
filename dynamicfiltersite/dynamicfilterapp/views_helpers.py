@@ -199,7 +199,7 @@ def decrementStatus(index, restaurant):
             currentLeftToAsk = getattr(restaurant, field.verbose_name)
             #sets the field to currentLeftToAsk-1
             setattr(restaurant, field.verbose_name, currentLeftToAsk-1)
-            #print "Decremented " + field.verbose_name
+            #print "Decremented " + field.verbose_name + " to status of " + str(currentLeftToAsk-1)
     restaurant.save()
 
 def incrementStatusByFive(index, restaurant):

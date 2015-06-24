@@ -389,11 +389,12 @@ class findTotalTicketsTests(TestCase):
 class SimulationTest(TestCase):
 
     def test_simulation(self):
-        NUM_RESTAURANTS = 10
+        NUM_RESTAURANTS = 20
         
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
         CONFIDENCE_OPTIONS = [50,60,70,80,90,100]
+        PERSONALITIES = [0.15, 0.15, 0.15, 0.15, 0.15]
 
         # Save the time and date of simulation
         now = datetime.datetime.now()
@@ -403,9 +404,9 @@ class SimulationTest(TestCase):
             enterRestaurant("Kate " + str(i), i)
 
         branches = PredicateBranch.objects.all()
-        branchDifficulties = {branches[0] : 0.30,
-                              branches[1] : 0.10,
-                              branches[2] : 0.50}
+        branchDifficulties = {branches[0] : 0.15,
+                              branches[1] : 0.40,
+                              branches[2] : 0.30}
 
         # dictionary of predicates as keys and their true answers as values
         predicateAnswers = {}
@@ -413,7 +414,10 @@ class SimulationTest(TestCase):
         # set all predicates to have true answers as True
         allRestPreds = RestaurantPredicate.objects.all()
         for restPred in allRestPreds:
-            predicateAnswers[restPred] = True
+            if random() < 0.50:
+                predicateAnswers[restPred] = False
+            else:
+                predicateAnswers[restPred] = True
 
         IDcounter = 100
 
@@ -428,7 +432,7 @@ class SimulationTest(TestCase):
             randNum = random()
         
             branch = PredicateBranch.objects.filter(index=predicate.index)[0]
-            if randNum < branchDifficulties[branch]:
+            if randNum < branchDifficulties[branch] + choice(PERSONALITIES):
                 # the worker gets the question wrong
                 answer = not answer
             
@@ -439,7 +443,7 @@ class SimulationTest(TestCase):
             # make Task answering the predicate, using answer and time
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
 
-            print task
+            #print task
 
             # get the associated PredicateBranch
             pB = PredicateBranch.objects.filter(question=predicate.question)[0]
@@ -464,6 +468,15 @@ class SimulationTest(TestCase):
         l.append(["Timestamp:", str(now)])
         l.append(["Number of tasks completed by workers:", str(len(Task.objects.all()))])
         l.append(["Total Restaurants: ",NUM_RESTAURANTS])
+
+
+        # Of the answered predicates, count how many are correct
+        correctCount = 0
+        for predicate in RestaurantPredicate.objects.exclude(value=None):
+            if predicate.value == predicateAnswers[predicate]:
+                correctCount += 1
+
+        l.append(["Correct percentage:", float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))])
 
         totalCompletionTime = 0
         for task in Task.objects.all():
@@ -490,6 +503,7 @@ class SimulationTest(TestCase):
                 restaurantRow.append(predicate.value)
             restaurantRow.append(not rest.hasFailed)
             l.append(restaurantRow)
+
 
         # l.append([])
         # l.append(["Restaurant", "Predicate 0 Status", "Predicate 1 Status", "Predicate 2 Status"])
