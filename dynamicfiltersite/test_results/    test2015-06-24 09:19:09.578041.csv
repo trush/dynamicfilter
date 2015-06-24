@@ -1,0 +1,37 @@
+Results of Simulation Test
+Timestamp:,2015-06-24 09:19:09.578041
+Number of tasks completed by workers:,1387
+Total Restaurants: ,10
+Probability of Q0 being True:,0.4
+Probability of Q1 being True:,0.6
+Probability of Q2 being True:,0.6
+Total completion time of all tasks (minutes):,1380.3108166666666
+
+PredicateBranch,Selectivity,Total Returned,Returned No
+Does this restaurant accept credit cards?,0.6197155659458408,513.3,318.1
+Is this a good restaurant for kids?,0.3619313647246608,250.6,90.7
+Does this restaurant serve Choco Pies?,0.38784881667255383,283.1,109.8
+
+Restaurant,Predicate 0,Predicate 1,Predicate 2,Passed Filter
+Kate 0,False,,,False
+Kate 1,True,True,True,True
+Kate 2,False,,,False
+Kate 3,False,True,True,False
+Kate 4,False,True,,False
+Kate 5,False,True,,False
+Kate 6,False,True,,False
+Kate 7,False,True,True,False
+Kate 8,False,True,True,False
+Kate 9,False,True,True,False
+
+Restaurant,Predicate 0 Status,Predicate 1 Status,Predicate 2 Status
+Kate 0,0,2,3
+Kate 1,0,0,0
+Kate 2,0,1,5
+Kate 3,0,0,0
+Kate 4,0,0,5
+Kate 5,0,0,1
+Kate 6,0,0,1
+Kate 7,0,0,0
+Kate 8,0,0,0
+Kate 9,0,0,0

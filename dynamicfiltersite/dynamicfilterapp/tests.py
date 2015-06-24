@@ -391,9 +391,9 @@ class SimulationTest(TestCase):
     def test_simulation(self):
         print "------STARTING SIMULATION------"
         NUM_RESTAURANTS = 10
-        PROBABILITY_TRUE_Q0 = 0.8
-        PROBABILITY_TRUE_Q1 = 0.8
-        PROBABILITY_TRUE_Q2 = 0.8
+        PROBABILITY_TRUE_Q0 = 0.6
+        PROBABILITY_TRUE_Q1 = 0.55
+        PROBABILITY_TRUE_Q2 = 0.6
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
         CONFIDENCE_OPTIONS = [50,60,70,80,90,100]
@@ -455,6 +455,9 @@ class SimulationTest(TestCase):
         l.append(["Timestamp:", str(now)])
         l.append(["Number of tasks completed by workers:", str(len(Task.objects.all()))])
         l.append(["Total Restaurants: ",NUM_RESTAURANTS])
+        l.append(["Probability of Q0 being True:", PROBABILITY_TRUE_Q0])
+        l.append(["Probability of Q1 being True:", PROBABILITY_TRUE_Q1])
+        l.append(["Probability of Q2 being True:", PROBABILITY_TRUE_Q2])
 
         totalCompletionTime = 0
         for task in Task.objects.all():
