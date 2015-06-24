@@ -389,11 +389,8 @@ class findTotalTicketsTests(TestCase):
 class SimulationTest(TestCase):
 
     def test_simulation(self):
-        print "------STARTING SIMULATION------"
-        NUM_RESTAURANTS = 1
-        PROBABILITY_TRUE_Q0 = 0.6
-        PROBABILITY_TRUE_Q1 = 0.6
-        PROBABILITY_TRUE_Q2 = 0.6
+        NUM_RESTAURANTS = 10
+        
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
         CONFIDENCE_OPTIONS = [50,60,70,80,90,100]
@@ -405,6 +402,19 @@ class SimulationTest(TestCase):
         for i in range(NUM_RESTAURANTS):
             enterRestaurant("Kate " + str(i), i)
 
+        branches = PredicateBranch.objects.all()
+        branchDifficulties = {branches[0] : 0.30,
+                              branches[1] : 0.10,
+                              branches[2] : 0.50}
+
+        # dictionary of predicates as keys and their true answers as values
+        predicateAnswers = {}
+        
+        # set all predicates to have true answers as True
+        allRestPreds = RestaurantPredicate.objects.all()
+        for restPred in allRestPreds:
+            predicateAnswers[restPred] = True
+
         IDcounter = 100
 
         # choose one predicate to start
@@ -412,25 +422,24 @@ class SimulationTest(TestCase):
         # while loop
         while (predicate != None):
             #print "Running loop on predicate " + str(predicate)
-            #default answer is False
-            answer = False
-            #generate random decimal from 0 to 1
+            # default answer is False
+            answer = predicateAnswers[predicate]
+            # generate random decimal from 0 to 1
             randNum = random()
+        
+            branch = PredicateBranch.objects.filter(index=predicate.index)[0]
+            if randNum < branchDifficulties[branch]:
+                # the worker gets the question wrong
+                answer = not answer
             
-            # Set the answer to True if dictated by the random number
-            if predicate.index == 0 and randNum < PROBABILITY_TRUE_Q0:
-                answer = True
-            elif predicate.index == 1 and randNum < PROBABILITY_TRUE_Q1:
-                answer = True
-            elif predicate.index == 2 and randNum < PROBABILITY_TRUE_Q2:
-                answer = True
-                
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
             # randomly select a confidence level
             confidenceLevel = choice(CONFIDENCE_OPTIONS)
             # make Task answering the predicate, using answer and time
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
+
+            print task
 
             # get the associated PredicateBranch
             pB = PredicateBranch.objects.filter(question=predicate.question)[0]
@@ -455,9 +464,6 @@ class SimulationTest(TestCase):
         l.append(["Timestamp:", str(now)])
         l.append(["Number of tasks completed by workers:", str(len(Task.objects.all()))])
         l.append(["Total Restaurants: ",NUM_RESTAURANTS])
-        l.append(["Probability of Q0 being True:", PROBABILITY_TRUE_Q0])
-        l.append(["Probability of Q1 being True:", PROBABILITY_TRUE_Q1])
-        l.append(["Probability of Q2 being True:", PROBABILITY_TRUE_Q2])
 
         totalCompletionTime = 0
         for task in Task.objects.all():
@@ -465,17 +471,11 @@ class SimulationTest(TestCase):
         l.append(["Total completion time of all tasks (minutes):", totalCompletionTime/60000.0])
 
         l.append([])
-        l.append(["PredicateBranch", "Actual Selectivity", "Computed Selectivity", "Total Returned", "Returned No"])
+        l.append(["PredicateBranch", "Difficulty", "Computed Selectivity", "Total Returned", "Returned No"])
         for branch in PredicateBranch.objects.all():
             predicateBranchRow = []
             predicateBranchRow.append(branch.question)
-            if branch.index == 0:
-                predicateBranchRow.append(1.0-PROBABILITY_TRUE_Q0)
-            elif branch.index == 1:
-                predicateBranchRow.append(1.0-PROBABILITY_TRUE_Q1)
-            elif branch.index == 2:
-                predicateBranchRow.append(1.0-PROBABILITY_TRUE_Q2)
-
+            predicateBranchRow.append(branchDifficulties[branch])
             predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
             predicateBranchRow.append(branch.returnedTotal)
             predicateBranchRow.append(branch.returnedNo)
