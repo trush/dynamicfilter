@@ -1,0 +1,33 @@
+Results of Simulation Test
+Timestamp:,2015-06-24 09:19:55.705392
+Number of tasks completed by workers:,15
+Total Restaurants: ,1
+Total completion time of all tasks (minutes):,14.6152
+
+PredicateBranch,Actual Selectivity,Computed Selectivity,Total Returned,Returned No
+Does this restaurant accept credit cards?,0.8,0.3061224489795918,4.9,1.5
+Is this a good restaurant for kids?,0.8,0.20833333333333334,4.8,1.0
+Does this restaurant serve Choco Pies?,0.8,0.19607843137254904,5.1,1.0
+
+Restaurant,Predicate 0,Predicate 1,Predicate 2,Passed Filter
+Kate 0,True,True,True,True
+
+Restaurant,Predicate 0 Status,Predicate 1 Status,Predicate 2 Status
+Kate 0,0,0,0
+
+Question,Worker ID,Answer
+Does this restaurant serve Choco Pies?,100,True
+Is this a good restaurant for kids?,101,True
+Does this restaurant accept credit cards?,102,True
+Does this restaurant serve Choco Pies?,103,True
+Is this a good restaurant for kids?,104,True
+Is this a good restaurant for kids?,105,True
+Does this restaurant serve Choco Pies?,106,True
+Does this restaurant serve Choco Pies?,107,True
+Does this restaurant serve Choco Pies?,108,True
+Is this a good restaurant for kids?,109,True
+Does this restaurant accept credit cards?,110,True
+Does this restaurant accept credit cards?,111,True
+Is this a good restaurant for kids?,112,True
+Does this restaurant accept credit cards?,113,False
+Does this restaurant accept credit cards?,114,True

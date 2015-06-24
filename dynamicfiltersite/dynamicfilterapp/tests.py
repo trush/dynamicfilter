@@ -390,9 +390,9 @@ class SimulationTest(TestCase):
 
     def test_simulation(self):
         print "------STARTING SIMULATION------"
-        NUM_RESTAURANTS = 10
+        NUM_RESTAURANTS = 1
         PROBABILITY_TRUE_Q0 = 0.6
-        PROBABILITY_TRUE_Q1 = 0.55
+        PROBABILITY_TRUE_Q1 = 0.6
         PROBABILITY_TRUE_Q2 = 0.6
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
@@ -465,10 +465,17 @@ class SimulationTest(TestCase):
         l.append(["Total completion time of all tasks (minutes):", totalCompletionTime/60000.0])
 
         l.append([])
-        l.append(["PredicateBranch", "Selectivity", "Total Returned", "Returned No"])
+        l.append(["PredicateBranch", "Actual Selectivity", "Computed Selectivity", "Total Returned", "Returned No"])
         for branch in PredicateBranch.objects.all():
             predicateBranchRow = []
             predicateBranchRow.append(branch.question)
+            if branch.index == 0:
+                predicateBranchRow.append(1.0-PROBABILITY_TRUE_Q0)
+            elif branch.index == 1:
+                predicateBranchRow.append(1.0-PROBABILITY_TRUE_Q1)
+            elif branch.index == 2:
+                predicateBranchRow.append(1.0-PROBABILITY_TRUE_Q2)
+
             predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
             predicateBranchRow.append(branch.returnedTotal)
             predicateBranchRow.append(branch.returnedNo)
@@ -484,15 +491,25 @@ class SimulationTest(TestCase):
             restaurantRow.append(not rest.hasFailed)
             l.append(restaurantRow)
 
-        l.append([])
-        l.append(["Restaurant", "Predicate 0 Status", "Predicate 1 Status", "Predicate 2 Status"])
-        for rest in Restaurant.objects.all():
-            restaurantRow = []
-            restaurantRow.append(rest.name)
-            restaurantRow.append(rest.predicate0Status)
-            restaurantRow.append(rest.predicate1Status)
-            restaurantRow.append(rest.predicate2Status)
-            l.append(restaurantRow)
+        # l.append([])
+        # l.append(["Restaurant", "Predicate 0 Status", "Predicate 1 Status", "Predicate 2 Status"])
+        # for rest in Restaurant.objects.all():
+        #     restaurantRow = []
+        #     restaurantRow.append(rest.name)
+        #     restaurantRow.append(rest.predicate0Status)
+        #     restaurantRow.append(rest.predicate1Status)
+        #     restaurantRow.append(rest.predicate2Status)
+        #     l.append(restaurantRow)
+
+        # l.append([])
+        # l.append (["Question", "Worker ID", "Answer", "Confidence"])
+        # for task in Task.objects.order_by("workerID"):
+        #     taskRow = []
+        #     taskRow.append(task.restaurantPredicate.question)
+        #     taskRow.append(task.workerID)
+        #     taskRow.append(task.answer)
+        #     taskRow.append(task.confidenceLevel)
+        #     l.append(taskRow)
 
         with open('test_results/    test' + str(now) + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
