@@ -396,6 +396,10 @@ class SimulationTest(TestCase):
         CONFIDENCE_OPTIONS = [50,60,70,80,90,100]
         PERSONALITIES = [0.15, 0.15, 0.15, 0.15, 0.15]
 
+        SELECTIVITY_0 = 0.25
+        SELECTIVITY_1 = 0.33
+        SELECTIVITY_2 = 0.4
+
         # Save the time and date of simulation
         now = datetime.datetime.now()
 
@@ -411,14 +415,48 @@ class SimulationTest(TestCase):
         # dictionary of predicates as keys and their true answers as values
         predicateAnswers = {}
         
-        # set all predicates to have true answers as True
-        allRestPreds = RestaurantPredicate.objects.all()
-        for restPred in allRestPreds:
-            if random() < 0.50:
+        # allRestPreds = RestaurantPredicate.objects.all()
+
+        allRestPreds0 = RestaurantPredicate.objects.all().filter(index=0)
+        allRestPreds1 = RestaurantPredicate.objects.all().filter(index=1)
+        allRestPreds2 = RestaurantPredicate.objects.all().filter(index=2)
+
+        # set answers based on predicate's selectivity
+        while len(allRestPreds0) != 0:
+            restPred = choice(allRestPreds0)
+            allRestPreds0 = allRestPreds0.exclude(id=restPred.id)
+
+            if random() < SELECTIVITY_0:
                 predicateAnswers[restPred] = False
             else:
                 predicateAnswers[restPred] = True
 
+        while len(allRestPreds1) != 0:
+            restPred = choice(allRestPreds1)
+            allRestPreds1 = allRestPreds1.exclude(id=restPred.id)
+
+            if random() < SELECTIVITY_1:
+                predicateAnswers[restPred] = False
+            else:
+                predicateAnswers[restPred] = True
+
+        while len(allRestPreds2) != 0:
+            restPred = choice(allRestPreds2)
+            allRestPreds2 = allRestPreds2.exclude(id=restPred.id)
+
+            if random() < SELECTIVITY_2:
+                predicateAnswers[restPred] = False
+            else:
+                predicateAnswers[restPred] = True
+
+        # half of real answers are true for restaurant predicates
+        # for restPred in allRestPreds:
+        #     if random() < 0.50:
+        #         predicateAnswers[restPred] = False
+        #     else:
+        #         predicateAnswers[restPred] = True
+
+        # start keeping track of worker IDs at 100
         IDcounter = 100
 
         # keeps track of how many tasks related to each branch are actually No's
