@@ -430,12 +430,9 @@ class SimulationTest(TestCase):
         predicate = eddy(IDcounter)
         # while loop
         while (predicate != None):
-<<<<<<< HEAD
             #print "Running loop on predicate " + str(predicate)
             # default answer is the correct choice
-=======
-            # default answer is False
->>>>>>> origin/master
+
             answer = predicateAnswers[predicate]
 
             if answer == 'False':
@@ -448,13 +445,10 @@ class SimulationTest(TestCase):
             if randNum < branchDifficulties[branch]: #+ choice(PERSONALITIES):
                 # the worker gets the question wrong
                 answer = not answer
-<<<<<<< HEAD
 
-=======
             # print str(branch.index) + ". " + str(predicate) + " | NO: " + str(float(branch.returnedNo)) + " | " + "TOTAL: " + str(branch.returnedTotal)
-            print str(branch.index) + ". " + str(predicate) + " | Selectivity: " + str(float(branch.returnedNo)/branch.returnedTotal)
+            # print str(branch.index) + ". " + str(predicate) + " | Selectivity: " + str(float(branch.returnedNo)/branch.returnedTotal)
             
->>>>>>> origin/master
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
             # randomly select a confidence level
