@@ -420,11 +420,13 @@ class SimulationTest(TestCase):
             #     predicateAnswers[restPred] = True
             predicateAnswers[restPred] = False
 
+
         IDcounter = 100
 
-        predActualNo = {branches[0] : 0,
-                        branches[1] : 0,
-                        branches[2] : 0}
+        # keeps track of how many tasks related to each branch are actually No's
+        predActualNo = {branches[0] : 1,
+                        branches[1] : 1,
+                        branches[2] : 1}
 
         # choose one predicate to start
         predicate = eddy(IDcounter)
@@ -434,9 +436,14 @@ class SimulationTest(TestCase):
             # default answer is the correct choice
 
             answer = predicateAnswers[predicate]
+            # choose a time by sampling from a distribution
+            completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
+            # randomly select a confidence level
+            confidenceLevel = choice(CONFIDENCE_OPTIONS)
 
-            if answer == 'False':
-                predActualNo[predicate] += 1
+            # if the answer is False, then add it to the dictionary to keep track
+            if answer == False:
+                predActualNo[branches[predicate.index]] += confidenceLevel/100.0
 
             # generate random decimal from 0 to 1
             randNum = random()
@@ -449,10 +456,6 @@ class SimulationTest(TestCase):
             # print str(branch.index) + ". " + str(predicate) + " | NO: " + str(float(branch.returnedNo)) + " | " + "TOTAL: " + str(branch.returnedTotal)
             # print str(branch.index) + ". " + str(predicate) + " | Selectivity: " + str(float(branch.returnedNo)/branch.returnedTotal)
             
-            # choose a time by sampling from a distribution
-            completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
-            # randomly select a confidence level
-            confidenceLevel = choice(CONFIDENCE_OPTIONS)
             # make Task answering the predicate, using answer and time
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
 
@@ -472,7 +475,7 @@ class SimulationTest(TestCase):
             IDcounter += 1
             # get a predicate from the eddy
             predicate = eddy(IDcounter)
-            
+        
         # write results to file
         l = []
         l.append(["Results of Simulation Test"])
@@ -500,9 +503,7 @@ class SimulationTest(TestCase):
             predicateBranchRow = []
             predicateBranchRow.append(branch.question)
             predicateBranchRow.append(branchDifficulties[branch])
-
             predicateBranchRow.append(float(predActualNo[branch])/branch.returnedTotal)
-
             predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
             predicateBranchRow.append(branch.returnedTotal)
             predicateBranchRow.append(branch.returnedNo)
