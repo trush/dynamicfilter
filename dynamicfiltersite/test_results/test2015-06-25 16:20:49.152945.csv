@@ -1,0 +1,113 @@
+Results of Simulation Test
+Timestamp:,2015-06-25 16:20:49.152945
+Number of tasks completed by workers:,1681
+Total Restaurants: ,100
+Correct percentage:,1.0
+Total completion time of all tasks (minutes):,1692.1627833333334
+
+PredicateBranch,Difficulty,Task Selectivity,Weighted Task Selectivity,Total Returned,Returned No
+Does this restaurant accept credit cards?,0.0,0.2642857142857143,0.2584028605482718,419.5,108.4
+Is this a good restaurant for kids?      ,0.0,0.2668213457076566,0.27618472683368545,331.3,91.5
+Does this restaurant serve Choco Pies?   ,0.0,0.4101449275362319,0.40612516644474034,525.7,213.5
+
+Restaurant,Predicate 0,Predicate 1,Predicate 2,Passed Filter
+Kate 0,False,True,,False
+Kate 1,True,True,True,True
+Kate 2,True,False,True,False
+Kate 3,True,True,True,True
+Kate 4,True,True,True,True
+Kate 5,True,True,True,True
+Kate 6,True,True,True,True
+Kate 7,True,True,True,True
+Kate 8,True,True,True,True
+Kate 9,False,True,True,False
+Kate 10,False,True,True,False
+Kate 11,True,True,True,True
+Kate 12,,False,True,False
+Kate 13,,,False,False
+Kate 14,,,False,False
+Kate 15,True,True,True,True
+Kate 16,,,False,False
+Kate 17,,,False,False
+Kate 18,True,True,True,True
+Kate 19,,False,True,False
+Kate 20,,,False,False
+Kate 21,,,False,False
+Kate 22,False,,,False
+Kate 23,True,,False,False
+Kate 24,,,False,False
+Kate 25,,,False,False
+Kate 26,False,,True,False
+Kate 27,True,True,True,True
+Kate 28,False,True,True,False
+Kate 29,True,True,True,True
+Kate 30,True,True,True,True
+Kate 31,True,True,True,True
+Kate 32,,,False,False
+Kate 33,True,False,True,False
+Kate 34,False,,,False
+Kate 35,True,,False,False
+Kate 36,,,False,False
+Kate 37,True,True,True,True
+Kate 38,True,True,True,True
+Kate 39,True,True,True,True
+Kate 40,True,False,True,False
+Kate 41,False,,,False
+Kate 42,True,True,True,True
+Kate 43,,,False,False
+Kate 44,,False,,False
+Kate 45,True,True,False,False
+Kate 46,,True,False,False
+Kate 47,False,,True,False
+Kate 48,,,False,False
+Kate 49,False,,True,False
+Kate 50,,,False,False
+Kate 51,False,,,False
+Kate 52,True,,False,False
+Kate 53,True,True,True,True
+Kate 54,True,False,True,False
+Kate 55,,,False,False
+Kate 56,,,False,False
+Kate 57,,,False,False
+Kate 58,True,True,True,True
+Kate 59,True,True,True,True
+Kate 60,,,False,False
+Kate 61,True,,False,False
+Kate 62,True,True,True,True
+Kate 63,,,False,False
+Kate 64,True,False,True,False
+Kate 65,True,,False,False
+Kate 66,,,False,False
+Kate 67,,,False,False
+Kate 68,,,False,False
+Kate 69,,,False,False
+Kate 70,True,True,True,True
+Kate 71,True,False,True,False
+Kate 72,True,,False,False
+Kate 73,True,True,True,True
+Kate 74,False,,True,False
+Kate 75,True,False,True,False
+Kate 76,True,True,True,True
+Kate 77,True,True,True,True
+Kate 78,False,True,True,False
+Kate 79,True,True,True,True
+Kate 80,,,False,False
+Kate 81,True,True,True,True
+Kate 82,True,True,True,True
+Kate 83,True,True,True,True
+Kate 84,,,False,False
+Kate 85,True,True,True,True
+Kate 86,,False,,False
+Kate 87,,False,,False
+Kate 88,True,True,True,True
+Kate 89,,,False,False
+Kate 90,True,True,True,True
+Kate 91,,False,True,False
+Kate 92,True,False,True,False
+Kate 93,True,True,True,True
+Kate 94,False,,,False
+Kate 95,True,True,True,True
+Kate 96,True,True,True,True
+Kate 97,True,True,True,True
+Kate 98,False,,,False
+Kate 99,,,False,False
