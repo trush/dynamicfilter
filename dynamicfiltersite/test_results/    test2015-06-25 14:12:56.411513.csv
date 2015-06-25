@@ -1,0 +1,23 @@
+Results of Simulation Test
+Timestamp:,2015-06-25 14:12:56.411513
+Number of tasks completed by workers:,194
+Total Restaurants: ,10
+Correct percentage:,1.0
+Total completion time of all tasks (minutes):,184.34478333333334
+
+PredicateBranch,Difficulty,Computed Selectivity,Total Returned,Returned No
+Does this restaurant accept credit cards?,0.3,0.7394366197183099,56.8,42.0
+Is this a good restaurant for kids?      ,0.4,0.639344262295082,30.5,19.5
+Does this restaurant serve Choco Pies?   ,0.15,0.8162939297124601,62.6,51.1
+
+Restaurant,Predicate 0,Predicate 1,Predicate 2,Passed Filter
+Kate 0,False,,,False
+Kate 1,,,False,False
+Kate 2,,,False,False
+Kate 3,,,False,False
+Kate 4,False,,,False
+Kate 5,,,False,False
+Kate 6,,,False,False
+Kate 7,,,False,False
+Kate 8,False,,,False
+Kate 9,False,,,False

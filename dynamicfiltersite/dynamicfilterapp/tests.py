@@ -400,6 +400,8 @@ class SimulationTest(TestCase):
         SELECTIVITY_1 = 0.33
         SELECTIVITY_2 = 0.4
 
+        graphData = []
+
         # Save the time and date of simulation
         now = datetime.datetime.now()
 
@@ -502,6 +504,9 @@ class SimulationTest(TestCase):
             # make Task answering the predicate, using answer and time
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
 
+            if branch.index==0:
+                graphData.append([predActualTotal[branch], float(branch.returnedNo)/branch.returnedTotal])
+
             # get the associated PredicateBranch
             pB = PredicateBranch.objects.filter(question=predicate.question)[0]
             updateCounts(pB, task)
@@ -583,9 +588,12 @@ class SimulationTest(TestCase):
         #     taskRow.append(task.confidenceLevel)
         #     l.append(taskRow)
 
-        with open('test_results/    test' + str(now) + '.csv', 'w') as csvfile:
+        with open('test_results/test' + str(now) + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in l]
+        with open('test_results/graph' + str(now) + '.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            [writer.writerow(r) for r in graphData]
 
 
         
