@@ -31,8 +31,8 @@ def enterRestaurant(restaurantName, zipNum):
 
     # Create the three associated predicates
     RestaurantPredicate.objects.create(index=0, restaurant=r, question="Does this restaurant accept credit cards?")
-    RestaurantPredicate.objects.create(index=1, restaurant=r, question="Is this a good restaurant for kids?")
-    RestaurantPredicate.objects.create(index=2, restaurant=r, question="Does this restaurant serve Choco Pies?")
+    RestaurantPredicate.objects.create(index=1, restaurant=r, question="Is this a good restaurant for kids?      ")
+    RestaurantPredicate.objects.create(index=2, restaurant=r, question="Does this restaurant serve Choco Pies?   ")
         
     # Create the three predicate branches if they don't exist yet
     for predicate in RestaurantPredicate.objects.all():
@@ -389,7 +389,7 @@ class findTotalTicketsTests(TestCase):
 class SimulationTest(TestCase):
 
     def test_simulation(self):
-        NUM_RESTAURANTS = 20
+        NUM_RESTAURANTS = 10
         
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
@@ -404,9 +404,9 @@ class SimulationTest(TestCase):
             enterRestaurant("Kate " + str(i), i)
 
         branches = PredicateBranch.objects.all()
-        branchDifficulties = {branches[0] : 0.15,
+        branchDifficulties = {branches[0] : 0.30,
                               branches[1] : 0.40,
-                              branches[2] : 0.30}
+                              branches[2] : 0.15}
 
         # dictionary of predicates as keys and their true answers as values
         predicateAnswers = {}
@@ -414,10 +414,11 @@ class SimulationTest(TestCase):
         # set all predicates to have true answers as True
         allRestPreds = RestaurantPredicate.objects.all()
         for restPred in allRestPreds:
-            if random() < 0.50:
-                predicateAnswers[restPred] = False
-            else:
-                predicateAnswers[restPred] = True
+            # if random() < 0.50:
+            #     predicateAnswers[restPred] = False
+            # else:
+            #     predicateAnswers[restPred] = True
+            predicateAnswers[restPred] = False
 
         IDcounter = 100
 
@@ -429,8 +430,12 @@ class SimulationTest(TestCase):
         predicate = eddy(IDcounter)
         # while loop
         while (predicate != None):
+<<<<<<< HEAD
             #print "Running loop on predicate " + str(predicate)
             # default answer is the correct choice
+=======
+            # default answer is False
+>>>>>>> origin/master
             answer = predicateAnswers[predicate]
 
             if answer == 'False':
@@ -440,10 +445,16 @@ class SimulationTest(TestCase):
             randNum = random()
         
             branch = PredicateBranch.objects.filter(index=predicate.index)[0]
-            if randNum < branchDifficulties[branch] + choice(PERSONALITIES):
+            if randNum < branchDifficulties[branch]: #+ choice(PERSONALITIES):
                 # the worker gets the question wrong
                 answer = not answer
+<<<<<<< HEAD
 
+=======
+            # print str(branch.index) + ". " + str(predicate) + " | NO: " + str(float(branch.returnedNo)) + " | " + "TOTAL: " + str(branch.returnedTotal)
+            print str(branch.index) + ". " + str(predicate) + " | Selectivity: " + str(float(branch.returnedNo)/branch.returnedTotal)
+            
+>>>>>>> origin/master
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
             # randomly select a confidence level
