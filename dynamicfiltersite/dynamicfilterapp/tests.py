@@ -422,9 +422,13 @@ class SimulationTest(TestCase):
         IDcounter = 100
 
         # keeps track of how many tasks related to each branch are actually No's
-        predActualNo = {branches[0] : 1,
-                        branches[1] : 1,
-                        branches[2] : 1}
+        predActualNo = {branches[0] : 0,
+                        branches[1] : 0,
+                        branches[2] : 0}
+
+        predActualTotal = {branches[0] : 0,
+                           branches[1] : 0,
+                           branches[2] : 0}
 
         # choose one predicate to start
         predicate = eddy(IDcounter)
@@ -441,7 +445,10 @@ class SimulationTest(TestCase):
 
             # if the answer is False, then add it to the dictionary to keep track
             if answer == False:
-                predActualNo[branches[predicate.index]] += confidenceLevel/100.0
+                predActualNo[branches[predicate.index]] += 1
+
+            # add to the total number of predicates flowing to a branch
+            predActualTotal[branches[predicate.index]] += 1
 
             # generate random decimal from 0 to 1
             randNum = random()
@@ -501,7 +508,7 @@ class SimulationTest(TestCase):
             predicateBranchRow = []
             predicateBranchRow.append(branch.question)
             predicateBranchRow.append(branchDifficulties[branch])
-            predicateBranchRow.append(float(predActualNo[branch])/branch.returnedTotal)
+            predicateBranchRow.append(float(predActualNo[branch])/float(predActualTotal[branch]))
             predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
             predicateBranchRow.append(branch.returnedTotal)
             predicateBranchRow.append(branch.returnedNo)
