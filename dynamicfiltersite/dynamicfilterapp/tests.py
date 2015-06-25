@@ -421,13 +421,21 @@ class SimulationTest(TestCase):
 
         IDcounter = 100
 
+        predActualNo = {branches[0] : 0,
+                        branches[1] : 0,
+                        branches[2] : 0}
+
         # choose one predicate to start
         predicate = eddy(IDcounter)
         # while loop
         while (predicate != None):
             #print "Running loop on predicate " + str(predicate)
-            # default answer is False
+            # default answer is the correct choice
             answer = predicateAnswers[predicate]
+
+            if answer == 'False':
+                predActualNo[predicate] += 1
+
             # generate random decimal from 0 to 1
             randNum = random()
         
@@ -435,15 +443,13 @@ class SimulationTest(TestCase):
             if randNum < branchDifficulties[branch] + choice(PERSONALITIES):
                 # the worker gets the question wrong
                 answer = not answer
-            
+
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
             # randomly select a confidence level
             confidenceLevel = choice(CONFIDENCE_OPTIONS)
             # make Task answering the predicate, using answer and time
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
-
-            #print task
 
             # get the associated PredicateBranch
             pB = PredicateBranch.objects.filter(question=predicate.question)[0]
@@ -484,11 +490,14 @@ class SimulationTest(TestCase):
         l.append(["Total completion time of all tasks (minutes):", totalCompletionTime/60000.0])
 
         l.append([])
-        l.append(["PredicateBranch", "Difficulty", "Computed Selectivity", "Total Returned", "Returned No"])
+        l.append(["PredicateBranch", "Difficulty", "Actual Selectivity", "Computed Selectivity", "Total Returned", "Returned No"])
         for branch in PredicateBranch.objects.all():
             predicateBranchRow = []
             predicateBranchRow.append(branch.question)
             predicateBranchRow.append(branchDifficulties[branch])
+
+            predicateBranchRow.append(float(predActualNo[branch])/branch.returnedTotal)
+
             predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
             predicateBranchRow.append(branch.returnedTotal)
             predicateBranchRow.append(branch.returnedNo)
