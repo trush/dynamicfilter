@@ -414,12 +414,10 @@ class SimulationTest(TestCase):
         # set all predicates to have true answers as True
         allRestPreds = RestaurantPredicate.objects.all()
         for restPred in allRestPreds:
-            # if random() < 0.50:
-            #     predicateAnswers[restPred] = False
-            # else:
-            #     predicateAnswers[restPred] = True
-            predicateAnswers[restPred] = False
-
+            if random() < 0.50:
+                predicateAnswers[restPred] = False
+            else:
+                predicateAnswers[restPred] = True
 
         IDcounter = 100
 
