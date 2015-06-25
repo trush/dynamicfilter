@@ -396,6 +396,9 @@ class SimulationTest(TestCase):
         CONFIDENCE_OPTIONS = [50,60,70,80,90,100]
         PERSONALITIES = [0.15, 0.15, 0.15, 0.15, 0.15]
 
+        graphData = []
+        taskCounts = [0,0,0]
+
         # Save the time and date of simulation
         now = datetime.datetime.now()
 
@@ -436,7 +439,7 @@ class SimulationTest(TestCase):
                 # the worker gets the question wrong
                 answer = not answer
             # print str(branch.index) + ". " + str(predicate) + " | NO: " + str(float(branch.returnedNo)) + " | " + "TOTAL: " + str(branch.returnedTotal)
-            print str(branch.index) + ". " + str(predicate) + " | Selectivity: " + str(float(branch.returnedNo)/branch.returnedTotal)
+            # print str(branch.index) + ". " + str(predicate) + " | Selectivity: " + str(float(branch.returnedNo)/branch.returnedTotal)
             
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
@@ -445,7 +448,9 @@ class SimulationTest(TestCase):
             # make Task answering the predicate, using answer and time
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
 
-            #print task
+            if branch.index==0:
+                taskCounts[branch.index] += 1
+                graphData.append([taskCounts[branch.index], float(branch.returnedNo)/branch.returnedTotal])
 
             # get the associated PredicateBranch
             pB = PredicateBranch.objects.filter(question=predicate.question)[0]
@@ -527,9 +532,12 @@ class SimulationTest(TestCase):
         #     taskRow.append(task.confidenceLevel)
         #     l.append(taskRow)
 
-        with open('test_results/    test' + str(now) + '.csv', 'w') as csvfile:
+        with open('test_results/test' + str(now) + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in l]
+        with open('test_results/graph' + str(now.time()) + '.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            [writer.writerow(r) for r in graphData]
 
 
         
