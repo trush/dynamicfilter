@@ -389,12 +389,12 @@ class findTotalTicketsTests(TestCase):
 class SimulationTest(TestCase):
 
     def test_simulation(self):
-        NUM_RESTAURANTS = 10
+        NUM_RESTAURANTS = 100
         
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
         CONFIDENCE_OPTIONS = [50,60,70,80,90,100]
-        PERSONALITIES = [0.15, 0.15, 0.15, 0.15, 0.15]
+        PERSONALITIES = [0.0, 0.0, 0.0, 0.0, 0.0]
 
         SELECTIVITY_0 = 0.25
         SELECTIVITY_1 = 0.33
@@ -410,9 +410,9 @@ class SimulationTest(TestCase):
             enterRestaurant("Kate " + str(i), i)
 
         branches = PredicateBranch.objects.all()
-        branchDifficulties = {branches[0] : 0.30,
-                              branches[1] : 0.40,
-                              branches[2] : 0.15}
+        branchDifficulties = {branches[0] : 0.0,
+                              branches[1] : 0.0,
+                              branches[2] : 0.0}
 
         # dictionary of predicates as keys and their true answers as values
         predicateAnswers = {}
@@ -546,11 +546,12 @@ class SimulationTest(TestCase):
         l.append(["Total completion time of all tasks (minutes):", totalCompletionTime/60000.0])
 
         l.append([])
-        l.append(["PredicateBranch", "Difficulty", "Actual Selectivity", "Computed Selectivity", "Total Returned", "Returned No"])
+        l.append(["PredicateBranch", "Difficulty", "Task Selectivity", "Weighted Task Selectivity", "Total Returned", "Returned No"])
         for branch in PredicateBranch.objects.all():
             predicateBranchRow = []
             predicateBranchRow.append(branch.question)
             predicateBranchRow.append(branchDifficulties[branch])
+            print "No: " + str(predActualNo[branch]) + ", Yes: " + str(predActualTotal[branch])
             predicateBranchRow.append(float(predActualNo[branch])/float(predActualTotal[branch]))
             predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
             predicateBranchRow.append(branch.returnedTotal)
