@@ -114,7 +114,6 @@ def updateCounts(pB, task):
     if task.answer==True:
         pB.returnedTotal += float(task.confidenceLevel)/100.0
     elif task.answer==False:
-        print type(task.confidenceLevel)
         pB.returnedTotal += float(task.confidenceLevel)/100.0
         pB.returnedNo += float(task.confidenceLevel)/100.0
     pB.save()

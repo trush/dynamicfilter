@@ -417,20 +417,42 @@ class SimulationTest(TestCase):
         # set all predicates to have true answers as True
         allRestPreds = RestaurantPredicate.objects.all()
         for restPred in allRestPreds:
-            # if random() < 0.50:
-            #     predicateAnswers[restPred] = False
-            # else:
-            #     predicateAnswers[restPred] = True
-            predicateAnswers[restPred] = False
+            if random() < 0.50:
+                predicateAnswers[restPred] = False
+            else:
+                predicateAnswers[restPred] = True
 
         IDcounter = 100
+
+        # keeps track of how many tasks related to each branch are actually No's
+        predActualNo = {branches[0] : 0,
+                        branches[1] : 0,
+                        branches[2] : 0}
+
+        predActualTotal = {branches[0] : 0,
+                           branches[1] : 0,
+                           branches[2] : 0}
 
         # choose one predicate to start
         predicate = eddy(IDcounter)
         # while loop
         while (predicate != None):
-            # default answer is False
+            #print "Running loop on predicate " + str(predicate)
+            # default answer is the correct choice
+
             answer = predicateAnswers[predicate]
+            # choose a time by sampling from a distribution
+            completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
+            # randomly select a confidence level
+            confidenceLevel = choice(CONFIDENCE_OPTIONS)
+
+            # if the answer is False, then add it to the dictionary to keep track
+            if answer == False:
+                predActualNo[branches[predicate.index]] += 1
+
+            # add to the total number of predicates flowing to a branch
+            predActualTotal[branches[predicate.index]] += 1
+
             # generate random decimal from 0 to 1
             randNum = random()
         
@@ -438,13 +460,10 @@ class SimulationTest(TestCase):
             if randNum < branchDifficulties[branch]: #+ choice(PERSONALITIES):
                 # the worker gets the question wrong
                 answer = not answer
+
             # print str(branch.index) + ". " + str(predicate) + " | NO: " + str(float(branch.returnedNo)) + " | " + "TOTAL: " + str(branch.returnedTotal)
             # print str(branch.index) + ". " + str(predicate) + " | Selectivity: " + str(float(branch.returnedNo)/branch.returnedTotal)
             
-            # choose a time by sampling from a distribution
-            completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
-            # randomly select a confidence level
-            confidenceLevel = choice(CONFIDENCE_OPTIONS)
             # make Task answering the predicate, using answer and time
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
 
@@ -468,7 +487,7 @@ class SimulationTest(TestCase):
             IDcounter += 1
             # get a predicate from the eddy
             predicate = eddy(IDcounter)
-            
+        
         # write results to file
         l = []
         l.append(["Results of Simulation Test"])
@@ -491,11 +510,12 @@ class SimulationTest(TestCase):
         l.append(["Total completion time of all tasks (minutes):", totalCompletionTime/60000.0])
 
         l.append([])
-        l.append(["PredicateBranch", "Difficulty", "Computed Selectivity", "Total Returned", "Returned No"])
+        l.append(["PredicateBranch", "Difficulty", "Actual Selectivity", "Computed Selectivity", "Total Returned", "Returned No"])
         for branch in PredicateBranch.objects.all():
             predicateBranchRow = []
             predicateBranchRow.append(branch.question)
             predicateBranchRow.append(branchDifficulties[branch])
+            predicateBranchRow.append(float(predActualNo[branch])/float(predActualTotal[branch]))
             predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
             predicateBranchRow.append(branch.returnedTotal)
             predicateBranchRow.append(branch.returnedNo)
