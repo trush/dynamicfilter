@@ -68,7 +68,7 @@ class Task(models.Model):
     answer = models.NullBooleanField(default=None)
 
     # the confidence level provided by the worker in his/her answer
-    confidenceLevel = models.IntegerField(default=None)
+    confidenceLevel = models.FloatField(default=None)
 
     # the worker's ID number
     workerID = models.IntegerField(default=0)

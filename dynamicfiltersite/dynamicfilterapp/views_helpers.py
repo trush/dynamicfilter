@@ -112,10 +112,11 @@ def updateCounts(pB, task):
     updates the predicate branch's total and "No!" counts relative to the confidence levels
     """
     if task.answer==True:
-        pB.returnedTotal += task.confidenceLevel/100.0
+        pB.returnedTotal += float(task.confidenceLevel)/100.0
     elif task.answer==False:
-        pB.returnedTotal += task.confidenceLevel/100.0
-        pB.returnedNo += task.confidenceLevel/100.0
+        print type(task.confidenceLevel)
+        pB.returnedTotal += float(task.confidenceLevel)/100.0
+        pB.returnedNo += float(task.confidenceLevel)/100.0
     pB.save()
 
 def eddy(ID):
