@@ -397,15 +397,12 @@ class SimulationTest(TestCase):
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
         CONFIDENCE_OPTIONS = [100,100,100,100,100,100]
-<<<<<<< HEAD
-        PERSONALITIES = [0.0, 0.0, 0.0, 0.0, 0.0]
-=======
-        PERSONALITIES = [0.2, 0.2, 0.2, 0.2, 0.2]
->>>>>>> origin/master
 
-        SELECTIVITY_0 = 0.0
-        SELECTIVITY_1 = 0.0
-        SELECTIVITY_2 = 0.0
+        PERSONALITIES = [1.0, 1.0, 1.0, 1.0, 1.0]
+
+        SELECTIVITY_0 = 0.6
+        SELECTIVITY_1 = 0.6
+        SELECTIVITY_2 = 0.6
 
         graphData = []
 
@@ -417,9 +414,9 @@ class SimulationTest(TestCase):
             enterRestaurant("Kate " + str(i), i)
 
         branches = PredicateBranch.objects.all()
-        branchDifficulties = {branches[0] : 0.4,
-                              branches[1] : 0.4,
-                              branches[2] : 0.4}
+        branchDifficulties = {branches[0] : 0.0,
+                              branches[1] : 0.0,
+                              branches[2] : 0.0}
 
         # dictionary of predicates as keys and their true answers as values
         predicateAnswers = {}
@@ -609,14 +606,14 @@ class SimulationTest(TestCase):
         #     taskRow.append(task.confidenceLevel)
         #     l.append(taskRow)
 
-        print predActualTotal
-        print predIdealNo
+        #print predActualTotal
+        #print predIdealNo
         with open('test_results/test' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in l]
-        with open('test_results/graph' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            [writer.writerow(r) for r in graphData]
+        # with open('test_results/graph' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
+        #     writer = csv.writer(csvfile)
+        #     [writer.writerow(r) for r in graphData]
 
 
         
