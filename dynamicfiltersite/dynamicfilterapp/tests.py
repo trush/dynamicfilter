@@ -392,16 +392,16 @@ class SimulationTest(TestCase):
 
         label = raw_input("Label this simulation test: ")
 
-        NUM_RESTAURANTS = 1
+        NUM_RESTAURANTS = 10
         
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
-        CONFIDENCE_OPTIONS = [50,60,70,80,90,100]
+        CONFIDENCE_OPTIONS = [100,100,100,100,100,100]
         PERSONALITIES = [0.0, 0.0, 0.0, 0.0, 0.0]
 
-        SELECTIVITY_0 = 0.25
-        SELECTIVITY_1 = 0.33
-        SELECTIVITY_2 = 0.4
+        SELECTIVITY_0 = 0.2
+        SELECTIVITY_1 = 0.2
+        SELECTIVITY_2 = 0.2
 
         graphData = []
 
@@ -598,9 +598,9 @@ class SimulationTest(TestCase):
         with open('test_results/test' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in l]
-        with open('test_results/graph' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            [writer.writerow(r) for r in graphData]
+        # with open('test_results/graph' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
+        #     writer = csv.writer(csvfile)
+        #     [writer.writerow(r) for r in graphData]
 
 
         
