@@ -397,11 +397,11 @@ class SimulationTest(TestCase):
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
         CONFIDENCE_OPTIONS = [100,100,100,100,100,100]
-        PERSONALITIES = [0.6, 0.6, 0.6, 0.6, 0.6]
+        PERSONALITIES = [0.0, 0.0, 0.0, 0.0, 0.0]
 
-        SELECTIVITY_0 = 0.6
-        SELECTIVITY_1 = 0.6
-        SELECTIVITY_2 = 0.6
+        SELECTIVITY_0 = 0.0
+        SELECTIVITY_1 = 0.0
+        SELECTIVITY_2 = 0.0
 
         graphData = []
 
@@ -413,9 +413,9 @@ class SimulationTest(TestCase):
             enterRestaurant("Kate " + str(i), i)
 
         branches = PredicateBranch.objects.all()
-        branchDifficulties = {branches[0] : 0.0,
-                              branches[1] : 0.0,
-                              branches[2] : 0.0}
+        branchDifficulties = {branches[0] : 0.4,
+                              branches[1] : 0.4,
+                              branches[2] : 0.4}
 
         # dictionary of predicates as keys and their true answers as values
         predicateAnswers = {}
