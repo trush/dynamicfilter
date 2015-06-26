@@ -158,11 +158,6 @@ def eddy(ID):
                 eligiblePredicateBranches.append(PredicateBranch.objects.filter(index=i)[0])
                 break
 
-    # Find all PredicateBranches with open space and that haven't been completed
-    # by this worker
-    # allPredicateBranches = PredicateBranch.objects.exclude(
-    #     question__in=completedPredicates.values('question'))
-    
     #if debug: print "------STARTING LOTTERY------"
     #print "size of all predicate branches: " + str(len(eligiblePredicateBranches))
     if (len(eligiblePredicateBranches) != 0):
@@ -170,12 +165,12 @@ def eddy(ID):
     else:
         return None
 
-   # print "chosen branch: " + str(chosenBranch)
+    # print "chosen branch: " + str(chosenBranch)
     # generates the restaurant with the highest priority for the specified 
     # predicate branch
     chosenRestaurant = findRestaurant(chosenBranch, ID)
-   # print "chosen restaurant: " + str(chosenRestaurant)
-    #  mark chosenRestaurant as being in chosenBranch
+    # print "chosen restaurant: " + str(chosenRestaurant)
+    # mark chosenRestaurant as being in chosenBranch
     chosenRestaurant.evaluator = chosenBranch.index
 
     # Find the RestaurantPredicate corresponding to this Restaurant and 
@@ -232,7 +227,6 @@ def runLottery(pbSet):
     """
     runs the lottery algorithm
     """
-
     #retrieves total num of tickets in valid predicates branches
     totalTickets = findTotalTickets(pbSet)
     if totalTickets==0:
