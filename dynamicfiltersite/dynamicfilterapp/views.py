@@ -11,7 +11,6 @@ from scipy.special import btdtr
 import random
 
 def index(request):
-    # Filler ID number value
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:

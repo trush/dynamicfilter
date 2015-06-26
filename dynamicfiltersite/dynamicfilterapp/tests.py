@@ -417,8 +417,7 @@ class SimulationTest(TestCase):
         # dictionary of predicates as keys and their true answers as values
         predicateAnswers = {}
         
-        # allRestPreds = RestaurantPredicate.objects.all()
-
+        # all restaurant predicates according to their respective indices
         allRestPreds0 = RestaurantPredicate.objects.all().filter(index=0)
         allRestPreds1 = RestaurantPredicate.objects.all().filter(index=1)
         allRestPreds2 = RestaurantPredicate.objects.all().filter(index=2)
@@ -451,13 +450,6 @@ class SimulationTest(TestCase):
             else:
                 predicateAnswers[restPred] = True
 
-        # half of real answers are true for restaurant predicates
-        # for restPred in allRestPreds:
-        #     if random() < 0.50:
-        #         predicateAnswers[restPred] = False
-        #     else:
-        #         predicateAnswers[restPred] = True
-
         # start keeping track of worker IDs at 100
         IDcounter = 100
 
@@ -472,7 +464,7 @@ class SimulationTest(TestCase):
 
         # choose one predicate to start
         predicate = eddy(IDcounter)
-        # while loop
+      
         while (predicate != None):
             #print "Running loop on predicate " + str(predicate)
             # default answer is the correct choice
@@ -504,6 +496,7 @@ class SimulationTest(TestCase):
             # make Task answering the predicate, using answer and time
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
 
+            # appends data of predicate 0 to graph later
             if branch.index==0:
                 graphData.append([predActualTotal[branch], float(branch.returnedNo)/branch.returnedTotal])
 
@@ -531,7 +524,6 @@ class SimulationTest(TestCase):
         l.append(["Number of tasks completed by workers:", str(len(Task.objects.all()))])
         l.append(["Total Restaurants: ",NUM_RESTAURANTS])
 
-
         # Of the answered predicates, count how many are correct
         correctCount = 0
         for predicate in RestaurantPredicate.objects.exclude(value=None):
@@ -551,7 +543,7 @@ class SimulationTest(TestCase):
             predicateBranchRow = []
             predicateBranchRow.append(branch.question)
             predicateBranchRow.append(branchDifficulties[branch])
-            print "No: " + str(predActualNo[branch]) + ", Yes: " + str(predActualTotal[branch])
+            # print "No: " + str(predActualNo[branch]) + ", Yes: " + str(predActualTotal[branch])
             predicateBranchRow.append(float(predActualNo[branch])/float(predActualTotal[branch]))
             predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
             predicateBranchRow.append(branch.returnedTotal)
