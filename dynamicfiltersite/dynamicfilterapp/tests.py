@@ -389,7 +389,10 @@ class findTotalTicketsTests(TestCase):
 class SimulationTest(TestCase):
 
     def test_simulation(self):
-        NUM_RESTAURANTS = 100
+
+        label = raw_input("Label this simulation test: ")
+
+        NUM_RESTAURANTS = 1
         
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
@@ -519,7 +522,7 @@ class SimulationTest(TestCase):
         
         # write results to file
         l = []
-        l.append(["Results of Simulation Test"])
+        l.append(["Simulation Test:", label])
         l.append(["Timestamp:", str(now)])
         l.append(["Number of tasks completed by workers:", str(len(Task.objects.all()))])
         l.append(["Total Restaurants: ",NUM_RESTAURANTS])
@@ -543,8 +546,16 @@ class SimulationTest(TestCase):
             predicateBranchRow = []
             predicateBranchRow.append(branch.question)
             predicateBranchRow.append(branchDifficulties[branch])
+<<<<<<< HEAD
             # print "No: " + str(predActualNo[branch]) + ", Yes: " + str(predActualTotal[branch])
             predicateBranchRow.append(float(predActualNo[branch])/float(predActualTotal[branch]))
+=======
+            print "No: " + str(predActualNo[branch]) + ", Yes: " + str(predActualTotal[branch])
+            if predActualTotal[branch] != 0:
+                predicateBranchRow.append(float(predActualNo[branch])/float(predActualTotal[branch]))
+            else:
+                predicateBranchRow.append("None evaluated")
+>>>>>>> origin/master
             predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
             predicateBranchRow.append(branch.returnedTotal)
             predicateBranchRow.append(branch.returnedNo)
@@ -581,10 +592,10 @@ class SimulationTest(TestCase):
         #     taskRow.append(task.confidenceLevel)
         #     l.append(taskRow)
 
-        with open('test_results/test' + str(now) + '.csv', 'w') as csvfile:
+        with open('test_results/test' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in l]
-        with open('test_results/graph' + str(now) + '.csv', 'w') as csvfile:
+        with open('test_results/graph' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in graphData]
 
