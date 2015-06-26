@@ -392,16 +392,16 @@ class SimulationTest(TestCase):
 
         label = raw_input("Label this simulation test: ")
 
-        NUM_RESTAURANTS = 1
+        NUM_RESTAURANTS = 10
         
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
-        CONFIDENCE_OPTIONS = [50,60,70,80,90,100]
+        CONFIDENCE_OPTIONS = [100,100,100,100,100,100]
         PERSONALITIES = [0.0, 0.0, 0.0, 0.0, 0.0]
 
-        SELECTIVITY_0 = 0.25
-        SELECTIVITY_1 = 0.33
-        SELECTIVITY_2 = 0.4
+        SELECTIVITY_0 = 0.0
+        SELECTIVITY_1 = 0.0
+        SELECTIVITY_2 = 0.0
 
         graphData = []
 
@@ -413,9 +413,9 @@ class SimulationTest(TestCase):
             enterRestaurant("Kate " + str(i), i)
 
         branches = PredicateBranch.objects.all()
-        branchDifficulties = {branches[0] : 0.0,
-                              branches[1] : 0.0,
-                              branches[2] : 0.0}
+        branchDifficulties = {branches[0] : 0.2,
+                              branches[1] : 0.2,
+                              branches[2] : 0.2}
 
         # dictionary of predicates as keys and their true answers as values
         predicateAnswers = {}
@@ -457,9 +457,13 @@ class SimulationTest(TestCase):
         IDcounter = 100
 
         # keeps track of how many tasks related to each branch are actually No's
+        predIdealNo = {branches[0] : 0,
+                       branches[1] : 0,
+                       branches[2] : 0}
+
         predActualNo = {branches[0] : 0,
-                        branches[1] : 0,
-                        branches[2] : 0}
+                       branches[1] : 0,
+                       branches[2] : 0}
 
         predActualTotal = {branches[0] : 0,
                            branches[1] : 0,
@@ -480,7 +484,7 @@ class SimulationTest(TestCase):
 
             # if the answer is False, then add it to the dictionary to keep track
             if answer == False:
-                predActualNo[branches[predicate.index]] += 1
+                predIdealNo[branches[predicate.index]] += 1
 
             # add to the total number of predicates flowing to a branch
             predActualTotal[branches[predicate.index]] += 1
@@ -541,21 +545,25 @@ class SimulationTest(TestCase):
         l.append(["Total completion time of all tasks (minutes):", totalCompletionTime/60000.0])
 
         l.append([])
-        l.append(["PredicateBranch", "Difficulty", "Task Selectivity", "Weighted Task Selectivity", "Total Returned", "Returned No"])
+        l.append(["PredicateBranch", "Difficulty", "Ideal Selectivity", "Unweighted Task Selectivity", "Weighted Task Selectivity", "Total Returned", "Returned No"])
         for branch in PredicateBranch.objects.all():
             predicateBranchRow = []
             predicateBranchRow.append(branch.question)
             predicateBranchRow.append(branchDifficulties[branch])
-<<<<<<< HEAD
-            # print "No: " + str(predActualNo[branch]) + ", Yes: " + str(predActualTotal[branch])
-            predicateBranchRow.append(float(predActualNo[branch])/float(predActualTotal[branch]))
-=======
-            print "No: " + str(predActualNo[branch]) + ", Yes: " + str(predActualTotal[branch])
+
+            # print "No: " + str(predIdealNo[branch]) + ", Yes: " + str(predActualTotal[branch])
+            # record ideal selectivity
             if predActualTotal[branch] != 0:
-                predicateBranchRow.append(float(predActualNo[branch])/float(predActualTotal[branch]))
+                predicateBranchRow.append(float(predIdealNo[branch])/float(predActualTotal[branch]))
             else:
                 predicateBranchRow.append("None evaluated")
->>>>>>> origin/master
+
+            # record unweighted task selectivity
+            if predActualTotal[branch] != 0:
+                predicateBranchRow.append(float(predIdealNo[branch])/float(predActualTotal[branch]))
+            else:
+                predicateBranchRow.append("None evaluated")
+
             predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
             predicateBranchRow.append(branch.returnedTotal)
             predicateBranchRow.append(branch.returnedNo)
