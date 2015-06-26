@@ -397,7 +397,11 @@ class SimulationTest(TestCase):
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
         CONFIDENCE_OPTIONS = [100,100,100,100,100,100]
+<<<<<<< HEAD
         PERSONALITIES = [0.0, 0.0, 0.0, 0.0, 0.0]
+=======
+        PERSONALITIES = [0.2, 0.2, 0.2, 0.2, 0.2]
+>>>>>>> origin/master
 
         SELECTIVITY_0 = 0.0
         SELECTIVITY_1 = 0.0
@@ -501,6 +505,7 @@ class SimulationTest(TestCase):
             if answer == False:
                 predActualNo[branches[predicate.index]] += 1
 
+
             # print str(branch.index) + ". " + str(predicate) + " | NO: " + str(float(branch.returnedNo)) + " | " + "TOTAL: " + str(branch.returnedTotal)
             # print str(branch.index) + ". " + str(predicate) + " | Selectivity: " + str(float(branch.returnedNo)/branch.returnedTotal)
             
@@ -564,7 +569,7 @@ class SimulationTest(TestCase):
 
             # record unweighted task selectivity
             if predActualTotal[branch] != 0:
-                predicateBranchRow.append(float(predIdealNo[branch])/float(predActualTotal[branch]))
+                predicateBranchRow.append(float(predActualNo[branch])/float(predActualTotal[branch]))
             else:
                 predicateBranchRow.append("None evaluated")
 
@@ -604,6 +609,8 @@ class SimulationTest(TestCase):
         #     taskRow.append(task.confidenceLevel)
         #     l.append(taskRow)
 
+        print predActualTotal
+        print predIdealNo
         with open('test_results/test' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in l]
