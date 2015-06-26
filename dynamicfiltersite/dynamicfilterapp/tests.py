@@ -396,13 +396,15 @@ class SimulationTest(TestCase):
         
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
+
         CONFIDENCE_OPTIONS = [60,60,80,100,100]
 
         PERSONALITIES = [0,0,0,0,0]
 
-        SELECTIVITY_0 = 0.6
-        SELECTIVITY_1 = 0.6
-        SELECTIVITY_2 = 0.6
+
+        SELECTIVITY_0 = 0.0
+        SELECTIVITY_1 = 0.0
+        SELECTIVITY_2 = 0.0
 
         graphData = []
 
