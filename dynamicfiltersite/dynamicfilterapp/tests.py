@@ -482,7 +482,7 @@ class SimulationTest(TestCase):
             # randomly select a confidence level
             confidenceLevel = choice(CONFIDENCE_OPTIONS)
 
-            # if the answer is False, then add it to the dictionary to keep track
+            # if the correct answer is False, then add it to the ideal dictionary to keep track
             if answer == False:
                 predIdealNo[branches[predicate.index]] += 1
 
@@ -496,6 +496,10 @@ class SimulationTest(TestCase):
             if randNum < branchDifficulties[branch] + choice(PERSONALITIES):
                 # the worker gets the question wrong
                 answer = not answer
+
+            # if the worker's answer is False, then add it to the actual dictionary
+            if answer == False:
+                predActualNo[branches[predicate.index]] += 1
 
             # print str(branch.index) + ". " + str(predicate) + " | NO: " + str(float(branch.returnedNo)) + " | " + "TOTAL: " + str(branch.returnedTotal)
             # print str(branch.index) + ". " + str(predicate) + " | Selectivity: " + str(float(branch.returnedNo)/branch.returnedTotal)
@@ -603,9 +607,9 @@ class SimulationTest(TestCase):
         with open('test_results/test' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in l]
-        # with open('test_results/graph' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
-        #     writer = csv.writer(csvfile)
-        #     [writer.writerow(r) for r in graphData]
+        with open('test_results/graph' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            [writer.writerow(r) for r in graphData]
 
 
         
