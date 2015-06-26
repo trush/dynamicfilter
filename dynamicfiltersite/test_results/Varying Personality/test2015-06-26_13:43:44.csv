@@ -1,0 +1,23 @@
+Simulation Test:,"Varying personality, 0.8",,,,,
+Timestamp:,2015-06-26 13:43:44.291220,,,,,
+Number of tasks completed by workers:,106,,,,,
+Total Restaurants: ,10,,,,,
+Correct percentage:,0,,,,,
+Total completion time of all tasks (minutes):,105.1014166667,,,,,
+,,,,,,
+PredicateBranch,Difficulty,Ideal Selectivity,Unweighted Task Selectivity,Weighted Task Selectivity,Total Returned,Returned No
+Does this restaurant accept credit cards?,0,0.5517241379,0.3793103448,0.4,30,12
+Is this a good restaurant for kids?      ,0,0.1960784314,0.6666666667,0.6730769231,52,35
+Does this restaurant serve Choco Pies?   ,0,0.5384615385,0.3076923077,0.3333333333,27,9
+,,,,,,
+Restaurant,Predicate 0,Predicate 1,Predicate 2,Passed Filter,,
+Kate 0,False,True,,False,,
+Kate 1,True,,False,False,,
+Kate 2,,False,True,False,,
+Kate 3,,False,,False,,
+Kate 4,False,True,,False,,
+Kate 5,,False,,False,,
+Kate 6,True,False,,False,,
+Kate 7,,False,,False,,
+Kate 8,True,False,,False,,
+Kate 9,,False,,False,,

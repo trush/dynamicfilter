@@ -399,7 +399,6 @@ class SimulationTest(TestCase):
         CONFIDENCE_OPTIONS = [100,100,100,100,100,100]
         PERSONALITIES = [0.0, 0.0, 0.0, 0.0, 0.0]
 
-
         SELECTIVITY_0 = 0.0
         SELECTIVITY_1 = 0.0
         SELECTIVITY_2 = 0.0
@@ -428,6 +427,7 @@ class SimulationTest(TestCase):
 
         # set answers based on predicate's selectivity
         while len(allRestPreds0) != 0:
+
             restPred = choice(allRestPreds0)
             allRestPreds0 = allRestPreds0.exclude(id=restPred.id)
 
@@ -474,7 +474,7 @@ class SimulationTest(TestCase):
         predicate = eddy(IDcounter)
       
         while (predicate != None):
-            #print "Running loop on predicate " + str(predicate)
+            print IDcounter
             # default answer is the correct choice
 
             answer = predicateAnswers[predicate]
