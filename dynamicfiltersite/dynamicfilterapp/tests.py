@@ -617,30 +617,31 @@ class SimulationTest(TestCase):
         #     [writer.writerow(r) for r in graphData]
 
 
-    def test_many_simulation(self):
+    def test_many_simulation(self, parameters):
 
-        NUM_RESTAURANTS = 10
-        NUM_SIMULATIONS = 10
+        NUM_SIMULATIONS = parameters[0]
+        NUM_RESTAURANTS = parameters[1]
         
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
 
-        CONFIDENCE_OPTIONS = [60,60,80,100,100]
+        CONFIDENCE_OPTIONS = parameters[2]
 
-        PERSONALITIES = [0,0,0,0,0]
+        PERSONALITIES = parameters[3]
 
-        SELECTIVITY_0 = 0.0
-        SELECTIVITY_1 = 0.0
-        SELECTIVITY_2 = 0.0
+        SELECTIVITY_0 = parameters[4]
+        SELECTIVITY_1 = parameters[5]
+        SELECTIVITY_2 = parameters[6]
 
-        label = raw_input("Label this simulation test: ")
 
         # Save the time and date of simulation
         now = datetime.datetime.now()
 
         # write results to file
         results = []
-        results.append([label, str(now)])
+        results.append(["Parameters:", str(parameters)])
+        results.append(["Time stamp:", str(now)])
+        results.append([])
 
         for k in range(NUM_SIMULATIONS):
             print "Running test " + str(k)
@@ -649,9 +650,9 @@ class SimulationTest(TestCase):
                 enterRestaurant("Kate " + str(i), i)
 
             branches = PredicateBranch.objects.all()
-            branchDifficulties = {branches[0] : 0.0,
-                                  branches[1] : 0.0,
-                                  branches[2] : 0.0}
+            branchDifficulties = {branches[0] : parameters[7],
+                                  branches[1] : parameters[8],
+                                  branches[2] : parameters[9]}
 
             # dictionary of predicates as keys and their true answers as values
             predicateAnswers = {}
@@ -753,3 +754,36 @@ class SimulationTest(TestCase):
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in results]
     
+    def test_many_simulation_controller(self):
+        parameterSets = []
+        #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
+
+        set1 =[ 10, # number of simulations
+                10, # number of restaurants
+                [60,60,80,100,100], # confidence options
+                [0,0,0,0,0], # personality options
+                0.0, # selectivity 0
+                0.0, # selectivity 1
+                0.0, # selectivity 2
+                0.0, # difficulty 0
+                0.0, # difficulty 1
+                0.0, # difficulty 2
+                ]
+        parameterSets.append(set1)
+
+        set2 =[ 10, # number of simulations
+                10, # number of restaurants
+                [60,60,80,100,100], # confidence options
+                [0,0,0,0,0], # personality options
+                0.0, # selectivity 0
+                0.0, # selectivity 1
+                0.0, # selectivity 2
+                0.0, # difficulty 0
+                0.0, # difficulty 1
+                0.0, # difficulty 2
+                ]
+        parameterSets.append(set2)
+
+        for parameters in parameterSets:
+            self.test_many_simulation(parameters)
+
