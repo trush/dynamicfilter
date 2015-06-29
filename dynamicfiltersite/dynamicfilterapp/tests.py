@@ -633,11 +633,14 @@ class SimulationTest(TestCase):
         SELECTIVITY_1 = 0.0
         SELECTIVITY_2 = 0.0
 
+        label = raw_input("Label this simulation test: ")
+
         # Save the time and date of simulation
         now = datetime.datetime.now()
 
         # write results to file
         results = []
+        results.append([label, str(now)])
 
         for k in range(NUM_SIMULATIONS):
             print "Running test " + str(k)
