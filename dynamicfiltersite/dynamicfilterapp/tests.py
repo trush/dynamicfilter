@@ -760,8 +760,8 @@ class SimulationTest(TestCase):
 
         set1 =[ 100, # number of simulations
                 10, # number of restaurants
-                [60,60,80,100,100], # confidence options
-                [0.3,0.3,0.3,0.3,0.3], # personality options
+                [80,80,80,80,80], # confidence options
+                [0.0,0.0,0.0,0.0,0.0], # personality options
                 0.6, # selectivity 0
                 0.6, # selectivity 1
                 0.6, # selectivity 2
@@ -773,8 +773,8 @@ class SimulationTest(TestCase):
 
         set2 =[ 100, # number of simulations
                 10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.2,0.3,0.3,0.3,0.4], # personality options
+                [70,80,80,80,90], # confidence options
+                [0.0,0.0,0.0,0.0,0.0], # personality options
                 0.6, # selectivity 0
                 0.6, # selectivity 1
                 0.6, # selectivity 2
@@ -786,8 +786,8 @@ class SimulationTest(TestCase):
 
         set3 =[ 100, # number of simulations
                 10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.2,0.2,0.3,0.4,0.4], # personality options
+                [70,70,80,90,90], # confidence options
+                [0.0,0.0,0.0,0.0,0.0], # personality options
                 0.6, # selectivity 0
                 0.6, # selectivity 1
                 0.6, # selectivity 2
@@ -799,8 +799,8 @@ class SimulationTest(TestCase):
 
         set4 =[ 100, # number of simulations
                 10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.1,0.3,0.3,0.3,0.5], # personality options
+                [60,80,80,80,100], # confidence options
+                [0.0,0.0,0.0,0.0,0.0], # personality options
                 0.6, # selectivity 0
                 0.6, # selectivity 1
                 0.6, # selectivity 2
@@ -812,8 +812,8 @@ class SimulationTest(TestCase):
 
         set5 =[ 100, # number of simulations
                 10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.1,0.1,0.3,0.5,0.5], # personality options
+                [60,60,80,100,100], # confidence options
+                [0.0,0.0,0.0,0.0,0.0], # personality options
                 0.6, # selectivity 0
                 0.6, # selectivity 1
                 0.6, # selectivity 2
