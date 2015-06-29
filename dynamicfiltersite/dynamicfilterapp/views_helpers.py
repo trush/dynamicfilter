@@ -75,8 +75,9 @@ def aggregate_responses(predicate):
         predicate.restaurant = incrementStatusByFive(predicate.index, predicate.restaurant)
     predicate.restaurant.save()
     predicate.save()
-    #print predicate.restaurant.predicate0Status 
-    printResults()
+
+    # TODO uncomment this if desired
+    #printResults()
 
     return predicate.restaurant
 
