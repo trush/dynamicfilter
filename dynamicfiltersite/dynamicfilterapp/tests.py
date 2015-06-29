@@ -777,57 +777,44 @@ class SimulationTest(TestCase):
         #         ]
         # parameterSets.append(set2)
 
-        # set3 =[ 100, # number of simulations
-        #         10, # number of restaurants
-        #         [100,100,100,100,100], # confidence options
-        #         [0.4,0.4,0.4,0.4,0.4], # personality options
-        #         0.0, # selectivity 0
-        #         0.0, # selectivity 1
-        #         0.0, # selectivity 2
-        #         0.0, # difficulty 0
-        #         0.0, # difficulty 1
-        #         0.0, # difficulty 2
-        #         ]
-        # parameterSets.append(set3)
+        set3 =[ 100, # number of simulations
+                10, # number of restaurants
+                [100,100,100,100,100], # confidence options
+                [0.2,0.2,0.3,0.4,0.4], # personality options
+                0.6, # selectivity 0
+                0.6, # selectivity 1
+                0.6, # selectivity 2
+                0.0, # difficulty 0
+                0.0, # difficulty 1
+                0.0, # difficulty 2
+                ]
+        parameterSets.append(set3)
 
-        # set4 =[ 100, # number of simulations
-        #         10, # number of restaurants
-        #         [100,100,100,100,100], # confidence options
-        #         [0.6,0.6,0.6,0.6,0.6], # personality options
-        #         0.0, # selectivity 0
-        #         0.0, # selectivity 1
-        #         0.0, # selectivity 2
-        #         0.0, # difficulty 0
-        #         0.0, # difficulty 1
-        #         0.0, # difficulty 2
-        #         ]
-        # parameterSets.append(set1)
+        set4 =[ 100, # number of simulations
+                10, # number of restaurants
+                [100,100,100,100,100], # confidence options
+                [0.1,0.3,0.3,0.3,0.5], # personality options
+                0.6, # selectivity 0
+                0.6, # selectivity 1
+                0.6, # selectivity 2
+                0.0, # difficulty 0
+                0.0, # difficulty 1
+                0.0, # difficulty 2
+                ]
+        parameterSets.append(set4)
 
-        # set5 =[ 100, # number of simulations
-        #         10, # number of restaurants
-        #         [100,100,100,100,100], # confidence options
-        #         [0.8,0.8,0.8,0.8,0.8], # personality options
-        #         0.0, # selectivity 0
-        #         0.0, # selectivity 1
-        #         0.0, # selectivity 2
-        #         0.0, # difficulty 0
-        #         0.0, # difficulty 1
-        #         0.0, # difficulty 2
-        #         ]
-        # parameterSets.append(set5)
-
-        # set6 =[ 100, # number of simulations
-        #         10, # number of restaurants
-        #         [100,100,100,100,100], # confidence options
-        #         [1.0,1.0,1.0,1.0,1.0], # personality options
-        #         0.0, # selectivity 0
-        #         0.0, # selectivity 1
-        #         0.0, # selectivity 2
-        #         0.0, # difficulty 0
-        #         0.0, # difficulty 1
-        #         0.0, # difficulty 2
-        #         ]
-        # parameterSets.append(set6)
+        set5 =[ 100, # number of simulations
+                10, # number of restaurants
+                [100,100,100,100,100], # confidence options
+                [0.1,0.1,0.3,0.5,0.5], # personality options
+                0.6, # selectivity 0
+                0.6, # selectivity 1
+                0.6, # selectivity 2
+                0.0, # difficulty 0
+                0.0, # difficulty 1
+                0.0, # difficulty 2
+                ]
+        parameterSets.append(set5)
 
         for parameters in parameterSets:
             print "Parameter set: " + str(parameters)
