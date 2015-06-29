@@ -47,35 +47,9 @@ def enterPredicateBranch(question, index, returnedTotal, returnedNo):
     PredicateBranch.objects.get_or_create(question=question, index=index, returnedTotal=returnedTotal, returnedNo=returnedNo)
 
 class AggregateResponsesTestCase(TestCase):
-    # """
-    # Tests the aggregate_responses() function
-    # """
-    # def test_aggregate_five_no(self):
-    #     """
-    #     Entering five no votes should result in all predicate statuses being set to -1.
-    #     """
-    #     # make new restaurant Chipotle
-    #     r = enterRestaurant("Chipotle", 20349)
-
-    #     # get the zeroeth predicate
-    #     p = RestaurantPredicate.objects.filter(restaurant=r).order_by('-index')[0]
-
-    #     # Enter five "No" answers with 100% confidence
-    #     for i in range(5):
-    #         enterTask(i, False, 1000, 100, p)
-
-    #     # set predicate0Status to not be asked anymore
-    #     r.predicate0Status = 0
-    #     r.save()
-
-    #     r = aggregate_responses(p)
-
-    #     # All the predicate statuses should be -1 since this restaurant failed one predicate
-    #     self.assertEqual(r.predicate0Status,-1)
-    #     self.assertEqual(r.predicate1Status,-1)
-    #     self.assertEqual(r.predicate2Status,-1)
-
-
+    """
+    Tests the aggregate_responses() function
+    """
     def test_aggregate_five_yes(self):
         """
         Entering five yes votes should result in all predicate statuses being set to -1.
@@ -394,14 +368,10 @@ class SimulationTest(TestCase):
         label = raw_input("Label this simulation test: ")
 
         NUM_RESTAURANTS = 10
-        
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
-
         CONFIDENCE_OPTIONS = [60,60,80,100,100]
-
         PERSONALITIES = [0,0,0,0,0]
-
         SELECTIVITY_0 = 0.0
         SELECTIVITY_1 = 0.0
         SELECTIVITY_2 = 0.0
@@ -461,17 +431,15 @@ class SimulationTest(TestCase):
         IDcounter = 100
 
         # keeps track of how many tasks related to each branch are actually No's
-        predIdealNo = {branches[0] : 0,
-                       branches[1] : 0,
-                       branches[2] : 0}
-
-        predActualNo = {branches[0] : 0,
-                       branches[1] : 0,
-                       branches[2] : 0}
-
-        predActualTotal = {branches[0] : 0,
-                           branches[1] : 0,
-                           branches[2] : 0}
+        predIdealNo     = {branches[0]:0,
+                           branches[1]:0,
+                           branches[2]:0}
+        predActualNo    = {branches[0]:0,
+                           branches[1]:0,
+                           branches[2]:0}
+        predActualTotal = {branches[0]:0,
+                           branches[1]:0,
+                           branches[2]:0}
 
         # choose one predicate to start
         predicate = eddy(IDcounter)
@@ -504,10 +472,6 @@ class SimulationTest(TestCase):
             if answer == False:
                 predActualNo[branches[predicate.index]] += 1
 
-
-            # print str(branch.index) + ". " + str(predicate) + " | NO: " + str(float(branch.returnedNo)) + " | " + "TOTAL: " + str(branch.returnedTotal)
-            # print str(branch.index) + ". " + str(predicate) + " | Selectivity: " + str(float(branch.returnedNo)/branch.returnedTotal)
-            
             # make Task answering the predicate, using answer and time
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
 
@@ -559,7 +523,6 @@ class SimulationTest(TestCase):
             predicateBranchRow.append(branch.question)
             predicateBranchRow.append(branchDifficulties[branch])
 
-            # print "No: " + str(predIdealNo[branch]) + ", Yes: " + str(predActualTotal[branch])
             # record ideal selectivity
             if predActualTotal[branch] != 0:
                 predicateBranchRow.append(float(predIdealNo[branch])/float(predActualTotal[branch]))
@@ -587,32 +550,10 @@ class SimulationTest(TestCase):
             restaurantRow.append(not rest.hasFailed)
             l.append(restaurantRow)
 
-
-        # l.append([])
-        # l.append(["Restaurant", "Predicate 0 Status", "Predicate 1 Status", "Predicate 2 Status"])
-        # for rest in Restaurant.objects.all():
-        #     restaurantRow = []
-        #     restaurantRow.append(rest.name)
-        #     restaurantRow.append(rest.predicate0Status)
-        #     restaurantRow.append(rest.predicate1Status)
-        #     restaurantRow.append(rest.predicate2Status)
-        #     l.append(restaurantRow)
-
-        # l.append([])
-        # l.append (["Question", "Worker ID", "Answer", "Confidence"])
-        # for task in Task.objects.order_by("workerID"):
-        #     taskRow = []
-        #     taskRow.append(task.restaurantPredicate.question)
-        #     taskRow.append(task.workerID)
-        #     taskRow.append(task.answer)
-        #     taskRow.append(task.confidenceLevel)
-        #     l.append(taskRow)
-
-        #print predActualTotal
-        #print predIdealNo
         with open('test_results/test' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in l]
+
         # with open('test_results/graph' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
         #     writer = csv.writer(csvfile)
         #     [writer.writerow(r) for r in graphData]
@@ -762,10 +703,11 @@ class SimulationTest(TestCase):
                 0.2, # difficulty 1
                 0.2, # difficulty 2
                 ]
-        parameterSets.append(set1)
+        parameterSets.append(set5)
 
         for parameters in parameterSets:
             print "Parameter set: " + str(parameters)
             self.test_many_simulation(parameters)
 
+        # an audio alert that the tests are done
         os.system('say "simulations complete"')
