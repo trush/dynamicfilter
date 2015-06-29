@@ -641,7 +641,7 @@ class SimulationTest(TestCase):
         results.append([])
 
         for k in range(NUM_SIMULATIONS):
-            
+            print k
             # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
             for i in range(NUM_RESTAURANTS):
                 enterRestaurant("Kate " + str(i), i)
@@ -753,14 +753,14 @@ class SimulationTest(TestCase):
 
         set1 =[ 100, # number of simulations
                 10, # number of restaurants
-                [100,100,100,100], # confidence options
-                [0.0,0.0,0.0,0.0,0.0], # personality options
-                0.1, # selectivity 0
-                0.4, # selectivity 1
-                0.7, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
+                [90,90,90,90,90], # confidence options
+                [0.2,0.2,0.2,0.2,0.2], # personality options
+                0.6, # selectivity 0
+                0.6, # selectivity 1
+                0.6, # selectivity 2
+                0.2, # difficulty 0
+                0.2, # difficulty 1
+                0.2, # difficulty 2
                 ]
         parameterSets.append(set1)
 

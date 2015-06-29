@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="lib" path="/Users/muddCS15/Desktop/java-aws-mturk-1.6.2/lib/aws-mturk-dataschema.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/muddCS15/Desktop/java-aws-mturk-1.6.2/lib/aws-mturk-wsdl.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/muddCS15/Desktop/java-aws-mturk-1.6.2/lib/java-aws-mturk.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/muddCS15/Downloads/org.apache.commons.httpclient.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/muddCS15/Downloads/jaxrpc-api.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/muddCS15/Downloads/commons-httpclient-contrib-3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/muddCS15/Downloads/org-apache-commons-logging.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
