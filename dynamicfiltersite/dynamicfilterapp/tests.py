@@ -11,6 +11,7 @@ from numpy.random import normal, random
 from random import choice
 import datetime
 import csv
+import os
 
 def enterTask(ID, workerAnswer, time, confidence, predicate):
     """
@@ -618,78 +619,64 @@ class SimulationTest(TestCase):
 
 
     def test_many_simulation(self, parameters):
+        """
+        A version of test_simulation that runs many simulations repeatedly in order to get aggregated data.
+        """
 
+        # get the simulation parameters from the parameters list
         NUM_SIMULATIONS = parameters[0]
         NUM_RESTAURANTS = parameters[1]
-        
+        CONFIDENCE_OPTIONS = parameters[2]
+        PERSONALITIES = parameters[3]
+
+        # parameters for the task completion time distribution
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
 
-        CONFIDENCE_OPTIONS = parameters[2]
-
-        PERSONALITIES = parameters[3]
-
-        SELECTIVITY_0 = parameters[4]
-        SELECTIVITY_1 = parameters[5]
-        SELECTIVITY_2 = parameters[6]
-
-
-        # Save the time and date of simulation
-        now = datetime.datetime.now()
-
-        # write results to file
+        # put results in a list that will be written to a csv file
         results = []
         results.append(["Parameters:", str(parameters)])
+        now = datetime.datetime.now() # get the timestamp
         results.append(["Time stamp:", str(now)])
         results.append([])
 
         for k in range(NUM_SIMULATIONS):
-            print "Running test " + str(k)
-            # Create restaurants with PBs and RPs
+            
+            # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
             for i in range(NUM_RESTAURANTS):
                 enterRestaurant("Kate " + str(i), i)
 
-            branches = PredicateBranch.objects.all()
+            # set the selectivities and difficulties of each branch from parameters list
+            branches = PredicateBranch.objects.all().order_by("index")
+            branchSelectivities = {branches[0] : parameters[4],
+                                   branches[1] : parameters[5],
+                                   branches[2] : parameters[6]}
             branchDifficulties = {branches[0] : parameters[7],
                                   branches[1] : parameters[8],
                                   branches[2] : parameters[9]}
 
-            # dictionary of predicates as keys and their true answers as values
+            # dictionary of correct answers
             predicateAnswers = {}
             
-            # all restaurant predicates according to their respective indices
+            # define sets of all restaurant predicates according to their indices
             allRestPreds0 = RestaurantPredicate.objects.all().filter(index=0)
             allRestPreds1 = RestaurantPredicate.objects.all().filter(index=1)
             allRestPreds2 = RestaurantPredicate.objects.all().filter(index=2)
+            predicateSets = [allRestPreds0, allRestPreds1, allRestPreds2]
 
-            # set answers based on predicate's selectivity
-            while len(allRestPreds0) != 0:
+            # define correct answers based on each predicate's selectivity
+            for predicateSet in predicateSets:
+                while len(predicateSet) != 0:
 
-                restPred = choice(allRestPreds0)
-                allRestPreds0 = allRestPreds0.exclude(id=restPred.id)
+                    # pick one predicate to define a correct answer for
+                    restPred = choice(predicateSet)
+                    predicateSet = predicateSet.exclude(id=restPred.id)
 
-                if random() < SELECTIVITY_0:
-                    predicateAnswers[restPred] = False
-                else:
-                    predicateAnswers[restPred] = True
-
-            while len(allRestPreds1) != 0:
-                restPred = choice(allRestPreds1)
-                allRestPreds1 = allRestPreds1.exclude(id=restPred.id)
-
-                if random() < SELECTIVITY_1:
-                    predicateAnswers[restPred] = False
-                else:
-                    predicateAnswers[restPred] = True
-
-            while len(allRestPreds2) != 0:
-                restPred = choice(allRestPreds2)
-                allRestPreds2 = allRestPreds2.exclude(id=restPred.id)
-
-                if random() < SELECTIVITY_2:
-                    predicateAnswers[restPred] = False
-                else:
-                    predicateAnswers[restPred] = True
+                    # probabilistically assign the correct answer
+                    if random() < branchSelectivities[branches[restPred.index]]:
+                        predicateAnswers[restPred] = False
+                    else:
+                        predicateAnswers[restPred] = True
 
             # start keeping track of worker IDs at 100
             IDcounter = 100
@@ -698,40 +685,42 @@ class SimulationTest(TestCase):
             predicate = eddy(IDcounter)
           
             while (predicate != None):
-                # default answer is the correct choice
-
-                answer = predicateAnswers[predicate]
+                
                 # choose a time by sampling from a distribution
                 completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
                 # randomly select a confidence level
                 confidenceLevel = choice(CONFIDENCE_OPTIONS)
 
+                # default answer is the correct choice
+                answer = predicateAnswers[predicate]
                 # generate random decimal from 0 to 1
                 randNum = random()
             
+                # make the worker answer incorrectly with a probability determined by difficulty and personality
                 branch = PredicateBranch.objects.filter(index=predicate.index)[0]
                 if randNum < branchDifficulties[branch] + choice(PERSONALITIES):
-                    # the worker gets the question wrong
                     answer = not answer
                 
-                # make Task answering the predicate, using answer and time
+                # make Task answering the predicate
                 task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
 
-                # get the associated PredicateBranch
+                # update the appropriate statuses and counts
                 pB = PredicateBranch.objects.filter(question=predicate.question)[0]
                 updateCounts(pB, task)
                 decrementStatus(predicate.index, predicate.restaurant)
                 
+                # if we're done answering questions, aggregate the responses
                 statusName = "predicate" + str(predicate.index) + "Status"
                 if getattr(predicate.restaurant, statusName)==0:
                     predicate.restaurant = aggregate_responses(predicate)
 
+                # "move" the restaurant out of the predicate branch
                 predicate.restaurant.evaluator = None
                 predicate.save()
 
-                # increase IDcounter
+                # increase worker IDcounter
                 IDcounter += 1
-                # get a predicate from the eddy
+                # get the next predicate from the eddy (None if there are no more)
                 predicate = eddy(IDcounter)
             
 
@@ -741,8 +730,8 @@ class SimulationTest(TestCase):
                 if predicate.value == predicateAnswers[predicate]:
                     correctCount += 1
 
+            # record number of tasks and correct percentage
             results.append([len(Task.objects.all()), float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))])
-
 
             # delete the objects from this simulation
             Task.objects.all().delete()
@@ -750,40 +739,98 @@ class SimulationTest(TestCase):
             Restaurant.objects.all().delete()
             PredicateBranch.objects.all().delete()
 
+        # write the results to a csv file
         with open('test_results/test_many_' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in results]
     
     def test_many_simulation_controller(self):
+        """
+        Calls the test_many_simulation function with as many sets of parameters as are specified.
+        """
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 10, # number of simulations
+        set1 =[ 100, # number of simulations
                 10, # number of restaurants
-                [60,60,80,100,100], # confidence options
+                [100,100,100,100,100], # confidence options
                 [0,0,0,0,0], # personality options
                 0.0, # selectivity 0
                 0.0, # selectivity 1
                 0.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
+                1.0, # difficulty 0
+                1.0, # difficulty 1
+                1.0, # difficulty 2
                 ]
         parameterSets.append(set1)
 
-        set2 =[ 10, # number of simulations
-                10, # number of restaurants
-                [60,60,80,100,100], # confidence options
-                [0,0,0,0,0], # personality options
-                0.0, # selectivity 0
-                0.0, # selectivity 1
-                0.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                ]
-        parameterSets.append(set2)
+        # set2 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.2,0.2,0.2,0.2,0.2], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set2)
+
+        # set3 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.4,0.4,0.4,0.4,0.4], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set3)
+
+        # set4 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.6,0.6,0.6,0.6,0.6], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set1)
+
+        # set5 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.8,0.8,0.8,0.8,0.8], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set5)
+
+        # set6 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [1.0,1.0,1.0,1.0,1.0], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set6)
 
         for parameters in parameterSets:
+            print "Parameter set: " + str(parameters)
             self.test_many_simulation(parameters)
 
+        os.system('say "simulations complete"')
