@@ -699,11 +699,6 @@ class SimulationTest(TestCase):
                 0.0, # selectivity 0
                 0.0, # selectivity 1
                 0.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                ]
-        parameterSets.append(set1)
 
         set2 =[ 100, # number of simulations
                 10, # number of restaurants
