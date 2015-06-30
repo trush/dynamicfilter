@@ -9,5 +9,9 @@
 	<classpathentry exported="true" kind="lib" path="/Users/muddCS15/Downloads/jaxrpc-api.jar"/>
 	<classpathentry exported="true" kind="lib" path="/Users/muddCS15/Downloads/commons-httpclient-contrib-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="/Users/muddCS15/Downloads/org-apache-commons-logging.jar"/>
+	<classpathentry kind="lib" path="/Users/muddCS15/Downloads/axis-1.0.jar"/>
+	<classpathentry kind="lib" path="/Users/muddCS15/Downloads/apache-logging-log4j.jar"/>
+	<classpathentry kind="lib" path="/Users/muddCS15/Downloads/commons-discovery-0.5.jar"/>
+	<classpathentry kind="lib" path="/Users/muddCS15/Downloads/javax.servlet-3.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
