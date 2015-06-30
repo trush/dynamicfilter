@@ -26,15 +26,20 @@
 
 			{% csrf_token %}
 
-			<h1>Answer a Question</h1>
-
-			{{ predicate.restaurant.text }} </br> </br>
-			Restaurant: {{ predicate.restaurant.name }} </br>
-			Website: <a href='{{ predicate.restaurant.url }}' >{{ predicate.restaurant.url }} </a> </br>
-			Question: {{ predicate.question }} </br></br>
-
-			<span title="The confidence levels indicate how certain you are of your answer. Clicking yes and 80% therefore translates to a 0.8 vote of yes and a 0.2 vote of no. One thing to also note is that clicking yes and 50% is the same as no and 50%.">Hover your mouse here to see more on confidence levels.</span></br></br>
-
+			<h2>Instructions</h2>
+			<ol>
+            <li>You will be provided with a restaurant name and address</li>
+            <li>Use the internet or other resources answer one question about the restaurant. (A link to Google search results is provided.)</li>
+            <li>Rate how sure of your answer you are, with 100% indicating that you are completely certain. </li>
+            <li>If you can’t find any relevant information, check the box marked “I don’t know.”</li>
+            </ol> 
+            If you try to find the information, you will not be penalized for entering a low certainty or checking "I don’t know."
+            </br>
+            <h2>Task</h2>
+			Restaurant: </br>
+			{{ predicate.restaurant.name }} </br>
+			{{ predicate.restaurant.street }}, {{ predicate.restaurant.city }}, {{ predicate.restaurant.state }}, {{predicate.restaurant.zipCode}} </br> </br>
+			{{ predicate.question }} </br>
 			{{ form }}
 
 			<input type="hidden" id="elapsed_time" name = "elapsed_time" value="555">

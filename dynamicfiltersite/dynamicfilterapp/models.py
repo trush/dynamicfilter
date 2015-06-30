@@ -18,8 +18,8 @@ class Restaurant(models.Model):
     zipCode = models.CharField(max_length=9, default="")
     country = models.CharField(max_length=30, default="")
 
-    # TODO is this for a restaurant description or worker instructions?
-    text = models.CharField(max_length=200)
+    # Worker instructions
+    text = models.CharField(max_length=500)
 
     # keep track of how many times each predicate still needs to be evaluated
     # hard-coded to three predicates for now

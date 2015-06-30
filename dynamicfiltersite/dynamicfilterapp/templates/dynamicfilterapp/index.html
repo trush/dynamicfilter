@@ -2,11 +2,8 @@
 
 <form name = 'ID_form' action="{% url 'index' %}" method='post'>
 	{% csrf_token %}
-	<h1>Index</h1>
-	<br>
-	Enter in your Worker ID</br>
-	<br>
+	<h2>Welcome to Dynamic Filter</h2>
+	Thanks for taking the time to help us out! Please enter your assigned worker ID number and click 'submit.'</br> </br>
     {{ form }}
-	<br>
 	<input type="submit" value="Submit">
 </form>
