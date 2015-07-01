@@ -8,7 +8,7 @@ DECISION_THRESHOLD = 0.5
 
 # the uncertainty level determined by the beta distribution function needs to be less than 0.15
 # for us to fix the predicate's value
-UNCERTAINTY_THRESHOLD = 0.25
+UNCERTAINTY_THRESHOLD = 0.15
 
 def aggregate_responses(predicate):
     """

@@ -1,10 +1,11 @@
 package dynamicFilterJavaApp;
 
-import com.amazonaws.mturk.service.axis.RequesterService;
+import com.amazonaws.mturk.service.axis.RequesterService;  
 import com.amazonaws.mturk.service.exception.ServiceException;
 import com.amazonaws.mturk.util.PropertiesClientConfig;
 import com.amazonaws.mturk.requester.HIT;
 
+import org.apache.commons.lang.StringEscapeUtils;
 /**
  * The MovieSurvey sample application creates a simple HIT using the
  * Amazon Mechanical Turk SDK for Java. The file mturk.properties must be found in the current file path.
@@ -34,26 +35,30 @@ public class MovieSurvey{
     */
    public void createMovieSurvey()
    {
-     try 
-     {
-       // The createHIT method is called using a convenience static method 
-       // RequesterService.getBasicFreeTextQuestion() that generates the question format
-       // for the HIT.
-       HIT hit = service.createHIT
-       (
-          title,
-          description,
-          reward,
-          RequesterService.getBasicFreeTextQuestion(
-               "How many movies have you seen this month?"),
-          numAssignments);
-              
-       // Print out the HITId and the URL to view the HIT.
-       System.out.println("Created HIT: " + hit.getHITId());
-       System.out.println("HIT location: ");
-       System.out.println(service.getWebsiteURL() + "/mturk/preview?groupId=" + hit.getHITTypeId());
-      
-    }
+	   String xmlfile = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+			   
+	   		+ "<ExternalQuestion xmlns=\"http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd\"><ExternalURL>https://awsmedia.s3.amazonaws.com/catalog/attachments/examplejavascriptexternalquestion.html</ExternalURL><FrameHeight>400</FrameHeight></ExternalQuestion>";
+	   
+	   xmlfile = xmlfile.replace("&","&amp;").replace("\'", "&apos;");
+	
+	   try 
+	   {
+		   // The createHIT method is called using a convenience static method 
+		   // RequesterService.getBasicFreeTextQuestion() that generates the question format
+		   // for the HIT.
+		   HIT hit = service.createHIT
+				   (
+						   title,
+						   description,
+						   reward,
+						   xmlfile,
+						   numAssignments);
+	          
+		   // Print out the HITId and the URL to view the HIT.
+		   System.out.println("Created HIT: " + hit.getHITId());
+		   System.out.println("HIT location: ");
+	   	   System.out.println(service.getWebsiteURL() + "/mturk/preview?groupId=" + hit.getHITTypeId()); 
+	   }
     catch (ServiceException e) 
     {
        System.err.println(e.getLocalizedMessage());

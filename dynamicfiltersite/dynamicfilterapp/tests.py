@@ -694,16 +694,16 @@ class SimulationTest(TestCase):
 
         set1 =[ 100, # number of simulations
                 10, # number of restaurants
-                [90,90,90,90,90], # confidence options
-                [0.2,0.2,0.2,0.2,0.2], # personality options
-                0.6, # selectivity 0
-                0.6, # selectivity 1
-                0.6, # selectivity 2
-                0.2, # difficulty 0
-                0.2, # difficulty 1
-                0.2, # difficulty 2
+                [70,80,80,80,70], # confidence options
+                [0.1,0.1,0.1,0.1,0.1], # personality options
+                0.3, # selectivity 0
+                0.4, # selectivity 1
+                0.8, # selectivity 2
+                0.1, # difficulty 0
+                0.1, # difficulty 1
+                0.1, # difficulty 2
                 ]
-        parameterSets.append(set5)
+        parameterSets.append(set1)
 
         for parameters in parameterSets:
             print "Parameter set: " + str(parameters)
