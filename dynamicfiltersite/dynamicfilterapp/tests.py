@@ -579,6 +579,9 @@ class SimulationTest(TestCase):
         results.append(["Time stamp:", str(now)])
         results.append([])
 
+        tasksPerRestaurant = []
+        selectivitiesOverTime = []
+
         for k in range(NUM_SIMULATIONS):
             print k
             # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
@@ -624,7 +627,11 @@ class SimulationTest(TestCase):
             predicate = randomAlgorithm(IDcounter)
           
             while (predicate != None):
-                
+                # add the three current selectivity statistics to the results file
+                selectivitiesOverTime.append([float(branches[0].returnedNo)/branches[0].returnedTotal,
+                                              float(branches[1].returnedNo)/branches[1].returnedTotal,
+                                              float(branches[2].returnedNo)/branches[2].returnedTotal ])
+
                 # choose a time by sampling from a distribution
                 completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
                 # randomly select a confidence level
@@ -672,6 +679,9 @@ class SimulationTest(TestCase):
             # record number of tasks and correct percentage
             results.append([len(Task.objects.all()), float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))])
 
+            for restaurant in Restaurant.objects.all():
+                tasksPerRestaurant.append([len(Task.objects.filter(restaurantPredicate__restaurant=restaurant))])
+
             # delete the objects from this simulation
             Task.objects.all().delete()
             RestaurantPredicate.objects.all().delete()
@@ -682,6 +692,16 @@ class SimulationTest(TestCase):
         with open('test_results/test_many_' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in results]
+
+        # write the results to a csv file
+        with open('test_results/selectivities_' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            [writer.writerow(r) for r in selectivitiesOverTime]
+
+        # write the results to a csv file
+        with open('test_results/taskCounts_' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            [writer.writerow(r) for r in tasksPerRestaurant]
     
     def test_many_simulation_controller(self):
         """
@@ -690,10 +710,10 @@ class SimulationTest(TestCase):
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 100, # number of simulations
+        set1 =[ 1, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
-                [1.0,1.0,1.0,1.0,1.0], # personality options
+                [0.4], # personality options
                 0.6, # selectivity 0
                 0.6, # selectivity 1
                 0.6, # selectivity 2
@@ -703,55 +723,127 @@ class SimulationTest(TestCase):
                 ]
         parameterSets.append(set1)
 
-        set2 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.2,0.2,0.2,0.2,0.2], # personality options
-                0.6, # selectivity 0
-                0.6, # selectivity 1
-                0.6, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                ]
-        parameterSets.append(set2)
+        # set2 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0,0.0,0.0,0.0,0.0], # personality options
+        #         0.3, # selectivity 0
+        #         0.3, # selectivity 1
+        #         0.6, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set2)
 
-        set3 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.4,0.4,0.4,0.4,0.4], # personality options
-                0.6, # selectivity 0
-                0.6, # selectivity 1
-                0.6, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                ]
-        parameterSets.append(set3)
-        set4 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.6,0.6,0.6,0.6,0.6], # personality options
-                0.6, # selectivity 0
-                0.6, # selectivity 1
-                0.6, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                ]
-        parameterSets.append(set4)
-        set5 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.8,0.8,0.8,0.8,0.8], # personality options
-                0.6, # selectivity 0
-                0.6, # selectivity 1
-                0.6, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                ]
-        parameterSets.append(set5)
+        # set3 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0,0.0,0.0,0.0,0.0], # personality options
+        #         0.2, # selectivity 0
+        #         0.5, # selectivity 1
+        #         0.5, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set3)
+        # set4 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0,0.0,0.0,0.0,0.0], # personality options
+        #         0.2, # selectivity 0
+        #         0.4, # selectivity 1
+        #         0.6, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set4)
+        # set5 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0,0.0,0.0,0.0,0.0], # personality options
+        #         0.2, # selectivity 0
+        #         0.3, # selectivity 1
+        #         0.7, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set5)
+        # set6 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0,0.0,0.0,0.0,0.0], # personality options
+        #         0.2, # selectivity 0
+        #         0.3, # selectivity 1
+        #         0.7, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set6)
+        # set7 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0,0.0,0.0,0.0,0.0], # personality options
+        #         0.1, # selectivity 0
+        #         0.5, # selectivity 1
+        #         0.6, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set7)
+        # set8 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0,0.0,0.0,0.0,0.0], # personality options
+        #         0.1, # selectivity 0
+        #         0.4, # selectivity 1
+        #         0.7, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set8)
+        # set9 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0,0.0,0.0,0.0,0.0], # personality options
+        #         0.2, # selectivity 0
+        #         0.2, # selectivity 1
+        #         0.8, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set9)
+        # set10 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0,0.0,0.0,0.0,0.0], # personality options
+        #         0.1, # selectivity 0
+        #         0.3, # selectivity 1
+        #         0.8, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set10)
+        # set11 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0,0.0,0.0,0.0,0.0], # personality options
+        #         0.1, # selectivity 0
+        #         0.2, # selectivity 1
+        #         0.9, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         ]
+        # parameterSets.append(set11)
 
         for parameters in parameterSets:
             print "Parameter set: " + str(parameters)
