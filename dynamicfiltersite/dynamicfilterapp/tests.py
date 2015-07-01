@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
 # What we wrote 
-from views_helpers import eddy, aggregate_responses, decrementStatus, updateCounts, incrementStatusByFive, findRestaurant, findTotalTickets
+from views_helpers import eddy, aggregate_responses, decrementStatus, updateCounts, incrementStatusByFive, findRestaurant, findTotalTickets, randomAlgorithm
 from .forms import RestaurantAdminForm
 from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 # Python tools
@@ -40,7 +40,6 @@ def enterRestaurant(restaurantName, zipNum):
         PredicateBranch.objects.get_or_create(index=predicate.index, question=predicate.question)
 
     return r
-
 
 def enterPredicateBranch(question, index, returnedTotal, returnedNo):
     #(RestaurantPredicate.objects.all()[0].question, 0, 1, 1)
@@ -558,7 +557,6 @@ class SimulationTest(TestCase):
         #     writer = csv.writer(csvfile)
         #     [writer.writerow(r) for r in graphData]
 
-
     def test_many_simulation(self, parameters):
         """
         A version of test_simulation that runs many simulations repeatedly in order to get aggregated data.
@@ -623,7 +621,7 @@ class SimulationTest(TestCase):
             IDcounter = 100
 
             # choose one predicate to start
-            predicate = eddy(IDcounter)
+            predicate = randomAlgorithm(IDcounter)
           
             while (predicate != None):
                 
@@ -662,7 +660,7 @@ class SimulationTest(TestCase):
                 # increase worker IDcounter
                 IDcounter += 1
                 # get the next predicate from the eddy (None if there are no more)
-                predicate = eddy(IDcounter)
+                predicate = randomAlgorithm(IDcounter)
             
 
             # Of the answered predicates, count how many are correct
@@ -694,14 +692,64 @@ class SimulationTest(TestCase):
 
         set1 =[ 100, # number of simulations
                 10, # number of restaurants
-                [90,90,90,90,90], # confidence options
+                [100,100,100,100,100], # confidence options
+                [1.0,1.0,1.0,1.0,1.0], # personality options
+                0.6, # selectivity 0
+                0.6, # selectivity 1
+                0.6, # selectivity 2
+                0.0, # difficulty 0
+                0.0, # difficulty 1
+                0.0, # difficulty 2
+                ]
+        parameterSets.append(set1)
+
+        set2 =[ 100, # number of simulations
+                10, # number of restaurants
+                [100,100,100,100,100], # confidence options
                 [0.2,0.2,0.2,0.2,0.2], # personality options
                 0.6, # selectivity 0
                 0.6, # selectivity 1
                 0.6, # selectivity 2
-                0.2, # difficulty 0
-                0.2, # difficulty 1
-                0.2, # difficulty 2
+                0.0, # difficulty 0
+                0.0, # difficulty 1
+                0.0, # difficulty 2
+                ]
+        parameterSets.append(set2)
+
+        set3 =[ 100, # number of simulations
+                10, # number of restaurants
+                [100,100,100,100,100], # confidence options
+                [0.4,0.4,0.4,0.4,0.4], # personality options
+                0.6, # selectivity 0
+                0.6, # selectivity 1
+                0.6, # selectivity 2
+                0.0, # difficulty 0
+                0.0, # difficulty 1
+                0.0, # difficulty 2
+                ]
+        parameterSets.append(set3)
+        set4 =[ 100, # number of simulations
+                10, # number of restaurants
+                [100,100,100,100,100], # confidence options
+                [0.6,0.6,0.6,0.6,0.6], # personality options
+                0.6, # selectivity 0
+                0.6, # selectivity 1
+                0.6, # selectivity 2
+                0.0, # difficulty 0
+                0.0, # difficulty 1
+                0.0, # difficulty 2
+                ]
+        parameterSets.append(set4)
+        set5 =[ 100, # number of simulations
+                10, # number of restaurants
+                [100,100,100,100,100], # confidence options
+                [0.8,0.8,0.8,0.8,0.8], # personality options
+                0.6, # selectivity 0
+                0.6, # selectivity 1
+                0.6, # selectivity 2
+                0.0, # difficulty 0
+                0.0, # difficulty 1
+                0.0, # difficulty 2
                 ]
         parameterSets.append(set5)
 

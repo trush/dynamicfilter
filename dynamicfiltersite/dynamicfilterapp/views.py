@@ -38,7 +38,7 @@ def answer_question(request, IDnumber):
     if request.method == 'POST':
 
         # create a form instance and populate it with data from the request:
-        form = WorkerForm(request.POST)
+        form = WorkerForm(request.POST, label_suffix='')
         toBeAnswered = RestaurantPredicate.objects.filter(id=request.POST.get('pred_id'))[0]
         
         # check whether it's valid:
@@ -60,7 +60,7 @@ def answer_question(request, IDnumber):
 
             # create a new Task with relevant information and store it in the database
             task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, confidenceLevel=form.cleaned_data['confidenceLevel'],
-                workerID = IDnumber, completionTime = timeToComplete)
+                workerID = IDnumber, completionTime = timeToComplete, IDontKnow=form.cleaned_data['IDontKnow'], feedback=form.cleaned_data['feedback'])
             task.save()
 
              # get the PredicateBranch associated with this predicate
@@ -90,7 +90,7 @@ def answer_question(request, IDnumber):
         # if there are no predicates to be answered by the worker with this ID number
         if toBeAnswered == None:
             return HttpResponseRedirect('/dynamicfilterapp/no_questions/id=' + IDnumber)
-        form = WorkerForm()
+        form = WorkerForm(label_suffix='')
 
     return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 'workerID': IDnumber })
 

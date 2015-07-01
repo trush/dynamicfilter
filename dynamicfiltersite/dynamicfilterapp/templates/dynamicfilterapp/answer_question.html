@@ -17,34 +17,88 @@
    				var elem = document.getElementById("elapsed_time");
    				elem.value = end_ms-start_ms;
 			}
+
+			function getGoogleLink() {
+				link = "http://www.google.com/search?q="
+				link += '{{ predicate.restaurant.name}}' + "+" + '{{predicate.restaurant.city}}' + "+" + '{{ predicate.restaurant.state }}'
+				link.replace(" ", "+")
+				var a = document.getElementById("google_link")
+				a.href = link
+			}
 		</script>
+		<style>
+		table, th, td {
+		    border: 2px solid grey;
+		    border-collapse: collapse;
+		}
+		th, td {
+		    padding: 10px;
+		    text-align: left;
+		}
+		</style>
 	</head>
 
-	<body onload='startTime()'>
+	<body onload='startTime();getGoogleLink()'>
+		<h2>Instructions </h2>
+		<ol>
+        <li>You will be provided with a restaurant name and address</li>
+        <li>Using the internet or other resources, answer one question about the restaurant. (A link to Google search results is provided, which opens in a new tab.)</li>
+        <li>Rate how sure of your answer you are, with 100% indicating that you are completely certain. </li>
+        <li>If you can’t find any relevant information, check the box marked “I don’t know.” </li>
+        <li>If you try to find the information, you will not be penalized for entering a low certainty or checking “I don’t know.”</li>
+        <li>Optionally, you may provide feedback on the clarity of the instructions, presentation or difficulty of the task, usability of the website, or anything else. </li>
+        
+		<div id="collapse">
+		
+		<h2>Task</h2>
+		<table>
+			<tr>
+				<td>
+					Restaurant
+				</td>
+				<td>
+					{{ predicate.restaurant.name }}
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Address
+				</td>
+				<td>
+					{{ predicate.restaurant.street }}, {{ predicate.restaurant.city }}, {{ predicate.restaurant.state }}, {{predicate.restaurant.zipCode}}
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Question
+				</td>
+				<td>
+					{{ predicate.question }}
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Search Tools
+				</td>
+				<td>
+					<a href = "http://www.google.com/search?q=broken+link" target="_blank" id='google_link'>Google</a>
+				</td>
+			</tr>
+		</table>
 
+		<br>
+	
 		<form name = 'input_form' action="{% url 'answer_question' workerID %}" method='post'>
 
 			{% csrf_token %}
 
-			<h2>Instructions</h2>
-			<ol>
-            <li>You will be provided with a restaurant name and address</li>
-            <li>Use the internet or other resources answer one question about the restaurant. (A link to Google search results is provided.)</li>
-            <li>Rate how sure of your answer you are, with 100% indicating that you are completely certain. </li>
-            <li>If you can’t find any relevant information, check the box marked “I don’t know.”</li>
-            </ol> 
-            If you try to find the information, you will not be penalized for entering a low certainty or checking "I don’t know."
-            </br>
-            <h2>Task</h2>
-			Restaurant: </br>
-			{{ predicate.restaurant.name }} </br>
-			{{ predicate.restaurant.street }}, {{ predicate.restaurant.city }}, {{ predicate.restaurant.state }}, {{predicate.restaurant.zipCode}} </br> </br>
-			{{ predicate.question }} </br>
-			{{ form }}
+			<table>
+				{{ form.as_table }}
+			</table>
 
 			<input type="hidden" id="elapsed_time" name = "elapsed_time" value="555">
-			<input type="hidden" id="pred_id" name = "pred_id" value={{ predicate.id }}>
-			<br>
+			<input type="hidden" id="pred_id" name = "pred_id" value={{ predicate.id }}> <br>
+			
 			<input type="submit" value="Submit" onclick='endTime()'>
 
 		</form>

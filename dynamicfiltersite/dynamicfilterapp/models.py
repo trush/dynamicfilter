@@ -19,7 +19,7 @@ class Restaurant(models.Model):
     country = models.CharField(max_length=30, default="")
 
     # Worker instructions
-    text = models.CharField(max_length=500)
+    text = models.CharField(max_length=500, blank=True)
 
     # keep track of how many times each predicate still needs to be evaluated
     # hard-coded to three predicates for now
@@ -76,6 +76,12 @@ class Task(models.Model):
 
     # the time it takes for the worker to complete a question
     completionTime = models.IntegerField(default=0)
+
+    # set to True if the worker check's "I don't know"
+    IDontKnow = models.BooleanField(default=False)
+
+    # a place for workers to give feedback on the task
+    feedback = models.CharField(max_length=500,blank=True)
 
     def __unicode__(self):
         return "Task from worker " + str(self.workerID)

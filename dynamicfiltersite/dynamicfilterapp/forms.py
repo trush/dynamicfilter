@@ -16,7 +16,6 @@ class WorkerForm(forms.Form):
     # how confident a worker is in his/her answer
     CONFIDENCE_LEVELS = (
         (None, '------'),
-        ('50', '50%'),
         ('60', '60%'),
         ('70', '70%'),
         ('80', '80%'),
@@ -26,9 +25,11 @@ class WorkerForm(forms.Form):
 
     # sets up form for answering predicate and worker's confidence level
     answerToQuestion = forms.ChoiceField(choices=WORKER_ANSWER_CHOICES, 
-        label='Your answer')
+        label='Answer')
     confidenceLevel = forms.ChoiceField(choices=CONFIDENCE_LEVELS, 
-        label='Confidence level')
+        label='Certainty')
+    IDontKnow = forms.BooleanField(label="I don't know")
+    feedback = forms.CharField(widget=forms.Textarea, label='Feedback (optional)')
 
 class RestaurantAdminForm(forms.ModelForm):
     """
