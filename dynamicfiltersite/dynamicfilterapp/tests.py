@@ -391,12 +391,12 @@ class SimulationTest(TestCase):
             print "Eddy " + str(k)
             results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers)
             self.write_results(results_eddy)
-            self.reset_simulation()
+            # self.reset_simulation()
 
-            print "Random " + str(k)
-            results_random = self.run_simulation(randomAlgorithm, branches, branchDifficulties, parameters, predicateAnswers)
-            self.write_results(results_random)
-            self.reset_simulation()
+            # print "Random " + str(k)
+            # results_random = self.run_simulation(randomAlgorithm, branches, branchDifficulties, parameters, predicateAnswers)
+            # self.write_results(results_random)
+            # self.reset_simulation()
 
 
     def write_results(self, results):
@@ -569,10 +569,10 @@ class SimulationTest(TestCase):
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 1, # number of simulations
+        set1 =[ 10, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
-                [0.4], # personality options
+                [0.2], # personality options
                 0.6, # selectivity 0
                 0.6, # selectivity 1
                 0.6, # selectivity 2
