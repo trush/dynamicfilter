@@ -276,50 +276,48 @@ def findRestaurant(predicateBranch,ID):
     for restaurant in prioritized:
         status = getattr(restaurant, predStatus)
 
-        if status > 0:
-            return restaurant
-    # We should never reach this statement
-    return None
+    #     if status > 0:
+    #         return restaurant
+    # # We should never reach this statement
+    # return None
 
 #------------------------------------------------------------------------------------------------------------------------------------#
-    # trying to prioritize based on uncertainty level
-        # if status > 0:
-            # lowestStat = status
-            # break
+  
+        if status > 0:
+            lowestStat = status
+            break
 
-    # lowestUncertainty = 1.0
-    # for restaurant in prioritized:
-        # status = getattr(restaurant, predStatus)
+    lowestUncertainty = 1.0
+    predicate = RestaurantPredicate.objects.filter(question=predicateBranch.question)[0]
+    for restaurant in prioritized:
+        status = getattr(restaurant, predStatus)
 
-        # if status > lowestStat:
-            # break
+        if status > lowestStat:
+            break
 
-        # if status == lowestStat:
+        if status == lowestStat:
 
-            # retrieves the number of yes answers and number of no answers for the 
-            # predicate relative to the answers' confidence levels
+            yes = Task.objects.filter(restaurantPredicate=predicate, answer = True)
+            no = Task.objects.filter(restaurantPredicate=predicate, answer = False)
 
-            # yes = Task.objects.filter(restaurantPredicate=predicate, answer = True)
-            # no = Task.objects.filter(restaurantPredicate=predicate, answer = False)
+            totalYes = 0.0
+            totalNo = 0.0
 
-            # totalYes = 0.0
-            # totalNo = 0.0
+            for pred in yes:
+                totalYes += pred.confidenceLevel/100.0
+                totalNo += 1 - pred.confidenceLevel/100.0
 
-            # for pred in yes:
-            #     totalYes += pred.confidenceLevel/100.0
-            #     totalNo += 1 - pred.confidenceLevel/100.0
+            for pred in no:
+                totalYes += 1 - pred.confidenceLevel/100.0
+                totalNo += pred.confidenceLevel/100.0
 
-            # for pred in no:
-            #     totalYes += 1 - pred.confidenceLevel/100.0
-            #     totalNo += pred.confidenceLevel/100.0
+            uncertaintyLevelFalse = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
 
-            # uncertaintyLevelFalse = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
+            if uncertaintyLevelFalse < lowestUncertainty:
+                chosenRestaurant = restaurant
+                lowestUnceratinty = uncertaintyLevelFalse
 
-            # if uncertaintyLevelFalse < lowestUncertainty:
-                # chosenRestaurant = restaurant
-                # lowestUnceratinty = uncertaintyLevelFalse
-
-    # return chosenRestaurant
+    return chosenRestaurant
 
 #--------------------------------------------------------------------------------------------------------------------------------------#
 
