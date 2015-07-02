@@ -384,6 +384,10 @@ class SimulationTest(TestCase):
                               branches[1] : parameters[8],
                               branches[2] : parameters[9]}
 
+        recordAggregateStats = parameters[10]
+        recordEddyStats = parameters[11]
+        recordRandomStats = parameters[12]
+
         # establish a set of known correct answers
         predicateAnswers = self.set_correct_answers(branches, branchSelectivities)
 
@@ -400,7 +404,7 @@ class SimulationTest(TestCase):
                 if predicate.value == predicateAnswers[predicate]:
                     correctCount += 1
             eddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
-            self.write_results(results_eddy, "eddy")
+            if recordEddyStats: self.write_results(results_eddy, "eddy")
             self.reset_simulation()
 
             print "Random " + str(k)
@@ -412,13 +416,13 @@ class SimulationTest(TestCase):
                 if predicate.value == predicateAnswers[predicate]:
                     correctCount += 1
             randomCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
-            self.write_results(results_random, "random")
+            if recordRandomStats: self.write_results(results_random, "random")
             self.reset_simulation()
 
 
-            aggregateResults.append([eddyTasks, eddyCorrectPercentage, randomTasks, randomCorrectPercentage])
+            if recordAggregateStats: aggregateResults.append([eddyTasks, eddyCorrectPercentage, randomTasks, randomCorrectPercentage])
 
-        self.write_results(aggregateResults, "aggregate_results")
+        if recordAggregateStats: self.write_results(aggregateResults, "aggregate_results")
 
     def write_results(self, results, label):
         """
@@ -585,7 +589,7 @@ class SimulationTest(TestCase):
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 10, # number of simulations
+        set1 =[ 1, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
@@ -595,6 +599,9 @@ class SimulationTest(TestCase):
                 0.0, # difficulty 0
                 0.0, # difficulty 1
                 0.0, # difficulty 2
+                recordAggregateStats,
+                recordEddyStats,
+                recordRandomStats
                 ]
         parameterSets.append(set1)
 

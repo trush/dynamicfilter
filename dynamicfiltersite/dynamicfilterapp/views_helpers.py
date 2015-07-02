@@ -184,9 +184,9 @@ def decrementStatus(index, restaurant):
             #print "Decremented " + field.verbose_name + " to status of " + str(currentLeftToAsk-1)
     restaurant.save()
 
-def incrementStatusByFive(index, restaurant):
+def incrementStatus(index, restaurant):
     """
-    increases the status by 5 because the answer is not certain
+    increases the status by 2 because the answer is not certain
     """
     statusName = 'predicate' + str(index) + 'Status'
 
