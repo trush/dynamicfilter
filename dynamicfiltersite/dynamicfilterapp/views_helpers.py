@@ -69,7 +69,7 @@ def aggregate_responses(predicate):
     if predicate.value==None:
         # collect five more responses from workers when there are same 
         # number of yes and no
-        predicate.restaurant = incrementStatusByFive(predicate.index, predicate.restaurant)
+        predicate.restaurant = incrementStatus(predicate.index, predicate.restaurant)
     predicate.restaurant.save()
     predicate.save()
 
@@ -184,14 +184,14 @@ def decrementStatus(index, restaurant):
             #print "Decremented " + field.verbose_name + " to status of " + str(currentLeftToAsk-1)
     restaurant.save()
 
-def incrementStatusByFive(index, restaurant):
+def incrementStatus(index, restaurant):
     """
-    increases the status by 5 because the answer is not certain
+    increases the status by 2 because the answer is not certain
     """
     statusName = 'predicate' + str(index) + 'Status'
 
-    if getattr(restaurant, statusName)==0:
-        setattr(restaurant, statusName, 5)
+    if getattr(restaurant, statusName)==0
+        setattr(restaurant, statusName, 2)
     restaurant.save()
     return restaurant
 
