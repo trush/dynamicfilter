@@ -69,7 +69,7 @@ def aggregate_responses(predicate):
     if predicate.value==None:
         # collect five more responses from workers when there are same 
         # number of yes and no
-        predicate.restaurant = incrementStatus(predicate.index, predicate.restaurant)
+        predicate.restaurant = incrementStatusByFive(predicate.index, predicate.restaurant)
     predicate.restaurant.save()
     predicate.save()
 
@@ -184,14 +184,15 @@ def decrementStatus(index, restaurant):
             #print "Decremented " + field.verbose_name + " to status of " + str(currentLeftToAsk-1)
     restaurant.save()
 
-def incrementStatus(index, restaurant):
+def incrementStatusByFive(index, restaurant):
     """
-    increases the status by 2 because the answer is not certain
+    increases the status by 5 because the answer is not certain
     """
     statusName = 'predicate' + str(index) + 'Status'
 
     if getattr(restaurant, statusName)==0:
         setattr(restaurant, statusName, 2)
+
     restaurant.save()
     return restaurant
 
@@ -268,54 +269,59 @@ def findRestaurant(predicateBranch,ID):
 
     # filter out restaurants where the relevant status is not 0 or
     predStatus = 'predicate' + str(predicateBranch.index) + 'Status'
+
+    #initializes chosenRestaurant
+    chosenRestaurant = prioritized[0]
+    
     for restaurant in prioritized:
         status = getattr(restaurant, predStatus)
-        #sets the field to currentLeftToAsk-1
+
         if status > 0:
             return restaurant
     # We should never reach this statement
     return None
 
-# #------------------------------------------------------------------------------------------------------------------------------------#
-# #trying to prioritize based on uncertainty levels -- THIS SECTION OF CODE IN PROGRESS
-#         if status > 0:
-#             lowestStat = status
+#------------------------------------------------------------------------------------------------------------------------------------#
+    # trying to prioritize based on uncertainty level
+        # if status > 0:
+            # lowestStat = status
+            # break
 
-#     lowestUncertainty = 1.0
-#     for restaurant in prioritized:
-#         status = getattr(restaurant, predStatus)
-#         if status == lowestStat:
-#             # retrieves the number of yes answers and number of no answers for the 
-#     # predicate relative to the answers' confidence levels
-#     yes = Task.objects.filter(restaurantPredicate=predicate, answer = True)
-#     no = Task.objects.filter(restaurantPredicate=predicate, answer = False)
+    # lowestUncertainty = 1.0
+    # for restaurant in prioritized:
+        # status = getattr(restaurant, predStatus)
 
-#     # initialize the number of yes's and no's to 0
-#     totalYes = 0.0
-#     totalNo = 0.0
+        # if status > lowestStat:
+            # break
 
-#     # for all predicates answered yes
-#     for pred in yes:
-#         # increase total number of yes by the confidence level indicated
-#         totalYes += pred.confidenceLevel/100.0
-#         # increase total number of no by 100 - confidence level indicated
-#         totalNo += 1 - pred.confidenceLevel/100.0
+        # if status == lowestStat:
 
-#     # for all predicates answered no
-#     for pred in no:
-#         # increase total number of no by 100 - the confidence level 
-#         # indicated
-#         totalYes += 1 - pred.confidenceLevel/100.0
-#         # increase total number of no by confidence level indicated
-#         totalNo += pred.confidenceLevel/100.0
+            # retrieves the number of yes answers and number of no answers for the 
+            # predicate relative to the answers' confidence levels
 
-#     # How we compute the uncertaintly level changes depending on whether the answer is True or False
-#     uncertaintyLevelTrue = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
-#     uncertaintyLevelFalse = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
-#             if ()
-#             lowestUnceratinty = btdtr()
+            # yes = Task.objects.filter(restaurantPredicate=predicate, answer = True)
+            # no = Task.objects.filter(restaurantPredicate=predicate, answer = False)
 
-# #--------------------------------------------------------------------------------------------------------------------------------------#
+            # totalYes = 0.0
+            # totalNo = 0.0
+
+            # for pred in yes:
+            #     totalYes += pred.confidenceLevel/100.0
+            #     totalNo += 1 - pred.confidenceLevel/100.0
+
+            # for pred in no:
+            #     totalYes += 1 - pred.confidenceLevel/100.0
+            #     totalNo += pred.confidenceLevel/100.0
+
+            # uncertaintyLevelFalse = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
+
+            # if uncertaintyLevelFalse < lowestUncertainty:
+                # chosenRestaurant = restaurant
+                # lowestUnceratinty = uncertaintyLevelFalse
+
+    # return chosenRestaurant
+
+#--------------------------------------------------------------------------------------------------------------------------------------#
 
 def randomAlgorithm(ID):
     """

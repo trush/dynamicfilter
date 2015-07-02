@@ -415,6 +415,7 @@ class SimulationTest(TestCase):
             self.write_results(results_random, "random")
             self.reset_simulation()
 
+
             aggregateResults.append([eddyTasks, eddyCorrectPercentage, randomTasks, randomCorrectPercentage])
 
         self.write_results(aggregateResults, "aggregate_results")
@@ -584,7 +585,7 @@ class SimulationTest(TestCase):
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 1, # number of simulations
+        set1 =[ 10, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
