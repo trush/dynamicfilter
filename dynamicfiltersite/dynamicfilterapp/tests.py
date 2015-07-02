@@ -12,6 +12,7 @@ from random import choice
 import datetime
 import csv
 import os
+from itertools import izip_longest
 
 def enterTask(ID, workerAnswer, time, confidence, predicate):
     """
@@ -386,40 +387,48 @@ class SimulationTest(TestCase):
         # establish a set of known correct answers
         predicateAnswers = self.set_correct_answers(branches, branchSelectivities)
 
+        aggregateResults = [["eddy num tasks", "eddy correct percentage", "random num tasks", "random correct percentage"]]
+
         # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
         for k in range(NUM_SIMULATIONS):
             print "Eddy " + str(k)
             results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers)
-            self.write_results(results_eddy)
+            eddyTasks = len(Task.objects.all())
+            # Of the answered predicates, count how many are correct
+            correctCount = 0
+            for predicate in RestaurantPredicate.objects.exclude(value=None):
+                if predicate.value == predicateAnswers[predicate]:
+                    correctCount += 1
+            eddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+            self.write_results(results_eddy, "eddy")
             self.reset_simulation()
 
             print "Random " + str(k)
             results_random = self.run_simulation(randomAlgorithm, branches, branchDifficulties, parameters, predicateAnswers)
-            self.write_results(results_random)
+            randomTasks = len(Task.objects.all())
+            # Of the answered predicates, count how many are correct
+            correctCount = 0
+            for predicate in RestaurantPredicate.objects.exclude(value=None):
+                if predicate.value == predicateAnswers[predicate]:
+                    correctCount += 1
+            randomCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+            self.write_results(results_random, "random")
             self.reset_simulation()
 
+            aggregateResults.append([eddyTasks, eddyCorrectPercentage, randomTasks, randomCorrectPercentage])
 
-    def write_results(self, results):
+        self.write_results(aggregateResults, "aggregate_results")
+
+    def write_results(self, results, label):
         """
-        Writes results from lists into csv files.
-        param: a list of three lists to be written
+        Writes results from a list into a csv file named using label.
         """
         now = datetime.datetime.now() # get the timestamp
 
         # write the number of tasks and correct percentage to a csv file
-        with open('test_results/test_many_' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
+        with open('test_results/' + label + "_" + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
-            [writer.writerow(r) for r in results[0]]
-
-        # write the number of tasks per restaurant to a csv file
-        with open('test_results/taskCounts_' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            [writer.writerow(r) for r in results[1]]
-
-        # write the selectivity numbers after each task to a csv file
-        with open('test_results/selectivities_' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            [writer.writerow(r) for r in results[2]]
+            [writer.writerow(r) for r in results]
 
     def reset_simulation(self):
         """
@@ -455,32 +464,39 @@ class SimulationTest(TestCase):
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
 
-        # record simulation identifying information to be put in each results file
-        label=[]
-        label.append(["Algorithm:", algorithm])
-        label.append(["Parameters:", str(parameters)])
-        now = datetime.datetime.now() # get the timestamp
-        label.append(["Time stamp:", str(now)])
+        # # record simulation identifying information to be put in each results file
+        # label=[]
+        # label.append(["Algorithm:", algorithm])
+        # label.append(["Parameters:", str(parameters)])
+        # now = datetime.datetime.now() # get the timestamp
+        # label.append(["Time stamp:", str(now)])
 
-        results = []
-        results.append(label)
+        results = [["taskCount", "selectivity 0", "selectivity 1", "selectivity 2", "tasksPerRestaurant"]]
+        #results.append(label)
         tasksPerRestaurant = []
-        tasksPerRestaurant.append(label)
-        selectivitiesOverTime = []
-        selectivitiesOverTime.append(label)
+        #tasksPerRestaurant.append(label)
+        selectivity0OverTime = []
+        selectivity1OverTime = []
+        selectivity2OverTime = []
+        taskCount = []
+        #selectivitiesOverTime.append(label)
 
         # start keeping track of worker IDs at 100
         IDcounter = 100
 
         # choose one predicate to start
         predicate = algorithm(IDcounter)
-      
+
+        counter = 0
+
         while (predicate != None):
 
             # add the three current selectivity statistics to the results file
-            selectivitiesOverTime.append([float(branches[0].returnedNo)/branches[0].returnedTotal,
-                                          float(branches[1].returnedNo)/branches[1].returnedTotal,
-                                          float(branches[2].returnedNo)/branches[2].returnedTotal ])
+            selectivity0OverTime.append(float(branches[0].returnedNo)/branches[0].returnedTotal)
+            selectivity1OverTime.append(float(branches[1].returnedNo)/branches[1].returnedTotal)
+            selectivity2OverTime.append(float(branches[2].returnedNo)/branches[2].returnedTotal)
+            taskCount.append(counter)
+            counter += 1
 
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
@@ -520,19 +536,13 @@ class SimulationTest(TestCase):
             # get the next predicate from the eddy (None if there are no more)
             predicate = algorithm(IDcounter)
 
-        # Of the answered predicates, count how many are correct
-        correctCount = 0
-        for predicate in RestaurantPredicate.objects.exclude(value=None):
-            if predicate.value == predicateAnswers[predicate]:
-                correctCount += 1
-
-        # record number of tasks and correct percentage
-        results.append([len(Task.objects.all()), float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))])
-
         for restaurant in Restaurant.objects.all():
-            tasksPerRestaurant.append([len(Task.objects.filter(restaurantPredicate__restaurant=restaurant))])
+            tasksPerRestaurant.append(len(Task.objects.filter(restaurantPredicate__restaurant=restaurant)))
     
-        return [results, tasksPerRestaurant, selectivitiesOverTime]
+        
+        for row in map(None, taskCount, selectivity0OverTime, selectivity1OverTime, selectivity2OverTime, tasksPerRestaurant):
+            results.append(row)
+        return results
 
     def set_correct_answers(self, branches, branchSelectivities):
         """
@@ -566,13 +576,18 @@ class SimulationTest(TestCase):
         """
         Calls the test_many_simulation function with as many sets of parameters as are specified.
         """
+
+        recordAggregateStats = True
+        recordEddyStats = True
+        recordRandomStats = True
+
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
         set1 =[ 1, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
-                [0.4], # personality options
+                [0.0], # personality options
                 0.6, # selectivity 0
                 0.6, # selectivity 1
                 0.6, # selectivity 2
