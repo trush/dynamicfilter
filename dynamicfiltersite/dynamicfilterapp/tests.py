@@ -637,7 +637,7 @@ class SimulationTest(TestCase):
             
                 # make the worker answer incorrectly with a probability determined by difficulty and personality
                 branch = PredicateBranch.objects.filter(index=predicate.index)[0]
-                if randNum < branchDifficulties[branch] + choice(PERSONALITIES):
+                if randNum < branchDifficulties[branch] + choice(PERSONALITIES): #TODO adjust formula of combining
                     answer = not answer
                 
                 # make Task answering the predicate
@@ -693,10 +693,10 @@ class SimulationTest(TestCase):
         set1 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
-                [1.0,1.0,1.0,1.0,1.0], # personality options
-                0.6, # selectivity 0
-                0.6, # selectivity 1
-                0.6, # selectivity 2
+                [0.4,0.4,0.4,0.4,0.4], # personality options
+                0.1, #selectivity 0
+                0.1, # selectivity 1
+                0.1, # selectivity 2
                 0.0, # difficulty 0
                 0.0, # difficulty 1
                 0.0, # difficulty 2
@@ -706,10 +706,10 @@ class SimulationTest(TestCase):
         set2 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
-                [0.2,0.2,0.2,0.2,0.2], # personality options
-                0.6, # selectivity 0
-                0.6, # selectivity 1
-                0.6, # selectivity 2
+                [0.4,0.4,0.4,0.4,0.4], # personality options
+                0.9, # selectivity 0
+                0.9, # selectivity 1
+                0.9, # selectivity 2
                 0.0, # difficulty 0
                 0.0, # difficulty 1
                 0.0, # difficulty 2
@@ -720,38 +720,27 @@ class SimulationTest(TestCase):
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.4,0.4,0.4,0.4,0.4], # personality options
-                0.6, # selectivity 0
-                0.6, # selectivity 1
-                0.6, # selectivity 2
+                0.2, # selectivity 0
+                0.2, # selectivity 1
+                0.2, # selectivity 2
                 0.0, # difficulty 0
                 0.0, # difficulty 1
                 0.0, # difficulty 2
                 ]
         parameterSets.append(set3)
+
         set4 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
-                [0.6,0.6,0.6,0.6,0.6], # personality options
-                0.6, # selectivity 0
-                0.6, # selectivity 1
-                0.6, # selectivity 2
+                [0.4,0.4,0.4,0.4,0.4], # personality options
+                0.8, # selectivity 0
+                0.8, # selectivity 1
+                0.8, # selectivity 2
                 0.0, # difficulty 0
                 0.0, # difficulty 1
                 0.0, # difficulty 2
                 ]
         parameterSets.append(set4)
-        set5 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.8,0.8,0.8,0.8,0.8], # personality options
-                0.6, # selectivity 0
-                0.6, # selectivity 1
-                0.6, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                ]
-        parameterSets.append(set5)
 
         for parameters in parameterSets:
             print "Parameter set: " + str(parameters)

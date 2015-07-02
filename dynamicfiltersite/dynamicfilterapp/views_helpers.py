@@ -276,6 +276,47 @@ def findRestaurant(predicateBranch,ID):
     # We should never reach this statement
     return None
 
+#------------------------------------------------------------------------------------------------------------------------------------#
+#trying to prioritize based on uncertainty levels
+        if status > 0:
+            lowestStat = status
+
+    lowestUncertainty = 1.0
+    for restaurant in prioritized:
+        status = getattr(restaurant, predStatus)
+        if status == lowestStat:
+            # retrieves the number of yes answers and number of no answers for the 
+    # predicate relative to the answers' confidence levels
+    yes = Task.objects.filter(restaurantPredicate=predicate, answer = True)
+    no = Task.objects.filter(restaurantPredicate=predicate, answer = False)
+
+    # initialize the number of yes's and no's to 0
+    totalYes = 0.0
+    totalNo = 0.0
+
+    # for all predicates answered yes
+    for pred in yes:
+        # increase total number of yes by the confidence level indicated
+        totalYes += pred.confidenceLevel/100.0
+        # increase total number of no by 100 - confidence level indicated
+        totalNo += 1 - pred.confidenceLevel/100.0
+
+    # for all predicates answered no
+    for pred in no:
+        # increase total number of no by 100 - the confidence level 
+        # indicated
+        totalYes += 1 - pred.confidenceLevel/100.0
+        # increase total number of no by confidence level indicated
+        totalNo += pred.confidenceLevel/100.0
+
+    # How we compute the uncertaintly level changes depending on whether the answer is True or False
+    uncertaintyLevelTrue = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
+    uncertaintyLevelFalse = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
+            if ()
+            lowestUnceratinty = btdtr()
+
+#--------------------------------------------------------------------------------------------------------------------------------------#
+
 def randomAlgorithm(ID):
     """
     Randomly selects the next predicate from the available choices.
