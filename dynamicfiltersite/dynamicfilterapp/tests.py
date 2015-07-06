@@ -582,20 +582,20 @@ class SimulationTest(TestCase):
         Calls the test_many_simulation function with as many sets of parameters as are specified.
         """
 
-        recordAggregateStats = True
-        recordEddyStats = True
-        recordRandomStats = True
+        recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
+        recordEddyStats = False # record stats about each run of the eddy in a separate file
+        recordRandomStats = False # record stats about each run of the random algorithm in a separate file
 
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 1, # number of simulations
+        set1 =[ 1000, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
-                0.6, # selectivity 0
-                0.6, # selectivity 1
-                0.6, # selectivity 2
+                0.4, # selectivity 0
+                0.4, # selectivity 1
+                0.4, # selectivity 2
                 0.0, # difficulty 0
                 0.0, # difficulty 1
                 0.0, # difficulty 2

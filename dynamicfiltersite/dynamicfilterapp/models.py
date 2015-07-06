@@ -78,10 +78,10 @@ class Task(models.Model):
     completionTime = models.IntegerField(default=0)
 
     # set to True if the worker check's "I don't know"
-    IDontKnow = models.BooleanField(default=False)
+    IDontKnow = models.BooleanField(default=False, blank=True)
 
     # a place for workers to give feedback on the task
-    feedback = models.CharField(max_length=500,blank=True)
+    feedback = models.CharField(max_length=500, blank=True)
 
     def __unicode__(self):
         return "Task from worker " + str(self.workerID)
