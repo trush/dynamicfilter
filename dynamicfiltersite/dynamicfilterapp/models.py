@@ -1,6 +1,7 @@
 from django.db import models
 from fields import CustomCommaSeparatedIntegerField
 from django.core.validators import RegexValidator
+from validator import validate_positive
 
 #fields = ['predicate0', 'predicate1', 'predicate2']
 
@@ -107,3 +108,6 @@ class PredicateBranch(models.Model):
     def __unicode__(self):
         return "Predicate branch with question: " + str(self.question)
 
+
+class WorkerID(models.Model):
+    workerID = models.IntegerField(validators=[validate_positive])

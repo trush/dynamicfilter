@@ -584,21 +584,21 @@ class SimulationTest(TestCase):
 
         recordAggregateStats = True
         recordEddyStats = True
-        recordRandomStats = True
+        recordRandomStats = False
 
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 1, # number of simulations
+        set1 =[ 100, # number of simulations
                 10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.0], # personality options
+                [80,70,80,70,80], # confidence options
+                [0.1], # personality options
                 0.6, # selectivity 0
                 0.6, # selectivity 1
                 0.6, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
+                0.1, # difficulty 0
+                0.1, # difficulty 1
+                0.1, # difficulty 2
                 recordAggregateStats,
                 recordEddyStats,
                 recordRandomStats

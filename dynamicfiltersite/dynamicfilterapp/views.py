@@ -18,10 +18,10 @@ def index(request):
         
         # check whether it's valid:
         if form.is_valid():
-            IDnumber = request.POST.get('workerID', 777)
+            IDnumber = form.cleaned_data['workerID']
             
             # redirect to a new URL:
-            return HttpResponseRedirect('/dynamicfilterapp/answer_question/id=' + IDnumber)
+            return HttpResponseRedirect('/dynamicfilterapp/answer_question/id=' + str(IDnumber))
 
     # if a GET (or any other method) we'll create a blank form
     else:

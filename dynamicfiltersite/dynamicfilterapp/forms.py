@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django import forms
-from models import Restaurant, RestaurantPredicate, PredicateBranch
+from models import Restaurant, RestaurantPredicate, PredicateBranch, WorkerID
 
 class WorkerForm(forms.Form):
     """
@@ -66,8 +66,23 @@ class RestaurantAdminForm(forms.ModelForm):
         return instance
 
 
-class IDForm(forms.Form):
+class IDForm(forms.ModelForm):
     """
     sets up form for worker to enter in his/her ID number
     """
-    workerID = forms.IntegerField(label='', min_value=0)
+    class Meta:
+        # Tells Django which model is being created and which fields to display
+        model = WorkerID
+        fields = ['workerID'] 
+
+    def clean_workerID(self):
+        return clean_unique(self, 'workerID')
+
+
+def clean_unique(form, field, format="This workerID has already been taken"):
+    value = form.cleaned_data.get(field)
+    if value:
+        qs = form._meta.model._default_manager.filter(**{field:value})
+        if qs.count() > 0:
+            raise forms.ValidationError(format)
+    return value
