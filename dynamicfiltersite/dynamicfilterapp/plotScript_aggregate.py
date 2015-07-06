@@ -8,19 +8,19 @@ import sys
 
 filename = sys.argv[1]
 
-data = np.loadtxt(filename, skiprows=1, delimiter=',', dtype={'names': ('task number', 'selectivity 1', 'selectivity 2', 'selectivity 3'),
-          'formats': (np.int, np.float, np.float, np.float)})
+data = np.loadtxt(filename, skiprows=1, delimiter=',', dtype={'names': ('eddy num tasks', 'eddy correct percentage', 'random num tasks', 'random correct percentage'),
+          'formats': (np.int, np.int, np.int, np.int)})
 
-m = [value0 for (value0, value1, value2, value3) in data]
-s1 = [value1 for (value0, value1, value2, value3) in data]
-s2 = [value2 for (value0, value1, value2, value3) in data]
-s3 = [value3 for (value0, value1, value2, value3) in data]
+eddyTasks = [value0 for (value0, value1, value2, value3) in data]
+eddy_percent = [value1 for (value0, value1, value2, value3) in data]
+randomTasks = [value2 for (value0, value1, value2, value3) in data]
+random_percent = [value3 for (value0, value1, value2, value3) in data]
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
 ax.grid()
 
-plt.plot(m,s1, label="predicate branch 0")
+plt.plot(range(len(eddyTasks)),eddyTasks, label="predicate branch 0")
 plt.plot(m,s2, label="predicate branch 1")
 plt.plot(m,s3, label="predicate branch 2")
 

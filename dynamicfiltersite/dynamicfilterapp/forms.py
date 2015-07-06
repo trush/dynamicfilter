@@ -28,8 +28,8 @@ class WorkerForm(forms.Form):
         label='Answer')
     confidenceLevel = forms.ChoiceField(choices=CONFIDENCE_LEVELS, 
         label='Certainty')
-    IDontKnow = forms.BooleanField(label="I don't know")
-    feedback = forms.CharField(widget=forms.Textarea, label='Feedback (optional)')
+    IDontKnow = forms.BooleanField(label="I don't know", required=False)
+    feedback = forms.CharField(widget=forms.Textarea, label='Feedback (optional)', required=False)
 
 class RestaurantAdminForm(forms.ModelForm):
     """
