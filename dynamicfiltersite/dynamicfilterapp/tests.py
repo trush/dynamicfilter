@@ -615,8 +615,8 @@ class SimulationTest(TestCase):
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
-                0.4, # selectivity 0
-                0.4, # selectivity 1
+                0.2, # selectivity 0
+                0.3, # selectivity 1
                 0.4, # selectivity 2
                 0.0, # difficulty 0
                 0.0, # difficulty 1

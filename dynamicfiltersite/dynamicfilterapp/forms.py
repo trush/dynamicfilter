@@ -75,14 +75,16 @@ class IDForm(forms.ModelForm):
         model = WorkerID
         fields = ['workerID'] 
 
-    def clean_workerID(self):
-        return clean_unique(self, 'workerID')
+#     def clean_workerID(self):
+#         return clean_unique(self, 'workerID')
 
 
-def clean_unique(form, field, format="This workerID has already been taken"):
-    value = form.cleaned_data.get(field)
-    if value:
-        qs = form._meta.model._default_manager.filter(**{field:value})
-        if qs.count() > 0:
-            raise forms.ValidationError(format)
-    return value
+# def clean_unique(form, field, format="This workerID has already been taken"):
+#     value = form.cleaned_data.get(field)
+#     print value
+#     if value:
+#         qs = form._meta.model._default_manager.filter(**{field:value})
+#         print qs
+#         if qs.count() > 0:
+#             raise forms.ValidationError(format)
+#     return value
