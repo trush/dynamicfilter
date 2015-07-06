@@ -368,6 +368,12 @@ class SimulationTest(TestCase):
         A version of test_simulation that runs many simulations repeatedly in order to get aggregated data.
         """
 
+        # record simulation identifying information to be put in each results file
+        label=[]
+        label.append(["Parameters:", str(parameters)])
+        now = datetime.datetime.now() # get the timestamp
+        label.append(["Time stamp:", str(now)])
+
         NUM_SIMULATIONS = parameters[0]
         NUM_RESTAURANTS = parameters[1]
 
@@ -391,7 +397,7 @@ class SimulationTest(TestCase):
         # establish a set of known correct answers
         predicateAnswers = self.set_correct_answers(branches, branchSelectivities)
 
-        aggregateResults = [["eddy num tasks", "eddy correct percentage", "random num tasks", "random correct percentage"]]
+        aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "random num tasks", "random correct percentage"]]
 
         # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
         for k in range(NUM_SIMULATIONS):
@@ -469,14 +475,8 @@ class SimulationTest(TestCase):
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
 
-        # # record simulation identifying information to be put in each results file
-        # label=[]
-        # label.append(["Algorithm:", algorithm])
-        # label.append(["Parameters:", str(parameters)])
-        # now = datetime.datetime.now() # get the timestamp
-        # label.append(["Time stamp:", str(now)])
-
-        results = [["taskCount", "selectivity 0", "selectivity 1", "selectivity 2", "tasksPerRestaurant"]]
+        results = [["taskCount", "selectivity 0", "selectivity 1", "selectivity 2", "Predicate Evaluated", "Answer", "tasksPerRestaurant",
+                    "Task & Answer Distribution", "------", "------", "------"]]
         #results.append(label)
         tasksPerRestaurant = []
         #tasksPerRestaurant.append(label)
@@ -484,6 +484,8 @@ class SimulationTest(TestCase):
         selectivity1OverTime = []
         selectivity2OverTime = []
         taskCount = []
+        wheresWaldo = [] # which predicate branch was the task in
+        taskAnswers = []
         #selectivitiesOverTime.append(label)
 
         # start keeping track of worker IDs at 100
@@ -520,6 +522,9 @@ class SimulationTest(TestCase):
             
             # make Task answering the predicate
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
+            
+            wheresWaldo.append(task.restaurantPredicate.index)
+            taskAnswers.append(task.answer)
 
             # update the appropriate statuses and counts
             pB = PredicateBranch.objects.filter(question=predicate.question)[0]
@@ -544,8 +549,24 @@ class SimulationTest(TestCase):
         for restaurant in Restaurant.objects.all():
             tasksPerRestaurant.append(len(Task.objects.filter(restaurantPredicate__restaurant=restaurant)))
     
-        
-        for row in map(None, taskCount, selectivity0OverTime, selectivity1OverTime, selectivity2OverTime, tasksPerRestaurant):
+        predicateList = ["Predicate", "predicate 0", "predicate 1", "predicate 2"]
+        tasks = ["Tasks", len(Task.objects.filter(restaurantPredicate__index=0)), 
+                          len(Task.objects.filter(restaurantPredicate__index=1)),
+                          len(Task.objects.filter(restaurantPredicate__index=2))]
+        returnedNo = ["Returned No", 
+                      PredicateBranch.objects.filter(index=0)[0].returnedNo,
+                      PredicateBranch.objects.filter(index=1)[0].returnedNo,
+                      PredicateBranch.objects.filter(index=2)[0].returnedNo]
+
+        returnedTotal = ["Returned Total", 
+                      PredicateBranch.objects.filter(index=0)[0].returnedTotal,
+                      PredicateBranch.objects.filter(index=1)[0].returnedTotal,
+                      PredicateBranch.objects.filter(index=2)[0].returnedTotal]
+
+
+
+        for row in map(None, taskCount, selectivity0OverTime, selectivity1OverTime, selectivity2OverTime, wheresWaldo, taskAnswers, tasksPerRestaurant,
+                       predicateList, tasks, returnedNo, returnedTotal):
             results.append(row)
         return results
 
@@ -584,13 +605,13 @@ class SimulationTest(TestCase):
 
 
         recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
-        recordEddyStats = False # record stats about each run of the eddy in a separate file
+        recordEddyStats = True # record stats about each run of the eddy in a separate file
         recordRandomStats = False # record stats about each run of the random algorithm in a separate file
 
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 1000, # number of simulations
+        set1 =[ 5, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options

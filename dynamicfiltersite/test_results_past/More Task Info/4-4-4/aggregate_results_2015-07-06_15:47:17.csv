@@ -1,0 +1,7 @@
+"['Parameters:', '[5, 10, [100, 100, 100, 100, 100], [0.0], 0.4, 0.4, 0.4, 0.0, 0.0, 0.0, True, True, False]']","['Time stamp:', '2015-07-06 15:46:50.421133']"
+eddy num tasks,eddy correct percentage,random num tasks,random correct percentage
+118,1.0,135,1.0
+115,1.0,139,1.0
+123,1.0,133,1.0
+119,1.0,131,1.0
+123,1.0,139,1.0

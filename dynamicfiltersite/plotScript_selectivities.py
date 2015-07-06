@@ -40,7 +40,7 @@ for label in legend.get_lines():
 
 plt.xlabel('Tasks Completed')
 plt.ylabel('Selectivity')
-plt.title('Random: Computed Task Selectivity vs. Number of Tasks Completed')
+plt.title('Computed Task Selectivity vs. Number of Tasks Completed')
 now = DT.datetime.now()
 plt.savefig('test_results/figure' + str(now.date())+ "_" + str(now.time())[:-7] + '.png')
 

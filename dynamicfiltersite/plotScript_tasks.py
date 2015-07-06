@@ -8,7 +8,7 @@ import sys
 
 filename = sys.argv[1]
 now = DT.datetime.now()
-data = np.loadtxt(filename, skiprows=1, delimiter=',', dtype={'names': ('eddy num tasks', 'eddy correct percent', 'random num tasks', 'random correct percent'),
+data = np.loadtxt(filename, skiprows=2, delimiter=',', dtype={'names': ('eddy num tasks', 'eddy correct percent', 'random num tasks', 'random correct percent'),
           'formats': (np.int, np.float, np.int, np.float)})
 
 s0 = [value0 for (value0, value1, value2, value3) in data]
