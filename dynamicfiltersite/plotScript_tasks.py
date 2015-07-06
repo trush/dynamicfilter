@@ -12,9 +12,11 @@ data = np.loadtxt(filename, skiprows=1, delimiter=',', dtype={'names': ('eddy nu
           'formats': (np.int, np.float, np.int, np.float)})
 
 s0 = [value0 for (value0, value1, value2, value3) in data]
-s2 = [value0 for (value2, value1, value2, value3) in data]
+s2 = [value2 for (value0, value1, value2, value3) in data]
 
 fig = plt.figure()
+
+# add grid lines
 ax = fig.add_subplot(111)
 ax.grid()
 
@@ -29,6 +31,8 @@ plt.clf()
 plt.cla()
 
 fig = plt.figure()
+print s2
+# add grid lines
 ax = fig.add_subplot(111)
 ax.grid()
 
