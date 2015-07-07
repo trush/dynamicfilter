@@ -584,18 +584,29 @@ class SimulationTest(TestCase):
         predicateSets = [allRestPreds0, allRestPreds1, allRestPreds2]
 
         # define correct answers based on each predicate's selectivity
-        for predicateSet in predicateSets:
-            while len(predicateSet) != 0:
+        # for predicateSet in predicateSets:
+        #     while len(predicateSet) != 0:
 
-                # pick one predicate to define a correct answer for
-                restPred = choice(predicateSet)
-                predicateSet = predicateSet.exclude(id=restPred.id)
+        #         # pick one predicate to define a correct answer for
+        #         restPred = choice(predicateSet)
+        #         predicateSet = predicateSet.exclude(id=restPred.id)
 
-                # probabilistically assign the correct answer
-                if random() < branchSelectivities[branches[restPred.index]]:
-                    predicateAnswers[restPred] = False
-                else:
-                    predicateAnswers[restPred] = True
+        #         # probabilistically assign the correct answer
+        #         if random() < branchSelectivities[branches[restPred.index]]:
+        #             predicateAnswers[restPred] = False
+        #         else:
+        #             predicateAnswers[restPred] = True
+
+        # Small Test Cases
+        for i in range(len(allRestPreds0)):
+            predicateAnswers[allRestPreds0[i]] = False
+
+        for i in range(len(allRestPreds1)):
+            predicateAnswers[allRestPreds1[i]]  = False
+
+        for i in range(len(allRestPreds2)):
+            predicateAnswers[allRestPreds2[i]]  = False
+
         return predicateAnswers
 
     def test_many_simulation_controller(self):
@@ -611,13 +622,13 @@ class SimulationTest(TestCase):
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 5, # number of simulations
-                10, # number of restaurants
+        set1 =[ 1, # number of simulations
+                2, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
-                0.2, # selectivity 0
-                0.3, # selectivity 1
-                0.4, # selectivity 2
+                0.0, # selectivity 0
+                0.0, # selectivity 1
+                0.0, # selectivity 2
                 0.0, # difficulty 0
                 0.0, # difficulty 1
                 0.0, # difficulty 2
@@ -754,4 +765,4 @@ class SimulationTest(TestCase):
             self.test_many_simulation(parameters)
 
         # an audio alert that the tests are done
-        os.system('say "simulations complete"')
+        # os.system('say "simulations complete"')
