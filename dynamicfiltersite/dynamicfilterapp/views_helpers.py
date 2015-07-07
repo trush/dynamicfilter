@@ -302,20 +302,26 @@ def findRestaurant(predicateBranch,ID):
     rSet = Restaurant.objects.exclude(id__in=completedPredicates.values('restaurant_id')).exclude(hasFailed=True)
 
     # order the eligible restaurants by priority
-    orderByThisStatus = 'predicate' + str(predicateBranch.index) + 'Status'
+    orderByThisStatus = '-predicate' + str(predicateBranch.index) + 'Status'
     prioritized = rSet.order_by(orderByThisStatus)
-    # filter out restaurants where the relevant status is not 0 or
-    predStatus = 'predicate' + str(predicateBranch.index) + 'Status'
 
-    #initializes chosenRestaurant
-    chosenRestaurant = prioritized[0]
-    
-    for restaurant in prioritized:
-        status = getattr(restaurant, predStatus)
-        if status > 0:
-            return restaurant
-    # We should never reach this statement
-    return None
+    return prioritized[0]
+
+# def findRestaurant(predicateBranch,ID):
+#     """
+#     Finds a random eligible restaurant.
+#     """
+#     # find all the tasks this worker has completed
+#     completedTasks = Task.objects.filter(workerID=ID)
+
+#     # find all the predicates for this branch that have been done by the worker
+#     completedPredicates = RestaurantPredicate.objects.filter(question=predicateBranch.question).filter(
+#         id__in=completedTasks.values('restaurantPredicate_id')).filter(value=None)
+
+#     # get the Restaurants NOT associated with the completed predicates
+#     rSet = Restaurant.objects.exclude(id__in=completedPredicates.values('restaurant_id')).exclude(hasFailed=True).order_by('?')
+
+#     return rSet[0]
 
 #------------------------------------------------------------------------------------------------------------------------------------#
   
