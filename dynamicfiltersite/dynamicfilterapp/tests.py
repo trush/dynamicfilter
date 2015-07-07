@@ -598,14 +598,26 @@ class SimulationTest(TestCase):
         #             predicateAnswers[restPred] = True
 
         # Small Test Cases
-        for i in range(len(allRestPreds0)):
-            predicateAnswers[allRestPreds0[i]] = False
+        # setting answers according to predicates
+        # for i in range(len(allRestPreds0)):
+        #     predicateAnswers[allRestPreds0[i]] = True
 
-        for i in range(len(allRestPreds1)):
-            predicateAnswers[allRestPreds1[i]]  = False
+        # for i in range(len(allRestPreds1)):
+        #     predicateAnswers[allRestPreds1[i]]  = True
 
-        for i in range(len(allRestPreds2)):
-            predicateAnswers[allRestPreds2[i]]  = False
+        # for i in range(len(allRestPreds2)):
+        #     predicateAnswers[allRestPreds2[i]]  = False
+
+        # setting answers according to restaurants
+        allRestaurants = Restaurant.objects.all()
+
+        predicates = RestaurantPredicate.objects.all().filter(restaurant=allRestaurants[0])
+        for pred in predicates:
+            predicateAnswers[pred] = True
+
+        predicates = RestaurantPredicate.objects.all().filter(restaurant=allRestaurants[1])
+        for pred in predicates:
+            predicateAnswers[pred] = False
 
         return predicateAnswers
 
@@ -616,19 +628,19 @@ class SimulationTest(TestCase):
 
 
         recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
-        recordEddyStats = True # record stats about each run of the eddy in a separate file
+        recordEddyStats = False # record stats about each run of the eddy in a separate file
         recordRandomStats = False # record stats about each run of the random algorithm in a separate file
 
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 1, # number of simulations
+        set1 =[ 100, # number of simulations
                 2, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
-                0.0, # selectivity 0
-                0.0, # selectivity 1
-                0.0, # selectivity 2
+                100.0, # selectivity 0
+                100.0, # selectivity 1
+                100.0, # selectivity 2
                 0.0, # difficulty 0
                 0.0, # difficulty 1
                 0.0, # difficulty 2

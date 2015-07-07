@@ -1,0 +1,22 @@
+taskCount,selectivity 0,selectivity 1,selectivity 2,Predicate Evaluated,Answer,tasksPerRestaurant,Task & Answer Distribution,------,------,------
+0,1.0,1.0,1.0,1,False,12,Predicate,Tasks,Returned No,Returned Total
+1,1.0,1.0,1.0,1,False,9,predicate 0,6,7.0,7.0
+2,1.0,1.0,1.0,1,False,,predicate 1,7,8.0,8.0
+3,1.0,1.0,1.0,0,False,,predicate 2,8,9.0,9.0
+4,1.0,1.0,1.0,2,False,,,,,
+5,1.0,1.0,1.0,0,False,,,,,
+6,1.0,1.0,1.0,2,False,,,,,
+7,1.0,1.0,1.0,1,False,,,,,
+8,1.0,1.0,1.0,0,False,,,,,
+9,1.0,1.0,1.0,2,False,,,,,
+10,1.0,1.0,1.0,0,False,,,,,
+11,1.0,1.0,1.0,1,False,,,,,
+12,1.0,1.0,1.0,2,False,,,,,
+13,1.0,1.0,1.0,1,False,,,,,
+14,1.0,1.0,1.0,2,False,,,,,
+15,1.0,1.0,1.0,0,False,,,,,
+16,1.0,1.0,1.0,0,False,,,,,
+17,1.0,1.0,1.0,2,False,,,,,
+18,1.0,1.0,1.0,2,False,,,,,
+19,1.0,1.0,1.0,1,False,,,,,
+20,1.0,1.0,1.0,2,False,,,,,
