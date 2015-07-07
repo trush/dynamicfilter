@@ -648,6 +648,7 @@ class SimulationTest(TestCase):
                    True, True, True,
                    False, True, True,
                    True, False, False]
+
         i = 0
         for rest in Restaurant.objects.all():
             for pb in PredicateBranch.objects.order_by('index'):
@@ -662,8 +663,6 @@ class SimulationTest(TestCase):
         """
         Calls the test_many_simulation function with as many sets of parameters as are specified.
         """
-
-
         recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
         recordEddyStats = False # record stats about each run of the eddy in a separate file
         recordRandomStats = False # record stats about each run of the random algorithm in a separate file
@@ -672,19 +671,15 @@ class SimulationTest(TestCase):
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
         set1 =[ 100, # number of simulations
-<<<<<<< HEAD
-                2, # number of restaurants
-=======
                 4, # number of restaurants
->>>>>>> origin/master
-                [100,100,100,100,100], # confidence options
+                [70,70,70,80,80], # confidence options
                 [0.0], # personality options
                 100.0, # selectivity 0
                 100.0, # selectivity 1
                 100.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
+                0.2, # difficulty 0
+                0.2, # difficulty 1
+                0.2, # difficulty 2
                 recordAggregateStats,
                 recordEddyStats,
                 recordRandomStats
