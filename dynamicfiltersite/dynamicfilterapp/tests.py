@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
 # What we wrote 
-from views_helpers import eddy, aggregate_responses, decrementStatus, updateCounts, incrementStatus, findRestaurant, findTotalTickets, randomAlgorithm
+from views_helpers import eddy, aggregate_responses, decrementStatus, updateCounts, incrementStatus, findRestaurant, randomAlgorithm
 from .forms import RestaurantAdminForm
 from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 # Python tools
@@ -476,7 +476,9 @@ class SimulationTest(TestCase):
         STANDARD_DEV = 20000 # 20 seconds
 
         results = [["taskCount", "selectivity 0", "selectivity 1", "selectivity 2", "Predicate Evaluated", "Answer", "tasksPerRestaurant",
-                    "Task & Answer Distribution", "------", "------", "------"]]
+                    "Task & Answer Distribution", "------", "------", "------",
+                    "Evaluated Answers", "------", "------", "------",
+                    "Correct Answers", "------", "------", "------"]]
         #results.append(label)
         tasksPerRestaurant = []
         #tasksPerRestaurant.append(label)
@@ -534,7 +536,6 @@ class SimulationTest(TestCase):
             # if we're done answering questions, aggregate the responses
             statusName = "predicate" + str(predicate.index) + "Status"
             if getattr(predicate.restaurant, statusName)==0:
-
                 predicate.restaurant = aggregate_responses(predicate)
 
             # "move" the restaurant out of the predicate branch
@@ -563,10 +564,32 @@ class SimulationTest(TestCase):
                       PredicateBranch.objects.filter(index=1)[0].returnedTotal,
                       PredicateBranch.objects.filter(index=2)[0].returnedTotal]
 
+        rests = ["Restaurant"]
+        p0Answers = ["P0"]
+        p1Answers = ["P1"]
+        p2Answers = ["P2"]
 
+        p0AnswersTrue = ["P0 True"]
+        p1AnswersTrue = ["P1 True"]
+        p2AnswersTrue = ["P2 True"]
+
+        for r in Restaurant.objects.all():
+            rests.append(r)
+            p0 = RestaurantPredicate.objects.filter(restaurant=r, index=0)[0]
+            p0Answers.append(p0.value)
+            p0AnswersTrue.append(predicateAnswers[p0])
+
+            p1 = RestaurantPredicate.objects.filter(restaurant=r, index=1)[0]
+            p1Answers.append(p1.value)
+            p1AnswersTrue.append(predicateAnswers[p1])
+
+            p2 = RestaurantPredicate.objects.filter(restaurant=r, index=2)[0]
+            p2Answers.append(p2.value)
+            p2AnswersTrue.append(predicateAnswers[p2])
 
         for row in map(None, taskCount, selectivity0OverTime, selectivity1OverTime, selectivity2OverTime, wheresWaldo, taskAnswers, tasksPerRestaurant,
-                       predicateList, tasks, returnedNo, returnedTotal):
+                       predicateList, tasks, returnedNo, returnedTotal, rests, p0Answers,
+                       p1Answers, p2Answers, p0AnswersTrue, p1AnswersTrue, p2AnswersTrue):
             results.append(row)
         return results
 
@@ -608,16 +631,30 @@ class SimulationTest(TestCase):
         # for i in range(len(allRestPreds2)):
         #     predicateAnswers[allRestPreds2[i]]  = False
 
+#-----------------------------------------------------------------------------------------------------------------------------------#
+
         # setting answers according to restaurants
-        allRestaurants = Restaurant.objects.all()
+        # allRestaurants = Restaurant.objects.all()
 
-        predicates = RestaurantPredicate.objects.all().filter(restaurant=allRestaurants[0])
-        for pred in predicates:
-            predicateAnswers[pred] = True
+        # predicates = RestaurantPredicate.objects.all().filter(restaurant=allRestaurants[0])
+        # for pred in predicates:
+        #     predicateAnswers[pred] = True
 
-        predicates = RestaurantPredicate.objects.all().filter(restaurant=allRestaurants[1])
-        for pred in predicates:
-            predicateAnswers[pred] = False
+        # predicates = RestaurantPredicate.objects.all().filter(restaurant=allRestaurants[1])
+        # for pred in predicates:
+        #     predicateAnswers[pred] = False
+
+        answers = [False, False, False,
+                   True, True, True,
+                   False, True, True,
+                   True, False, False]
+        i = 0
+        for rest in Restaurant.objects.all():
+            for pb in PredicateBranch.objects.order_by('index'):
+                pred = RestaurantPredicate.objects.filter(restaurant=rest, index=pb.index)[0]
+                predicateAnswers[pred] = answers[i]
+                i += 1
+
 
         return predicateAnswers
 
@@ -635,7 +672,11 @@ class SimulationTest(TestCase):
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
         set1 =[ 100, # number of simulations
+<<<<<<< HEAD
                 2, # number of restaurants
+=======
+                4, # number of restaurants
+>>>>>>> origin/master
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
                 100.0, # selectivity 0

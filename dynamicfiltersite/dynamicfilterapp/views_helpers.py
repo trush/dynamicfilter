@@ -64,7 +64,7 @@ def aggregate_responses(predicate):
                 break
 
         if predicateFailed:
-            predicate = setFieldsToNegOne(predicate)
+            predicate = markFailed(predicate)
 
     if predicate.value==None:
         # collect five more responses from workers when there are same 
@@ -92,7 +92,7 @@ def printResults():
             print str(restaurant) + " " + str(restaurant.predicate0Status) + " " + str(restaurant.predicate1Status) + " " + str(restaurant.predicate2Status)
         print "----------------------------"
 
-def setFieldsToNegOne(predicate):
+def markFailed(predicate):
     """
     Set all predicate status fields to -1 to indicate that it needs no further evaluation (because
     it has failed a predicate)
@@ -122,7 +122,6 @@ def eddy(ID):
 
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
-
     # find all the predicates matching these completed tasks
     completedPredicates = RestaurantPredicate.objects.filter(
         id__in=completedTasks.values('restaurantPredicate_id'))
@@ -140,7 +139,6 @@ def eddy(ID):
     incompletePredicates1 = RestaurantPredicate.objects.exclude(id__in=completedPredicates)
 
     incompletePredicates = incompletePredicates1.filter(restaurant__hasFailed=False).filter(value=None)
-
     # finds eligible predicate branches
     eligiblePredicateBranches = []
     for i in range(numOfPredicateStatuses):
@@ -150,7 +148,7 @@ def eddy(ID):
                 break
 
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLottery(eligiblePredicateBranches)
+        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
     else:
         return None
 
@@ -163,8 +161,7 @@ def eddy(ID):
 
     # Find the RestaurantPredicate corresponding to this Restaurant and 
     # PredicateBranch
-    chosenPredicate = RestaurantPredicate.objects.filter(restaurant = 
-        chosenRestaurant, question = chosenBranch.question)[0]
+    chosenPredicate = RestaurantPredicate.objects.filter(restaurant = chosenRestaurant, question = chosenBranch.question)[0]
 
     return chosenPredicate
     
@@ -196,42 +193,84 @@ def incrementStatus(index, restaurant):
     restaurant.save()
     return restaurant
 
-def findTotalTickets(pbSet):
-    """
-    Finds the total number of "tickets" held by a set of PredicateBranches, by 
-    turning selectivity into a useful integer.
-    Selectivity = (no's)/(total evaluated)
-    """
-    totalTickets = 0
+# def findTotalTickets(pbSet):
+#     """
+#     Finds the total number of "tickets" held by a set of PredicateBranches, by 
+#     turning selectivity into a useful integer.
+#     Selectivity = (no's)/(total evaluated)
+#     """
+#     totalTickets = 0
 
-    # award tickets based on computed selectivity
-    for pb in pbSet:
-        selectivity = float(pb.returnedNo)/float(pb.returnedTotal)
-        totalTickets += int(selectivity*1000)
+#     # award tickets based on computed selectivity
+#     for pb in pbSet:
+#         selectivity = float(pb.returnedNo)/float(pb.returnedTotal)
+#         totalTickets += int(selectivity*1000)
 
-    return int(totalTickets)
+#     return int(totalTickets)
 
-def runLottery(pbSet):
+# def runLottery(pbSet):
+#     """
+#     runs the lottery algorithm
+#     """
+#     #retrieves total num of tickets in valid predicates branches
+#     totalTickets = findTotalTickets(pbSet)
+#     if totalTickets==0:
+#         print "Total tickets is zero"
+#         return None
+
+#     # generate random number between 1 and totalTickets
+#     rand = randint(1, totalTickets)
+
+#     # check if rand falls in the range corresponding to each predicate
+#     lowBound = 0
+#     selectivity = float(pbSet[0].returnedNo)/pbSet[0].returnedTotal
+#     highBound = selectivity*1000
+    
+#     # an empty PredicateBranch object NOT saved in the database
+#     chosenBranch = PredicateBranch()
+
+#     # loops through all valid predicate branches
+#     for j in range(len(pbSet)):
+
+#         # if rand is in this range, then go to this predicateBranch
+#         if lowBound <= rand <= highBound:
+#             chosenBranch = pbSet[j]
+#             break
+#         else:
+#             # move on to next range of predicateBranch
+#             lowBound = highBound
+#             nextPredicateBranch = pbSet[j+1]
+#             nextSelectivity = float(nextPredicateBranch.returnedNo)/nextPredicateBranch.returnedTotal
+#             highBound += nextSelectivity*1000
+
+#     return chosenBranch
+
+def runLotteryWeighted(pbSet):
     """
     runs the lottery algorithm
     """
-    #retrieves total num of tickets in valid predicates branches
-    totalTickets = findTotalTickets(pbSet)
-    if totalTickets==0:
-        print "Total tickets is zero"
-        return None
+    totalTickets = 0
+    tickets = {}
+    highestBranch = pbSet[0]
+    for branch in pbSet:
+        t = (float(branch.returnedNo)/branch.returnedTotal)*1000
+        tickets[branch] = t
+        totalTickets += t
+        if t > (float(highestBranch.returnedNo)/highestBranch.returnedTotal)*1000:
+            highestBranch = branch
+
+    tickets[highestBranch] *= 2
 
     # generate random number between 1 and totalTickets
-    rand = randint(1, totalTickets)
+    rand = randint(1, int(totalTickets))
 
     # check if rand falls in the range corresponding to each predicate
+    
     lowBound = 0
-    selectivity = float(pbSet[0].returnedNo)/pbSet[0].returnedTotal
-    highBound = selectivity*1000
+    highBound = tickets[pbSet[0]]
     
     # an empty PredicateBranch object NOT saved in the database
     chosenBranch = PredicateBranch()
-
     # loops through all valid predicate branches
     for j in range(len(pbSet)):
 
@@ -243,8 +282,7 @@ def runLottery(pbSet):
             # move on to next range of predicateBranch
             lowBound = highBound
             nextPredicateBranch = pbSet[j+1]
-            nextSelectivity = float(nextPredicateBranch.returnedNo)/nextPredicateBranch.returnedTotal
-            highBound += nextSelectivity*1000
+            highBound += tickets[nextPredicateBranch]
 
     return chosenBranch
     
@@ -266,7 +304,6 @@ def findRestaurant(predicateBranch,ID):
     # order the eligible restaurants by priority
     orderByThisStatus = 'predicate' + str(predicateBranch.index) + 'Status'
     prioritized = rSet.order_by(orderByThisStatus)
-
     # filter out restaurants where the relevant status is not 0 or
     predStatus = 'predicate' + str(predicateBranch.index) + 'Status'
 
@@ -275,7 +312,6 @@ def findRestaurant(predicateBranch,ID):
     
     for restaurant in prioritized:
         status = getattr(restaurant, predStatus)
-
         if status > 0:
             return restaurant
     # We should never reach this statement
