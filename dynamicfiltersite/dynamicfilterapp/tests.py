@@ -644,6 +644,7 @@ class SimulationTest(TestCase):
         # for pred in predicates:
         #     predicateAnswers[pred] = False
 
+<<<<<<< HEAD
         # answers = [False, False, False,
         #            True, True, True,
         #            False, True, True,
@@ -749,6 +750,12 @@ class SimulationTest(TestCase):
                    False, False, True,
                    True, False, True,
                    False, True, False ]
+=======
+        answers = [False, True, False,
+                   False, False, True,
+                   True, False, True,
+                   False, True, False]
+>>>>>>> origin/master
 
         i = 0
         for rest in Restaurant.objects.all():
@@ -771,10 +778,16 @@ class SimulationTest(TestCase):
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
+<<<<<<< HEAD
         set1 =[ 50, # number of simulations
                 100, # number of restaurants
                 [100,100,100,100,100], # confidence options
 
+=======
+        set1 =[ 100, # number of simulations
+                4, # number of restaurants
+                [100,100,100,100,100], # confidence options
+>>>>>>> origin/master
                 [0.0], # personality options
                 100.0, # selectivity 0
                 100.0, # selectivity 1
