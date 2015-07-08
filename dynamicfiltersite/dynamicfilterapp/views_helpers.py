@@ -259,7 +259,10 @@ def runLotteryWeighted(pbSet):
         if t > (float(highestBranch.returnedNo)/highestBranch.returnedTotal)*1000:
             highestBranch = branch
 
-    tickets[highestBranch] *= 2
+    if len(Task.objects.all()) < 200:
+        tickets[highestBranch] *= (1+len(Task.objects.all())/50*.125)
+    else:
+        tickets[highestBranch] *= 2
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
