@@ -644,23 +644,11 @@ class SimulationTest(TestCase):
         # for pred in predicates:
         #     predicateAnswers[pred] = False
 
-<<<<<<< HEAD
-        answers = [False, False, False,
-                   True, True, True,
-                   False, True, True,
-                   True, False, False]
-
-=======
-        # answers = [False, False, False,
-        #            True, True, True,
-        #            False, True, True,
-        #            True, False, False]
-
         answers = [False, True, False,
                    False, False, True,
                    True, False, True,
                    False, True, False]
->>>>>>> origin/master
+
         i = 0
         for rest in Restaurant.objects.all():
             for pb in PredicateBranch.objects.order_by('index'):
@@ -684,11 +672,7 @@ class SimulationTest(TestCase):
 
         set1 =[ 100, # number of simulations
                 4, # number of restaurants
-<<<<<<< HEAD
-                [70,70,70,80,80], # confidence options
-=======
                 [100,100,100,100,100], # confidence options
->>>>>>> origin/master
                 [0.0], # personality options
                 100.0, # selectivity 0
                 100.0, # selectivity 1
