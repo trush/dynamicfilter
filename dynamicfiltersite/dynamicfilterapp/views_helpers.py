@@ -10,6 +10,9 @@ DECISION_THRESHOLD = 0.5
 # for us to fix the predicate's value
 UNCERTAINTY_THRESHOLD = 0.15
 
+ALPHA = 0.9
+GAMMA = 0.1
+
 def aggregate_responses(predicate):
     """
     Checks if predicate needs to be answered 0 more times. If uncertainty criteria are met,
@@ -256,16 +259,62 @@ def runLotteryWeighted(pbSet):
         t = (float(branch.returnedNo)/branch.returnedTotal)*1000
         tickets[branch] = t
         totalTickets += t
+        # print "t: " + str(t)
         if t > (float(highestBranch.returnedNo)/highestBranch.returnedTotal)*1000:
             highestBranch = branch
 
-    tickets[highestBranch] *= 20
+    tickets[highestBranch] *= 2
+    totalTickets += tickets[highestBranch]/2
+
+    # generate random number between 1 and totalTickets
+    rand = randint(1, int(totalTickets))
+    # print "rand: " + str(rand) + " " + str(totalTickets)
+    # check if rand falls in the range corresponding to each predicate
+    
+    lowBound = 0
+    highBound = tickets[pbSet[0]]
+    # print tickets
+    # an empty PredicateBranch object NOT saved in the database
+    chosenBranch = PredicateBranch()
+    # loops through all valid predicate branches
+    for j in range(len(pbSet)):
+        # print "low: " + str(lowBound) + " to high: " + str(highBound)
+        # if rand is in this range, then go to this predicateBranch
+        if lowBound <= rand <= highBound:
+            chosenBranch = pbSet[j]
+            break
+        else:
+            # move on to next range of predicateBranch
+            lowBound = highBound
+            nextPredicateBranch = pbSet[j+1]
+            highBound += tickets[nextPredicateBranch]
+        
+    return chosenBranch
+
+def runLotteryDynamicallyWeighted(pbSet):
+    """
+    runs the lottery algorithm
+    """
+    totalTickets = 0
+    tickets = {}
+    highestBranch = pbSet[0]
+    for branch in pbSet:
+        t = (float(branch.returnedNo)/branch.returnedTotal)*1000
+        tickets[branch] = t
+        totalTickets += t
+        if t > (float(highestBranch.returnedNo)/highestBranch.returnedTotal)*1000:
+            highestBranch = branch
+
+    # if len(Task.objects.all()) < 100:
+    #     tickets[highestBranch] *= (1+len(Task.objects.all())/25*.25)
+    # else:
+    tickets[highestBranch] *= 2
+
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
 
     # check if rand falls in the range corresponding to each predicate
-    
     lowBound = 0
     highBound = tickets[pbSet[0]]
     
@@ -286,27 +335,22 @@ def runLotteryWeighted(pbSet):
 
     return chosenBranch
 
-def runLotteryDynamicallyWeighted(pbSet):
-    """
-    runs the lottery algorithm
-    """
-    totalTickets = 0
+
+def runLotteryWithUniform(pbSet):
+    totalTickets = 0.0
+    rangeRand = 0.0
     tickets = {}
     highestBranch = pbSet[0]
-    for branch in pbSet:
-        t = (float(branch.returnedNo)/branch.returnedTotal)*1000
-        tickets[branch] = t
-        totalTickets += t
-        if t > (float(highestBranch.returnedNo)/highestBranch.returnedTotal)*1000:
-            highestBranch = branch
 
-    if len(Task.objects.all()) < 200:
-        tickets[highestBranch] *= (1+len(Task.objects.all())/50*.125)
-    else:
-        tickets[highestBranch] *= 2
+    for branch in pbSet:
+        totalTickets += float((1+ALPHA)**(branch.returnedNo))
+
+    for branch in pbSet:
+        tickets[branch] = ( (float(1+ALPHA)**(branch.returnedNo))/totalTickets*(1-GAMMA) + GAMMA/len(PredicateBranch.objects.all()) ) * 1000
+        rangeRand+= tickets[branch]
 
     # generate random number between 1 and totalTickets
-    rand = randint(1, int(totalTickets))
+    rand = randint(1, int(rangeRand))
 
     # check if rand falls in the range corresponding to each predicate
     

@@ -644,21 +644,111 @@ class SimulationTest(TestCase):
         # for pred in predicates:
         #     predicateAnswers[pred] = False
 
-        # answers = [False, False, False,
-        #            True, True, True,
-        #            False, True, True,
-        #            True, False, False]
-
         answers = [False, False, True,
-                   False, False, True,
                    True, True, False,
                    False, True, True,
-                   True, True, False,
-                   False, True, True,
-                   True, True, True,
-                   False, True, True,
-                   False, True, False,
-                   False, True, False ]
+                   True, False, False]
+
+        # answers = [False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            False, False, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True ]
 
 
         i = 0
@@ -683,12 +773,12 @@ class SimulationTest(TestCase):
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
         set1 =[ 100, # number of simulations
-                10, # number of restaurants
+                4, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
-                100.0, # selectivity 0
-                100.0, # selectivity 1
-                100.0, # selectivity 2
+                0.0, # selectivity 0
+                0.0, # selectivity 1
+                0.0, # selectivity 2
                 0.0, # difficulty 0
                 0.0, # difficulty 1
                 0.0, # difficulty 2
