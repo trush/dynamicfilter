@@ -36,8 +36,11 @@ class Restaurant(models.Model):
     # the index of the PredicateBranch currently evaluating this Restaurant (None if it's not currently being evaluated)
     evaluator = models.IntegerField(null=True,blank=True,default=None)
 
+    # queue index for eddy2's restaurant queue
+    queueIndex = models.IntegerField(null=True,blank=True,default=None)
+
     def __unicode__(self):
-        return self.name
+        return str(self.queueIndex) + " " + str(self.name)
 
     class Meta:
         # no two restaurants can have the same address

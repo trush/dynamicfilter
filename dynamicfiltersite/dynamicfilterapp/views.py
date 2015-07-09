@@ -77,6 +77,10 @@ def answer_question(request, IDnumber):
 
             # now the toBeAnswered restaurant comes out of the predicate branch and is not being evaluated anymore 
             toBeAnswered.restaurant.evaluator = None
+
+            # set the queue index to be right after the current last thing (only used in eddy 2)
+            currentLastIndex = Restaurant.objects.order_by('-queueIndex')[0].queueIndex
+            toBeAnswered.restaurant.queueIndex = currentLastIndex + 1
             
             toBeAnswered.save()
 

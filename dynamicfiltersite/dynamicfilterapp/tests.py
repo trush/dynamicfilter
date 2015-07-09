@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
 # What we wrote 
-from views_helpers import eddy, aggregate_responses, decrementStatus, updateCounts, incrementStatus, findRestaurant, randomAlgorithm
+from views_helpers import eddy, eddy2, aggregate_responses, decrementStatus, updateCounts, incrementStatus, findRestaurant, randomAlgorithm
 from .forms import RestaurantAdminForm
 from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 # Python tools
@@ -29,6 +29,7 @@ def enterRestaurant(restaurantName, zipNum):
     """
     r = Restaurant(name=restaurantName, url="www.test.com", street="Test Address", city="Berkeley", state="CA",
         zipCode=zipNum, country="USA", text="Please answer a question!")
+    r.queueIndex = len(Restaurant.objects.all())
     r.save()
 
     # Create the three associated predicates
@@ -402,7 +403,7 @@ class SimulationTest(TestCase):
         # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
         for k in range(NUM_SIMULATIONS):
             print "Eddy " + str(k)
-            results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers)
+            results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, parameters, predicateAnswers)
             eddyTasks = len(Task.objects.all())
             # Of the answered predicates, count how many are correct
             correctCount = 0
@@ -410,7 +411,7 @@ class SimulationTest(TestCase):
                 if predicate.value == predicateAnswers[predicate]:
                     correctCount += 1
             eddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
-            if recordEddyStats: self.write_results(results_eddy, "eddy")
+            if recordEddyStats: self.write_results(results_eddy, "eddy2")
             self.reset_simulation()
 
             print "Random " + str(k)
@@ -540,6 +541,14 @@ class SimulationTest(TestCase):
 
             # "move" the restaurant out of the predicate branch
             predicate.restaurant.evaluator = None
+
+            # set the queue index to be right after the current last thing (only used in eddy 2)
+            currentLastIndex = Restaurant.objects.order_by('-queueIndex')[0].queueIndex
+            #print currentLastIndex
+            predicate.restaurant.queueIndex = currentLastIndex + 1
+            #print predicate.restaurant.queueIndex
+            #print "Restaurants: " + str(Restaurant.objects.all())
+            predicate.restaurant.save()
             predicate.save()
 
             # increase worker IDcounter
@@ -660,7 +669,6 @@ class SimulationTest(TestCase):
                    False, True, False,
                    False, True, False ]
 
-
         i = 0
         for rest in Restaurant.objects.all():
             for pb in PredicateBranch.objects.order_by('index'):
@@ -676,13 +684,13 @@ class SimulationTest(TestCase):
         Calls the test_many_simulation function with as many sets of parameters as are specified.
         """
         recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
-        recordEddyStats = False # record stats about each run of the eddy in a separate file
+        recordEddyStats = True # record stats about each run of the eddy in a separate file
         recordRandomStats = False # record stats about each run of the random algorithm in a separate file
 
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 100, # number of simulations
+        set1 =[ 1, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
