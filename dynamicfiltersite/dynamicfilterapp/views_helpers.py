@@ -351,8 +351,6 @@ def runLotteryWeighted(pbSet):
     highestSelectivity = 0
     otherSelectivities = 0
 
-    multiplyingFactor = 2
-
     for branch in pbSet:
         t = (float(branch.returnedNo)/branch.returnedTotal)*1000
         tickets[branch] = t
@@ -366,9 +364,6 @@ def runLotteryWeighted(pbSet):
         if branch != highestBranch:
             otherSelectivities += float(branch.returnedNo)/branch.returnedTotal
 
-    #multiplying factor
-    multiplyingFactor = 8 - (highestSelectivity - otherSelectivities)
-
     for pb in pbSet:
         if pb.index == INDEX:
             pastBranchExists = True
@@ -380,8 +375,8 @@ def runLotteryWeighted(pbSet):
             changeBranch = False
 
     if changeBranch:
-        totalTickets += tickets[highestBranch]*(multiplyingFactor-1)
-        tickets[highestBranch] *= multiplyingFactor
+        tickets[highestBranch] *= 2
+        totalTickets += tickets[highestBranch]/2
     else:
         tickets[predBranch] *= 2
         totalTickets += tickets[predBranch]/2
@@ -409,34 +404,6 @@ def runLotteryWeighted(pbSet):
             nextPredicateBranch = pbSet[j+1]
             highBound += tickets[nextPredicateBranch]
     
-    # theBranch = PredicateBranch()
-    # selectivity = 0
-
-    # if (len(pbSet.all().filter(index=INDEX)) > 0):
-    #     predBranch = pbSet.objects.all().filter(index=INDEX)[0]
-
-    #     # pick predicate branch with max selectivity
-    #     for branch in PredicateBranch.objects.all():
-    #         if float(branch.returnedNo)/float(branch.returnedTotal) > selectivity:
-    #             theBranch = branch
-    #             selectivity = float(branch.returnedNo)/float(branch.returnedTotal)
-
-    #     # compare it with past branch and see if it surpasses a certain threshold
-    #     if float(theBranch.returnedNo)/float(theBranch.returnedTotal) - float(predBranch.returnedNo)/float(predBranch.returnedTotal) < 0.15/exp(len(Task.objects.all())/50) :
-    #         chosenBranch = PredicateBranch.objects.all().filter(index=INDEX)[0]
-
-    # INDEX = chosenBranch.index
-
-    # wantToPrint = ""
-    # for branch in PredicateBranch.objects.all():
-    #     wantToPrint += str(float(branch.returnedNo)/float(branch.returnedTotal)) + " "
-
-    # print wantToPrint
-    # print chosenBranch.index 
-
-    if chosenBranch.index != INDEX:
-        print "changed to " + str(chosenBranch.index)
-
     INDEX = chosenBranch.index
 
     return chosenBranch
