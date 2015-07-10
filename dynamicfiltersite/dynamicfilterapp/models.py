@@ -40,7 +40,7 @@ class Restaurant(models.Model):
     queueIndex = models.IntegerField(null=True,blank=True,default=None)
 
     def __unicode__(self):
-        return str(self.queueIndex) + " " + str(self.name)
+        return str(self.queueIndex) + ": " + str(self.name)
 
     class Meta:
         # no two restaurants can have the same address
@@ -63,7 +63,7 @@ class RestaurantPredicate(models.Model):
     value = models.NullBooleanField(default=None)
 
     def __unicode__(self):
-        return self.question + str(self.restaurant) + str(self.value)
+        return self.question + " " + str(self.restaurant) + str(self.value)
 
 class Task(models.Model):
     # the predicate that this task is answering

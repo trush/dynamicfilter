@@ -393,17 +393,20 @@ class SimulationTest(TestCase):
 
         recordAggregateStats = parameters[10]
         recordEddyStats = parameters[11]
-        recordRandomStats = parameters[12]
+        recordEddy2Stats = parameters[12]
+        recordRandomStats = parameters[13]
 
         # establish a set of known correct answers
         predicateAnswers = self.set_correct_answers(branches, branchSelectivities)
 
-        aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "random num tasks", "random correct percentage"]]
+        aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
+                           "random num tasks", "random correct percentage"]]
 
         # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
         for k in range(NUM_SIMULATIONS):
+
             print "Eddy " + str(k)
-            results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, parameters, predicateAnswers)
+            results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers)
             eddyTasks = len(Task.objects.all())
             # Of the answered predicates, count how many are correct
             correctCount = 0
@@ -411,6 +414,20 @@ class SimulationTest(TestCase):
                 if predicate.value == predicateAnswers[predicate]:
                     correctCount += 1
             eddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+            
+            if recordEddyStats: self.write_results(results_eddy, "eddy")
+            self.reset_simulation()
+
+            print "Eddy2 " + str(k)
+            results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, parameters, predicateAnswers)
+            eddy2Tasks = len(Task.objects.all())
+            # Of the answered predicates, count how many are correct
+            correctCount = 0
+            for predicate in RestaurantPredicate.objects.exclude(value=None):
+                if predicate.value == predicateAnswers[predicate]:
+                    correctCount += 1
+            eddy2CorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+            
             if recordEddyStats: self.write_results(results_eddy, "eddy2")
             self.reset_simulation()
 
@@ -423,11 +440,12 @@ class SimulationTest(TestCase):
                 if predicate.value == predicateAnswers[predicate]:
                     correctCount += 1
             randomCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+            
             if recordRandomStats: self.write_results(results_random, "random")
             self.reset_simulation()
 
 
-            if recordAggregateStats: aggregateResults.append([eddyTasks, eddyCorrectPercentage, randomTasks, randomCorrectPercentage])
+            if recordAggregateStats: aggregateResults.append([eddyTasks, eddyCorrectPercentage, eddy2Tasks, eddy2CorrectPercentage, randomTasks, randomCorrectPercentage])
 
         if recordAggregateStats: self.write_results(aggregateResults, "aggregate_results")
 
@@ -453,12 +471,15 @@ class SimulationTest(TestCase):
             pred.value = None
             pred.save()
 
+        resetIndex = 0
         for rest in Restaurant.objects.all():
             rest.predicate0Status = 5
             rest.predicate1Status = 5
             rest.predicate2Status = 5
             rest.evaluator = None
             rest.hasFailed = False
+            rest.queueIndex = resetIndex
+            resetIndex += 1
             rest.save()
 
         for branch in PredicateBranch.objects.all():
@@ -537,15 +558,20 @@ class SimulationTest(TestCase):
             # if we're done answering questions, aggregate the responses
             statusName = "predicate" + str(predicate.index) + "Status"
             if getattr(predicate.restaurant, statusName)==0:
+                # print "aggregating responses"
                 predicate.restaurant = aggregate_responses(predicate)
+                # print predicate.restaurant.queueIndex
+                # print "Are they updated?"
+                # print Restaurant.objects.all()
 
             # "move" the restaurant out of the predicate branch
             predicate.restaurant.evaluator = None
 
-            # set the queue index to be right after the current last thing (only used in eddy 2)
-            currentLastIndex = Restaurant.objects.order_by('-queueIndex')[0].queueIndex
-            #print currentLastIndex
-            predicate.restaurant.queueIndex = currentLastIndex + 1
+            if predicate.restaurant.queueIndex !=-1:
+                # set the queue index to be right after the current last thing (only used in eddy 2)
+                currentLastIndex = Restaurant.objects.order_by('-queueIndex')[0].queueIndex
+                #print currentLastIndex
+                predicate.restaurant.queueIndex = currentLastIndex + 1
             #print predicate.restaurant.queueIndex
             #print "Restaurants: " + str(Restaurant.objects.all())
             predicate.restaurant.save()
@@ -555,6 +581,15 @@ class SimulationTest(TestCase):
             IDcounter += 1
             # get the next predicate from the eddy (None if there are no more)
             predicate = algorithm(IDcounter)
+
+        # print "---- Predicates ---------------"
+
+        # for p in RestaurantPredicate.objects.order_by('-restaurant'):
+        #     print p
+
+        # print "---- Restaurant ---------------"
+        # for r in Restaurant.objects.order_by('queueIndex'):
+        #     print r.queueIndex
 
         for restaurant in Restaurant.objects.all():
             tasksPerRestaurant.append(len(Task.objects.filter(restaurantPredicate__restaurant=restaurant)))
@@ -640,7 +675,7 @@ class SimulationTest(TestCase):
         # for i in range(len(allRestPreds2)):
         #     predicateAnswers[allRestPreds2[i]]  = False
 
-#-----------------------------------------------------------------------------------------------------------------------------------#
+        #-----------------------------------------------------------------------------------------------------------------------------------#
 
         # setting answers according to restaurants
         # allRestaurants = Restaurant.objects.all()
@@ -653,7 +688,7 @@ class SimulationTest(TestCase):
         # for pred in predicates:
         #     predicateAnswers[pred] = False
 
-        answers = [False, False, True,
+        answers = [True, True, True,
                    True, True, False,
                    False, True, True,
                    True, False, False]
@@ -774,14 +809,17 @@ class SimulationTest(TestCase):
         Calls the test_many_simulation function with as many sets of parameters as are specified.
         """
         recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
-        recordEddyStats = True # record stats about each run of the eddy in a separate file
-        recordRandomStats = False # record stats about each run of the random algorithm in a separate file
-
+        
+        # choose whether to record individual run stats in separate files
+        eddy = False
+        eddy2 = False
+        random = False
+        
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 1, # number of simulations
-                10, # number of restaurants=
+        set1 =[ 100, # number of simulations
+                4, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
                 0.0, # selectivity 0
@@ -791,8 +829,9 @@ class SimulationTest(TestCase):
                 0.0, # difficulty 1
                 0.0, # difficulty 2
                 recordAggregateStats,
-                recordEddyStats,
-                recordRandomStats
+                eddy,
+                eddy2,
+                random
                 ]
         parameterSets.append(set1)
 

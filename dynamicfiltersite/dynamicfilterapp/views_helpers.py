@@ -54,6 +54,7 @@ def aggregate_responses(predicate):
 
     # if more no's than yes's
     elif totalNo > totalYes and uncertaintyLevelFalse < UNCERTAINTY_THRESHOLD:
+        # print "--1"
         predicate.value = False
 
         # flag for the Restaurant failing a predicate (and thus not passing all the predicates)
@@ -61,13 +62,17 @@ def aggregate_responses(predicate):
 
         # iterates through all the fields in this restaurant's model
         for field in predicate.restaurant._meta.fields:
+            # print "--2"
             # verbose_name is the field's name with underscores replaced with spaces
             if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status') and getattr(predicate.restaurant, field.verbose_name) == 0:
                 predicateFailed = True
+                # print "--3"
                 break
 
         if predicateFailed:
-            predicate = markFailed(predicate)
+            # print "--4"
+            predicate.restaurant = markFailed(predicate)
+            # print predicate.restaurant.queueIndex
 
     if predicate.value==None:
         # collect five more responses from workers when there are same 
@@ -100,11 +105,11 @@ def markFailed(predicate):
     Set all predicate status fields to -1 to indicate that it needs no further evaluation (because
     it has failed a predicate)
     """
-    for field in predicate.restaurant._meta.fields:
-        if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
-            predicate.restaurant.hasFailed = True
-    predicate.save()
-    return predicate
+    # print "Setting failed flags"
+    predicate.restaurant.hasFailed = True
+    predicate.restaurant.queueIndex=-1
+    # print predicate.restaurant.queueIndex
+    return predicate.restaurant
 
 def updateCounts(pB, task):
     """
@@ -173,24 +178,33 @@ def eddy(ID):
 
     return chosenPredicate
 
+def printQuerySet(qs):
+    if len(qs)==0:
+        return ""
+    else:
+        result = "\n"
+        for item in qs:
+            result += str(item)+"\n"
+        return result
+
 def eddy2(ID):
-    """
-    Uses a random lottery system to determine which eligible predicate should be
-    evaluated next.
-    """
     # find the first Restaurant in the queue that isn't finished
     rest = Restaurant.objects.exclude(queueIndex=-1).order_by('queueIndex')[0]
+    # print "Restaurant: " + str(rest)
 
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
+    # print "completedTasks: " + printQuerySet(completedTasks)
     # find all the predicates matching these completed tasks
     completedPredicates = RestaurantPredicate.objects.filter(
         id__in=completedTasks.values('restaurantPredicate_id'))
+    # print "completedPredicates: " + printQuerySet(completedPredicates)
 
     # get only incomplete predicates matching this restaurant and eligible to this worker
     incompletePredicates = RestaurantPredicate.objects.exclude(id__in=completedPredicates).filter(restaurant__hasFailed=False).filter(value=None, restaurant=rest)
     #print incompletePredicates
     # check for predicates meeting the uncertainty threshold for evaluating to False
+    # print "eligiblePredicates: " + printQuerySet(incompletePredicates)
     almostFalsePredicates = []
     FALSE_THRESHOLD = 0.15
     #print "----------------------------------"
@@ -202,12 +216,9 @@ def eddy2(ID):
         #print uncertainty
         if uncertainty < FALSE_THRESHOLD:
             almostFalsePredicates.append( (uncertainty, pred) )
-    #print "----------------------------------"
-    #print almostFalsePredicates
     if len(almostFalsePredicates) >0:
         # sort according to uncertainty, ascendingly, and return the predicate
         # which is the second item of the first tuple
-        print "Predicate Fast-tracked!"
         almostFalsePredicates.sort()
         return almostFalsePredicates[0][1]
 
@@ -229,7 +240,8 @@ def eddy2(ID):
 
     # Find the RestaurantPredicate corresponding to this Restaurant and 
     # PredicateBranch
-    print str(chosenBranch.index) + " " + chosenBranch.question
+    # print "Answered: " + chosenBranch.question
+    # print "-----------------------------"
     chosenPredicate = RestaurantPredicate.objects.filter(restaurant=rest, question=chosenBranch.question)[0]
 
     return chosenPredicate
@@ -400,7 +412,6 @@ def runLotteryDynamicallyWeighted(pbSet):
             highBound += tickets[nextPredicateBranch]
 
     return chosenBranch
-
 
 def runLotteryWithUniform(pbSet):
     totalTickets = 0.0
