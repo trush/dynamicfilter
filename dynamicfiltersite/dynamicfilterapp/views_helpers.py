@@ -171,7 +171,7 @@ def eddy(ID):
     # generates the restaurant with the highest priority for the specified 
     # predicate branch
     chosenRestaurant = findRestaurant(chosenBranch, ID)
-    print chosenRestaurant.name
+    # print chosenRestaurant.name
     # mark chosenRestaurant as being in chosenBranch
     chosenRestaurant.evaluator = chosenBranch.index
 
@@ -339,19 +339,9 @@ def runLotteryWeighted(pbSet):
     """
     runs the lottery algorithm
     """
-    global INDEX
-
-    changeBranch = True
-    pastBranchExists = False
-
     totalTickets = 0
     tickets = {}
     highestBranch = pbSet[0]
-
-    highestSelectivity = 0
-    otherSelectivities = 0
-
-    multiplyingFactor = 2
 
     for branch in pbSet:
         t = (float(branch.returnedNo)/branch.returnedTotal)*1000
@@ -362,29 +352,8 @@ def runLotteryWeighted(pbSet):
             highestBranch = branch
             highestSelectivity = float(highestBranch.returnedNo)/highestBranch.returnedTotal
 
-    for branch in pbSet:
-        if branch != highestBranch:
-            otherSelectivities += float(branch.returnedNo)/branch.returnedTotal
-
-    #multiplying factor
-    multiplyingFactor = 3 - (highestSelectivity - otherSelectivities)
-
-    for pb in pbSet:
-        if pb.index == INDEX:
-            pastBranchExists = True
-            predBranch = pb
-            break
-
-    if pastBranchExists:
-        if float(highestBranch.returnedNo)/float(highestBranch.returnedTotal) - float(predBranch.returnedNo)/float(predBranch.returnedTotal) < 0.10/exp(len(Task.objects.all())/50) :
-            changeBranch = False
-
-    if changeBranch:
-        totalTickets += tickets[highestBranch]*(multiplyingFactor-1)
-        tickets[highestBranch] *= multiplyingFactor
-    else:
-        tickets[predBranch] *= 2
-        totalTickets += tickets[predBranch]/2
+    tickets[highestBranch] *= 2
+    totalTickets += tickets[highestBranch]/2
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
@@ -409,36 +378,6 @@ def runLotteryWeighted(pbSet):
             nextPredicateBranch = pbSet[j+1]
             highBound += tickets[nextPredicateBranch]
     
-    # theBranch = PredicateBranch()
-    # selectivity = 0
-
-    # if (len(pbSet.all().filter(index=INDEX)) > 0):
-    #     predBranch = pbSet.objects.all().filter(index=INDEX)[0]
-
-    #     # pick predicate branch with max selectivity
-    #     for branch in PredicateBranch.objects.all():
-    #         if float(branch.returnedNo)/float(branch.returnedTotal) > selectivity:
-    #             theBranch = branch
-    #             selectivity = float(branch.returnedNo)/float(branch.returnedTotal)
-
-    #     # compare it with past branch and see if it surpasses a certain threshold
-    #     if float(theBranch.returnedNo)/float(theBranch.returnedTotal) - float(predBranch.returnedNo)/float(predBranch.returnedTotal) < 0.15/exp(len(Task.objects.all())/50) :
-    #         chosenBranch = PredicateBranch.objects.all().filter(index=INDEX)[0]
-
-    # INDEX = chosenBranch.index
-
-    # wantToPrint = ""
-    # for branch in PredicateBranch.objects.all():
-    #     wantToPrint += str(float(branch.returnedNo)/float(branch.returnedTotal)) + " "
-
-    # print wantToPrint
-    # print chosenBranch.index 
-
-    # if chosenBranch.index != INDEX:
-    #     print "changed to " + str(chosenBranch.index)
-
-    INDEX = chosenBranch.index
-
     return chosenBranch
 
 def runLotteryDynamicallyWeighted(pbSet):
@@ -455,10 +394,10 @@ def runLotteryDynamicallyWeighted(pbSet):
         if t > (float(highestBranch.returnedNo)/highestBranch.returnedTotal)*1000:
             highestBranch = branch
 
-    # if len(Task.objects.all()) < 100:
-    #     tickets[highestBranch] *= (1+len(Task.objects.all())/25*.25)
-    # else:
-    tickets[highestBranch] *= 2
+    if len(Task.objects.all()) < 200:
+        tickets[highestBranch] *= (1+len(Task.objects.all())/50*.125)
+    else:
+        tickets[highestBranch] *= 2
 
 
     # generate random number between 1 and totalTickets

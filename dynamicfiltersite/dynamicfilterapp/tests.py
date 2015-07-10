@@ -824,7 +824,7 @@ class SimulationTest(TestCase):
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 100, # number of simulations
+        set1 =[ 20, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
