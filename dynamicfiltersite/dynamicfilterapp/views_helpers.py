@@ -367,7 +367,7 @@ def runLotteryWeighted(pbSet):
             otherSelectivities += float(branch.returnedNo)/branch.returnedTotal
 
     #multiplying factor
-    multiplyingFactor = 8 - (highestSelectivity - otherSelectivities)
+    multiplyingFactor = 3 - (highestSelectivity - otherSelectivities)
 
     for pb in pbSet:
         if pb.index == INDEX:
@@ -434,8 +434,8 @@ def runLotteryWeighted(pbSet):
     # print wantToPrint
     # print chosenBranch.index 
 
-    if chosenBranch.index != INDEX:
-        print "changed to " + str(chosenBranch.index)
+    # if chosenBranch.index != INDEX:
+    #     print "changed to " + str(chosenBranch.index)
 
     INDEX = chosenBranch.index
 
