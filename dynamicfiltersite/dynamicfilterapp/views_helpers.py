@@ -403,7 +403,7 @@ def runLotteryWeighted(pbSet):
             lowBound = highBound
             nextPredicateBranch = pbSet[j+1]
             highBound += tickets[nextPredicateBranch]
-    
+
     INDEX = chosenBranch.index
 
     return chosenBranch
