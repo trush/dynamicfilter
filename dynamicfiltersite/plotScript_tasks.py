@@ -62,7 +62,7 @@ fig = plt.figure()
 # ax = fig.add_subplot(111)
 # ax.grid()
 
-plt.hist(s4, align=u'left')
+plt.hist(s4)
 
 plt.xlabel('Tasks Completed')
 plt.ylabel('Number of Runs')

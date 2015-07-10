@@ -343,6 +343,9 @@ def runLotteryWeighted(pbSet):
     tickets = {}
     highestBranch = pbSet[0]
 
+    highestSelectivity = 0
+    otherSelectivities = 0
+
     for branch in pbSet:
         t = (float(branch.returnedNo)/branch.returnedTotal)*1000
         tickets[branch] = t
@@ -352,8 +355,26 @@ def runLotteryWeighted(pbSet):
             highestBranch = branch
             highestSelectivity = float(highestBranch.returnedNo)/highestBranch.returnedTotal
 
-    tickets[highestBranch] *= 2
-    totalTickets += tickets[highestBranch]/2
+    for branch in pbSet:
+        if branch != highestBranch:
+            otherSelectivities += float(branch.returnedNo)/branch.returnedTotal
+
+    for pb in pbSet:
+        if pb.index == INDEX:
+            pastBranchExists = True
+            predBranch = pb
+            break
+
+    if pastBranchExists:
+        if float(highestBranch.returnedNo)/float(highestBranch.returnedTotal) - float(predBranch.returnedNo)/float(predBranch.returnedTotal) < 0.10/exp(len(Task.objects.all())/50) :
+            changeBranch = False
+
+    if changeBranch:
+        tickets[highestBranch] *= 2
+        totalTickets += tickets[highestBranch]/2
+    else:
+        tickets[predBranch] *= 2
+        totalTickets += tickets[predBranch]/2
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
@@ -378,6 +399,8 @@ def runLotteryWeighted(pbSet):
             nextPredicateBranch = pbSet[j+1]
             highBound += tickets[nextPredicateBranch]
     
+    INDEX = chosenBranch.index
+
     return chosenBranch
 
 def runLotteryDynamicallyWeighted(pbSet):
