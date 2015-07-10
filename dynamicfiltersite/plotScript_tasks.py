@@ -27,8 +27,8 @@ print "Random average: " + str(np.average(s4))
 fig = plt.figure()
 
 # add grid lines
-ax = fig.add_subplot(111)
-ax.grid()
+# ax = fig.add_subplot(111)
+# ax.grid()
 
 plt.hist(s0)
 
@@ -43,8 +43,8 @@ plt.cla()
 fig = plt.figure()
 
 # add grid lines
-ax = fig.add_subplot(111)
-ax.grid()
+# ax = fig.add_subplot(111)
+# ax.grid()
 
 plt.hist(s2)
 
@@ -59,10 +59,10 @@ plt.cla()
 fig = plt.figure()
 
 # add grid lines
-ax = fig.add_subplot(111)
-ax.grid()
+# ax = fig.add_subplot(111)
+# ax.grid()
 
-plt.hist(s4)
+plt.hist(s4, align=u'left')
 
 plt.xlabel('Tasks Completed')
 plt.ylabel('Number of Runs')

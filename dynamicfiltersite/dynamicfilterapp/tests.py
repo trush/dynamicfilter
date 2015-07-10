@@ -656,7 +656,7 @@ class SimulationTest(TestCase):
 
         #         # pick one predicate to define a correct answer for
         #         restPred = choice(predicateSet)
-        #         predicateSet = predicateSet.exclude(id=restPred.id)
+        #         predicateSet = predicateSet.exclude(id=restPFalsered.id)
 
         #         # probabilistically assign the correct answer
         #         if random() < branchSelectivities[branches[restPred.index]]:
@@ -688,10 +688,10 @@ class SimulationTest(TestCase):
         # for pred in predicates:
         #     predicateAnswers[pred] = False
 
-        answers = [True, True, True,
-                   True, True, False,
-                   False, True, True,
-                   True, False, False]
+        # answers = [True, True, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            True, False, False]
 
         # answers = [False, False, True,
         #            True, False, True,
@@ -703,18 +703,20 @@ class SimulationTest(TestCase):
         #            False, True, True,
         #            False, False, True,
         #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
+        #            ]
+
+        answers = [True, False, False,
+                   False, False, True,
+                   False, True, False,
+                   False, False, True,
+                   False, False, True,
+                   True, True, False,
+                   False, True, True,
+                   False, True, False,
+                   False, False, False,
+                   False, True, True]
+
+
         #            True, True, False,
         #            False, True, True,
         #            False, False, True,
@@ -819,7 +821,7 @@ class SimulationTest(TestCase):
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
         set1 =[ 100, # number of simulations
-                4, # number of restaurants
+                10, # number of restaurants
                 [100,100,100,100,100], # confidence options
                 [0.0], # personality options
                 0.0, # selectivity 0

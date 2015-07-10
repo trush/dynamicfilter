@@ -54,7 +54,6 @@ def aggregate_responses(predicate):
 
     # if more no's than yes's
     elif totalNo > totalYes and uncertaintyLevelFalse < UNCERTAINTY_THRESHOLD:
-        # print "--1"
         predicate.value = False
 
         # flag for the Restaurant failing a predicate (and thus not passing all the predicates)
@@ -189,7 +188,13 @@ def printQuerySet(qs):
 
 def eddy2(ID):
     # find the first Restaurant in the queue that isn't finished
-    rest = Restaurant.objects.exclude(queueIndex=-1).order_by('queueIndex')[0]
+    sortedRestaurants = Restaurant.objects.exclude(queueIndex=-1).order_by('queueIndex')
+
+    if len(sortedRestaurants)==0:
+        return None
+    else:
+        rest = sortedRestaurants[0]
+
     # print "Restaurant: " + str(rest)
 
     # find all the tasks this worker has completed
