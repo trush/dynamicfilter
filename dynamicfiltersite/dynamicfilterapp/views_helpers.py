@@ -164,7 +164,7 @@ def eddy(ID):
     # generates the restaurant with the highest priority for the specified 
     # predicate branch
     chosenRestaurant = findRestaurant(chosenBranch, ID)
-    
+
     # mark chosenRestaurant as being in chosenBranch
     chosenRestaurant.evaluator = chosenBranch.index
 
@@ -383,9 +383,23 @@ def runLotteryWeightedWithMemory(pbSet):
             highestBranch = branch
             highestSelectivity = float(highestBranch.returnedNo)/highestBranch.returnedTotal
 
-    # for branch in pbSet:
-    #     if branch != highestBranch:
-    #         otherSelectivities += float(branch.returnedNo)/branch.returnedTotal
+    if len(Task.objects.all()) < 200:
+        tickets[highestBranch] *= (1+len(Task.objects.all())/50*.125)
+    else:
+        tickets[highestBranch] *= 2
+
+
+    # generate random number between 1 and totalTickets
+    rand = randint(1, int(totalTickets))
+
+    # check if rand falls in the range corresponding to each predicate
+    lowBound = 0
+    highBound = tickets[pbSet[0]]
+    
+    # an empty PredicateBranch object NOT saved in the database
+    chosenBranch = PredicateBranch()
+    # loops through all valid predicate branches
+    for j in range(len(pbSet)):
 
     for pb in pbSet:
         if pb.index == INDEX:

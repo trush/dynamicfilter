@@ -728,6 +728,7 @@ class SimulationTest(TestCase):
                    True, True, False,
                    True, True, False,
                    True, True, False]
+
         set1 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
