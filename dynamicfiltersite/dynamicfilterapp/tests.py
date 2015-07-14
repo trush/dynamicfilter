@@ -443,10 +443,10 @@ class SimulationTest(TestCase):
             
             if recordRandomStats: self.write_results(results_random, "random")
             self.reset_simulation()
-
-
             if recordAggregateStats: aggregateResults.append([eddyTasks, eddyCorrectPercentage, eddy2Tasks, eddy2CorrectPercentage, randomTasks, randomCorrectPercentage])
 
+        self.clear_database()
+  
         if recordAggregateStats: self.write_results(aggregateResults, "aggregate_results")
 
     def write_results(self, results, label):
@@ -688,121 +688,6 @@ class SimulationTest(TestCase):
         # for pred in predicates:
         #     predicateAnswers[pred] = False
 
-<<<<<<< HEAD
-=======
-        answers = [True, False, False,
-                   True, False, True,
-                   True, False, False,
-                   True, False, True,
-                   True, False, False,
-                   False, True, True,
-                   False, True, False,
-                   False, True, True,
-                   False, True, False,
-                   False, True, True]
-
-        # answers = [False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, False,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, False,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, False,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True,
-        #            False, False, True,
-        #            True, False, True,
-        #            True, True, False,
-        #            False, True, True ]
->>>>>>> origin/master
-
         i = 0
         for rest in Restaurant.objects.all():
             for pb in PredicateBranch.objects.order_by('index'):
@@ -812,6 +697,12 @@ class SimulationTest(TestCase):
 
 
         return predicateAnswers
+
+    def clear_database(self):
+        Restaurant.objects.all().delete()
+        RestaurantPredicate.objects.all().delete()
+        Task.objects.all().delete()
+        PredicateBranch.objects.all().delete()
 
     def test_many_simulation_controller(self):
         """
