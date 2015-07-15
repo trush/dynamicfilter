@@ -157,7 +157,7 @@ def eddy(ID):
                 break
 
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLottery(eligiblePredicateBranches)
+        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
     else:
         return None
 
@@ -227,7 +227,7 @@ def eddy2(ID):
                 break
 
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLottery(eligiblePredicateBranches)
+        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
     else:
         return None
 
@@ -333,8 +333,8 @@ def runLotteryWeighted(pbSet):
             highestBranch = branch
             highestSelectivity = float(highestBranch.returnedNo)/highestBranch.returnedTotal
 
-    tickets[highestBranch] *= 2
-    totalTickets += tickets[highestBranch]/2
+    tickets[highestBranch] *= 3
+    totalTickets += tickets[highestBranch]*2/3
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
