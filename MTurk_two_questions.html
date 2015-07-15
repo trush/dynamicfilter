@@ -1,0 +1,103 @@
+<!-- Bootstrap v3.0.3 -->
+<link href="https://s3.amazonaws.com/mturk-public/bs30/css/bootstrap.min.css" rel="stylesheet" /><script>
+
+//window.onload = function() {document.getElementById('submitButton').setAttribute('onclick', 'return validateForm()'); }
+
+var questionAnswered = false;
+
+function clickedYesOrNo() {
+    questionAnswered = true;
+    document.getElementById('confidenceChoices').required = true
+    //alert(document.getElementById('confidenceChoices').required);
+}
+
+function clickedIDontKnow() {
+    questionAnswered = true;
+    document.getElementById('confidenceChoices').required = false;
+    //alert(document.getElementById('confidenceChoices').required);
+}
+
+</script>
+
+<section class="container" id="Other" style="margin-bottom:15px; padding: 10px 10px; font-family: Verdana, Geneva, sans-serif; color:#333333; font-size:0.9em;">&nbsp;</section>
+
+<div class="row col-xs-12 col-md-12">
+<div class="panel panel-primary">
+<div class="panel-heading"><strong>Consent form - REQUIRED</strong></div>
+
+<div class="panel-body">This task is part of a research project aimed at figuring out how easy or difficult questions are about various items. The goal is to learn which questions are easier in order to adjust the order in which questions are asked. Please indicate your consent to participate by checking here:<br />
+<br />
+<input name="box1" required="" type="checkbox" value="first_checkbox" /> I give my consent.<br />
+<br />
+If you do not want to participate, please return the HIT.</div>
+</div>
+</div>
+
+<div class="row col-xs-12 col-md-12"><!-- Instructions -->
+<div class="panel panel-primary">
+<div class="panel-heading"><strong>Instructions</strong></div>
+
+<div class="panel-body">
+    <ol>
+        <li>You will be provided with a restaurant name and address.</li>
+        <li>Using the internet or other resources, answer one question about the restaurant.</li>
+        <li>Rate how sure of your answer you are, with 100% indicating that you are completely certain. </li>
+        <li>If you can&#39;t find any relevant information, check the box marked &quot;I don&#39;t know.&quot; </li>
+        <li>If you try to find the information, you will not be penalized for entering a low certainty or checking &quot;I don&#39;t know.&quot; </li>
+        <li>Optionally, you may provide feedback on the clarity of the instructions, the presentation&nbsp;or difficulty of the task, or anything else.</li>
+    </ol>
+</div>
+</div>
+<!-- End Instructions --><!-- Content Body -->
+
+<section>
+<fieldset>
+<p><label>Restaurant: ${Restaurant}</label></p>
+
+<p><label>Address: ${Address}</label></p>
+
+<p><label>${Question}</label></p>
+
+<div class="radio">
+    <label>
+        <input name="Q1AnswerPart1" onclick="clickedYesOrNo()" required type="radio" value="Yes" />Yes
+    </label>
+</div>
+
+<div class="radio">
+    <label>
+        <input name="Q1AnswerPart1" onclick="clickedYesOrNo()" type="radio" value="No" />No
+    </label>
+</div>
+
+<div class="radio">
+    <label>
+    <input name="Q1AnswerPart1" onclick="clickedIDontKnow()" type="radio" value="IDK" />I don&#39;t know
+    </label>
+</div>
+<br>
+<p><b>How sure are you?</b></p>
+<select id='confidenceChoices' class="form-control" name="Q1AnswerPart2" required=>
+    <option selected disabled hidden value=''></option>
+    <optgroup>
+        <option value="60">60</option>
+        <option value="70">70</option>
+        <option value="80">80</option>
+        <option value="90">90</option>
+        <option value="100">100</option>
+    </optgroup>
+</select>
+
+</fieldset>
+
+<fieldset>
+    <label>Comments/Concerns/Feedback</label>
+    <textarea class="form-control" cols="120" name="MultiLineTextInput" rows="5"></textarea>
+</fieldset>
+
+</form>
+<!-- End Content Body -->
+</section>
+</div>
+<style type="text/css">fieldset { padding: 10px; background:#fbfbfb; border-radius:5px; margin-bottom:5px; }
+</style>
