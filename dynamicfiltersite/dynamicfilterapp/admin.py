@@ -17,13 +17,13 @@ class TaskAdmin(admin.ModelAdmin):
 
 class RestaurantPredicateAdmin(admin.ModelAdmin):
     list_display = ('restaurant', 'question')
-    readonly_fields = ('restaurant', 'question', 'value')
+    readonly_fields = ('restaurant', 'value')
 
     def has_add_permission(self, request):
-        return False
+        return True
 
-    # def has_delete_permission(self, request, obj=None):
-    #     return False   
+    def has_delete_permission(self, request, obj=None):
+        return False   
 
 # Register models so they're accessible from admin site
 admin.site.register(Restaurant, RestaurantAdmin)

@@ -399,8 +399,6 @@ def runLotteryWeightedWithMemory(pbSet):
     # an empty PredicateBranch object NOT saved in the database
     chosenBranch = PredicateBranch()
     # loops through all valid predicate branches
-    for j in range(len(pbSet)):
-
     for pb in pbSet:
         if pb.index == INDEX:
             pastBranchExists = True
