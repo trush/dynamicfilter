@@ -1,110 +1,131 @@
 <!-- Bootstrap v3.0.3 -->
-<link href="https://s3.amazonaws.com/mturk-public/bs30/css/bootstrap.min.css" rel="stylesheet" /><script>
+<link href="https://s3.amazonaws.com/mturk-public/bs30/css/bootstrap.min.css" rel="stylesheet" />
 
-var questionAnswered = false;
+<script type="text/javascript">
 
-function clickedYesOrNo() {
-    questionAnswered = true;
-    document.getElementById('confidenceChoices').required = true
-    //alert(document.getElementById('confidenceChoices').required);
-}
+    var questionAnswered = false;
+    var start_ms;
+    var end_ms;
 
-function clickedIDontKnow() {
-    questionAnswered = true;
-    document.getElementById('confidenceChoices').required = false;
-    //alert(document.getElementById('confidenceChoices').required);
-}
+    function clickedYesOrNo() {
+        questionAnswered = true;
+        document.getElementById('confidenceChoices').required = true
+        //alert(document.getElementById('confidenceChoices').required);
+    }
+
+    function clickedIDontKnow() {
+        questionAnswered = true;
+        document.getElementById('confidenceChoices').required = false;
+        //alert(document.getElementById('confidenceChoices').required);
+    }
+
+    function startTime() {
+        start = new Date();
+        start_ms = start.getTime();
+    }
+
+    function endTime() {
+        end = new Date();
+        end_ms = end.getTime();
+        var elem = document.getElementById("elapsed_time");
+        elem.value = end_ms-start_ms;
+    }
+
+    function getGoogleLink() {
+        link = "http://www.google.com/search?q="
+        link += '{{ predicate.restaurant.name}}' + "+" + '{{predicate.restaurant.city}}' + "+" + '{{ predicate.restaurant.state }}'
+        link.replace(" ", "+")
+        var a = document.getElementById("google_link")
+        a.href = link
+    }
 
 </script>
 
-<section class="container" id="Other" style="margin-bottom:15px; padding: 10px 10px; font-family: Verdana, Geneva, sans-serif; color:#333333; font-size:0.9em;">&nbsp;</section>
+<style>
+    body.padding{
+        padding-left:0.5cm;
+    }
+</style>
 
-<div class="row col-xs-12 col-md-12">
-<div class="panel panel-primary">
-<div class="panel-heading"><strong>Consent form - REQUIRED</strong></div>
+<body class="padding" onload='startTime();getGoogleLink()'>
 
-<div class="panel-body">This task is part of a research project aimed at figuring out how easy or difficult questions are about various items. The goal is to learn which questions are easier in order to adjust the order in which questions are asked. Please indicate your consent to participate by checking here:<br />
-<br />
-<input name="box1" required="" type="checkbox" value="first_checkbox" /> I give my consent.<br />
-<br />
-If you do not want to participate, please return the HIT.</div>
-</div>
-</div>
+    <form name = 'input_form' action="{% url 'answer_question' workerID %}" method='post'>
 
-<div class="row col-xs-12 col-md-12"><!-- Instructions -->
-<div class="panel panel-primary">
-<div class="panel-heading"><strong>Instructions</strong></div>
+        {% csrf_token %}
 
-<div class="panel-body">
-    <ol>
-        <li>You will be provided with a restaurant name and address.</li>
-        <li>Use the internet or other resources to answer a question about the restaurant, indicating how sure you are of your answer. ("Totally sure" indicates the highest certainty, "fairly sure" the next highest, and "somewhat sure" the lowest.)</li>
-        <li>If you can&#39;t find any relevant information, check the box marked &quot;I don&#39;t know.&quot; </li>
-        <li>As long as you try to find the information, your answer will not affect your reward.</li>
-        <li>Optionally, you may provide feedback on the clarity of the instructions, the presentation&nbsp;or difficulty of the task, or anything else.</li>
-    </ol>
-</div>
-</div>
-<!-- End Instructions --><!-- Content Body -->
+        <section class="container" id="Other" style="padding: 0px 0px 0px 0px; font-family: Verdana, Geneva, sans-serif; color:#333333; font-size:0.9em;">&nbsp;</section>
 
-<section>
-<fieldset>
-<p><label>Restaurant: {{ predicate.restaurant.name }}</label></p>
+        <div class="row col-xs-12 col-md-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading"><strong>Consent form - REQUIRED</strong></div>
 
-<p><label>Address: {{ predicate.restaurant.street }}, {{ predicate.restaurant.city }}, {{ predicate.restaurant.state }} {{predicate.restaurant.zipCode}}</label></p>
+                <div class="panel-body">This task is part of a research project aimed at figuring out how easy or difficult questions are about various items. The goal is to learn which questions are easier in order to adjust the order in which questions are asked. Please indicate your consent to participate by checking here:
 
-<p><label>{{ predicate.question }}</label></p>
-<form>
-<div class="radio">
-    <label>
-    <input name="Q1AnswerPart1" required onclick="clickedIDontKnow()" type="radio" value="100" />Yes (totally sure)
-    </label>
-</div>
-<div class="radio">
-    <label>
-    <input name="Q1AnswerPart1" onclick="clickedIDontKnow()" type="radio" value="80" />Yes (fairly sure)
-    </label>
-</div>
+                    <br />
+                    <br />
 
-<div class="radio">
-    <label>
-    <input name="Q1AnswerPart1" onclick="clickedIDontKnow()" type="radio" value="60" />Yes (somewhat sure)
-    </label>
-</div>
+                    <input name="box1" required type="checkbox" value="first_checkbox" /> I give my consent.
 
-<div class="radio">
-    <label>
-        <input name="Q1AnswerPart1" onclick="clickedYesOrNo()" type="radio" value="0" />I don't know.
-    </label>
-</div>
+                    <br />
+                    <br />
 
-<div class="radio">
-    <label>
-        <input name="Q1AnswerPart1" onclick="clickedYesOrNo()" required type="radio" value="-60" />No (somewhat sure)
-    </label>
-</div>
-<div class="radio">
-    <label>
-    <input name="Q1AnswerPart1" onclick="clickedIDontKnow()" type="radio" value="-80" />No (fairly sure)
-    </label>
-</div>
-<div class="radio">
-    <label>
-        <input name="Q1AnswerPart1" onclick="clickedYesOrNo()" required type="radio" value="-100" />No (totally sure)
-    </label>
-</div>
+                    If you do not want to participate, please return the HIT.
+                </div>
+            </div>
+        </div>
 
+        <div class="row col-xs-12 col-md-12"><!-- Instructions -->
+            <div class="panel panel-primary">
+                <div class="panel-heading"><strong>Instructions</strong></div>
 
-</fieldset>
+                <div class="panel-body">
+                    <ol>
+                        <li>You will be provided with a restaurant name and address.</li>
+                        <li>Use the internet or other resources to answer a question about the restaurant, indicating how sure you are of your answer. ("Totally sure" indicates the highest certainty, "fairly sure" the next highest, and "somewhat sure" the lowest.)</li>
+                        <li>If you can&#39;t find any relevant information, check the box marked &quot;I don&#39;t know.&quot; </li>
+                        <li>As long as you try to find the information, your answer will not affect your reward.</li>
+                        <li>Optionally, you may provide feedback on the clarity of the instructions, the presentation&nbsp;or difficulty of the task, or anything else.</li>
+                    </ol>
+                </div>
+            </div>
+        <!-- End Instructions --><!-- Content Body -->
 
-<fieldset>
-    <label>Comments/Concerns/Feedback</label>
-    <textarea class="form-control" cols="120" name="MultiLineTextInput" rows="5"></textarea>
-</fieldset>
-<input type="submit" value="Submit">
-</form>
-<!-- End Content Body -->
-</section>
-</div>
+            <section>
+
+                <p><label>Restaurant: {{ predicate.restaurant.name }}</label></p>
+
+                <p><label>Address: {{ predicate.restaurant.street }}, {{ predicate.restaurant.city }}, {{ predicate.restaurant.state }} {{predicate.restaurant.zipCode}}</label></p>
+
+                <p>
+                    <label>Search Tools: 
+                        <a href = "http://www.google.com/search?q=broken+link" target="_blank" id='google_link'>Google</a>
+                    </label>
+                </p>
+
+                <br />
+
+                <table>
+                    <p><label>Question: {{ predicate.question }}</label></p>
+                    
+                    {{ form.as_p }}
+                </table>
+
+                <br />
+                <br />
+
+        <!-- End Content Body -->
+            </section>
+        </div>
+
+        <input type="hidden" id="elapsed_time" name = "elapsed_time" value="555">
+        <input type="hidden" id="pred_id" name = "pred_id" value={{ predicate.id }}> 
+
+        <div style="text-align:center">
+            <input type="submit" value="Submit" onclick='endTime()'>
+        </div>
+
+    </form>
+</body>
+
 <style type="text/css">fieldset { padding: 10px; background:#fbfbfb; border-radius:5px; margin-bottom:5px; }
 </style>

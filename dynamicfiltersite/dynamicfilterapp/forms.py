@@ -8,28 +8,18 @@ class WorkerForm(forms.Form):
     """
     # choice fields for worker answering predicates
     WORKER_ANSWER_CHOICES = (
-        (None, "------"),
-        (True, 'Yes'),
-        (False, 'No'),
+        (1, "Yes (totally sure)"),
+        (0.8, "Yes (fairly sure)"),
+        (0.6, "Yes (somewhat sure)"),
+        (0, "I don't know."),
+        (-0.6, "No (somewhat sure)"),
+        (-0.8, "No (fairly sure)"),
+        (-1, "No (totally sure)"),
     )
 
-    # how confident a worker is in his/her answer
-    CONFIDENCE_LEVELS = (
-        (None, '------'),
-        ('60', '60%'),
-        ('70', '70%'),
-        ('80', '80%'),
-        ('90', '90%'),
-        ('100', '100%'),
-    )
-
-    # sets up form for answering predicate and worker's confidence level
-    answerToQuestion = forms.ChoiceField(choices=WORKER_ANSWER_CHOICES, 
-        label='Answer')
-    confidenceLevel = forms.ChoiceField(choices=CONFIDENCE_LEVELS, 
-        label='Certainty')
-    IDontKnow = forms.BooleanField(label="I don't know", required=False)
-    feedback = forms.CharField(widget=forms.Textarea, label='Feedback (optional)', required=False)
+    # sets up form for answering predicate
+    answerToQuestion = forms.ChoiceField(choices=WORKER_ANSWER_CHOICES, widget=forms.Select(), label="Answer Choices:")
+    feedback = forms.CharField(widget=forms.Textarea, label='Comments/Concerns/Feedback:', required=False)
 
 class RestaurantAdminForm(forms.ModelForm):
     """

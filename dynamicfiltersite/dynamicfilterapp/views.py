@@ -40,7 +40,7 @@ def answer_question(request, IDnumber):
         # create a form instance and populate it with data from the request:
         form = WorkerForm(request.POST, label_suffix='')
         toBeAnswered = RestaurantPredicate.objects.filter(id=request.POST.get('pred_id'))[0]
-        
+        print toBeAnswered
         # check whether it's valid:
         if form.is_valid():
 
@@ -49,18 +49,25 @@ def answer_question(request, IDnumber):
 
             # Convert entered answer to type compatible with NullBooleanField
             form_answer = None
+            idk = False
 
+            print form.cleaned_data
             # if worker answered Yes
-            if form.cleaned_data['answerToQuestion'] == "True":
+            if float(form.cleaned_data['answerToQuestion']) > 0:
                 form_answer = True
 
             # if worker answered No
-            elif form.cleaned_data['answerToQuestion'] == "False":
+            elif float(form.cleaned_data['answerToQuestion']) < 0:
                 form_answer = False
 
+            elif float(form.cleaned_data['answerToQuestion']) == 0:
+                idk = True
+
+            confLevel = abs(float(form.cleaned_data['answerToQuestion'])*100)
+
             # create a new Task with relevant information and store it in the database
-            task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, confidenceLevel=form.cleaned_data['confidenceLevel'],
-                workerID = IDnumber, completionTime = timeToComplete, IDontKnow=form.cleaned_data['IDontKnow'], feedback=form.cleaned_data['feedback'])
+            task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, confidenceLevel=confLevel,
+                workerID = IDnumber, completionTime = timeToComplete, IDontKnow=idk, feedback=form.cleaned_data['feedback'])
             task.save()
 
              # get the PredicateBranch associated with this predicate
@@ -89,7 +96,7 @@ def answer_question(request, IDnumber):
 
     # if a GET (or any other method) we'll create a blank form
     else:
-        toBeAnswered = eddy(IDnumber)
+        toBeAnswered = eddy2(IDnumber)
         print "toBeAnswered: " + str(toBeAnswered)
         # if there are no predicates to be answered by the worker with this ID number
         if toBeAnswered == None:

@@ -325,6 +325,7 @@ def runLotteryWeighted(pbSet):
     highestBranch = pbSet[0]
 
     for branch in pbSet:
+        print branch.returnedTotal
         t = (float(branch.returnedNo)/branch.returnedTotal)*1000
         tickets[branch] = t
         totalTickets += t
