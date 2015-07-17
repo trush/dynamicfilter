@@ -40,7 +40,7 @@ def answer_question(request, IDnumber):
         # create a form instance and populate it with data from the request:
         form = WorkerForm(request.POST, label_suffix='')
         toBeAnswered = RestaurantPredicate.objects.filter(id=request.POST.get('pred_id'))[0]
-        print toBeAnswered
+        
         # check whether it's valid:
         if form.is_valid():
 
@@ -51,7 +51,6 @@ def answer_question(request, IDnumber):
             form_answer = None
             idk = False
 
-            print form.cleaned_data
             # if worker answered Yes
             if float(form.cleaned_data['answerToQuestion']) > 0:
                 form_answer = True
@@ -98,9 +97,11 @@ def answer_question(request, IDnumber):
     else:
         toBeAnswered = eddy2(IDnumber)
         print "toBeAnswered: " + str(toBeAnswered)
+
         # if there are no predicates to be answered by the worker with this ID number
         if toBeAnswered == None:
             return HttpResponseRedirect('/dynamicfilterapp/no_questions/id=' + IDnumber)
+            
         form = WorkerForm(label_suffix='')
 
     return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 'workerID': IDnumber })

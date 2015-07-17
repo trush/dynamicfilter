@@ -90,12 +90,15 @@ def printResults():
     predicates to the terminal.
     """
     left = RestaurantPredicate.objects.filter(value=None)
+
     if len(left)==0:
         print "----------RESULTS-----------"
         print "The following restaurants satisfied all predicates"
         filtered = Restaurant.objects.exclude(hasFailed=True)
+
         for restaurant in filtered:
             print str(restaurant) + " " + str(restaurant.predicate0Status) + " " + str(restaurant.predicate1Status) + " " + str(restaurant.predicate2Status)
+        
         print "----------------------------"
 
 def markFailed(predicate):
@@ -105,6 +108,7 @@ def markFailed(predicate):
     """
     predicate.restaurant.hasFailed = True
     predicate.restaurant.queueIndex = -1
+
     return predicate.restaurant
 
 def updateCounts(pB, task):
@@ -116,6 +120,7 @@ def updateCounts(pB, task):
     elif task.answer==False:
         pB.returnedTotal += float(task.confidenceLevel)/100.0
         pB.returnedNo += float(task.confidenceLevel)/100.0
+
     pB.save()
 
 def findNumPredicates():
@@ -127,6 +132,7 @@ def findNumPredicates():
     for field in restaurantFields:
         if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
             numOfPredicateStatuses += 1
+
     return numOfPredicateStatuses
 
 def eddy(ID):
@@ -148,6 +154,7 @@ def eddy(ID):
     incompletePredicates1 = RestaurantPredicate.objects.exclude(id__in=completedPredicates)
 
     incompletePredicates = incompletePredicates1.filter(restaurant__hasFailed=False).filter(value=None)
+
     # finds eligible predicate branches
     eligiblePredicateBranches = []
     for i in range(numOfPredicateStatuses):
@@ -179,8 +186,10 @@ def printQuerySet(qs):
         return ""
     else:
         result = "\n"
+
         for item in qs:
             result += str(item)+"\n"
+
         return result
 
 def eddy2(ID):
@@ -200,19 +209,24 @@ def eddy2(ID):
 
     # get only incomplete predicates matching this restaurant and eligible to this worker
     incompletePredicates = RestaurantPredicate.objects.exclude(id__in=completedPredicates).filter(restaurant__hasFailed=False).filter(value=None, restaurant=rest)
+    
     # check for predicates meeting the uncertainty threshold for evaluating to False
     almostFalsePredicates = []
     FALSE_THRESHOLD = 0.15
+
     for pred in incompletePredicates:
         numYes = len(Task.objects.filter(restaurantPredicate=pred, answer=True))
         numNo = len(Task.objects.filter(restaurantPredicate=pred, answer=False))
         uncertainty = btdtr(numNo+1,numYes+1,0.50)
+
         if uncertainty < FALSE_THRESHOLD:
             almostFalsePredicates.append( (uncertainty, pred) )
+
     if len(almostFalsePredicates) > 0:
         # sort according to uncertainty, ascendingly, and return the predicate
         # which is the second item of the first tuple
         almostFalsePredicates.sort()
+
         return almostFalsePredicates[0][1]
 
     numOfPredicates = findNumPredicates()
@@ -250,6 +264,7 @@ def decrementStatus(index, restaurant):
             currentLeftToAsk = getattr(restaurant, field.verbose_name)
             #sets the field to currentLeftToAsk-1
             setattr(restaurant, field.verbose_name, currentLeftToAsk-1)
+
     restaurant.save()
 
 def incrementStatus(index, restaurant):
@@ -262,6 +277,7 @@ def incrementStatus(index, restaurant):
         setattr(restaurant, statusName, 2)
 
     restaurant.save()
+
     return restaurant
 
 def findTotalTickets(pbSet):
@@ -617,5 +633,6 @@ def randomAlgorithm(ID):
         chosenPredicate = choice(notCompletedPredicates)
          # mark chosenRestaurant as being in chosenBranch
         chosenPredicate.restaurant.evaluator = chosenPredicate.index
+        
         return chosenPredicate
 
