@@ -65,7 +65,7 @@ class RestaurantPredicate(models.Model):
     value = models.NullBooleanField(default=None)
 
     def __unicode__(self):
-        return self.question + self.restaurant.name
+        return self.question
 
 
 class Task(models.Model):
@@ -108,8 +108,8 @@ class PredicateBranch(models.Model):
     end = models.IntegerField(null=True, blank=True)
 
     # fields to keep track of selectivity
-    returnedTotal = models.FloatField(default=1)
-    returnedNo = models.FloatField(default=1)
+    returnedTotal = models.FloatField(default=1.0)
+    returnedNo = models.FloatField(default=1.0)
 
     def __unicode__(self):
         return "Predicate branch with question: " + str(self.question)

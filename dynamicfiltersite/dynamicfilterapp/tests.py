@@ -464,7 +464,7 @@ class SimulationTest(TestCase):
         pbIndex = 0
         for index in QUESTION_INDICES:
             q = uniqueQuestionsList[index]
-            enterPredicateBranch(q, pbIndex, 0, 0)
+            enterPredicateBranch(q, pbIndex, 1.0, 1.0)
             pbIndex += 1
 
             # make a corresponding predicate for each restaurant
@@ -500,7 +500,7 @@ class SimulationTest(TestCase):
             # Of the answered predicates, count how many are correct
             correctCount = 0
             for predicate in RestaurantPredicate.objects.exclude(value=None):
-                if predicate.value == predicateAnswers[predicate]:
+                if predicate.value == predicateAnswers[(predicate.restaurant.name, predicate.question)]:
                     correctCount += 1
             eddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
             
@@ -514,7 +514,7 @@ class SimulationTest(TestCase):
             # Of the answered predicates, count how many are correct
             correctCount = 0
             for predicate in RestaurantPredicate.objects.exclude(value=None):
-                if predicate.value == predicateAnswers[predicate]:
+                if predicate.value == predicateAnswers[(predicate.restaurant.name, predicate.question)]:
                     correctCount += 1
             eddy2CorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
             
@@ -528,7 +528,7 @@ class SimulationTest(TestCase):
             # Of the answered predicates, count how many are correct
             correctCount = 0
             for predicate in RestaurantPredicate.objects.exclude(value=None):
-                if predicate.value == predicateAnswers[predicate]:
+                if predicate.value == predicateAnswers[(predicate.restaurant.name, predicate.question)]:
                     correctCount += 1
             randomCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
             
@@ -712,15 +712,14 @@ class SimulationTest(TestCase):
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
 
-            # Don't delete it Kate
-            value = random.choice(dictionary[predicate])
+            value = choice(dictionary[predicate])
             if value > 0:
                 answer = True
             else:
                 answer = False
 
             confidenceLevel = abs(value)
-            
+            print confidenceLevel
             # make Task answering the predicate
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
             
@@ -778,7 +777,7 @@ class SimulationTest(TestCase):
 
         tasks = ["Tasks"]
         for i in range(len(branches)):
-            tasks.append(len(Task.objects.filter(restaurantPredicate_index=i)))
+            tasks.append(len(Task.objects.filter(restaurantPredicate__index=i)))
 
         returnedNo = ["Returned No"]
         for i in range(len(branches)):
@@ -799,21 +798,11 @@ class SimulationTest(TestCase):
             for i in range(len(branches)):
                 p = RestaurantPredicate.objects.filter(restaurant=r, index=i)[0]
                 answers[i].append(p.value)
-                predicateCorrectAnswers[i].append(predicateAnswers[p])
+                print predicateAnswers
+                predicateCorrectAnswers[i].append(predicateAnswers[(p.restaurant.name,p.question)])
 
-        for row in map(None, taskCount):
-            results.append(row)
-
-        for row in selectivities:
-            results.append(row)
-
-        for row in map(wheresWaldo, taskAnswers, tasksPerRestaurant, predicateList, tasks, returnedNo, returnedTotal, rests):
-            results.append(row)
-
-        for row in answers:
-            results.append(row)
-
-        for row in predicateCorrectAnswers:
+        for row in map(None, taskCount, wheresWaldo, taskAnswers, tasksPerRestaurant,
+                       predicateList, tasks, returnedNo, returnedTotal, rests):
             results.append(row)
 
         return results
