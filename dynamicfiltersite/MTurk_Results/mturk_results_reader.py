@@ -152,7 +152,7 @@ for (rest, quest, ans) in restaurantQuestionAnswers:
 for question in uniqueQuestionsList:
 	diffDic[question] = float(diffDic[question][0])/diffDic[question][1]
 
-# print "--------------"
+print "--------------"
 print diffDic
 
 # array of time each HIT took in case we need data points on time
