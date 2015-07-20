@@ -369,6 +369,51 @@ class findTotalTicketsTests(TestCase):
 
 class SimulationTest(TestCase):
 
+    def get_correct_answers(self, filename):
+        # read in correct answer data
+        answers = np.genfromtxt(fname=filename, 
+                                dtype={'formats': [np.dtype('S30'), np.dtype(bool), np.dtype(bool),
+                                                   np.dtype(bool), np.dtype(bool), np.dtype(bool),
+                                                   np.dtype(bool), np.dtype(bool), np.dtype(bool),
+                                                   np.dtype(bool), np.dtype(bool),],
+                                        'names': ['Restaurant', 'a0', 'a1', 'a2', 'a3',
+                                                  'a4', 'a5', 'a6', 'a7',
+                                                  'a8', 'a9']},
+                                delimiter=',',
+                                usecols=range(11),
+                                skip_header=1)
+
+        # create a dictionary of (restaurant, question) keys and boolean correct answer values
+        correctAnswers = {}
+
+        for restRow in answers:
+            r = list(restRow)
+
+            for i in range(10):
+                key = (r[0], uniqueQuestionsList[i])
+                value = r[i+1]
+                correctAnswers[key] = value
+        return correctAnswers
+
+    def get_sample_answer_dict(self, filename):
+        # read in data from workers
+        data = np.genfromtxt(fname=filename, 
+                            dtype={'formats': [np.dtype('S30'), np.dtype('S15'), np.dtype(int),
+                                               np.dtype('S50'), np.dtype('S100'), np.dtype(int)],
+                                    'names': ['AssignmentId', 'WorkerId', 'WorkTimeInSeconds',
+                                              'Input.Restaurant', 'Input.Question', 'Answer.Q1AnswerPart1']},
+                            delimiter=',',
+                            usecols=range(6),
+                            skip_header=1)
+        tasks = [(value3, value4, value5) for (value0, value1, value2, value3, value4, value5) in data]
+        sampleData = {}
+
+        for (value3, value4, value5) in tasks:
+            predKey = RestaurantPredicate.objects.filter(question=value4).filter(restaurant=value3)[0]
+            sampleData[predKey] = value5
+
+        return sampleData
+
     def test_simulation_sample_data(self, parameters):
         """
         A version of test_simulation that runs many simulations repeatedly in order to get aggregated data.
@@ -383,7 +428,7 @@ class SimulationTest(TestCase):
 
         NUM_SIMULATIONS = parameters[0]
         NUM_RESTAURANTS = parameters[1]
-        NUM_PREDICATES  = parameters[3]
+        QUESTION_INDICES = parameters[2]
 
         # get a list of the unique questions by pulling out the headers of the correct answers file
         uniqueQuestions = np.genfromtxt(fname=correctAnswersFile, 
@@ -400,15 +445,30 @@ class SimulationTest(TestCase):
 
         # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
         for i in range(NUM_RESTAURANTS):
-            enterRestaurant("Kate " + str(i), i)
+            r = Restaurant(name="Kate" + str(i), url="www.test.com", street="Test Address", city="Berkeley", state="CA",
+            zipCode=zipNum, country="USA", text="Please answer a question!")
+            r.queueIndex = len(Restaurant.objects.all())
+            r.save()
 
-        recordAggregateStats = parameters[10]
-        recordEddyStats = parameters[11]
-        recordEddy2Stats = parameters[12]
-        recordRandomStats = parameters[13]
+        # create predicate branches using the specified questions
+        pbIndex = 0
+        for index in QUESTION_INDICES:
+            q = uniqueQuestionsList[index]
+            enterPredicateBranch(q, pbIndex, 0, 0)
+            pbIndex += 1
 
-        # establish a set of known correct answers
-        predicateAnswers = self.set_correct_answers(branches, branchSelectivities, parameters[14])
+            # make a corresponding predicate for each restaurant
+            for r in Restaurant.objects.all():
+                p = RestaurantPredicate(restaurant=r, index=index, question=q)
+                p.save()
+
+        recordAggregateStats = parameters[3]
+        recordEddyStats = parameters[4]
+        recordEddy2Stats = parameters[5]
+        recordRandomStats = parameters[6]
+
+        # get a dictionary of known correct answers where the key is (restaurant, question) and the value is a boolean
+        predicateAnswers = self.get_correct_answers(correctAnswersFilename)
 
         aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
                            "random num tasks", "random correct percentage"]]
@@ -465,7 +525,7 @@ class SimulationTest(TestCase):
   
         if recordAggregateStats: self.write_results(aggregateResults, "aggregate_results")
 
-    def test_many_simulation(self, parameters):
+    # def test_many_simulation(self, parameters):
         """
         A version of test_simulation that runs many simulations repeatedly in order to get aggregated data.
         """
@@ -1084,3 +1144,37 @@ class SimulationTest(TestCase):
 
        # an audio alert that the tests are done
         os.system('say "simulations complete"')
+
+    def test_many_simulation_controller(self):
+        """
+        Calls the test_many_simulation function with as many sets of parameters as are specified.
+        """
+        recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
+
+        # choose whether to record individual run stats in separate files
+        eddy = False
+        eddy2 = False
+        random = False
+        
+        parameterSets = []
+        #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
+
+        set1 =[ 100, # number of simulations
+                10, # number of restaurants
+                [0,1,2,3,4,5,6,7,8,9], # indices of the questions to use
+                recordAggregateStats,
+                eddy,
+                eddy2,
+                random
+                ]
+        parameterSets.append(set1)
+
+
+        for parameters in parameterSets:
+            print "Parameter set: " + str(parameters)
+            self.test_many_simulation(parameters)
+
+       # an audio alert that the tests are done
+        os.system('say "simulations complete"')
+
+
