@@ -414,6 +414,7 @@ class SimulationTest(TestCase):
                            "random num tasks", "random correct percentage"]]
 
         # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
+        # arbitrary number of restaurants and predicate branches
         for k in range(NUM_SIMULATIONS):
 
             print "Eddy " + str(k)
@@ -591,7 +592,7 @@ class SimulationTest(TestCase):
             branch.returnedNo = 1
             branch.save()
 
-    def run_simulation(self, algorithm, branches, branchDifficulties, parameters, predicateAnswers):
+    def run_simulation(self, algorithm, branches, branchDifficulties, parameters, predicateAnswers, dictionary):
 
         # get the simulation parameters from the parameters list
         CONFIDENCE_OPTIONS = parameters[2]
@@ -609,9 +610,7 @@ class SimulationTest(TestCase):
         #results.append(label)
         tasksPerRestaurant = []
         #tasksPerRestaurant.append(label)
-        selectivity0OverTime = []
-        selectivity1OverTime = []
-        selectivity2OverTime = []
+        selectivities = [[] for i in range(len(branches))]
         taskCount = []
         wheresWaldo = [] # which predicate branch was the task in
         taskAnswers = []
@@ -627,10 +626,10 @@ class SimulationTest(TestCase):
 
         while (predicate != None):
 
-            # add the three current selectivity statistics to the results file
-            selectivity0OverTime.append(float(branches[0].returnedNo)/branches[0].returnedTotal)
-            selectivity1OverTime.append(float(branches[1].returnedNo)/branches[1].returnedTotal)
-            selectivity2OverTime.append(float(branches[2].returnedNo)/branches[2].returnedTotal)
+            # add the current selectivity statistics to the results file
+            for i in range(len(branches)):
+                selectivities[i].append(float(branches[i].returnedNo)/branches[i].returnedTotal)
+
             taskCount.append(counter)
             counter += 1
 
@@ -639,15 +638,7 @@ class SimulationTest(TestCase):
             # randomly select a confidence level
             confidenceLevel = choice(CONFIDENCE_OPTIONS)
 
-            # default answer is the correct choice
-            answer = predicateAnswers[predicate]
-            # generate random decimal from 0 to 1
-            randNum = random()
-        
-            # make the worker answer incorrectly with a probability determined by difficulty and personality
-            branch = PredicateBranch.objects.filter(index=predicate.index)[0]
-            if randNum < branchDifficulties[branch] + choice(PERSONALITIES):
-                answer = not answer
+            answer = random.choice(dictionary[predicate])
             
             # make Task answering the predicate
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
@@ -672,7 +663,7 @@ class SimulationTest(TestCase):
             # "move" the restaurant out of the predicate branch
             predicate.restaurant.evaluator = None
 
-            if predicate.restaurant.queueIndex !=-1:
+            if predicate.restaurant.queueIndex != -1:
                 # set the queue index to be right after the current last thing (only used in eddy 2)
                 currentLastIndex = Restaurant.objects.order_by('-queueIndex')[0].queueIndex
                 #print currentLastIndex
@@ -700,48 +691,48 @@ class SimulationTest(TestCase):
         for restaurant in Restaurant.objects.all():
             tasksPerRestaurant.append(len(Task.objects.filter(restaurantPredicate__restaurant=restaurant)))
     
-        predicateList = ["Predicate", "predicate 0", "predicate 1", "predicate 2"]
+        predicateList = ["Predicate"]
+        for i in range(len(branches)):
+            predicateList.append("predicate " + str(i))
 
-        tasks = ["Tasks", len(Task.objects.filter(restaurantPredicate__index=0)), 
-                          len(Task.objects.filter(restaurantPredicate__index=1)),
-                          len(Task.objects.filter(restaurantPredicate__index=2))]
+        tasks = ["Tasks"]
+        for i in range(len(branches)):
+            tasks.append(len(Task.objects.filter(restaurantPredicate_index=i)))
 
-        returnedNo = ["Returned No", 
-                      PredicateBranch.objects.filter(index=0)[0].returnedNo,
-                      PredicateBranch.objects.filter(index=1)[0].returnedNo,
-                      PredicateBranch.objects.filter(index=2)[0].returnedNo]
+        returnedNo = ["Returned No"]
+        for i in range(len(branches)):
+            returnedNo.append(PredicateBranch.objects.filter(index=i)[0].returnedNo)
 
-        returnedTotal = ["Returned Total", 
-                      PredicateBranch.objects.filter(index=0)[0].returnedTotal,
-                      PredicateBranch.objects.filter(index=1)[0].returnedTotal,
-                      PredicateBranch.objects.filter(index=2)[0].returnedTotal]
+        returnedTotal = ["Returned Total"]
+        for i in range(len(branches)):
+            returnedTotal.append(PredicateBranch.objects.filter(index=i)[0].returnedTotal)
 
         rests = ["Restaurant"]
-        p0Answers = ["P0"]
-        p1Answers = ["P1"]
-        p2Answers = ["P2"]
-
-        p0AnswersTrue = ["P0 True"]
-        p1AnswersTrue = ["P1 True"]
-        p2AnswersTrue = ["P2 True"]
+        # answers entered in by workers
+        answers = [["P" + str(i)] for i in range(len(branches))]
+        predicateCorrectAnswers = [["P" + str(i) + " True"] for i in range(len(branches))]
 
         for r in Restaurant.objects.all():
             rests.append(r)
-            p0 = RestaurantPredicate.objects.filter(restaurant=r, index=0)[0]
-            p0Answers.append(p0.value)
-            p0AnswersTrue.append(predicateAnswers[p0])
 
-            p1 = RestaurantPredicate.objects.filter(restaurant=r, index=1)[0]
-            p1Answers.append(p1.value)
-            p1AnswersTrue.append(predicateAnswers[p1])
+            for i in range(len(branches)):
+                p = RestaurantPredicate.objects.filter(restaurant=r, index=i)[0]
+                answers[i].append(p.value)
+                predicateCorrectAnswers[i].append(predicateAnswers[p])
 
-            p2 = RestaurantPredicate.objects.filter(restaurant=r, index=2)[0]
-            p2Answers.append(p2.value)
-            p2AnswersTrue.append(predicateAnswers[p2])
+        for row in map(None, taskCount)
+            results.append(row)
 
-        for row in map(None, taskCount, selectivity0OverTime, selectivity1OverTime, selectivity2OverTime, wheresWaldo, taskAnswers, tasksPerRestaurant,
-                       predicateList, tasks, returnedNo, returnedTotal, rests, p0Answers,
-                       p1Answers, p2Answers, p0AnswersTrue, p1AnswersTrue, p2AnswersTrue):
+        for row in selectivities:
+            results.append(row)
+
+        for row in map(wheresWaldo, taskAnswers, tasksPerRestaurant, predicateList, tasks, returnedNo, returnedTotal, rests):
+            results.append(row)
+
+        for row in answers:
+            results.append(row)
+
+        for row in predicateCorrectAnswers:
             results.append(row)
 
         return results
