@@ -1,6 +1,8 @@
 # A draft version of the eddy lottery code (to build independently and then 
 # integrate)
+
 # -*- coding: utf-8 -*-
+
 from random import randint, choice, random
 
 class LotteryTestClass:
@@ -14,7 +16,6 @@ class LotteryTestClass:
     debug = False
 
     def runLottery(self):
-
         HITS = 100
 
         for i in range(0,HITS):
@@ -25,10 +26,12 @@ class LotteryTestClass:
             # check if rand falls in the range corresponding to each predicate
             lowBound = 0
             highBound = self.predicates[0][3]*100
+
             for j in range(len(self.predicates)):
                 if self.debug: print "Finding if in range of predicate " + 
                     str(j) + "low: " + str(lowBound) + ", high: " + 
                     str(highBound)
+
                 if lowBound <= rand <= highBound:
                     self.evaluatePredicate(self.predicates[j])
                     break
@@ -36,9 +39,12 @@ class LotteryTestClass:
                     if self.debug: print "Moving to next range on predicate " + 
                         str(j)
                     lowBound = highBound
-                    if self.debug: print "j: " + str(j) 
+
+                    if self.debug: print "j: " + str(j)
+
                     nextPredicate = self.predicates[j+1]
                     highBound += nextPredicate[3]*100
+
                     if self.debug: print "new low: " + str(lowBound) + 
                         "new high: " + str(highBound)
 
@@ -49,6 +55,7 @@ class LotteryTestClass:
 
     def findTotalTickets(self):
         totalTickets = 0
+
         # award tickets based on computed selectivity
         for predicate in self.predicates:
             totalTickets += predicate[3]*100
@@ -63,6 +70,6 @@ class LotteryTestClass:
         if rand <= predicate[0]:
             # increment no
             predicate[2] += 1.0
+            
         # recompute selectivity
-
         predicate[3] = (predicate[2] + 1)/ (predicate[1]+1)

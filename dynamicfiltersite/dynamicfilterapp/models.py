@@ -28,7 +28,7 @@ class Restaurant(models.Model):
     predicate1Status = models.IntegerField(default=5)
     predicate2Status = models.IntegerField(default=5)
 
- #   numOfPredicates = models.IntegerField(default=3)
+    # numOfPredicates = models.IntegerField(default=3)
 
     # keeps track of when even one of its predicates fail
     hasFailed = models.BooleanField(default=False)
@@ -46,8 +46,10 @@ class Restaurant(models.Model):
         # no two restaurants can have the same address
         unique_together = ("street", "city", "state", "zipCode", "country")
 
-#for field in fields:
-#    Restaurant.add_to_class(field, models.IntegerField(default=5))
+
+# for field in fields:
+#     Restaurant.add_to_class(field, models.IntegerField(default=5))
+
 
 class RestaurantPredicate(models.Model):
     # the restaurant with which this predicate is affiliated
@@ -64,6 +66,7 @@ class RestaurantPredicate(models.Model):
 
     def __unicode__(self):
         return self.question
+
 
 class Task(models.Model):
     # the predicate that this task is answering

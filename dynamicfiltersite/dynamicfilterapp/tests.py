@@ -2,10 +2,12 @@
 from django.test import TestCase
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
+
 # What we wrote 
 from views_helpers import eddy, eddy2, aggregate_responses, decrementStatus, updateCounts, incrementStatus, findRestaurant, randomAlgorithm
 from .forms import RestaurantAdminForm
 from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
+
 # Python tools
 from numpy.random import normal, random
 from random import choice
@@ -21,6 +23,7 @@ def enterTask(ID, workerAnswer, time, confidence, predicate):
     task = Task(workerID=ID, completionTime=time, answer=workerAnswer, confidenceLevel=confidence, restaurantPredicate=predicate)
     task.save()
     return task
+
 
 def enterRestaurant(restaurantName, zipNum):
     """
@@ -43,9 +46,11 @@ def enterRestaurant(restaurantName, zipNum):
 
     return r
 
+
 def enterPredicateBranch(question, index, returnedTotal, returnedNo):
     #(RestaurantPredicate.objects.all()[0].question, 0, 1, 1)
     PredicateBranch.objects.get_or_create(question=question, index=index, returnedTotal=returnedTotal, returnedNo=returnedNo)
+
 
 class AggregateResponsesTestCase(TestCase):
     """
@@ -114,6 +119,7 @@ class AggregateResponsesTestCase(TestCase):
         self.assertEqual(r.predicate1Status,5)
         self.assertEqual(r.predicate2Status,5)
 
+
 class AnswerQuestionViewTests(TestCase):
 
     def test_answer_question_no_id(self):
@@ -122,6 +128,7 @@ class AnswerQuestionViewTests(TestCase):
         """
         response = self.client.get('/dynamicfilterapp/answer_question/')
         self.assertEqual(response.status_code, 404)
+
 
 class RestaurantCreationTests(TestCase):
     
@@ -136,6 +143,7 @@ class RestaurantCreationTests(TestCase):
         # Ensure that three predicates have been created to go with this restaurant
         self.assertEqual(len(RestaurantPredicate.objects.filter(restaurant=r)), 3)
 
+
 class NoQuestionViewTests(TestCase):
 
     WORKER_ID = 001
@@ -146,6 +154,7 @@ class NoQuestionViewTests(TestCase):
         """
         response = self.client.get(reverse('no_questions', args=[self.WORKER_ID]))
         self.assertContains(response, "There are no more questions to be answered at this time.")   
+
 
 class UpdateCountsTests(TestCase):
 
@@ -178,6 +187,7 @@ class UpdateCountsTests(TestCase):
         # total answers should be 3 and total no's should be 2
         self.assertEqual(PB.returnedTotal,2.6)
         self.assertEqual(PB.returnedNo, 1.6)
+
 
 class FindRestaurantTests(TestCase):
 
@@ -282,6 +292,7 @@ class FindRestaurantTests(TestCase):
         pb2=PredicateBranch.objects.all()[2]
         self.assertEqual(findRestaurant(pb2,100), r3)
 
+
 class DecrementStatusTests(TestCase):
 
     def test_decrement_status(self):
@@ -300,6 +311,7 @@ class DecrementStatusTests(TestCase):
         self.assertEqual(restaurant.predicate0Status, 4)
         self.assertEqual(restaurant.predicate1Status, 4)
         self.assertEqual(restaurant.predicate2Status, 4)
+
 
 class IncrementStatusTests(TestCase):
 
@@ -333,6 +345,7 @@ class IncrementStatusTests(TestCase):
         incrementStatus(0, restaurant)
         self.assertEqual(restaurant.predicate0Status, 2)
 
+
 class findTotalTicketsTests(TestCase):
 
     def test_find_Total_Tickets(self):
@@ -361,6 +374,7 @@ class findTotalTicketsTests(TestCase):
 
         # should equal 2000
         self.assertEqual(result, 2000)
+
 
 class SimulationTest(TestCase):
 
@@ -408,6 +422,7 @@ class SimulationTest(TestCase):
             print "Eddy " + str(k)
             results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers)
             eddyTasks = len(Task.objects.all())
+
             # Of the answered predicates, count how many are correct
             correctCount = 0
             for predicate in RestaurantPredicate.objects.exclude(value=None):
@@ -421,6 +436,7 @@ class SimulationTest(TestCase):
             print "Eddy2 " + str(k)
             results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, parameters, predicateAnswers)
             eddy2Tasks = len(Task.objects.all())
+
             # Of the answered predicates, count how many are correct
             correctCount = 0
             for predicate in RestaurantPredicate.objects.exclude(value=None):
@@ -434,6 +450,7 @@ class SimulationTest(TestCase):
             print "Random " + str(k)
             results_random = self.run_simulation(randomAlgorithm, branches, branchDifficulties, parameters, predicateAnswers)
             randomTasks = len(Task.objects.all())
+
             # Of the answered predicates, count how many are correct
             correctCount = 0
             for predicate in RestaurantPredicate.objects.exclude(value=None):
@@ -443,6 +460,7 @@ class SimulationTest(TestCase):
             
             if recordRandomStats: self.write_results(results_random, "random")
             self.reset_simulation()
+
             if recordAggregateStats: aggregateResults.append([eddyTasks, eddyCorrectPercentage, eddy2Tasks, eddy2CorrectPercentage, randomTasks, randomCorrectPercentage])
 
         self.clear_database()
@@ -501,6 +519,7 @@ class SimulationTest(TestCase):
                     "Task & Answer Distribution", "------", "------", "------",
                     "Evaluated Answers", "------", "------", "------",
                     "Correct Answers", "------", "------", "------"]]
+
         #results.append(label)
         tasksPerRestaurant = []
         #tasksPerRestaurant.append(label)
@@ -572,6 +591,7 @@ class SimulationTest(TestCase):
                 currentLastIndex = Restaurant.objects.order_by('-queueIndex')[0].queueIndex
                 #print currentLastIndex
                 predicate.restaurant.queueIndex = currentLastIndex + 1
+
             #print predicate.restaurant.queueIndex
             #print "Restaurants: " + str(Restaurant.objects.all())
             predicate.restaurant.save()
@@ -595,9 +615,11 @@ class SimulationTest(TestCase):
             tasksPerRestaurant.append(len(Task.objects.filter(restaurantPredicate__restaurant=restaurant)))
     
         predicateList = ["Predicate", "predicate 0", "predicate 1", "predicate 2"]
+
         tasks = ["Tasks", len(Task.objects.filter(restaurantPredicate__index=0)), 
                           len(Task.objects.filter(restaurantPredicate__index=1)),
                           len(Task.objects.filter(restaurantPredicate__index=2))]
+
         returnedNo = ["Returned No", 
                       PredicateBranch.objects.filter(index=0)[0].returnedNo,
                       PredicateBranch.objects.filter(index=1)[0].returnedNo,
@@ -635,6 +657,7 @@ class SimulationTest(TestCase):
                        predicateList, tasks, returnedNo, returnedTotal, rests, p0Answers,
                        p1Answers, p2Answers, p0AnswersTrue, p1AnswersTrue, p2AnswersTrue):
             results.append(row)
+
         return results
 
     def set_correct_answers(self, branches, branchSelectivities, answers):
@@ -694,7 +717,6 @@ class SimulationTest(TestCase):
                 pred = RestaurantPredicate.objects.filter(restaurant=rest, index=pb.index)[0]
                 predicateAnswers[pred] = answers[i]
                 i += 1
-
 
         return predicateAnswers
 
@@ -757,6 +779,7 @@ class SimulationTest(TestCase):
                    True, True, False,
                    False, True, True,
                    True, False, False]
+
         set2 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
@@ -785,6 +808,7 @@ class SimulationTest(TestCase):
                    True, True, False,
                    False, True, False,
                    True, False, False]
+
         set3 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
@@ -813,6 +837,7 @@ class SimulationTest(TestCase):
                    False, False, False,
                    False, False, False,
                    True, False, False]
+
         set4 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
@@ -841,6 +866,7 @@ class SimulationTest(TestCase):
                    True, True, True,
                    True, True, True,
                    True, True, True]
+
         set5 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
@@ -869,6 +895,7 @@ class SimulationTest(TestCase):
                    True, True, False,
                    True, True, True,
                    True, True, False]
+
         set6 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
@@ -897,6 +924,7 @@ class SimulationTest(TestCase):
                    True, True, False,
                    True, False, False,
                    True, False, False]
+
         set7 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
@@ -925,6 +953,7 @@ class SimulationTest(TestCase):
                    True, False, False,
                    False, False, False,
                    False, False, False]
+
         set8 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
@@ -953,6 +982,7 @@ class SimulationTest(TestCase):
                    True, True, False,
                    False, False, True,
                    True, False, False]
+                   
         set9 =[ 100, # number of simulations
                 10, # number of restaurants
                 [100,100,100,100,100], # confidence options
