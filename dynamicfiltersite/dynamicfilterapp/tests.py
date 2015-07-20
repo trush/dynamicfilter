@@ -46,11 +46,9 @@ def enterRestaurant(restaurantName, zipNum):
 
     return r
 
-
 def enterPredicateBranch(question, index, returnedTotal, returnedNo):
     #(RestaurantPredicate.objects.all()[0].question, 0, 1, 1)
     PredicateBranch.objects.get_or_create(question=question, index=index, returnedTotal=returnedTotal, returnedNo=returnedNo)
-
 
 class AggregateResponsesTestCase(TestCase):
     """
@@ -409,8 +407,10 @@ class SimulationTest(TestCase):
         sampleData = {}
 
         for (value3, value4, value5) in tasks:
-            predKey = RestaurantPredicate.objects.filter(question=value4).filter(restaurant=value3)[0]
-            sampleData[predKey] = value5
+            if value5 != 0:
+                predKey = RestaurantPredicate.objects.filter(question=value4).filter(restaurant=value3)[0]
+                sampleData[predKey] = list(sampleData[predKey])
+                sampleData[predKey].append(value5)
 
         return sampleData
 
@@ -470,6 +470,9 @@ class SimulationTest(TestCase):
         # get a dictionary of known correct answers where the key is (restaurant, question) and the value is a boolean
         predicateAnswers = self.get_correct_answers(correctAnswersFilename)
 
+        # gets a dictionary of the answers from the sample data, where the key is a predicate and the value is a list of answers
+        sampleDataDict = get_sample_answer_dict()
+
         aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
                            "random num tasks", "random correct percentage"]]
 
@@ -478,7 +481,7 @@ class SimulationTest(TestCase):
         for k in range(NUM_SIMULATIONS):
 
             print "Eddy " + str(k)
-            results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers)
+            results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers, sampleDataDict)
             eddyTasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -492,7 +495,7 @@ class SimulationTest(TestCase):
             self.reset_simulation()
 
             print "Eddy2 " + str(k)
-            results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, parameters, predicateAnswers)
+            results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, parameters, predicateAnswers, sampleDataDict)
             eddy2Tasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -506,7 +509,7 @@ class SimulationTest(TestCase):
             self.reset_simulation()
 
             print "Random " + str(k)
-            results_random = self.run_simulation(randomAlgorithm, branches, branchDifficulties, parameters, predicateAnswers)
+            results_random = self.run_simulation(randomAlgorithm, branches, branchDifficulties, parameters, predicateAnswers, sampleDataDict)
             randomTasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -526,93 +529,93 @@ class SimulationTest(TestCase):
         if recordAggregateStats: self.write_results(aggregateResults, "aggregate_results")
 
     # def test_many_simulation(self, parameters):
-        """
-        A version of test_simulation that runs many simulations repeatedly in order to get aggregated data.
-        """
+    #     """
+    #     A version of test_simulation that runs many simulations repeatedly in order to get aggregated data.
+    #     """
 
-        # record simulation identifying information to be put in each results file
-        label=[]
-        label.append(["Parameters:", str(parameters)])
-        now = datetime.datetime.now() # get the timestamp
-        label.append(["Time stamp:", str(now)])
+    #     # record simulation identifying information to be put in each results file
+    #     label=[]
+    #     label.append(["Parameters:", str(parameters)])
+    #     now = datetime.datetime.now() # get the timestamp
+    #     label.append(["Time stamp:", str(now)])
 
-        NUM_SIMULATIONS = parameters[0]
-        NUM_RESTAURANTS = parameters[1]
+    #     NUM_SIMULATIONS = parameters[0]
+    #     NUM_RESTAURANTS = parameters[1]
 
-        # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
-        for i in range(NUM_RESTAURANTS):
-            enterRestaurant("Kate " + str(i), i)
+    #     # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
+    #     for i in range(NUM_RESTAURANTS):
+    #         enterRestaurant("Kate " + str(i), i)
 
-        # set the selectivities and difficulties of each branch from parameters list
-        branches = PredicateBranch.objects.all().order_by("index")
-        branchSelectivities = {branches[0] : parameters[4],
-                               branches[1] : parameters[5],
-                               branches[2] : parameters[6]}
-        branchDifficulties = {branches[0] : parameters[7],
-                              branches[1] : parameters[8],
-                              branches[2] : parameters[9]}
+    #     # set the selectivities and difficulties of each branch from parameters list
+    #     branches = PredicateBranch.objects.all().order_by("index")
+    #     branchSelectivities = {branches[0] : parameters[4],
+    #                            branches[1] : parameters[5],
+    #                            branches[2] : parameters[6]}
+    #     branchDifficulties = {branches[0] : parameters[7],
+    #                           branches[1] : parameters[8],
+    #                           branches[2] : parameters[9]}
 
-        recordAggregateStats = parameters[10]
-        recordEddyStats = parameters[11]
-        recordEddy2Stats = parameters[12]
-        recordRandomStats = parameters[13]
+    #     recordAggregateStats = parameters[10]
+    #     recordEddyStats = parameters[11]
+    #     recordEddy2Stats = parameters[12]
+    #     recordRandomStats = parameters[13]
 
-        # establish a set of known correct answers
-        predicateAnswers = self.set_correct_answers(branches, branchSelectivities, parameters[14])
+    #     # establish a set of known correct answers
+    #     predicateAnswers = self.set_correct_answers(branches, branchSelectivities, parameters[14])
 
-        aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
-                           "random num tasks", "random correct percentage"]]
+    #     aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
+    #                        "random num tasks", "random correct percentage"]]
 
-        # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
-        for k in range(NUM_SIMULATIONS):
+    #     # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
+    #     for k in range(NUM_SIMULATIONS):
 
-            print "Eddy " + str(k)
-            results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers)
-            eddyTasks = len(Task.objects.all())
+    #         print "Eddy " + str(k)
+    #         results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers)
+    #         eddyTasks = len(Task.objects.all())
 
-            # Of the answered predicates, count how many are correct
-            correctCount = 0
-            for predicate in RestaurantPredicate.objects.exclude(value=None):
-                if predicate.value == predicateAnswers[predicate]:
-                    correctCount += 1
-            eddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+    #         # Of the answered predicates, count how many are correct
+    #         correctCount = 0
+    #         for predicate in RestaurantPredicate.objects.exclude(value=None):
+    #             if predicate.value == predicateAnswers[predicate]:
+    #                 correctCount += 1
+    #         eddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
             
-            if recordEddyStats: self.write_results(results_eddy, "eddy")
-            self.reset_simulation()
+    #         if recordEddyStats: self.write_results(results_eddy, "eddy")
+    #         self.reset_simulation()
 
-            print "Eddy2 " + str(k)
-            results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, parameters, predicateAnswers)
-            eddy2Tasks = len(Task.objects.all())
+    #         print "Eddy2 " + str(k)
+    #         results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, parameters, predicateAnswers)
+    #         eddy2Tasks = len(Task.objects.all())
 
-            # Of the answered predicates, count how many are correct
-            correctCount = 0
-            for predicate in RestaurantPredicate.objects.exclude(value=None):
-                if predicate.value == predicateAnswers[predicate]:
-                    correctCount += 1
-            eddy2CorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+    #         # Of the answered predicates, count how many are correct
+    #         correctCount = 0
+    #         for predicate in RestaurantPredicate.objects.exclude(value=None):
+    #             if predicate.value == predicateAnswers[predicate]:
+    #                 correctCount += 1
+    #         eddy2CorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
             
-            if recordEddyStats: self.write_results(results_eddy, "eddy2")
-            self.reset_simulation()
+    #         if recordEddyStats: self.write_results(results_eddy, "eddy2")
+    #         self.reset_simulation()
 
-            print "Random " + str(k)
-            results_random = self.run_simulation(randomAlgorithm, branches, branchDifficulties, parameters, predicateAnswers)
-            randomTasks = len(Task.objects.all())
+    #         print "Random " + str(k)
+    #         results_random = self.run_simulation(randomAlgorithm, branches, branchDifficulties, parameters, predicateAnswers)
+    #         randomTasks = len(Task.objects.all())
 
-            # Of the answered predicates, count how many are correct
-            correctCount = 0
-            for predicate in RestaurantPredicate.objects.exclude(value=None):
-                if predicate.value == predicateAnswers[predicate]:
-                    correctCount += 1
-            randomCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+    #         # Of the answered predicates, count how many are correct
+    #         correctCount = 0
+    #         for predicate in RestaurantPredicate.objects.exclude(value=None):
+    #             if predicate.value == predicateAnswers[predicate]:
+    #                 correctCount += 1
+    #         randomCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
             
-            if recordRandomStats: self.write_results(results_random, "random")
-            self.reset_simulation()
+    #         if recordRandomStats: self.write_results(results_random, "random")
+    #         self.reset_simulation()
 
-            if recordAggregateStats: aggregateResults.append([eddyTasks, eddyCorrectPercentage, eddy2Tasks, eddy2CorrectPercentage, randomTasks, randomCorrectPercentage])
+    #         if recordAggregateStats: aggregateResults.append([eddyTasks, eddyCorrectPercentage, eddy2Tasks, eddy2CorrectPercentage, randomTasks, randomCorrectPercentage])
 
-        self.clear_database()
+    #     self.clear_database()
   
-        if recordAggregateStats: self.write_results(aggregateResults, "aggregate_results")
+    #     if recordAggregateStats: self.write_results(aggregateResults, "aggregate_results")
 
     def write_results(self, results, label):
         """
@@ -780,7 +783,7 @@ class SimulationTest(TestCase):
                 answers[i].append(p.value)
                 predicateCorrectAnswers[i].append(predicateAnswers[p])
 
-        for row in map(None, taskCount)
+        for row in map(None, taskCount):
             results.append(row)
 
         for row in selectivities:
@@ -1145,7 +1148,7 @@ class SimulationTest(TestCase):
        # an audio alert that the tests are done
         os.system('say "simulations complete"')
 
-    def test_many_simulation_controller(self):
+    def test_sample_data_simulation_controller(self):
         """
         Calls the test_many_simulation function with as many sets of parameters as are specified.
         """
