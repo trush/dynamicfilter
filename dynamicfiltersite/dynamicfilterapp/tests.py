@@ -10,6 +10,7 @@ from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 
 # Python tools
 from numpy.random import normal, random
+import numpy as np
 from random import choice
 import datetime
 import csv
@@ -23,7 +24,6 @@ def enterTask(ID, workerAnswer, time, confidence, predicate):
     task = Task(workerID=ID, completionTime=time, answer=workerAnswer, confidenceLevel=confidence, restaurantPredicate=predicate)
     task.save()
     return task
-
 
 def enterRestaurant(restaurantName, zipNum):
     """
@@ -119,7 +119,6 @@ class AggregateResponsesTestCase(TestCase):
         self.assertEqual(r.predicate1Status,5)
         self.assertEqual(r.predicate2Status,5)
 
-
 class AnswerQuestionViewTests(TestCase):
 
     def test_answer_question_no_id(self):
@@ -128,7 +127,6 @@ class AnswerQuestionViewTests(TestCase):
         """
         response = self.client.get('/dynamicfilterapp/answer_question/')
         self.assertEqual(response.status_code, 404)
-
 
 class RestaurantCreationTests(TestCase):
     
@@ -143,7 +141,6 @@ class RestaurantCreationTests(TestCase):
         # Ensure that three predicates have been created to go with this restaurant
         self.assertEqual(len(RestaurantPredicate.objects.filter(restaurant=r)), 3)
 
-
 class NoQuestionViewTests(TestCase):
 
     WORKER_ID = 001
@@ -154,7 +151,6 @@ class NoQuestionViewTests(TestCase):
         """
         response = self.client.get(reverse('no_questions', args=[self.WORKER_ID]))
         self.assertContains(response, "There are no more questions to be answered at this time.")   
-
 
 class UpdateCountsTests(TestCase):
 
@@ -187,7 +183,6 @@ class UpdateCountsTests(TestCase):
         # total answers should be 3 and total no's should be 2
         self.assertEqual(PB.returnedTotal,2.6)
         self.assertEqual(PB.returnedNo, 1.6)
-
 
 class FindRestaurantTests(TestCase):
 
@@ -292,7 +287,6 @@ class FindRestaurantTests(TestCase):
         pb2=PredicateBranch.objects.all()[2]
         self.assertEqual(findRestaurant(pb2,100), r3)
 
-
 class DecrementStatusTests(TestCase):
 
     def test_decrement_status(self):
@@ -311,7 +305,6 @@ class DecrementStatusTests(TestCase):
         self.assertEqual(restaurant.predicate0Status, 4)
         self.assertEqual(restaurant.predicate1Status, 4)
         self.assertEqual(restaurant.predicate2Status, 4)
-
 
 class IncrementStatusTests(TestCase):
 
@@ -345,7 +338,6 @@ class IncrementStatusTests(TestCase):
         incrementStatus(0, restaurant)
         self.assertEqual(restaurant.predicate0Status, 2)
 
-
 class findTotalTicketsTests(TestCase):
 
     def test_find_Total_Tickets(self):
@@ -375,8 +367,102 @@ class findTotalTicketsTests(TestCase):
         # should equal 2000
         self.assertEqual(result, 2000)
 
-
 class SimulationTest(TestCase):
+
+    def test_simulation_sample_data(self, parameters):
+        """
+        A version of test_simulation that runs many simulations repeatedly in order to get aggregated data.
+        """
+        correctAnswersFilename = raw_input("Name of correct answers file: ")
+        cleanedDataFilename = raw_input("Name of cleaned data file: ")
+        # record simulation identifying information to be put in each results file
+        label=[]
+        label.append(["Parameters:", str(parameters)])
+        now = datetime.datetime.now() # get the timestamp
+        label.append(["Time stamp:", str(now)])
+
+        NUM_SIMULATIONS = parameters[0]
+        NUM_RESTAURANTS = parameters[1]
+        NUM_PREDICATES  = parameters[3]
+
+        # get a list of the unique questions by pulling out the headers of the correct answers file
+        uniqueQuestions = np.genfromtxt(fname=correctAnswersFile, 
+                                    dtype={'formats': [np.dtype('S100'),np.dtype('S100'),np.dtype('S100'),
+                                    np.dtype('S100'),np.dtype('S100'),np.dtype('S100'),np.dtype('S100'),
+                                    np.dtype('S100'),np.dtype('S100'),np.dtype('S100'),],
+                                            'names': ['a0', 'a1', 'a2', 'a3',
+                                                      'a4', 'a5', 'a6', 'a7',
+                                                      'a8', 'a9']},
+                                    delimiter=',',
+                                    usecols=range(1,11),
+                                    skip_footer=21)
+        uniqueQuestionsList = list(uniqueQuestions.tolist())
+
+        # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
+        for i in range(NUM_RESTAURANTS):
+            enterRestaurant("Kate " + str(i), i)
+
+        recordAggregateStats = parameters[10]
+        recordEddyStats = parameters[11]
+        recordEddy2Stats = parameters[12]
+        recordRandomStats = parameters[13]
+
+        # establish a set of known correct answers
+        predicateAnswers = self.set_correct_answers(branches, branchSelectivities, parameters[14])
+
+        aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
+                           "random num tasks", "random correct percentage"]]
+
+        # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
+        for k in range(NUM_SIMULATIONS):
+
+            print "Eddy " + str(k)
+            results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers)
+            eddyTasks = len(Task.objects.all())
+
+            # Of the answered predicates, count how many are correct
+            correctCount = 0
+            for predicate in RestaurantPredicate.objects.exclude(value=None):
+                if predicate.value == predicateAnswers[predicate]:
+                    correctCount += 1
+            eddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+            
+            if recordEddyStats: self.write_results(results_eddy, "eddy")
+            self.reset_simulation()
+
+            print "Eddy2 " + str(k)
+            results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, parameters, predicateAnswers)
+            eddy2Tasks = len(Task.objects.all())
+
+            # Of the answered predicates, count how many are correct
+            correctCount = 0
+            for predicate in RestaurantPredicate.objects.exclude(value=None):
+                if predicate.value == predicateAnswers[predicate]:
+                    correctCount += 1
+            eddy2CorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+            
+            if recordEddyStats: self.write_results(results_eddy, "eddy2")
+            self.reset_simulation()
+
+            print "Random " + str(k)
+            results_random = self.run_simulation(randomAlgorithm, branches, branchDifficulties, parameters, predicateAnswers)
+            randomTasks = len(Task.objects.all())
+
+            # Of the answered predicates, count how many are correct
+            correctCount = 0
+            for predicate in RestaurantPredicate.objects.exclude(value=None):
+                if predicate.value == predicateAnswers[predicate]:
+                    correctCount += 1
+            randomCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+            
+            if recordRandomStats: self.write_results(results_random, "random")
+            self.reset_simulation()
+
+            if recordAggregateStats: aggregateResults.append([eddyTasks, eddyCorrectPercentage, eddy2Tasks, eddy2CorrectPercentage, randomTasks, randomCorrectPercentage])
+
+        self.clear_database()
+  
+        if recordAggregateStats: self.write_results(aggregateResults, "aggregate_results")
 
     def test_many_simulation(self, parameters):
         """
