@@ -65,7 +65,7 @@ class RestaurantPredicate(models.Model):
     value = models.NullBooleanField(default=None)
 
     def __unicode__(self):
-        return self.question
+        return self.question + self.restaurant.name
 
 
 class Task(models.Model):

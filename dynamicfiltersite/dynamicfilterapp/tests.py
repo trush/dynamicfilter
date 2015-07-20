@@ -367,7 +367,7 @@ class findTotalTicketsTests(TestCase):
 
 class SimulationTest(TestCase):
 
-    def get_correct_answers(self, filename):
+    def get_correct_answers(self, filename, uniqueQuestionsList):
         # read in correct answer data
         answers = np.genfromtxt(fname=filename, 
                                 dtype={'formats': [np.dtype('S30'), np.dtype(bool), np.dtype(bool),
@@ -405,12 +405,18 @@ class SimulationTest(TestCase):
                             skip_header=1)
         tasks = [(value3, value4, value5) for (value0, value1, value2, value3, value4, value5) in data]
         sampleData = {}
+        for p in RestaurantPredicate.objects.all():
+            sampleData[p] = []
 
+        # print "RPS: " + str(RestaurantPredicate.objects.all())
         for (value3, value4, value5) in tasks:
+            # print "Restaurant: " + str(value3)
+            # print "Question: " + str(value4)
             if value5 != 0:
-                predKey = RestaurantPredicate.objects.filter(question=value4).filter(restaurant=value3)[0]
-                sampleData[predKey] = list(sampleData[predKey])
-                sampleData[predKey].append(value5)
+                predKey = RestaurantPredicate.objects.filter(question=value4)
+                # print "filter 1: " + str(predKey)
+                predKey2 = predKey.filter(restaurant__name=value3)[0]
+                sampleData[predKey2].append(value5)
 
         return sampleData
 
@@ -418,8 +424,8 @@ class SimulationTest(TestCase):
         """
         A version of test_simulation that runs many simulations repeatedly in order to get aggregated data.
         """
-        correctAnswersFilename = raw_input("Name of correct answers file: ")
-        cleanedDataFilename = raw_input("Name of cleaned data file: ")
+        correctAnswersFile = "MTurk_Results/correct_answers.csv"
+        cleanedDataFilename = "MTurk_Results/Batch_2019634_batch_results_cleaned.csv"
         # record simulation identifying information to be put in each results file
         label=[]
         label.append(["Parameters:", str(parameters)])
@@ -444,9 +450,13 @@ class SimulationTest(TestCase):
         uniqueQuestionsList = list(uniqueQuestions.tolist())
 
         # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
+        restaurantNames = ["Rivoli", "Zachary's Chicago Pizza", "Gather", "Angeline's Louisiana Kitchen", "Comal",
+                            "La Note Restaurant Provencal", "Ajanta", "Vik's Chaat and Market", "Chez Panisse", "Cheese Board Pizza",
+                            "FIVE", "Oliveto Restaurant", "Bette's Oceanview Diner", "Platano", "Brazil Cafe",
+                            "Gregoire", "Toss Noodle Bar", "Eureka!", "Great China", "Urbann Turbann"]
         for i in range(NUM_RESTAURANTS):
-            r = Restaurant(name="Kate" + str(i), url="www.test.com", street="Test Address", city="Berkeley", state="CA",
-            zipCode=zipNum, country="USA", text="Please answer a question!")
+            r = Restaurant(name=restaurantNames[i], url="www.test.com", street="Test Address", city="Berkeley", state="CA",
+            zipCode=i, country="USA", text="Please answer a question!")
             r.queueIndex = len(Restaurant.objects.all())
             r.save()
 
@@ -468,20 +478,23 @@ class SimulationTest(TestCase):
         recordRandomStats = parameters[6]
 
         # get a dictionary of known correct answers where the key is (restaurant, question) and the value is a boolean
-        predicateAnswers = self.get_correct_answers(correctAnswersFilename)
+        predicateAnswers = self.get_correct_answers(correctAnswersFile, uniqueQuestionsList)
 
         # gets a dictionary of the answers from the sample data, where the key is a predicate and the value is a list of answers
-        sampleDataDict = get_sample_answer_dict()
+        sampleDataDict = self.get_sample_answer_dict(cleanedDataFilename)
 
         aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
                            "random num tasks", "random correct percentage"]]
 
+        branches = PredicateBranch.objects.all().order_by("index")
+
         # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
         # arbitrary number of restaurants and predicate branches
         for k in range(NUM_SIMULATIONS):
+    
 
             print "Eddy " + str(k)
-            results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers, sampleDataDict)
+            results_eddy = self.run_simulation(eddy, branches, parameters, predicateAnswers, sampleDataDict)
             eddyTasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -495,7 +508,7 @@ class SimulationTest(TestCase):
             self.reset_simulation()
 
             print "Eddy2 " + str(k)
-            results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, parameters, predicateAnswers, sampleDataDict)
+            results_eddy = self.run_simulation(eddy2, branches, parameters, predicateAnswers, sampleDataDict)
             eddy2Tasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -509,7 +522,7 @@ class SimulationTest(TestCase):
             self.reset_simulation()
 
             print "Random " + str(k)
-            results_random = self.run_simulation(randomAlgorithm, branches, branchDifficulties, parameters, predicateAnswers, sampleDataDict)
+            results_random = self.run_simulation(randomAlgorithm, branches, parameters, predicateAnswers, sampleDataDict)
             randomTasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -655,7 +668,7 @@ class SimulationTest(TestCase):
             branch.returnedNo = 1
             branch.save()
 
-    def run_simulation(self, algorithm, branches, branchDifficulties, parameters, predicateAnswers, dictionary):
+    def run_simulation(self, algorithm, branches, parameters, predicateAnswers, dictionary):
 
         # get the simulation parameters from the parameters list
         CONFIDENCE_OPTIONS = parameters[2]
@@ -698,14 +711,10 @@ class SimulationTest(TestCase):
 
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
-            
-            value = random.choice(dictionary[predicate])
-            if value > 0:
-                answer = True
-            else:
-                answer = False
+            # randomly select a confidence level
+            confidenceLevel = choice(CONFIDENCE_OPTIONS)
 
-            confidenceLevel = abs(value)
+            answer = random.choice(dictionary[predicate])
             
             # make Task answering the predicate
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
@@ -1166,8 +1175,8 @@ class SimulationTest(TestCase):
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 100, # number of simulations
-                10, # number of restaurants
+        set1 =[ 1, # number of simulations
+                20, # number of restaurants
                 [0,1,2,3,4,5,6,7,8,9], # indices of the questions to use
                 recordAggregateStats,
                 eddy,
@@ -1179,7 +1188,7 @@ class SimulationTest(TestCase):
 
         for parameters in parameterSets:
             print "Parameter set: " + str(parameters)
-            self.test_many_simulation(parameters)
+            self.test_simulation_sample_data(parameters)
 
        # an audio alert that the tests are done
         os.system('say "simulations complete"')
