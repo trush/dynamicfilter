@@ -14,8 +14,8 @@ UNCERTAINTY_THRESHOLD = 0.15
 ALPHA = 0.9
 GAMMA = 0.1
 
-PRED_CHANGE_THRESHOLD = 0.6
 INDEX = 0
+MEMORY_THRESHOLD = 0.1
 
 def aggregate_responses(predicate):
     """
@@ -164,7 +164,7 @@ def eddy(ID):
                 break
 
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
+        chosenBranch = runLotteryWeightedWithMemory(eligiblePredicateBranches)
     else:
         return None
 
@@ -212,7 +212,7 @@ def eddy2(ID):
     
     # check for predicates meeting the uncertainty threshold for evaluating to False
     almostFalsePredicates = []
-    FALSE_THRESHOLD = 0.15
+    FALSE_THRESHOLD = 0.30 # was 0.15
 
     for pred in incompletePredicates:
         numYes = len(Task.objects.filter(restaurantPredicate=pred, answer=True))
@@ -241,7 +241,7 @@ def eddy2(ID):
                 break
 
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
+        chosenBranch = runLotteryWeightedWithMemory(eligiblePredicateBranches)
     else:
         return None
 
@@ -341,7 +341,6 @@ def runLotteryWeighted(pbSet):
     highestBranch = pbSet[0]
 
     for branch in pbSet:
-        print branch.returnedTotal
         t = (float(branch.returnedNo)/branch.returnedTotal)*1000
         tickets[branch] = t
         totalTickets += t
@@ -350,8 +349,8 @@ def runLotteryWeighted(pbSet):
             highestBranch = branch
             highestSelectivity = float(highestBranch.returnedNo)/highestBranch.returnedTotal
 
-    tickets[highestBranch] *= 3
-    totalTickets += tickets[highestBranch]*2/3
+    tickets[highestBranch] *= 2
+    totalTickets += tickets[highestBranch]/2
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
@@ -386,7 +385,7 @@ def runLotteryWeightedWithMemory(pbSet):
 
     totalTickets = 0
     tickets = {}
-    highestBranch = pbSet[0]
+    highestBranch = pbSet[INDEX]
 
     highestSelectivity = 0
     otherSelectivities = 0
@@ -400,19 +399,6 @@ def runLotteryWeightedWithMemory(pbSet):
             highestBranch = branch
             highestSelectivity = float(highestBranch.returnedNo)/highestBranch.returnedTotal
 
-    if len(Task.objects.all()) < 200:
-        tickets[highestBranch] *= (1+len(Task.objects.all())/50*.125)
-    else:
-        tickets[highestBranch] *= 2
-
-
-    # generate random number between 1 and totalTickets
-    rand = randint(1, int(totalTickets))
-
-    # check if rand falls in the range corresponding to each predicate
-    lowBound = 0
-    highBound = tickets[pbSet[0]]
-    
     # an empty PredicateBranch object NOT saved in the database
     chosenBranch = PredicateBranch()
     # loops through all valid predicate branches
@@ -424,7 +410,7 @@ def runLotteryWeightedWithMemory(pbSet):
 
     if pastBranchExists:
         if float(highestBranch.returnedNo)/float(highestBranch.returnedTotal) - float(
-            predBranch.returnedNo)/float(predBranch.returnedTotal) < 0.10/exp(len(Task.objects.all())/50) :
+            predBranch.returnedNo)/float(predBranch.returnedTotal) < MEMORY_THRESHOLD: 
             changeBranch = False
 
     if changeBranch:
@@ -633,6 +619,6 @@ def randomAlgorithm(ID):
         chosenPredicate = choice(notCompletedPredicates)
          # mark chosenRestaurant as being in chosenBranch
         chosenPredicate.restaurant.evaluator = chosenPredicate.index
-        
+
         return chosenPredicate
 

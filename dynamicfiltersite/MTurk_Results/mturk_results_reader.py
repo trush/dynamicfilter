@@ -67,7 +67,7 @@ for entry in answersCount:
 	countDict = answersCount[entry]
 	
 	selectivity = (countDict[-100]+countDict[-80]+countDict[-60])/600.0
-	# print "Selectivity: " + str(selectivity)
+	print "Selectivity: " + str(selectivity)
 #--------------------------------------------
 
 # create a dictionary of (restaurant, question) keys and boolean correct answer values
@@ -153,7 +153,7 @@ for question in uniqueQuestionsList:
 	diffDic[question] = float(diffDic[question][0])/diffDic[question][1]
 
 # print "--------------"
-# print diffDic
+print diffDic
 
 # array of time each HIT took in case we need data points on time
 # or want to more carefully examine the spammer based on time
@@ -408,3 +408,18 @@ for (question, answer) in questionAnswerPairs:
 
 # plt.clf()
 # plt.cla()
+
+dicYesNo = {}
+for question in uniqueQuestionsList:
+	dicYesNo[question] = [0,0]
+
+for (rest, quest, ans) in restaurantQuestionAnswers:
+	if ans > 0:
+		dicYesNo[quest][0] += 1
+	elif ans < 0:
+		dicYesNo[quest][1] += 1
+
+for question in uniqueQuestionsList:
+	dicYesNo[question] = 'Ratio of Yes to No Answers: ' + str(float(dicYesNo[question][0])/dicYesNo[question][1]) + ", Difficulty: " + str(diffDic[question])
+	# print question + " || " + dicYesNo[question]
+

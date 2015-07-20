@@ -769,237 +769,237 @@ class SimulationTest(TestCase):
                 ]
         parameterSets.append(set1)
 
-        answers2 = [False, False, True,
-                   True, False, False,
-                   False, True, True,
-                   True, False, False,
-                   False, True, False,
-                   False, True, True,
-                   True, False, True,
-                   True, True, False,
-                   False, True, True,
-                   True, False, False]
+        # answers2 = [False, False, True,
+        #            True, False, False,
+        #            False, True, True,
+        #            True, False, False,
+        #            False, True, False,
+        #            False, True, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, True,
+        #            True, False, False]
 
-        set2 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.0], # personality options
-                0.0, # selectivity 0
-                0.0, # selectivity 1
-                0.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                recordAggregateStats,
-                eddy,
-                eddy2,
-                random,
-                answers2
-                ]
-        parameterSets.append(set2)
+        # set2 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         recordAggregateStats,
+        #         eddy,
+        #         eddy2,
+        #         random,
+        #         answers2
+        #         ]
+        # parameterSets.append(set2)
 
-        answers3 = [False, False, False,
-                   True, False, False,
-                   False, True, False,
-                   True, False, False,
-                   False, True, False,
-                   False, True, True,
-                   True, False, True,
-                   True, True, False,
-                   False, True, False,
-                   True, False, False]
+        # answers3 = [False, False, False,
+        #            True, False, False,
+        #            False, True, False,
+        #            True, False, False,
+        #            False, True, False,
+        #            False, True, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, True, False,
+        #            True, False, False]
 
-        set3 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.0], # personality options
-                0.0, # selectivity 0
-                0.0, # selectivity 1
-                0.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                recordAggregateStats,
-                eddy,
-                eddy2,
-                random,
-                answers3
-                ]
-        parameterSets.append(set3)
+        # set3 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         recordAggregateStats,
+        #         eddy,
+        #         eddy2,
+        #         random,
+        #         answers3
+        #         ]
+        # parameterSets.append(set3)
 
-        answers4 = [False, False, True,
-                   False, False, False,
-                   False, False, False,
-                   False, False, False,
-                   False, False, False,
-                   False, True, False,
-                   False, False, False,
-                   False, False, False,
-                   False, False, False,
-                   True, False, False]
+        # answers4 = [False, False, True,
+        #            False, False, False,
+        #            False, False, False,
+        #            False, False, False,
+        #            False, False, False,
+        #            False, True, False,
+        #            False, False, False,
+        #            False, False, False,
+        #            False, False, False,
+        #            True, False, False]
 
-        set4 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.0], # personality options
-                0.0, # selectivity 0
-                0.0, # selectivity 1
-                0.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                recordAggregateStats,
-                eddy,
-                eddy2,
-                random,
-                answers4
-                ]
-        parameterSets.append(set4)
+        # set4 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         recordAggregateStats,
+        #         eddy,
+        #         eddy2,
+        #         random,
+        #         answers4
+        #         ]
+        # parameterSets.append(set4)
 
-        answers5 = [True, True, True,
-                   True, True, True,
-                   True, False, True,
-                   False, True, True,
-                   True, True, False,
-                   True, True, True,
-                   True, True, True,
-                   True, True, True,
-                   True, True, True,
-                   True, True, True]
+        # answers5 = [True, True, True,
+        #            True, True, True,
+        #            True, False, True,
+        #            False, True, True,
+        #            True, True, False,
+        #            True, True, True,
+        #            True, True, True,
+        #            True, True, True,
+        #            True, True, True,
+        #            True, True, True]
 
-        set5 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.0], # personality options
-                0.0, # selectivity 0
-                0.0, # selectivity 1
-                0.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                recordAggregateStats,
-                eddy,
-                eddy2,
-                random,
-                answers5
-                ]
-        parameterSets.append(set5)
+        # set5 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         recordAggregateStats,
+        #         eddy,
+        #         eddy2,
+        #         random,
+        #         answers5
+        #         ]
+        # parameterSets.append(set5)
     
-        answers6 = [True, True, True,
-                   True, True, True,
-                   True, False, True,
-                   False, True, True,
-                   True, True, False,
-                   True, True, True,
-                   True, False, True,
-                   True, True, False,
-                   True, True, True,
-                   True, True, False]
+        # answers6 = [True, True, True,
+        #            True, True, True,
+        #            True, False, True,
+        #            False, True, True,
+        #            True, True, False,
+        #            True, True, True,
+        #            True, False, True,
+        #            True, True, False,
+        #            True, True, True,
+        #            True, True, False]
 
-        set6 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.0], # personality options
-                0.0, # selectivity 0
-                0.0, # selectivity 1
-                0.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                recordAggregateStats,
-                eddy,
-                eddy2,
-                random,
-                answers6
-                ]
-        parameterSets.append(set6)
+        # set6 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         recordAggregateStats,
+        #         eddy,
+        #         eddy2,
+        #         random,
+        #         answers6
+        #         ]
+        # parameterSets.append(set6)
 
-        answers7 = [True, True, False,
-                   True, False, False,
-                   True, False, False,
-                   False, True, False,
-                   True, True, False,
-                   True, True, False,
-                   True, False, True,
-                   True, True, False,
-                   True, False, False,
-                   True, False, False]
+        # answers7 = [True, True, False,
+        #            True, False, False,
+        #            True, False, False,
+        #            False, True, False,
+        #            True, True, False,
+        #            True, True, False,
+        #            True, False, True,
+        #            True, True, False,
+        #            True, False, False,
+        #            True, False, False]
 
-        set7 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.0], # personality options
-                0.0, # selectivity 0
-                0.0, # selectivity 1
-                0.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                recordAggregateStats,
-                eddy,
-                eddy2,
-                random,
-                answers7
-                ]
-        parameterSets.append(set7)
+        # set7 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         recordAggregateStats,
+        #         eddy,
+        #         eddy2,
+        #         random,
+        #         answers7
+        #         ]
+        # parameterSets.append(set7)
 
-        answers8 = [False, True, False,
-                   True, False, False,
-                   False, False, False,
-                   False, False, False,
-                   True, True, False,
-                   False, False, False,
-                   False, False, True,
-                   True, False, False,
-                   False, False, False,
-                   False, False, False]
+        # answers8 = [False, True, False,
+        #            True, False, False,
+        #            False, False, False,
+        #            False, False, False,
+        #            True, True, False,
+        #            False, False, False,
+        #            False, False, True,
+        #            True, False, False,
+        #            False, False, False,
+        #            False, False, False]
 
-        set8 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.0], # personality options
-                0.0, # selectivity 0
-                0.0, # selectivity 1
-                0.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                recordAggregateStats,
-                eddy,
-                eddy2,
-                random,
-                answers8
-                ]
-        parameterSets.append(set8)
+        # set8 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         recordAggregateStats,
+        #         eddy,
+        #         eddy2,
+        #         random,
+        #         answers8
+        #         ]
+        # parameterSets.append(set8)
 
-        answers9 = [False, True, False,
-                   True, False, False,
-                   False, False, True,
-                   True, True, False,
-                   True, True, True,
-                   False, True, False,
-                   True, False, True,
-                   True, True, False,
-                   False, False, True,
-                   True, False, False]
+        # answers9 = [False, True, False,
+        #            True, False, False,
+        #            False, False, True,
+        #            True, True, False,
+        #            True, True, True,
+        #            False, True, False,
+        #            True, False, True,
+        #            True, True, False,
+        #            False, False, True,
+        #            True, False, False]
                    
-        set9 =[ 100, # number of simulations
-                10, # number of restaurants
-                [100,100,100,100,100], # confidence options
-                [0.0], # personality options
-                0.0, # selectivity 0
-                0.0, # selectivity 1
-                0.0, # selectivity 2
-                0.0, # difficulty 0
-                0.0, # difficulty 1
-                0.0, # difficulty 2
-                recordAggregateStats,
-                eddy,
-                eddy2,
-                random,
-                answers9
-                ]
-        parameterSets.append(set9)
+        # set9 =[ 100, # number of simulations
+        #         10, # number of restaurants
+        #         [100,100,100,100,100], # confidence options
+        #         [0.0], # personality options
+        #         0.0, # selectivity 0
+        #         0.0, # selectivity 1
+        #         0.0, # selectivity 2
+        #         0.0, # difficulty 0
+        #         0.0, # difficulty 1
+        #         0.0, # difficulty 2
+        #         recordAggregateStats,
+        #         eddy,
+        #         eddy2,
+        #         random,
+        #         answers9
+        #         ]
+        # parameterSets.append(set9)
 
         for parameters in parameterSets:
             print "Parameter set: " + str(parameters)
