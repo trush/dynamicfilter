@@ -1,4 +1,5 @@
 # Django tools
+from django.db import models
 from django.test import TestCase
 from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
@@ -454,11 +455,22 @@ class SimulationTest(TestCase):
                             "La Note Restaurant Provencal", "Ajanta", "Vik's Chaat and Market", "Chez Panisse", "Cheese Board Pizza",
                             "FIVE", "Oliveto Restaurant", "Bette's Oceanview Diner", "Platano", "Brazil Cafe",
                             "Gregoire", "Toss Noodle Bar", "Eureka!", "Great China", "Urbann Turbann"]
+
         for i in range(NUM_RESTAURANTS):
             r = Restaurant(name=restaurantNames[i], url="www.test.com", street="Test Address", city="Berkeley", state="CA",
             zipCode=i, country="USA", text="Please answer a question!")
             r.queueIndex = len(Restaurant.objects.all())
             r.save()
+
+#---------------------------------------------------------------------------------------------------------------------------------
+            print r.numOfPredicates
+            for i in range(r.numOfPredicates):
+                Restaurant.add_to_class('predicate'+str(i)+'Status', models.IntegerField(default=5))
+                r.save()
+                print r.predicate0Status 
+
+            print r.predicate8Status
+#---------------------------------------------------------------------------------------------------------------------------------
 
         # create predicate branches using the specified questions
         pbIndex = 0

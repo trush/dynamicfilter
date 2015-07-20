@@ -3,7 +3,8 @@ from fields import CustomCommaSeparatedIntegerField
 from django.core.validators import RegexValidator
 from validator import validate_positive
 
-#fields = ['predicate0', 'predicate1', 'predicate2']
+#fields = ['predicate0Status', 'predicate1Status', 'predicate2Status']
+numberPreds = 0
 
 class Restaurant(models.Model):
     # the name of the restaurant
@@ -24,12 +25,12 @@ class Restaurant(models.Model):
 
     # keep track of how many times each predicate still needs to be evaluated
     # hard-coded to three predicates for now
-    predicate0Status = models.IntegerField(default=5)
-    predicate1Status = models.IntegerField(default=5)
-    predicate2Status = models.IntegerField(default=5)
+    # predicate0Status = models.IntegerField(default=5)
+    # predicate1Status = models.IntegerField(default=5)
+    # predicate2Status = models.IntegerField(default=5)
 
-    # numOfPredicates = models.IntegerField(default=3)
-
+    numOfPredicates = models.IntegerField(default=10)
+    
     # keeps track of when even one of its predicates fail
     hasFailed = models.BooleanField(default=False)
 
@@ -45,10 +46,6 @@ class Restaurant(models.Model):
     class Meta:
         # no two restaurants can have the same address
         unique_together = ("street", "city", "state", "zipCode", "country")
-
-
-# for field in fields:
-#     Restaurant.add_to_class(field, models.IntegerField(default=5))
 
 
 class RestaurantPredicate(models.Model):
