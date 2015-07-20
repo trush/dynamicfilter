@@ -698,10 +698,14 @@ class SimulationTest(TestCase):
 
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
-            # randomly select a confidence level
-            confidenceLevel = choice(CONFIDENCE_OPTIONS)
+            
+            value = random.choice(dictionary[predicate])
+            if value > 0:
+                answer = True
+            else:
+                answer = False
 
-            answer = random.choice(dictionary[predicate])
+            confidenceLevel = abs(value)
             
             # make Task answering the predicate
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
