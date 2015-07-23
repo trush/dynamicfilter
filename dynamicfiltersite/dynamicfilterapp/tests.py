@@ -427,6 +427,7 @@ class SimulationTest(TestCase):
         """
         correctAnswersFile = "MTurk_Results/correct_answers.csv"
         cleanedDataFilename = "MTurk_Results/Batch_2019634_batch_results_cleaned.csv"
+        numOfPredicates = 10
         # record simulation identifying information to be put in each results file
         label=[]
         label.append(["Parameters:", str(parameters)])
@@ -461,16 +462,6 @@ class SimulationTest(TestCase):
             zipCode=i, country="USA", text="Please answer a question!")
             r.queueIndex = len(Restaurant.objects.all())
             r.save()
-
-#---------------------------------------------------------------------------------------------------------------------------------
-            print r.numOfPredicates
-            for i in range(r.numOfPredicates):
-                Restaurant.add_to_class('predicate'+str(i)+'Status', models.IntegerField(default=5))
-                r.save()
-                print r.predicate0Status 
-
-            print r.predicate8Status
-#---------------------------------------------------------------------------------------------------------------------------------
 
         # create predicate branches using the specified questions
         pbIndex = 0
@@ -690,10 +681,11 @@ class SimulationTest(TestCase):
         AVERAGE_TIME = 60000 # 60 seconds
         STANDARD_DEV = 20000 # 20 seconds
 
-        results = [["taskCount", "selectivity 0", "selectivity 1", "selectivity 2", "Predicate Evaluated", "Answer", "tasksPerRestaurant",
-                    "Task & Answer Distribution", "------", "------", "------",
-                    "Evaluated Answers", "------", "------", "------",
-                    "Correct Answers", "------", "------", "------"]]
+        results = [["taskCount", "Selectivity0", "Selectivity1", "Selectivity2", "Selectivity3", "Selectivity4", "Selectivity5", 
+                    "Selectivity6", "Selectivity7", "Selectivity8", "Selectivity9", "Predicate Evaluated", "Answer", "tasksPerRestaurant",
+                    "Task & Answer Distribution", "------", "------", "------", "------",
+                    "Evaluated Answers", "------", "------", "------", "------", "------", "------", "------", "------", "------",
+                    "Correct Answers", "------", "------", "------",  "------",  "------",  "------",  "------",  "------",  "------"]]
 
         #results.append(label)
         tasksPerRestaurant = []
@@ -706,17 +698,15 @@ class SimulationTest(TestCase):
 
         # start keeping track of worker IDs at 100
         IDcounter = 100
-
         # choose one predicate to start
         predicate = algorithm(IDcounter)
-
         counter = 0
 
         while (predicate != None):
 
             # add the current selectivity statistics to the results file
             for i in range(len(branches)):
-                selectivities[i].append(float(branches[i].returnedNo)/branches[i].returnedTotal)
+                selectivities[i].append(1.0*branches[i].returnedNo/branches[i].returnedTotal)
 
             taskCount.append(counter)
             counter += 1
@@ -731,7 +721,6 @@ class SimulationTest(TestCase):
                 answer = False
 
             confidenceLevel = abs(value)
-            print confidenceLevel
             # make Task answering the predicate
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
             
@@ -810,11 +799,16 @@ class SimulationTest(TestCase):
             for i in range(len(branches)):
                 p = RestaurantPredicate.objects.filter(restaurant=r, index=i)[0]
                 answers[i].append(p.value)
-                print predicateAnswers
+                # print predicateAnswers
                 predicateCorrectAnswers[i].append(predicateAnswers[(p.restaurant.name,p.question)])
 
-        for row in map(None, taskCount, wheresWaldo, taskAnswers, tasksPerRestaurant,
-                       predicateList, tasks, returnedNo, returnedTotal, rests):
+        for row in map(None, taskCount, selectivities[0], selectivities[1], selectivities[2], selectivities[3], selectivities[4], 
+        selectivities[5], selectivities[6], selectivities[7], selectivities[8], selectivities[9], wheresWaldo, taskAnswers, 
+        tasksPerRestaurant, predicateList, tasks, returnedNo, returnedTotal, rests, answers[0], answers[1], answers[2], answers[3], 
+        answers[4], answers[5], answers[6], answers[7], answers[8], answers[9], predicateCorrectAnswers[0], 
+        predicateCorrectAnswers[1], predicateCorrectAnswers[2], predicateCorrectAnswers[3], predicateCorrectAnswers[4], 
+        predicateCorrectAnswers[5], predicateCorrectAnswers[6], predicateCorrectAnswers[7], predicateCorrectAnswers[8], 
+        predicateCorrectAnswers[9]):
             results.append(row)
 
         return results
@@ -1174,9 +1168,9 @@ class SimulationTest(TestCase):
         recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
 
         # choose whether to record individual run stats in separate files
-        eddy = False
-        eddy2 = False
-        random = False
+        eddy = True
+        eddy2 = True
+        random = True
         
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary

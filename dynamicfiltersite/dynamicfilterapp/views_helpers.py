@@ -120,7 +120,7 @@ def updateCounts(pB, task):
     elif task.answer==False:
         pB.returnedTotal += float(task.confidenceLevel)/100.0
         pB.returnedNo += float(task.confidenceLevel)/100.0
-    print "PB counts updated to: total: " + str(pB.returnedTotal) + " and no: " + str(pB.returnedNo) 
+    # print "PB counts updated to: total: " + str(pB.returnedTotal) + " and no: " + str(pB.returnedNo) 
     pB.save()
 
 def findNumPredicates():
@@ -140,7 +140,6 @@ def eddy(ID):
     Uses a random lottery system to determine which eligible predicate should be
     evaluated next.
     """
-
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
     # find all the predicates matching these completed tasks
@@ -149,7 +148,7 @@ def eddy(ID):
 
     # finds number of predicate statuses
     numOfPredicateStatuses = findNumPredicates()
-
+    
     # excludes all completed predicates from all restaurant predicates to get only incompleted ones
     incompletePredicates1 = RestaurantPredicate.objects.exclude(id__in=completedPredicates)
 
@@ -164,7 +163,7 @@ def eddy(ID):
                 break
 
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLotteryWeightedWithMemory(eligiblePredicateBranches)
+        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
     else:
         return None
 
@@ -203,6 +202,7 @@ def eddy2(ID):
 
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
+    
     # find all the predicates matching these completed tasks
     completedPredicates = RestaurantPredicate.objects.filter(
         id__in=completedTasks.values('restaurantPredicate_id'))
@@ -228,7 +228,7 @@ def eddy2(ID):
         almostFalsePredicates.sort()
 
         return almostFalsePredicates[0][1]
-
+    
     numOfPredicates = findNumPredicates()
 
     # If we've failed to find a predicate to prioritize, run the lottery on all eligible PBs
@@ -241,7 +241,7 @@ def eddy2(ID):
                 break
 
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLotteryWeightedWithMemory(eligiblePredicateBranches)
+        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
     else:
         return None
 
@@ -391,7 +391,7 @@ def runLotteryWeightedWithMemory(pbSet):
     otherSelectivities = 0
 
     for branch in pbSet:
-        print branch.question
+        # print branch.question
         t = (float(branch.returnedNo)/branch.returnedTotal)*1000
         tickets[branch] = t
         totalTickets += t

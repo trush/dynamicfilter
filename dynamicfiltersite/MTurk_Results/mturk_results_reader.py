@@ -46,7 +46,8 @@ uniqueQuestions = np.genfromtxt(fname=correctAnswersFile,
 								    skip_footer=21)
 
 uniqueQuestionsList = list(uniqueQuestions.tolist())
-
+for question in uniqueQuestionsList:
+	print question
 #----------Find Selectivities --------------
 # get a list of all 6,000 (question, answer) pairs
 questionAnswerPairs = [(value4,value5) for (value0, value1, value2, value3, value4, value5) in data]
@@ -67,7 +68,7 @@ for entry in answersCount:
 	countDict = answersCount[entry]
 	
 	selectivity = (countDict[-100]+countDict[-80]+countDict[-60])/600.0
-	print "Selectivity: " + str(selectivity)
+	# print "Selectivity: " + str(selectivity)
 #--------------------------------------------
 
 # create a dictionary of (restaurant, question) keys and boolean correct answer values
@@ -152,8 +153,8 @@ for (rest, quest, ans) in restaurantQuestionAnswers:
 for question in uniqueQuestionsList:
 	diffDic[question] = float(diffDic[question][0])/diffDic[question][1]
 
-print "--------------"
-print diffDic
+# print "--------------"
+# print diffDic
 
 # array of time each HIT took in case we need data points on time
 # or want to more carefully examine the spammer based on time

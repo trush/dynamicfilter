@@ -2,9 +2,8 @@ from django.db import models
 from fields import CustomCommaSeparatedIntegerField
 from django.core.validators import RegexValidator
 from validator import validate_positive
-
-#fields = ['predicate0Status', 'predicate1Status', 'predicate2Status']
-numberPreds = 0
+from dynamic_models import get_survey_response_model
+import subprocess
 
 class Restaurant(models.Model):
     # the name of the restaurant
@@ -17,19 +16,24 @@ class Restaurant(models.Model):
     street = models.CharField(max_length=50, default="")
     city = models.CharField(max_length=20, default="")
     state = models.CharField(max_length=2, default="")
-    zipCode = models.CharField(max_length=9, default="")
+    zipCode = models.CharField(max_length=9, default="", verbose_name='Zip Code')
     country = models.CharField(max_length=30, default="")
 
     # Worker instructions
     text = models.CharField(max_length=500, blank=True)
 
     # keep track of how many times each predicate still needs to be evaluated
-    # hard-coded to three predicates for now
-    # predicate0Status = models.IntegerField(default=5)
-    # predicate1Status = models.IntegerField(default=5)
-    # predicate2Status = models.IntegerField(default=5)
-
-    numOfPredicates = models.IntegerField(default=10)
+    # hard-coded to ten predicates for now
+    predicate0Status = models.IntegerField(default=5)
+    predicate1Status = models.IntegerField(default=5)
+    predicate2Status = models.IntegerField(default=5)
+    predicate3Status = models.IntegerField(default=5)
+    predicate4Status = models.IntegerField(default=5)
+    predicate5Status = models.IntegerField(default=5)
+    predicate6Status = models.IntegerField(default=5)
+    predicate7Status = models.IntegerField(default=5)
+    predicate8Status = models.IntegerField(default=5)
+    predicate9Status = models.IntegerField(default=5)
     
     # keeps track of when even one of its predicates fail
     hasFailed = models.BooleanField(default=False)
