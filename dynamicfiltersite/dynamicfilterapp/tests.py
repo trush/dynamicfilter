@@ -489,7 +489,6 @@ class SimulationTest(TestCase):
         aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
                            "random num tasks", "random correct percentage"]]
 
-        branches = PredicateBranch.objects.all().order_by("index")
 
         # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
         # arbitrary number of restaurants and predicate branches
@@ -497,7 +496,7 @@ class SimulationTest(TestCase):
     
 
             print "Eddy " + str(k)
-            results_eddy = self.run_simulation(eddy, branches, parameters, predicateAnswers, sampleDataDict)
+            results_eddy = self.run_simulation(eddy, parameters, predicateAnswers, sampleDataDict)
             eddyTasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -511,7 +510,7 @@ class SimulationTest(TestCase):
             self.reset_simulation()
 
             print "Eddy2 " + str(k)
-            results_eddy = self.run_simulation(eddy2, branches, parameters, predicateAnswers, sampleDataDict)
+            results_eddy = self.run_simulation(eddy2, parameters, predicateAnswers, sampleDataDict)
             eddy2Tasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -525,7 +524,7 @@ class SimulationTest(TestCase):
             self.reset_simulation()
 
             print "Random " + str(k)
-            results_random = self.run_simulation(randomAlgorithm, branches, parameters, predicateAnswers, sampleDataDict)
+            results_random = self.run_simulation(randomAlgorithm, parameters, predicateAnswers, sampleDataDict)
             randomTasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -671,7 +670,7 @@ class SimulationTest(TestCase):
             branch.returnedNo = 1
             branch.save()
 
-    def run_simulation(self, algorithm, branches, parameters, predicateAnswers, dictionary):
+    def run_simulation(self, algorithm, parameters, predicateAnswers, dictionary):
 
         # get the simulation parameters from the parameters list
         CONFIDENCE_OPTIONS = parameters[2]
@@ -690,6 +689,7 @@ class SimulationTest(TestCase):
         #results.append(label)
         tasksPerRestaurant = []
         #tasksPerRestaurant.append(label)
+        branches = PredicateBranch.objects.all().order_by("index")
         selectivities = [[] for i in range(len(branches))]
         taskCount = []
         wheresWaldo = [] # which predicate branch was the task in
@@ -701,12 +701,14 @@ class SimulationTest(TestCase):
         # choose one predicate to start
         predicate = algorithm(IDcounter)
         counter = 0
-
         while (predicate != None):
-
+            # get the updated set of PredicateBranches
+            branches2 = PredicateBranch.objects.all().order_by("index")
             # add the current selectivity statistics to the results file
-            for i in range(len(branches)):
-                selectivities[i].append(1.0*branches[i].returnedNo/branches[i].returnedTotal)
+            for i in range(len(branches2)):
+                print "No: " + str(branches2[i].returnedNo)
+                print "Total: " + str(branches2[i].returnedTotal)
+                selectivities[i].append(1.0*branches2[i].returnedNo/branches2[i].returnedTotal)
 
             taskCount.append(counter)
             counter += 1
@@ -769,6 +771,7 @@ class SimulationTest(TestCase):
         # for r in Restaurant.objects.order_by('queueIndex'):
         #     print r.queueIndex
 
+        print selectivities
         for restaurant in Restaurant.objects.all():
             tasksPerRestaurant.append(len(Task.objects.filter(restaurantPredicate__restaurant=restaurant)))
     
@@ -1175,7 +1178,7 @@ class SimulationTest(TestCase):
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 1, # number of simulations
+        set1 =[ 10, # number of simulations
                 20, # number of restaurants
                 [0,1,2,3,4,5,6,7,8,9], # indices of the questions to use
                 recordAggregateStats,

@@ -120,7 +120,7 @@ def updateCounts(pB, task):
     elif task.answer==False:
         pB.returnedTotal += float(task.confidenceLevel)/100.0
         pB.returnedNo += float(task.confidenceLevel)/100.0
-    # print "PB counts updated to: total: " + str(pB.returnedTotal) + " and no: " + str(pB.returnedNo) 
+    print "PB counts updated to: total: " + str(pB.returnedTotal) + " and no: " + str(pB.returnedNo) 
     pB.save()
 
 def findNumPredicates():
