@@ -120,7 +120,7 @@ def updateCounts(pB, task):
     elif task.answer==False:
         pB.returnedTotal += float(task.confidenceLevel)/100.0
         pB.returnedNo += float(task.confidenceLevel)/100.0
-    print "PB counts updated to: total: " + str(pB.returnedTotal) + " and no: " + str(pB.returnedNo) 
+    # print "PB counts updated to: total: " + str(pB.returnedTotal) + " and no: " + str(pB.returnedNo) 
     pB.save()
 
 def findNumPredicates():
@@ -163,7 +163,7 @@ def eddy(ID):
                 break
 
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
+        chosenBranch = runLotteryWeightedWithMemory(eligiblePredicateBranches)
     else:
         return None
 
@@ -241,7 +241,7 @@ def eddy2(ID):
                 break
 
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
+        chosenBranch = runLotteryWeightedWithMemory(eligiblePredicateBranches)
     else:
         return None
 
@@ -264,8 +264,7 @@ def decrementStatus(index, restaurant):
             currentLeftToAsk = getattr(restaurant, field.verbose_name)
             #sets the field to currentLeftToAsk-1
             setattr(restaurant, field.verbose_name, currentLeftToAsk-1)
-            currentLeftToAsk = getattr(restaurant, field.verbose_name)
-            print currentLeftToAsk
+            
     restaurant.save()
 
 def incrementStatus(index, restaurant):
@@ -379,14 +378,12 @@ def runLotteryWeightedWithMemory(pbSet):
     """
     runs the lottery algorithm
     """
-    global INDEX
-
     changeBranch = True
     pastBranchExists = False
 
     totalTickets = 0
     tickets = {}
-    highestBranch = pbSet[INDEX]
+    highestBranch = pbSet[0]
 
     highestSelectivity = 0
     otherSelectivities = 0
@@ -441,8 +438,6 @@ def runLotteryWeightedWithMemory(pbSet):
             lowBound = highBound
             nextPredicateBranch = pbSet[j+1]
             highBound += tickets[nextPredicateBranch]
-
-    INDEX = chosenBranch.index
 
     return chosenBranch
 

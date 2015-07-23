@@ -713,8 +713,8 @@ class SimulationTest(TestCase):
             branches2 = PredicateBranch.objects.all().order_by("index")
             # add the current selectivity statistics to the results file
             for i in range(len(branches2)):
-                print "No: " + str(branches2[i].returnedNo)
-                print "Total: " + str(branches2[i].returnedTotal)
+                # print "No: " + str(branches2[i].returnedNo)
+                # print "Total: " + str(branches2[i].returnedTotal)
                 selectivities[i].append(1.0*branches2[i].returnedNo/branches2[i].returnedTotal)
 
             taskCount.append(counter)
@@ -781,7 +781,7 @@ class SimulationTest(TestCase):
         # for r in Restaurant.objects.order_by('queueIndex'):
         #     print r.queueIndex
 
-        print selectivities
+        # print selectivities
         for restaurant in Restaurant.objects.all():
             tasksPerRestaurant.append(len(Task.objects.filter(restaurantPredicate__restaurant=restaurant)))
     
@@ -1181,9 +1181,9 @@ class SimulationTest(TestCase):
         recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
 
         # choose whether to record individual run stats in separate files
-        eddy = True
-        eddy2 = True
-        random = True
+        eddy = False
+        eddy2 = False
+        random = False
         
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
