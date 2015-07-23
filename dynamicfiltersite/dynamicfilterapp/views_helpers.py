@@ -79,8 +79,7 @@ def aggregate_responses(predicate):
     predicate.restaurant.save()
     predicate.save()
 
-    # TODO uncomment this if desired
-    #printResults()
+    printResults()
 
     return predicate.restaurant
 
@@ -120,22 +119,22 @@ def updateCounts(pB, task):
     elif task.answer==False:
         pB.returnedTotal += float(task.confidenceLevel)/100.0
         pB.returnedNo += float(task.confidenceLevel)/100.0
-    print "PB counts updated to: total: " + str(pB.returnedTotal) + " and no: " + str(pB.returnedNo) 
+    # print "PB counts updated to: total: " + str(pB.returnedTotal) + " and no: " + str(pB.returnedNo) 
     pB.save()
 
-def findNumPredicates():
-    # all fields for a restaurant referenced by an incomplete predicate
-    restaurantFields = RestaurantPredicate.objects.all()[0].restaurant._meta.fields
+# def findNumPredicates():
+#     # all fields for a restaurant referenced by an incomplete predicate
+#     restaurantFields = RestaurantPredicate.objects.all()[0].restaurant._meta.fields
 
-    # finds number of predicate statuses
-    numOfPredicateStatuses = 0
-    for field in restaurantFields:
-        if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
-            numOfPredicateStatuses += 1
+#     # finds number of predicate statuses
+#     numOfPredicateStatuses = 0
+#     for field in restaurantFields:
+#         if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
+#             numOfPredicateStatuses += 1
 
-    return numOfPredicateStatuses
+#     return numOfPredicateStatuses
 
-def eddy(ID):
+def eddy(ID, numOfPredicates):
     """
     Uses a random lottery system to determine which eligible predicate should be
     evaluated next.
@@ -145,23 +144,23 @@ def eddy(ID):
     # find all the predicates matching these completed tasks
     completedPredicates = RestaurantPredicate.objects.filter(
         id__in=completedTasks.values('restaurantPredicate_id'))
-
-    # finds number of predicate statuses
-    numOfPredicateStatuses = findNumPredicates()
     
     # excludes all completed predicates from all restaurant predicates to get only incompleted ones
     incompletePredicates1 = RestaurantPredicate.objects.exclude(id__in=completedPredicates)
 
     incompletePredicates = incompletePredicates1.filter(restaurant__hasFailed=False).filter(value=None)
-
+    # # print "incompletePredicates: "
+    # for ip in incompletePredicates:
+    #     print ip
     # finds eligible predicate branches
     eligiblePredicateBranches = []
-    for i in range(numOfPredicateStatuses):
+    # print "numOfPredicates: " + str(numOfPredicates)
+    for i in range(numOfPredicates):
         for pred in incompletePredicates:
-            if pred.index == i:
+            if pred.index==i:
                 eligiblePredicateBranches.append(PredicateBranch.objects.filter(index=i)[0])
                 break
-
+    # print "Eligible predicate branches: " + str(eligiblePredicateBranches)
     if (len(eligiblePredicateBranches) != 0):
         chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
     else:
@@ -191,7 +190,7 @@ def printQuerySet(qs):
 
         return result
 
-def eddy2(ID):
+def eddy2(ID, numOfPredicates):
     # find the first Restaurant in the queue that isn't finished
     sortedRestaurants = Restaurant.objects.exclude(queueIndex=-1).order_by('queueIndex')
 
@@ -228,8 +227,6 @@ def eddy2(ID):
         almostFalsePredicates.sort()
         
         return almostFalsePredicates[0][1]
-    
-    numOfPredicates = findNumPredicates()
 
     # If we've failed to find a predicate to prioritize, run the lottery on all eligible PBs
     # finds eligible predicate branches
@@ -265,7 +262,7 @@ def decrementStatus(index, restaurant):
             #sets the field to currentLeftToAsk-1
             setattr(restaurant, field.verbose_name, currentLeftToAsk-1)
             currentLeftToAsk = getattr(restaurant, field.verbose_name)
-            print currentLeftToAsk
+            # print currentLeftToAsk
     restaurant.save()
 
 def incrementStatus(index, restaurant):
@@ -605,7 +602,7 @@ def findRestaurant(predicateBranch,ID):
 
 #--------------------------------------------------------------------------------------------------------------------------------------#
 
-def randomAlgorithm(ID):
+def randomAlgorithm(ID, numOfPredicates):
     """
     Randomly selects the next predicate from the available choices.
     """
