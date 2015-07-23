@@ -209,10 +209,10 @@ def eddy2(ID):
 
     # get only incomplete predicates matching this restaurant and eligible to this worker
     incompletePredicates = RestaurantPredicate.objects.exclude(id__in=completedPredicates).filter(restaurant__hasFailed=False).filter(value=None, restaurant=rest)
-    
+ 
     # check for predicates meeting the uncertainty threshold for evaluating to False
     almostFalsePredicates = []
-    FALSE_THRESHOLD = 0.30 # was 0.15
+    FALSE_THRESHOLD = 0.15 # was 0.15
 
     for pred in incompletePredicates:
         numYes = len(Task.objects.filter(restaurantPredicate=pred, answer=True))
@@ -226,7 +226,7 @@ def eddy2(ID):
         # sort according to uncertainty, ascendingly, and return the predicate
         # which is the second item of the first tuple
         almostFalsePredicates.sort()
-
+        
         return almostFalsePredicates[0][1]
     
     numOfPredicates = findNumPredicates()
@@ -264,7 +264,8 @@ def decrementStatus(index, restaurant):
             currentLeftToAsk = getattr(restaurant, field.verbose_name)
             #sets the field to currentLeftToAsk-1
             setattr(restaurant, field.verbose_name, currentLeftToAsk-1)
-
+            currentLeftToAsk = getattr(restaurant, field.verbose_name)
+            print currentLeftToAsk
     restaurant.save()
 
 def incrementStatus(index, restaurant):

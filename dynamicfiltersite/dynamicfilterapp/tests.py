@@ -659,6 +659,13 @@ class SimulationTest(TestCase):
             rest.predicate0Status = 5
             rest.predicate1Status = 5
             rest.predicate2Status = 5
+            rest.predicate3Status = 5
+            rest.predicate4Status = 5
+            rest.predicate5Status = 5
+            rest.predicate6Status = 5
+            rest.predicate7Status = 5
+            rest.predicate8Status = 5
+            rest.predicate9Status = 5
             rest.evaluator = None
             rest.hasFailed = False
             rest.queueIndex = resetIndex
@@ -717,6 +724,9 @@ class SimulationTest(TestCase):
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
 
             value = choice(dictionary[predicate])
+            while value == 0:
+                value = choice(dictionary[predicate])
+
             if value > 0:
                 answer = True
             else:
