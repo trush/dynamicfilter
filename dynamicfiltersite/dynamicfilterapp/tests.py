@@ -324,9 +324,10 @@ class SimulationTest(TestCase):
             # get the updated set of PredicateBranches
             branches2 = PredicateBranch.objects.all().order_by("index")
             # add the current selectivity statistics to the results file
-            for i in range(len(PredicateBranch.objects.all())):
-                if i in QUESTION_INDICES:
-                    selectivities[i].append(1.0*branches2[i].returnedNo/branches2[i].returnedTotal)
+            for i in range(len(branches2)):
+                # print "No: " + str(branches2[i].returnedNo)
+                # print "Total: " + str(branches2[i].returnedTotal)
+                selectivities[i].append(1.0*branches2[i].returnedNo/branches2[i].returnedTotal)
 
             taskCount.append(counter)
             counter += 1
@@ -455,9 +456,9 @@ class SimulationTest(TestCase):
         recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
 
         # choose whether to record individual run stats in separate files
-        eddy = True
-        eddy2 = True
-        random = True
+        eddy = False
+        eddy2 = False
+        random = False
         
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
