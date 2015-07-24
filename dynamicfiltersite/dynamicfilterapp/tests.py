@@ -418,19 +418,13 @@ class SimulationTest(TestCase):
         answers = [["P" + str(i)] for i in range(10)]
         predicateCorrectAnswers = [["P" + str(i) + " True"] for i in range(10)]
 
-        print "Restaurant Predicates: " 
-        for p in RestaurantPredicate.objects.all():
-            print p
 
         for r in Restaurant.objects.all():
             rests.append(r)
-            print "Restaurant: " + str(r)
             for i in range(numOfPredicates):
-                print "i: " + str(i)
-                p = RestaurantPredicate.objects.filter(restaurant=r, index=i)[0]
-                answers[i].append(p.value)
-                # print predicateAnswers
-                predicateCorrectAnswers[i].append(predicateAnswers[(p.restaurant.name,p.question)])
+                    p = RestaurantPredicate.objects.filter(restaurant=r, index=i)[0]
+                    answers[i].append(p.value)
+                    predicateCorrectAnswers[i].append(predicateAnswers[(p.restaurant.name,p.question)])
 
         for row in map(None, taskCount, selectivities[0], selectivities[1], selectivities[2], selectivities[3], selectivities[4], 
         selectivities[5], selectivities[6], selectivities[7], selectivities[8], selectivities[9], wheresWaldo, taskAnswers, 
@@ -456,16 +450,16 @@ class SimulationTest(TestCase):
         recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
 
         # choose whether to record individual run stats in separate files
-        eddy = False
-        eddy2 = False
-        random = False
+        eddy = True
+        eddy2 = True
+        random = True
         
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 1, # number of simulations
+        set1 =[ 10, # number of simulations
                 20, # number of restaurants
-                [3,6,9], # indices of the questions to use
+                [0,1,4,5], # indices of the questions to use
                 recordAggregateStats,
                 eddy,
                 eddy2,
