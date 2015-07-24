@@ -418,13 +418,13 @@ class SimulationTest(TestCase):
         answers = [["P" + str(i)] for i in range(10)]
         predicateCorrectAnswers = [["P" + str(i) + " True"] for i in range(10)]
 
-
         for r in Restaurant.objects.all():
             rests.append(r)
             for i in range(numOfPredicates):
                     p = RestaurantPredicate.objects.filter(restaurant=r, index=i)[0]
                     answers[i].append(p.value)
                     predicateCorrectAnswers[i].append(predicateAnswers[(p.restaurant.name,p.question)])
+
 
         for row in map(None, taskCount, selectivities[0], selectivities[1], selectivities[2], selectivities[3], selectivities[4], 
         selectivities[5], selectivities[6], selectivities[7], selectivities[8], selectivities[9], wheresWaldo, taskAnswers, 
