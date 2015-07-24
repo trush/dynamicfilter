@@ -418,15 +418,15 @@ class SimulationTest(TestCase):
         answers = [["P" + str(i)] for i in range(10)]
         predicateCorrectAnswers = [["P" + str(i) + " True"] for i in range(10)]
 
-        print "Restaurant Predicates: " 
-        for p in RestaurantPredicate.objects.all():
-            print p
+        # print "Restaurant Predicates: " 
+        # for p in RestaurantPredicate.objects.all():
+        #     print p
 
         for r in Restaurant.objects.all():
             rests.append(r)
-            print "Restaurant: " + str(r)
+            # print "Restaurant: " + str(r)
             for i in range(numOfPredicates):
-                print "i: " + str(i)
+                # print "i: " + str(i)
                 p = RestaurantPredicate.objects.filter(restaurant=r, index=i)[0]
                 answers[i].append(p.value)
                 # print predicateAnswers
@@ -463,7 +463,7 @@ class SimulationTest(TestCase):
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 1, # number of simulations
+        set1 =[ 10, # number of simulations
                 20, # number of restaurants
                 [3,6,9], # indices of the questions to use
                 recordAggregateStats,

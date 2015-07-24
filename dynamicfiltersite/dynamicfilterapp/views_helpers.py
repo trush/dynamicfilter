@@ -79,7 +79,7 @@ def aggregate_responses(predicate):
     predicate.restaurant.save()
     predicate.save()
 
-    printResults()
+    # printResults()
 
     return predicate.restaurant
 
@@ -162,7 +162,7 @@ def eddy(ID, numOfPredicates):
                 break
     # print "Eligible predicate branches: " + str(eligiblePredicateBranches)
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLotteryWeightedWithMemory(eligiblePredicateBranches)
+        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
     else:
         return None
 
@@ -211,7 +211,7 @@ def eddy2(ID, numOfPredicates):
  
     # check for predicates meeting the uncertainty threshold for evaluating to False
     almostFalsePredicates = []
-    FALSE_THRESHOLD = 0.15 # was 0.15
+    FALSE_THRESHOLD = 0.30 # was 0.15
 
     for pred in incompletePredicates:
         numYes = len(Task.objects.filter(restaurantPredicate=pred, answer=True))
@@ -238,7 +238,7 @@ def eddy2(ID, numOfPredicates):
                 break
 
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLotteryWeightedWithMemory(eligiblePredicateBranches)
+        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
     else:
         return None
 
@@ -375,6 +375,8 @@ def runLotteryWeightedWithMemory(pbSet):
     """
     runs the lottery algorithm
     """
+    global INDEX
+
     changeBranch = True
     pastBranchExists = False
 
@@ -385,6 +387,14 @@ def runLotteryWeightedWithMemory(pbSet):
     highestSelectivity = 0
     otherSelectivities = 0
 
+    # checks if highest predicate branch from last time still exists in pbSet
+    for pb in pbSet:
+        if pb.index == INDEX:
+            pastBranchExists = True
+            predBranch = pb
+            break
+
+    # assigns tickets to each predicate branch and finds branch with highest selectivity
     for branch in pbSet:
         # print branch.question
         t = (float(branch.returnedNo)/branch.returnedTotal)*1000
@@ -397,12 +407,6 @@ def runLotteryWeightedWithMemory(pbSet):
 
     # an empty PredicateBranch object NOT saved in the database
     chosenBranch = PredicateBranch()
-    # loops through all valid predicate branches
-    for pb in pbSet:
-        if pb.index == INDEX:
-            pastBranchExists = True
-            predBranch = pb
-            break
 
     if pastBranchExists:
         if float(highestBranch.returnedNo)/float(highestBranch.returnedTotal) - float(
@@ -435,6 +439,8 @@ def runLotteryWeightedWithMemory(pbSet):
             lowBound = highBound
             nextPredicateBranch = pbSet[j+1]
             highBound += tickets[nextPredicateBranch]
+
+    INDEX = chosenBranch.index
 
     return chosenBranch
 
