@@ -139,7 +139,7 @@ class SimulationTest(TestCase):
                                     usecols=range(1,11),
                                     skip_footer=21)
         uniqueQuestionsList = list(uniqueQuestions.tolist())
-
+       
         # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
         restaurantNames = ["Rivoli", "Zachary's Chicago Pizza", "Gather", "Angeline's Louisiana Kitchen", "Comal",
                             "La Note Restaurant Provencal", "Ajanta", "Vik's Chaat and Market", "Chez Panisse", "Cheese Board Pizza",
@@ -194,7 +194,6 @@ class SimulationTest(TestCase):
         # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
         # arbitrary number of restaurants and predicate branches
         for k in range(NUM_SIMULATIONS):
-    
 
             print "Eddy " + str(k)
             results_eddy = self.run_simulation(eddy, parameters, predicateAnswers, sampleDataDict)
@@ -259,13 +258,15 @@ class SimulationTest(TestCase):
         """
         Clears out answers and resets status values while not deleting Restaurants, RestaurantPredicates, or PredicateBranches
         """
-
+        # deletes all tasks in database
         Task.objects.all().delete()
 
+        # set all predicate values to none
         for pred in RestaurantPredicate.objects.all():
             pred.value = None
             pred.save()
 
+        # reset predicate statuses to 5
         resetIndex = 0
         for rest in Restaurant.objects.all():
             rest.predicate0Status = 5
@@ -284,6 +285,7 @@ class SimulationTest(TestCase):
             resetIndex += 1
             rest.save()
 
+        # reset returned total and returned no to 1
         for branch in PredicateBranch.objects.all():
             branch.returnedTotal = 1
             branch.returnedNo = 1
@@ -335,15 +337,18 @@ class SimulationTest(TestCase):
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
 
+            # don't take into account "IDK" answers
             value = choice(dictionary[predicate])
             while value == 0:
                 value = choice(dictionary[predicate])
 
+            # if value is positive, answer is true; else it's false
             if value > 0:
                 answer = True
             else:
                 answer = False
 
+            # confidence level is the decimal value of the worker's vote
             confidenceLevel = abs(value)
             # make Task answering the predicate
             task = enterTask(IDcounter, answer, completionTime, confidenceLevel, predicate)
@@ -450,16 +455,16 @@ class SimulationTest(TestCase):
         recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
 
         # choose whether to record individual run stats in separate files
-        eddy = True
-        eddy2 = True
-        random = True
+        eddy = False
+        eddy2 = False
+        random = False
         
         parameterSets = []
         #selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
-        set1 =[ 10, # number of simulations
+        set1 =[ 1000, # number of simulations
                 20, # number of restaurants
-                [0,1,4,5], # indices of the questions to use
+                [4,5,8], # indices of the questions to use
                 recordAggregateStats,
                 eddy,
                 eddy2,

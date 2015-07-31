@@ -213,6 +213,7 @@ def eddy2(ID, numOfPredicates):
     almostFalsePredicates = []
     FALSE_THRESHOLD = 0.30 # was 0.15
 
+    # finds all the predicates that are almost False, less than 30% uncertain
     for pred in incompletePredicates:
         numYes = len(Task.objects.filter(restaurantPredicate=pred, answer=True))
         numNo = len(Task.objects.filter(restaurantPredicate=pred, answer=False))
@@ -237,6 +238,7 @@ def eddy2(ID, numOfPredicates):
                 eligiblePredicateBranches.append( PredicateBranch.objects.filter(index=i)[0])
                 break
 
+    # finds predicate branch using weighted lottery
     if (len(eligiblePredicateBranches) != 0):
         chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
     else:
@@ -332,11 +334,11 @@ def runLotteryWeighted(pbSet):
     """
     runs the lottery algorithm
     """
-
     totalTickets = 0
     tickets = {}
     highestBranch = pbSet[0]
 
+    # assigns tickets to each branch and finds the most selective one
     for branch in pbSet:
         t = (float(branch.returnedNo)/branch.returnedTotal)*1000
         tickets[branch] = t
@@ -346,8 +348,10 @@ def runLotteryWeighted(pbSet):
             highestBranch = branch
             highestSelectivity = float(highestBranch.returnedNo)/highestBranch.returnedTotal
 
-    tickets[highestBranch] *= 2
-    totalTickets += tickets[highestBranch]/2
+    # favors most selective branch
+    weightingFactor = 2
+    tickets[highestBranch] *= weightingFactor
+    totalTickets += tickets[highestBranch]*(weightingFactor-1)/weightingFactor
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
@@ -408,17 +412,20 @@ def runLotteryWeightedWithMemory(pbSet):
     # an empty PredicateBranch object NOT saved in the database
     chosenBranch = PredicateBranch()
 
+    # if the branch picked before still exists, check if new branch surpasses threshold
     if pastBranchExists:
         if float(highestBranch.returnedNo)/float(highestBranch.returnedTotal) - float(
             predBranch.returnedNo)/float(predBranch.returnedTotal) < MEMORY_THRESHOLD: 
             changeBranch = False
 
+    # favors the most selective one if it surpasses the threshold
+    weightingFactor = 2
     if changeBranch:
-        tickets[highestBranch] *= 2
-        totalTickets += tickets[highestBranch]/2
+        tickets[highestBranch] *= weightingFactor
+        totalTickets += tickets[highestBranch]/weightingFactor*(weightingFactor-1)
     else:
-        tickets[predBranch] *= 2
-        totalTickets += tickets[predBranch]/2
+        tickets[predBranch] *= weightingFactor
+        totalTickets += tickets[predBranch]/weightingFactor*(weightingFactor-1)
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))

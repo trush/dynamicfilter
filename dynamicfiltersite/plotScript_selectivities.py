@@ -8,6 +8,7 @@ import sys
 
 filename = sys.argv[1]
 
+# load data from csv file, skip 2 rows, delimit by commas
 data = np.loadtxt(filename, skiprows=2, delimiter=',', dtype={'names': ('task number', 'selectivity 1', 'selectivity 2', 'selectivity 3'),
           'formats': (np.int, np.float, np.float, np.float)})
 

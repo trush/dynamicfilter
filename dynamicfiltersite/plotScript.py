@@ -8,9 +8,11 @@ import sys
 
 filename = sys.argv[1]
 
+# load data from csv file, skip first row, delimit by spaces
 data = np.loadtxt(filename, skiprows=1, delimiter=',', dtype={'names': ('task number', 'selectivity 1', 'selectivity 2', 'selectivity 3'),
           'formats': (np.int, np.float, np.float, np.float)})
 print data
+
 m = [value0 for (value0, value1, value2, value3) in data]
 s1 = [value1 for (value0, value1, value2, value3) in data]
 s2 = [value2 for (value0, value1, value2, value3) in data]

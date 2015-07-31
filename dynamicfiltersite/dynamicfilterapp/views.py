@@ -59,10 +59,12 @@ def answer_question(request, IDnumber):
             elif float(form.cleaned_data['answerToQuestion']) < 0:
                 form_answer = False
 
+            # if worker answered IDK
             elif float(form.cleaned_data['answerToQuestion']) == 0:
                 idk = True
 
-            confLevel = abs(float(form.cleaned_data['answerToQuestion'])*100)
+            # confidence level is the decimal value of worker's vote
+            confLevel = abs(float(form.cleaned_data['answerToQuestion']))
 
             # create a new Task with relevant information and store it in the database
             task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, confidenceLevel=confLevel,
@@ -95,7 +97,7 @@ def answer_question(request, IDnumber):
 
     # if a GET (or any other method) we'll create a blank form
     else:
-        toBeAnswered = eddy2(IDnumber)
+        toBeAnswered = eddy2(IDnumber, 10)
         print "toBeAnswered: " + str(toBeAnswered)
 
         # if there are no predicates to be answered by the worker with this ID number
