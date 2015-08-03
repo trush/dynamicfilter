@@ -5,7 +5,11 @@ from validator import validate_positive
 from dynamic_models import get_survey_response_model
 import subprocess
 
+"""
+A class docstring?
+"""
 class Restaurant(models.Model):
+
     # the name of the restaurant
     name = models.CharField(max_length=50)
 
@@ -45,6 +49,9 @@ class Restaurant(models.Model):
     queueIndex = models.IntegerField(null=True,blank=True,default=None)
 
     def __unicode__(self):
+        """
+        Unicodeeeeee
+        """
         return str(self.queueIndex) + ": " + str(self.name)
 
     class Meta:

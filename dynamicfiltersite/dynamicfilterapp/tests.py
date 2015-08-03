@@ -18,6 +18,9 @@ import csv
 import os
 from itertools import izip_longest
 
+random.__module__ = "random"
+normal.__module__ = "random"
+
 def enterTask(ID, workerAnswer, time, confidence, predicate):
     """
     shortcut to making tasks
@@ -51,6 +54,9 @@ def enterPredicateBranch(question, index, returnedTotal, returnedNo):
     #(RestaurantPredicate.objects.all()[0].question, 0, 1, 1)
     PredicateBranch.objects.get_or_create(question=question, index=index, returnedTotal=returnedTotal, returnedNo=returnedNo)
 
+"""
+Simulation test docstirng
+"""
 class SimulationTest(TestCase):
 
     def get_correct_answers(self, filename, uniqueQuestionsList):
@@ -342,7 +348,7 @@ class SimulationTest(TestCase):
             numDone = len(Restaurant.objects.filter(queueIndex=-1))*1.0
             numTotal = len(Restaurant.objects.all())*1.0
             percentDone.append(numDone/numTotal)
-            print percentDone
+            # print percentDone
             taskCount.append(counter)
             counter += 1
 
