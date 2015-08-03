@@ -49,6 +49,7 @@ uniqueQuestions = np.genfromtxt(fname=correctAnswersFile,
 uniqueQuestionsList = list(uniqueQuestions.tolist())
 for question in uniqueQuestionsList:
 	print question
+print "\n"
 
 #----------Find Selectivities --------------
 # get a list of all 6,000 (question, answer) pairs
@@ -71,7 +72,8 @@ for entry in answersCount:
 	countDict = answersCount[entry]
 	
 	selectivity = (countDict[-100]+countDict[-80]+countDict[-60])/600.0
-	# print "Selectivity: " + str(selectivity)
+	print entry
+	print "Selectivity: " + str(selectivity) + "\n"
 #--------------------------------------------
 
 # create a dictionary of (restaurant, question) keys and boolean correct answer values
