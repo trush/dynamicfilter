@@ -95,7 +95,7 @@ def answer_question(request, IDnumber):
 
     # if a GET (or any other method) we'll create a blank form
     else:
-        toBeAnswered = eddy2(IDnumber)
+        toBeAnswered = eddy2(IDnumber, 3)
         print "toBeAnswered: " + str(toBeAnswered)
 
         # if there are no predicates to be answered by the worker with this ID number

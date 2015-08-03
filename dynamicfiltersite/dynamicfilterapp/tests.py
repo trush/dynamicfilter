@@ -189,7 +189,12 @@ class SimulationTest(TestCase):
 
         aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
                            "random num tasks", "random correct percentage"]]
+        percentDoneAggregate = []
 
+        # start the file where we'll record the percent done data
+        with open('percentdone.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            [writer.writerow(r) for r in ["percentDone"]]
 
         # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
         # arbitrary number of restaurants and predicate branches
@@ -259,7 +264,6 @@ class SimulationTest(TestCase):
         """
         Clears out answers and resets status values while not deleting Restaurants, RestaurantPredicates, or PredicateBranches
         """
-
         Task.objects.all().delete()
 
         for pred in RestaurantPredicate.objects.all():
@@ -315,6 +319,8 @@ class SimulationTest(TestCase):
         taskAnswers = []
         #selectivitiesOverTime.append(label)
 
+        percentDone = []
+
         # start keeping track of worker IDs at 100
         IDcounter = 100
         # choose one predicate to start
@@ -328,7 +334,12 @@ class SimulationTest(TestCase):
                 # print "No: " + str(branches2[i].returnedNo)
                 # print "Total: " + str(branches2[i].returnedTotal)
                 selectivities[i].append(1.0*branches2[i].returnedNo/branches2[i].returnedTotal)
-
+        
+            # note the percent of items complete
+            numDone = len(Restaurant.objects.filter(queueIndex=-1))*1.0
+            numTotal = len(Restaurant.objects.all())*1.0
+            percentDone.append(numDone/numTotal)
+            print percentDone
             taskCount.append(counter)
             counter += 1
 
@@ -434,6 +445,14 @@ class SimulationTest(TestCase):
         predicateCorrectAnswers[5], predicateCorrectAnswers[6], predicateCorrectAnswers[7], predicateCorrectAnswers[8], 
         predicateCorrectAnswers[9]):
             results.append(row)
+
+        # append a column of percent done data to the existing file
+        # TODO see if this method is more elegant for the other data
+        if algorithm==eddy2:
+            print "adding to csv"
+            fd = open('percentdone.csv','a')
+            writer = csv.writer(fd)
+            [writer.writerow(r) for r in [percentDone]]
 
         return results
 
