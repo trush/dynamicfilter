@@ -117,4 +117,5 @@ class PredicateBranch(models.Model):
 
 
 class WorkerID(models.Model):
+    # ID of the worker
     workerID = models.IntegerField(validators=[validate_positive], unique=True)

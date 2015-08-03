@@ -45,9 +45,11 @@ uniqueQuestions = np.genfromtxt(fname=correctAnswersFile,
 								    usecols=range(1,11),
 								    skip_footer=21)
 
+# prints all the questions
 uniqueQuestionsList = list(uniqueQuestions.tolist())
 for question in uniqueQuestionsList:
 	print question
+
 #----------Find Selectivities --------------
 # get a list of all 6,000 (question, answer) pairs
 questionAnswerPairs = [(value4,value5) for (value0, value1, value2, value3, value4, value5) in data]
@@ -55,6 +57,7 @@ questionAnswerPairs = [(value4,value5) for (value0, value1, value2, value3, valu
 # count the number of each answer for each question
 answersCount = {}
 
+# stores how many times each answer has been used in a dictionary
 for question in uniqueQuestionsList:
 	countDict = {100:0,80:0,60:0,0:0,-60:0,-80:0,-100:0}
 	relevantPairs = filter(lambda t:t[0]==question, questionAnswerPairs)
@@ -73,12 +76,14 @@ for entry in answersCount:
 
 # create a dictionary of (restaurant, question) keys and boolean correct answer values
 correctAnswers = {}
-# print len(uniqueQuestionsList)
+
+# dictionary of (restaurant, question) keys and two-index array as values
 wrongRightCounts = {}
+
 for restRow in answers:
 	r = list(restRow)
-	for i in range(10):
 
+	for i in range(10):
 		key = (r[0], uniqueQuestionsList[i])
 		value = r[i+1]
 		correctAnswers[key] = value
@@ -86,6 +91,7 @@ for restRow in answers:
 
 restaurantQuestionAnswers = [(value3, value4,value5) for (value0, value1, value2, value3, value4, value5) in data]
 
+# initializes dictionary of confidence levels and how many times each one is used
 confidenceLevelDist = {}
 confidenceLevelDist[-100] = 0
 confidenceLevelDist[-80] = 0
@@ -95,6 +101,7 @@ confidenceLevelDist[60] = 0
 confidenceLevelDist[80] = 0
 confidenceLevelDist[100] = 0
 
+# normalized version of above dictionary
 confidenceLevelNorm = {}
 confidenceLevelNorm[-100] = 0
 confidenceLevelNorm[-80] = 0
@@ -142,14 +149,18 @@ confidenceLevelNorm[100] = float(confidenceLevelDist[100])/totalAns
 
 # Calculate the difficulty of each predicate and puts it in a dictionary
 diffDic = {}
+
+# initializes the dictionary
 for question in uniqueQuestionsList:
 	diffDic[question] = [0,0]
 
+# adds in the number of wrong votes and the total number of votes for that question
 for (rest, quest, ans) in restaurantQuestionAnswers:
 	l = diffDic[quest]
 	l[0] += wrongRightCounts[(rest,quest)][0]
 	l[1] += 30
 
+# calculates the difficulty
 for question in uniqueQuestionsList:
 	diffDic[question] = float(diffDic[question][0])/diffDic[question][1]
 
@@ -186,6 +197,7 @@ workerError = {}
 workerErrorWhenYes = {}
 workerErrorWhenNo = {}
 
+# initializes all three dictionaries
 for workerID in uniqueWorkerIDs:
 	workerError[workerID] = [0,0]
 	workerErrorWhenNo[workerID] = [0,0]
@@ -245,6 +257,7 @@ workerErrorArray = []
 workerErrorYesArray = []
 workerErrorNoArray = []
 
+# puts in worker error to an array
 for workerID in uniqueWorkerIDs:
 	workerErrorArray.append(workerError[workerID])
 	workerErrorYesArray.append(workerErrorWhenYes[workerID])
@@ -283,6 +296,7 @@ for (workerID, rest, quest, ans) in workerIDtuples:
 # print "--------------"
 # print numQuestionsAnswered
 
+# dictionary of how many workers have answered X number of questions
 numQuestionsDist = {}
 numQuestionsDist[10] = 0
 numQuestionsDist[30] = 0
@@ -302,7 +316,7 @@ for workerID in uniqueWorkerIDs:
 # print "--------------"
 # print numQuestionsDist
 
-# plot histogram of confidence levels and yes/no answers submitted by workers
+# plot histogram of confidence levels and yes/no answers submitted by workers for each predicate branch
 s0 = []
 s1 = []
 s2 = []
@@ -410,10 +424,12 @@ for (question, answer) in questionAnswerPairs:
 # plt.clf()
 # plt.cla()
 
+# initializes dictionary of how many yes answers and number of no answers
 dicYesNo = {}
 for question in uniqueQuestionsList:
 	dicYesNo[question] = [0,0]
 
+# puts in values to the dictionary
 for (rest, quest, ans) in restaurantQuestionAnswers:
 	if ans > 0:
 		dicYesNo[quest][0] += 1

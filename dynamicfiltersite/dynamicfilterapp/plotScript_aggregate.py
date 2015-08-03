@@ -8,6 +8,7 @@ import sys
 
 filename = sys.argv[1]
 
+# data from csv file, skips one row, delimits by comma
 data = np.loadtxt(filename, skiprows=1, delimiter=',', dtype={'names': ('eddy num tasks', 'eddy correct percentage', 'random num tasks', 'random correct percentage'),
           'formats': (np.int, np.int, np.int, np.int)})
 

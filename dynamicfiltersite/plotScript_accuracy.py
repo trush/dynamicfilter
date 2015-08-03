@@ -21,10 +21,9 @@ s3 = [value3 for (value0, value1, value2, value3, value4, value5) in data]
 s4 = [value4 for (value0, value1, value2, value3, value4, value5) in data]
 s5 = [value5 for (value0, value1, value2, value3, value4, value5) in data]
 
-# prints average and accuracies of each algorithm
-print "Eddy average: " + str(np.average(s0))
-print "Eddy2 average: " + str(np.average(s2))
-print "Random average: " + str(np.average(s4))
+print "Eddy average accuracy: " + str(np.average(s1))
+print "Eddy2 average accuracy: " + str(np.average(s3))
+print "Random average accuracy: " + str(np.average(s5))
 
 fig = plt.figure()
 
@@ -32,15 +31,13 @@ fig = plt.figure()
 # ax = fig.add_subplot(111)
 # ax.grid()
 
-plt.hist(s0)
+plt.hist(s1)
 
-plt.xlabel('Tasks Completed')
+plt.xlabel('Accuracy Percentage')
 plt.ylabel('Number of Runs')
-plt.title('Tasks to Complete all Questions (Eddy)')
-plt.savefig('test_results/eddy_histogram' + str(now.date())+ "_" + str(now.time())[:-7] + '.png')
+plt.title('Tasks to Complete all Questions (Eddy1)')
+plt.savefig('test_results/eddy1_histogram' + str(now.date())+ "_" + str(now.time())[:-7] + '.png')
 
-plt.clf()
-plt.cla()
 #-----------------------
 fig = plt.figure()
 
@@ -48,15 +45,13 @@ fig = plt.figure()
 # ax = fig.add_subplot(111)
 # ax.grid()
 
-plt.hist(s2)
+plt.hist(s3)
 
-plt.xlabel('Tasks Completed')
+plt.xlabel('Accuracy Percentage')
 plt.ylabel('Number of Runs')
-plt.title('Tasks to Complete all Questions (Eddy 2)')
+plt.title('Tasks to Complete all Questions (Eddy2)')
 plt.savefig('test_results/eddy2_histogram' + str(now.date())+ "_" + str(now.time())[:-7] + '.png')
 
-plt.clf()
-plt.cla()
 #-----------------------
 fig = plt.figure()
 
@@ -64,9 +59,9 @@ fig = plt.figure()
 # ax = fig.add_subplot(111)
 # ax.grid()
 
-plt.hist(s4)
+plt.hist(s5)
 
-plt.xlabel('Tasks Completed')
+plt.xlabel('Accuracy Percentage')
 plt.ylabel('Number of Runs')
 plt.title('Tasks to Complete all Questions (Random)')
 plt.savefig('test_results/random_histogram' + str(now.date())+ "_" + str(now.time())[:-7] + '.png')

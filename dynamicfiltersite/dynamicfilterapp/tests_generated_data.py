@@ -147,6 +147,8 @@ def set_correct_answers(self, branches, branchSelectivities, answers):
                 i += 1
 
         return predicateAnswers
+
+        
 def test_many_simulation_controller(self):
         """
         Calls the test_many_simulation function with as many sets of parameters as are specified.
