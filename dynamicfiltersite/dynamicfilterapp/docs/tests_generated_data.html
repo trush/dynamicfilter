@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>tests_generated_data.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id="background"></div>
+<div id='container'>
+  <div class='section'>
+    <div class='docs'><h1>tests_generated_data.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>A version of test_simulation that runs many simulations repeatedly in order to get aggregated data.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">test_many_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>record simulation identifying information to be put in each results file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">label</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">label</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s">&quot;Parameters:&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">parameters</span><span class="p">)])</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="c"># get the timestamp</span>
+        <span class="n">label</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s">&quot;Time stamp:&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">now</span><span class="p">)])</span>
+
+        <span class="n">NUM_SIMULATIONS</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">NUM_RESTAURANTS</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>Create restaurants with corresponding RestaurantPredicates and PredicateBranches</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NUM_RESTAURANTS</span><span class="p">):</span>
+            <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;Kate &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">i</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>set the selectivities and difficulties of each branch from parameters list</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">branches</span> <span class="o">=</span> <span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;index&quot;</span><span class="p">)</span>
+        <span class="n">branchSelectivities</span> <span class="o">=</span> <span class="p">{</span><span class="n">branches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                               <span class="n">branches</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span>
+                               <span class="n">branches</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="p">:</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">6</span><span class="p">]}</span>
+        <span class="n">branchDifficulties</span> <span class="o">=</span> <span class="p">{</span><span class="n">branches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span>
+                              <span class="n">branches</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span>
+                              <span class="n">branches</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="p">:</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">9</span><span class="p">]}</span>
+
+        <span class="n">recordAggregateStats</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+        <span class="n">recordEddyStats</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span>
+        <span class="n">recordEddy2Stats</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span>
+        <span class="n">recordRandomStats</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>establish a set of known correct answers</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">predicateAnswers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_correct_answers</span><span class="p">(</span><span class="n">branches</span><span class="p">,</span> <span class="n">branchSelectivities</span><span class="p">,</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">14</span><span class="p">])</span>
+
+        <span class="n">aggregateResults</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;eddy num tasks&quot;</span><span class="p">,</span> <span class="s">&quot;eddy correct percentage&quot;</span><span class="p">,</span> <span class="s">&quot;eddy 2 num tasks&quot;</span><span class="p">,</span> <span class="s">&quot;eddy2 correct percentage&quot;</span><span class="p">,</span> 
+                           <span class="s">&quot;random num tasks&quot;</span><span class="p">,</span> <span class="s">&quot;random correct percentage&quot;</span><span class="p">]]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NUM_SIMULATIONS</span><span class="p">):</span>
+
+            <span class="k">print</span> <span class="s">&quot;Eddy &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="n">results_eddy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">eddy</span><span class="p">,</span> <span class="n">branches</span><span class="p">,</span> <span class="n">branchDifficulties</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">predicateAnswers</span><span class="p">)</span>
+            <span class="n">eddyTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Task</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>Of the answered predicates, count how many are correct</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="n">correctCount</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">predicate</span> <span class="ow">in</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">predicate</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">predicateAnswers</span><span class="p">[</span><span class="n">predicate</span><span class="p">]:</span>
+                    <span class="n">correctCount</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">eddyCorrectPercentage</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">correctCount</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+            
+            <span class="k">if</span> <span class="n">recordEddyStats</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_results</span><span class="p">(</span><span class="n">results_eddy</span><span class="p">,</span> <span class="s">&quot;eddy&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reset_simulation</span><span class="p">()</span>
+
+            <span class="k">print</span> <span class="s">&quot;Eddy2 &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="n">results_eddy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">eddy2</span><span class="p">,</span> <span class="n">branches</span><span class="p">,</span> <span class="n">branchDifficulties</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">predicateAnswers</span><span class="p">)</span>
+            <span class="n">eddy2Tasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Task</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>Of the answered predicates, count how many are correct</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="n">correctCount</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">predicate</span> <span class="ow">in</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">predicate</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">predicateAnswers</span><span class="p">[</span><span class="n">predicate</span><span class="p">]:</span>
+                    <span class="n">correctCount</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">eddy2CorrectPercentage</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">correctCount</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+            
+            <span class="k">if</span> <span class="n">recordEddyStats</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_results</span><span class="p">(</span><span class="n">results_eddy</span><span class="p">,</span> <span class="s">&quot;eddy2&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reset_simulation</span><span class="p">()</span>
+
+            <span class="k">print</span> <span class="s">&quot;Random &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="n">results_random</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">randomAlgorithm</span><span class="p">,</span> <span class="n">branches</span><span class="p">,</span> <span class="n">branchDifficulties</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">predicateAnswers</span><span class="p">)</span>
+            <span class="n">randomTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Task</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>Of the answered predicates, count how many are correct</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="n">correctCount</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">predicate</span> <span class="ow">in</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">predicate</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">predicateAnswers</span><span class="p">[</span><span class="n">predicate</span><span class="p">]:</span>
+                    <span class="n">correctCount</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">randomCorrectPercentage</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">correctCount</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+            
+            <span class="k">if</span> <span class="n">recordRandomStats</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_results</span><span class="p">(</span><span class="n">results_random</span><span class="p">,</span> <span class="s">&quot;random&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reset_simulation</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">recordAggregateStats</span><span class="p">:</span> <span class="n">aggregateResults</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">eddyTasks</span><span class="p">,</span> <span class="n">eddyCorrectPercentage</span><span class="p">,</span> <span class="n">eddy2Tasks</span><span class="p">,</span> <span class="n">eddy2CorrectPercentage</span><span class="p">,</span> <span class="n">randomTasks</span><span class="p">,</span> <span class="n">randomCorrectPercentage</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_database</span><span class="p">()</span>
+  
+        <span class="k">if</span> <span class="n">recordAggregateStats</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_results</span><span class="p">(</span><span class="n">aggregateResults</span><span class="p">,</span> <span class="s">&quot;aggregate_results&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      <p>Creates a dictionary with a correct answer for each predicate in the database.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">set_correct_answers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">branches</span><span class="p">,</span> <span class="n">branchSelectivities</span><span class="p">,</span> <span class="n">answers</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>dictionary of correct answers</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">predicateAnswers</span> <span class="o">=</span> <span class="p">{}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <p>define sets of all restaurant predicates according to their indices</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">allRestPreds0</span> <span class="o">=</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">allRestPreds1</span> <span class="o">=</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">allRestPreds2</span> <span class="o">=</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">predicateSets</span> <span class="o">=</span> <span class="p">[</span><span class="n">allRestPreds0</span><span class="p">,</span> <span class="n">allRestPreds1</span><span class="p">,</span> <span class="n">allRestPreds2</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>define correct answers based on each predicate's selectivity
+for predicateSet in predicateSets:
+    while len(predicateSet) != 0:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
+      </div>
+      <pre><code>    # pick one predicate to define a correct answer for
+    restPred = choice(predicateSet)
+    predicateSet = predicateSet.exclude(id=restPFalsered.id)
+</code></pre>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      <pre><code>    # probabilistically assign the correct answer
+    if random() &lt; branchSelectivities[branches[restPred.index]]:
+        predicateAnswers[restPred] = False
+    else:
+        predicateAnswers[restPred] = True
+</code></pre>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      <p>Small Test Cases
+setting answers according to predicates
+for i in range(len(allRestPreds0)):
+    predicateAnswers[allRestPreds0[i]] = True</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
+      <p>for i in range(len(allRestPreds1)):
+    predicateAnswers[allRestPreds1[i]]  = True</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-19'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-19'>#</a>
+      </div>
+      <p>for i in range(len(allRestPreds2)):
+    predicateAnswers[allRestPreds2[i]]  = False</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-20'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-20'>#</a>
+      </div>
+      <p>-----------------------------------------------------------------------------------------------------------------------------------#</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-21'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-21'>#</a>
+      </div>
+      <p>setting answers according to restaurants
+allRestaurants = Restaurant.objects.all()</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-22'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-22'>#</a>
+      </div>
+      <p>predicates = RestaurantPredicate.objects.all().filter(restaurant=allRestaurants[0])
+for pred in predicates:
+    predicateAnswers[pred] = True</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-23'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-23'>#</a>
+      </div>
+      <p>predicates = RestaurantPredicate.objects.all().filter(restaurant=allRestaurants[1])
+for pred in predicates:
+    predicateAnswers[pred] = False</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">rest</span> <span class="ow">in</span> <span class="n">Restaurant</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">pb</span> <span class="ow">in</span> <span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">):</span>
+                <span class="n">pred</span> <span class="o">=</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">restaurant</span><span class="o">=</span><span class="n">rest</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">pb</span><span class="o">.</span><span class="n">index</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">predicateAnswers</span><span class="p">[</span><span class="n">pred</span><span class="p">]</span> <span class="o">=</span> <span class="n">answers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">predicateAnswers</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-24'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-24'>#</a>
+      </div>
+      <p>Calls the test_many_simulation function with as many sets of parameters as are specified.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">test_many_simulation_controller</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-25'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">recordAggregateStats</span> <span class="o">=</span> <span class="bp">True</span> <span class="c"># record the number of tasks and correct percentage for each run of each algorithm in one file</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
+      </div>
+      <p>choose whether to record individual run stats in separate files</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">eddy</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">eddy2</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">random</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="n">parameterSets</span> <span class="o">=</span> <span class="p">[]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-27'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-27'>#</a>
+      </div>
+      <p>selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">answers1</span> <span class="o">=</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
+                   <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
+                   <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
+                   <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
+                   <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
+                   <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
+                   <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
+                   <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
+                   <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
+                   <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">]</span>
+
+        <span class="n">set1</span> <span class="o">=</span><span class="p">[</span> <span class="mi">100</span><span class="p">,</span> <span class="c"># number of simulations</span>
+                <span class="mi">10</span><span class="p">,</span> <span class="c"># number of restaurants</span>
+                <span class="p">[</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">],</span> <span class="c"># confidence options</span>
+                <span class="p">[</span><span class="mf">0.0</span><span class="p">],</span> <span class="c"># personality options</span>
+                <span class="mf">0.0</span><span class="p">,</span> <span class="c"># selectivity 0</span>
+                <span class="mf">0.0</span><span class="p">,</span> <span class="c"># selectivity 1</span>
+                <span class="mf">0.0</span><span class="p">,</span> <span class="c"># selectivity 2</span>
+                <span class="mf">0.0</span><span class="p">,</span> <span class="c"># difficulty 0</span>
+                <span class="mf">0.0</span><span class="p">,</span> <span class="c"># difficulty 1</span>
+                <span class="mf">0.0</span><span class="p">,</span> <span class="c"># difficulty 2</span>
+                <span class="n">recordAggregateStats</span><span class="p">,</span>
+                <span class="n">eddy</span><span class="p">,</span>
+                <span class="n">eddy2</span><span class="p">,</span>
+                <span class="n">random</span><span class="p">,</span>
+                <span class="n">answers1</span>
+                <span class="p">]</span>
+        <span class="n">parameterSets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">set1</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-28'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-28'>#</a>
+      </div>
+      <p>answers2 = [False, False, True,
+           True, False, False,
+           False, True, True,
+           True, False, False,
+           False, True, False,
+           False, True, True,
+           True, False, True,
+           True, True, False,
+           False, True, True,
+           True, False, False]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-29'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-29'>#</a>
+      </div>
+      <p>set2 =[ 100, # number of simulations
+        10, # number of restaurants
+        [100,100,100,100,100], # confidence options
+        [0.0], # personality options
+        0.0, # selectivity 0
+        0.0, # selectivity 1
+        0.0, # selectivity 2
+        0.0, # difficulty 0
+        0.0, # difficulty 1
+        0.0, # difficulty 2
+        recordAggregateStats,
+        eddy,
+        eddy2,
+        random,
+        answers2
+        ]
+parameterSets.append(set2)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-30'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-30'>#</a>
+      </div>
+      <p>answers3 = [False, False, False,
+           True, False, False,
+           False, True, False,
+           True, False, False,
+           False, True, False,
+           False, True, True,
+           True, False, True,
+           True, True, False,
+           False, True, False,
+           True, False, False]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-31'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-31'>#</a>
+      </div>
+      <p>set3 =[ 100, # number of simulations
+        10, # number of restaurants
+        [100,100,100,100,100], # confidence options
+        [0.0], # personality options
+        0.0, # selectivity 0
+        0.0, # selectivity 1
+        0.0, # selectivity 2
+        0.0, # difficulty 0
+        0.0, # difficulty 1
+        0.0, # difficulty 2
+        recordAggregateStats,
+        eddy,
+        eddy2,
+        random,
+        answers3
+        ]
+parameterSets.append(set3)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-32'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-32'>#</a>
+      </div>
+      <p>answers4 = [False, False, True,
+           False, False, False,
+           False, False, False,
+           False, False, False,
+           False, False, False,
+           False, True, False,
+           False, False, False,
+           False, False, False,
+           False, False, False,
+           True, False, False]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
+      </div>
+      <p>set4 =[ 100, # number of simulations
+        10, # number of restaurants
+        [100,100,100,100,100], # confidence options
+        [0.0], # personality options
+        0.0, # selectivity 0
+        0.0, # selectivity 1
+        0.0, # selectivity 2
+        0.0, # difficulty 0
+        0.0, # difficulty 1
+        0.0, # difficulty 2
+        recordAggregateStats,
+        eddy,
+        eddy2,
+        random,
+        answers4
+        ]
+parameterSets.append(set4)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      <p>answers5 = [True, True, True,
+           True, True, True,
+           True, False, True,
+           False, True, True,
+           True, True, False,
+           True, True, True,
+           True, True, True,
+           True, True, True,
+           True, True, True,
+           True, True, True]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-35'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-35'>#</a>
+      </div>
+      <p>set5 =[ 100, # number of simulations
+        10, # number of restaurants
+        [100,100,100,100,100], # confidence options
+        [0.0], # personality options
+        0.0, # selectivity 0
+        0.0, # selectivity 1
+        0.0, # selectivity 2
+        0.0, # difficulty 0
+        0.0, # difficulty 1
+        0.0, # difficulty 2
+        recordAggregateStats,
+        eddy,
+        eddy2,
+        random,
+        answers5
+        ]
+parameterSets.append(set5)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-36'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-36'>#</a>
+      </div>
+      <p>answers6 = [True, True, True,
+           True, True, True,
+           True, False, True,
+           False, True, True,
+           True, True, False,
+           True, True, True,
+           True, False, True,
+           True, True, False,
+           True, True, True,
+           True, True, False]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-37'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-37'>#</a>
+      </div>
+      <p>set6 =[ 100, # number of simulations
+        10, # number of restaurants
+        [100,100,100,100,100], # confidence options
+        [0.0], # personality options
+        0.0, # selectivity 0
+        0.0, # selectivity 1
+        0.0, # selectivity 2
+        0.0, # difficulty 0
+        0.0, # difficulty 1
+        0.0, # difficulty 2
+        recordAggregateStats,
+        eddy,
+        eddy2,
+        random,
+        answers6
+        ]
+parameterSets.append(set6)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-38'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-38'>#</a>
+      </div>
+      <p>answers7 = [True, True, False,
+           True, False, False,
+           True, False, False,
+           False, True, False,
+           True, True, False,
+           True, True, False,
+           True, False, True,
+           True, True, False,
+           True, False, False,
+           True, False, False]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-39'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-39'>#</a>
+      </div>
+      <p>set7 =[ 100, # number of simulations
+        10, # number of restaurants
+        [100,100,100,100,100], # confidence options
+        [0.0], # personality options
+        0.0, # selectivity 0
+        0.0, # selectivity 1
+        0.0, # selectivity 2
+        0.0, # difficulty 0
+        0.0, # difficulty 1
+        0.0, # difficulty 2
+        recordAggregateStats,
+        eddy,
+        eddy2,
+        random,
+        answers7
+        ]
+parameterSets.append(set7)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-40'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-40'>#</a>
+      </div>
+      <p>answers8 = [False, True, False,
+           True, False, False,
+           False, False, False,
+           False, False, False,
+           True, True, False,
+           False, False, False,
+           False, False, True,
+           True, False, False,
+           False, False, False,
+           False, False, False]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-41'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-41'>#</a>
+      </div>
+      <p>set8 =[ 100, # number of simulations
+        10, # number of restaurants
+        [100,100,100,100,100], # confidence options
+        [0.0], # personality options
+        0.0, # selectivity 0
+        0.0, # selectivity 1
+        0.0, # selectivity 2
+        0.0, # difficulty 0
+        0.0, # difficulty 1
+        0.0, # difficulty 2
+        recordAggregateStats,
+        eddy,
+        eddy2,
+        random,
+        answers8
+        ]
+parameterSets.append(set8)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-42'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-42'>#</a>
+      </div>
+      <p>answers9 = [False, True, False,
+           True, False, False,
+           False, False, True,
+           True, True, False,
+           True, True, True,
+           False, True, False,
+           True, False, True,
+           True, True, False,
+           False, False, True,
+           True, False, False]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
+      </div>
+      <p>set9 =[ 100, # number of simulations
+        10, # number of restaurants
+        [100,100,100,100,100], # confidence options
+        [0.0], # personality options
+        0.0, # selectivity 0
+        0.0, # selectivity 1
+        0.0, # selectivity 2
+        0.0, # difficulty 0
+        0.0, # difficulty 1
+        0.0, # difficulty 2
+        recordAggregateStats,
+        eddy,
+        eddy2,
+        random,
+        answers9
+        ]
+parameterSets.append(set9)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">for</span> <span class="n">parameters</span> <span class="ow">in</span> <span class="n">parameterSets</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Parameter set: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_many_simulation</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-44'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-44'>#</a>
+      </div>
+      <p>an audio alert that the tests are done</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;say &quot;simulations complete&quot;&#39;</span><span class="p">)</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>

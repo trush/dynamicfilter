@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>tests_functions.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id="background"></div>
+<div id='container'>
+  <div class='section'>
+    <div class='docs'><h1>tests_functions.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>Tests the aggregate_responses() function</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">AggregateResponsesTestCase</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>Entering five yes votes should result in all predicate statuses being set to -1.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_aggregate_five_yes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">r</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;Chipotle&quot;</span><span class="p">,</span> <span class="mi">20349</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>get the zeroeth predicate</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">p</span> <span class="o">=</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">restaurant</span><span class="o">=</span><span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;-index&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>Enter five "No" answers with 100% confidence</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="n">enterTask</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+
+        <span class="n">r</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">aggregate_responses</span><span class="p">(</span><span class="n">p</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>All the predicate statuses should be -1 since this restaurant failed one</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">predicate0Status</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">predicate1Status</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">predicate2Status</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>Entering five votes with 80 percent confidence (three yes) should cause
+5 more responses to be required</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_aggregate_uncertain_responses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">r</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;Chipotle&quot;</span><span class="p">,</span> <span class="mi">20349</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>get the zeroeth predicate</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">p</span> <span class="o">=</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">restaurant</span><span class="o">=</span><span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>Enter three "Yes" answers with 80% confidence</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">enterTask</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>Enter three "No" answers with 80% confidence</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">enterTask</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+
+        <span class="n">r</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">aggregate_responses</span><span class="p">(</span><span class="n">p</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      <p>All the predicate statuses should be -1 since this restaurant failed one</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">predicate0Status</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">predicate1Status</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">predicate2Status</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>If no responses have been entered, all statuses should stay at 5.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_aggregate_no_responses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">r</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;Chipotle&quot;</span><span class="p">,</span> <span class="mi">20349</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>get the zeroeth predicate</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">p</span> <span class="o">=</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">restaurant</span><span class="o">=</span><span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">r</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">aggregate_responses</span><span class="p">(</span><span class="n">p</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
+      </div>
+      <p>All the predicate statuses should be -1 since this restaurant failed one</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">predicate0Status</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">predicate1Status</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">predicate2Status</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">AnswerQuestionViewTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      <p>Trying to access the answer_question URL with no ID should cause a 404.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_answer_question_no_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;/dynamicfilterapp/answer_question/&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">404</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-19'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-19'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">RestaurantCreationTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-20'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-20'>#</a>
+      </div>
+      <p>tests to see if three predicates are created with each restaurant</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_predicates_created</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-21'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-21'>#</a>
+      </div>
+      <p>make a new RestaurantAdminForm and get the Restaurant created</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">rForm</span> <span class="o">=</span> <span class="n">RestaurantAdminForm</span><span class="p">()</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">rForm</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-22'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-22'>#</a>
+      </div>
+      <p>Ensure that three predicates have been created to go with this restaurant</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">restaurant</span><span class="o">=</span><span class="n">r</span><span class="p">)),</span> <span class="mi">3</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-23'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-23'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">NoQuestionViewTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="n">WORKER_ID</span> <span class="o">=</span> <span class="mo">001</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-24'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-24'>#</a>
+      </div>
+      <p>tests the no_questions view to make sure it displays the correct web page</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_no_questions_view_content</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-25'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;no_questions&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">WORKER_ID</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s">&quot;There are no more questions to be answered at this time.&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">UpdateCountsTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-27'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-27'>#</a>
+      </div>
+      <p>tests updateCounts() to make sure it increments returnedTotal and returnedNo appropriately</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_update_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-28'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-28'>#</a>
+      </div>
+      <p>made a restaurant</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">restaurant</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&#39;Kate&#39;</span><span class="p">,</span> <span class="mi">91871</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-29'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-29'>#</a>
+      </div>
+      <p>entered a predicate branch</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">enterPredicateBranch</span><span class="p">(</span><span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">question</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">PB</span> <span class="o">=</span> <span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-30'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-30'>#</a>
+      </div>
+      <p>entered a task</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">enterTask</span><span class="p">(</span><span class="mo">001</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-31'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-31'>#</a>
+      </div>
+      <p>updated count of total answers and total no's</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">updateCounts</span><span class="p">(</span><span class="n">PB</span><span class="p">,</span> <span class="n">Task</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-32'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-32'>#</a>
+      </div>
+      <p>total answer should now be 2</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">PB</span><span class="o">.</span><span class="n">returnedTotal</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
+      </div>
+      <p>entered another task</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">enterTask</span><span class="p">(</span><span class="mo">002</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      <p>updated its counts of total answers and total no's</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">updateCounts</span><span class="p">(</span><span class="n">PB</span><span class="p">,</span> <span class="n">Task</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-35'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-35'>#</a>
+      </div>
+      <p>total answers should be 3 and total no's should be 2</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">PB</span><span class="o">.</span><span class="n">returnedTotal</span><span class="p">,</span><span class="mf">2.6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">PB</span><span class="o">.</span><span class="n">returnedNo</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-36'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-36'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">FindRestaurantTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-37'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-37'>#</a>
+      </div>
+      <p>Given three possible restaurants, should choose the one with the lowest value for the relevant
+predicateStatus that's not -1 or 0. (Test for three predicates)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_no_tasks_done</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-38'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-38'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">r1</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;Chipotle&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="c"># in practice all fields would be -1 if one was</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">predicate1Status</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">predicate2Status</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">r2</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;In n&#39; Out&quot;</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">predicate1Status</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">predicate2Status</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">r3</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;Subway&quot;</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">predicate1Status</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">predicate2Status</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">pb0</span><span class="o">=</span><span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">findRestaurant</span><span class="p">(</span><span class="n">pb0</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">r2</span><span class="p">)</span>
+
+        <span class="n">pb1</span><span class="o">=</span><span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">findRestaurant</span><span class="p">(</span><span class="n">pb1</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">r3</span><span class="p">)</span>
+
+        <span class="n">pb2</span><span class="o">=</span><span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">findRestaurant</span><span class="p">(</span><span class="n">pb2</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">r2</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-39'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-39'>#</a>
+      </div>
+      <p>The worker has answered all three questions for the second restaurant.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_two_eligible_restaurants</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-40'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-40'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">r1</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;Chipotle&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="c"># in practice all fields would be -1 if one was</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">predicate1Status</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">predicate2Status</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">r2</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;In n&#39; Out&quot;</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">predicate1Status</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">predicate2Status</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">r3</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;Subway&quot;</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">predicate1Status</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">predicate2Status</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">predicate</span> <span class="ow">in</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">restaurant</span><span class="o">=</span><span class="n">r2</span><span class="p">):</span>
+            <span class="n">enterTask</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">predicate</span><span class="p">)</span>
+
+        <span class="n">pb0</span><span class="o">=</span><span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">findRestaurant</span><span class="p">(</span><span class="n">pb0</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">r3</span><span class="p">)</span>
+
+        <span class="n">pb1</span><span class="o">=</span><span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">findRestaurant</span><span class="p">(</span><span class="n">pb1</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">r3</span><span class="p">)</span>
+
+        <span class="n">pb2</span><span class="o">=</span><span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">findRestaurant</span><span class="p">(</span><span class="n">pb2</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">r1</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-41'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-41'>#</a>
+      </div>
+      <p>The first restaurant has already failed a predicate.
+The worker has answered all three questions for the second restaurant.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_one_eligible_restaurant</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-42'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-42'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">r1</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;Chipotle&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">predicate1Status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">predicate2Status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">r1</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">r2</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;In n&#39; Out&quot;</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">predicate1Status</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">predicate2Status</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">r2</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">r3</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&quot;Subway&quot;</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">predicate0Status</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">predicate1Status</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">predicate2Status</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">r3</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">predicate</span> <span class="ow">in</span> <span class="n">RestaurantPredicate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">restaurant</span><span class="o">=</span><span class="n">r2</span><span class="p">):</span>
+            <span class="n">enterTask</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">predicate</span><span class="p">)</span>
+
+        <span class="n">pb0</span><span class="o">=</span><span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">findRestaurant</span><span class="p">(</span><span class="n">pb0</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">r3</span><span class="p">)</span>
+
+        <span class="n">pb1</span><span class="o">=</span><span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">findRestaurant</span><span class="p">(</span><span class="n">pb1</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">r3</span><span class="p">)</span>
+
+        <span class="n">pb2</span><span class="o">=</span><span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">findRestaurant</span><span class="p">(</span><span class="n">pb2</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">r3</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">DecrementStatusTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-44'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-44'>#</a>
+      </div>
+      <p>tests decrementStatus() method to make sure it can decrement each status bit</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_decrement_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-45'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-45'>#</a>
+      </div>
+      <p>made a restaurant</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">restaurant</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&#39;Kate&#39;</span><span class="p">,</span> <span class="mi">91871</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-46'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-46'>#</a>
+      </div>
+      <p>decremented each status bit as if each one received an answer</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">decrementStatus</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">restaurant</span><span class="p">)</span>
+        <span class="n">decrementStatus</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">restaurant</span><span class="p">)</span>
+        <span class="n">decrementStatus</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">restaurant</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-47'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-47'>#</a>
+      </div>
+      <p>because each status bit is defaulted to 5, it should now be 4</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">restaurant</span><span class="o">.</span><span class="n">predicate0Status</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">restaurant</span><span class="o">.</span><span class="n">predicate1Status</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">restaurant</span><span class="o">.</span><span class="n">predicate2Status</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-48'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-48'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">IncrementStatusTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-49'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-49'>#</a>
+      </div>
+      <p>tests incrementStatusByFive() when the status bit is not 0. it should do nothing</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_increment_when_not_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-50'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-50'>#</a>
+      </div>
+      <p>made a restaurant</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">restaurant</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&#39;Kate&#39;</span><span class="p">,</span> <span class="mi">91871</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-51'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-51'>#</a>
+      </div>
+      <p>should not increase default value of 5 to 7 because it should only increment when status is 0</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">incrementStatus</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">restaurant</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">restaurant</span><span class="o">.</span><span class="n">predicate0Status</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-52'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-52'>#</a>
+      </div>
+      <p>tests incrementStatusByFive() when the status bit is 0.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_increment_when_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-53'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-53'>#</a>
+      </div>
+      <p>made a restaurant</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">restaurant</span> <span class="o">=</span> <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&#39;Kate&#39;</span><span class="p">,</span> <span class="mi">91871</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-54'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-54'>#</a>
+      </div>
+      <p>decrement status 5 times to make its predicate0Status equal to zero</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">decrementStatus</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">restaurant</span><span class="p">)</span>
+        <span class="n">decrementStatus</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">restaurant</span><span class="p">)</span>
+        <span class="n">decrementStatus</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">restaurant</span><span class="p">)</span>
+        <span class="n">decrementStatus</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">restaurant</span><span class="p">)</span>
+        <span class="n">decrementStatus</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">restaurant</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">restaurant</span><span class="o">.</span><span class="n">predicate0Status</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-55'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-55'>#</a>
+      </div>
+      <p>because predicate0Status equals 0, it should increase it back to 2</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">incrementStatus</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">restaurant</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">restaurant</span><span class="o">.</span><span class="n">predicate0Status</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-56'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-56'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">findTotalTicketsTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-57'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-57'>#</a>
+      </div>
+      <p>tests findTotalTickets() to correctly find the total number of tickets</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_find_Total_Tickets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-58'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-58'>#</a>
+      </div>
+      <p>make restaurant</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">enterRestaurant</span><span class="p">(</span><span class="s">&#39;Kate&#39;</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-59'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-59'>#</a>
+      </div>
+      <p>adjusting first predicate branch</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">pb0</span> <span class="o">=</span> <span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">pb0</span><span class="o">.</span><span class="n">returnedTotal</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">pb0</span><span class="o">.</span><span class="n">returnedNo</span> <span class="o">=</span> <span class="mi">6</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-60'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-60'>#</a>
+      </div>
+      <p>adjusting second predicate branch</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">pb1</span> <span class="o">=</span> <span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">pb1</span><span class="o">.</span><span class="n">returnedTotal</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">pb1</span><span class="o">.</span><span class="n">returnedNo</span> <span class="o">=</span> <span class="mi">2</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-61'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-61'>#</a>
+      </div>
+      <p>save edits</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">pb0</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="n">pb1</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-62'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-62'>#</a>
+      </div>
+      <p>store result of findTotalTickets</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">result</span> <span class="o">=</span> <span class="n">findTotalTickets</span><span class="p">(</span><span class="n">PredicateBranch</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-63'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-63'>#</a>
+      </div>
+      <p>should equal 2000</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="mi">2000</span><span class="p">)</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>

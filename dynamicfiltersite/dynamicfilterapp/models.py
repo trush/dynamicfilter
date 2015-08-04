@@ -5,10 +5,10 @@ from validator import validate_positive
 from dynamic_models import get_survey_response_model
 import subprocess
 
-"""
-Model representing an item in the database: in our use case, a restaurant.
-"""
 class Restaurant(models.Model):
+    """
+    Model representing an item in the database: in our use case, a restaurant.
+    """
 
     # the name of the restaurant
     name = models.CharField(max_length=50)
@@ -56,10 +56,11 @@ class Restaurant(models.Model):
         # prevents two Restaurants from having the same address
         unique_together = ("street", "city", "state", "zipCode", "country")
 
-"""
-Model representing an item-predicate pair. 
-"""
+
 class RestaurantPredicate(models.Model):
+    """
+    Model representing an item-predicate pair. 
+    """
     # the restaurant with which this predicate is affiliated
     restaurant = models.ForeignKey(Restaurant)
 
@@ -78,10 +79,11 @@ class RestaurantPredicate(models.Model):
         """
         return str(self.restaurant) + "/" + self.question
 
-"""
-Model representing one crowd worker task. (One HIT on Mechanical Turk.)
-"""
+
 class Task(models.Model):
+    """
+    Model representing one crowd worker task. (One HIT on Mechanical Turk.)
+    """
     # the item-predicate pair that this task is answering
     restaurantPredicate = models.ForeignKey(RestaurantPredicate)
 
@@ -112,6 +114,9 @@ class Task(models.Model):
 
 
 class PredicateBranch(models.Model):
+    """
+    Model representing one predicate (a branch in eddy terminology).
+    """
     # the index of this branch of the eddy 
     # corresponds to the index in the matching RestaurantPredicates
     index = models.IntegerField(default=None)
@@ -131,9 +136,9 @@ class PredicateBranch(models.Model):
     def __unicode__(self):
         return "Predicate branch with question: " + str(self.question)
 
-"""
-Restricts worker ID to positive integers. Used in IDForm in forms.py.
-"""
 class WorkerID(models.Model):
+    """
+    Restricts worker ID to positive integers. Used in IDForm in forms.py.
+    """
     # ID of the worker
     workerID = models.IntegerField(validators=[validate_positive], unique=True)
