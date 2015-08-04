@@ -6,21 +6,25 @@ import datetime as DT
 import pylab
 import sys
 
+# the csv file name is the first (and only) argument passed from the command line
 filename = sys.argv[1]
 
-# data from csv file, skips one row, delimits by comma
+# read in data from csv file, skips first row, delimits by comma
 data = np.loadtxt(filename, skiprows=1, delimiter=',', dtype={'names': ('eddy num tasks', 'eddy correct percentage', 'random num tasks', 'random correct percentage'),
           'formats': (np.int, np.int, np.int, np.int)})
 
+# get the columns of the csv file as separate lists
 eddyTasks = [value0 for (value0, value1, value2, value3) in data]
-eddy_percent = [value1 for (value0, value1, value2, value3) in data]
+eddyPercent = [value1 for (value0, value1, value2, value3) in data]
 randomTasks = [value2 for (value0, value1, value2, value3) in data]
-random_percent = [value3 for (value0, value1, value2, value3) in data]
+randomPercent = [value3 for (value0, value1, value2, value3) in data]
 
+# set up graph
 fig = plt.figure()
 ax = fig.add_subplot(111)
 ax.grid()
 
+# plot the data
 plt.plot(range(len(eddyTasks)),eddyTasks, label="predicate branch 0")
 plt.plot(m,s2, label="predicate branch 1")
 plt.plot(m,s3, label="predicate branch 2")
@@ -32,16 +36,22 @@ legend = ax.legend(loc='upper center', shadow=True)
 frame = legend.get_frame()
 frame.set_facecolor('0.90')
 
-# Set the fontsize
+# Set the font size
 for label in legend.get_texts():
     label.set_fontsize('large')
 
+# Set the legend line width
 for label in legend.get_lines():
-    label.set_linewidth(1.5)  # the legend line width
+    label.set_linewidth(1.5)  
 
+# Label the axes
 plt.xlabel('Tasks Completed')
 plt.ylabel('Selectivity')
+
+# Title the graph
 plt.title('Random: Computed Task Selectivity vs. Number of Tasks Completed')
+
+# Save the figure with a file name that includes a time stamp
 now = DT.datetime.now()
 plt.savefig('test_results/figure' + str(now.date())+ "_" + str(now.time())[:-7] + '.png')
 

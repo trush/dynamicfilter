@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# dynamicfiltersite documentation build configuration file, created by
-# sphinx-quickstart on Mon Aug  3 10:19:05 2015.
+# dynamicfilter documentation build configuration file, created by
+# sphinx-quickstart on Mon Aug  3 11:25:26 2015.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -15,14 +15,14 @@
 import sys
 import os
 import shlex
-from django.conf import settings
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
 
 sys.path.insert(0, os.path.abspath('..'))
-
+from django.conf import settings
 settings.configure()
 
 # -- General configuration ------------------------------------------------
@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
+    'sphinx.ext.pngmath',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -54,9 +55,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'dynamicfiltersite'
-copyright = u'2015, Austin Shin, Katherine Reed'
-author = u'Austin Shin, Katherine Reed'
+project = u'dynamicfilter'
+copyright = u'2015, Katherine Reed and Austin Shin'
+author = u'Katherine Reed and Austin Shin'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -72,7 +73,7 @@ release = '1.0'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = '.rst'
+language = None
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -208,7 +209,7 @@ html_static_path = ['_static']
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'dynamicfiltersitedoc'
+htmlhelp_basename = 'dynamicfilterdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -230,8 +231,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'dynamicfiltersite.tex', u'dynamicfiltersite Documentation',
-   u'Austin Shin, Katherine Reed', 'manual'),
+  (master_doc, 'dynamicfilter.tex', u'dynamicfilter Documentation',
+   u'Katherine Reed and Austin Shin', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -260,7 +261,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'dynamicfiltersite', u'dynamicfiltersite Documentation',
+    (master_doc, 'dynamicfilter', u'dynamicfilter Documentation',
      [author], 1)
 ]
 
@@ -274,8 +275,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'dynamicfiltersite', u'dynamicfiltersite Documentation',
-   author, 'dynamicfiltersite', 'One line description of project.',
+  (master_doc, 'dynamicfilter', u'dynamicfilter Documentation',
+   author, 'dynamicfilter', 'One line description of project.',
    'Miscellaneous'),
 ]
 

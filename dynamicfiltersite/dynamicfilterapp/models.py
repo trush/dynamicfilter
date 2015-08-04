@@ -6,25 +6,22 @@ from dynamic_models import get_survey_response_model
 import subprocess
 
 """
-A class docstring?
+Model representing an item in the database: in our use case, a restaurant.
 """
 class Restaurant(models.Model):
 
     # the name of the restaurant
     name = models.CharField(max_length=50)
 
-    # url of the restaurant
+    # url of the Restaurant's website (optional)
     url = models.URLField(max_length=200, default="", blank=True)
 
-    # fields to record physical address
+    # fields to record physical of the Restaurant
     street = models.CharField(max_length=50, default="")
     city = models.CharField(max_length=20, default="")
     state = models.CharField(max_length=2, default="")
     zipCode = models.CharField(max_length=9, default="", verbose_name='Zip Code')
     country = models.CharField(max_length=30, default="")
-
-    # Worker instructions
-    text = models.CharField(max_length=500, blank=True)
 
     # keep track of how many times each predicate still needs to be evaluated
     # hard-coded to ten predicates for now
@@ -39,10 +36,11 @@ class Restaurant(models.Model):
     predicate8Status = models.IntegerField(default=5)
     predicate9Status = models.IntegerField(default=5)
     
-    # keeps track of when even one of its predicates fail
+    # set to True if one of the predicates has been evaluated to False
     hasFailed = models.BooleanField(default=False)
 
     # the index of the PredicateBranch currently evaluating this Restaurant (None if it's not currently being evaluated)
+    # Used to track where the Restaurant is in the eddy
     evaluator = models.IntegerField(null=True,blank=True,default=None)
 
     # queue index for eddy2's restaurant queue
@@ -50,15 +48,17 @@ class Restaurant(models.Model):
 
     def __unicode__(self):
         """
-        Unicodeeeeee
+        Returns a textual representation of the Restaurant. With Python 2 this must be __unicode__ instead of __str__.
         """
-        return str(self.queueIndex) + ": " + str(self.name)
+        return str(self.name)
 
     class Meta:
-        # no two restaurants can have the same address
+        # prevents two Restaurants from having the same address
         unique_together = ("street", "city", "state", "zipCode", "country")
 
-
+"""
+Model representing an item-predicate pair. 
+"""
 class RestaurantPredicate(models.Model):
     # the restaurant with which this predicate is affiliated
     restaurant = models.ForeignKey(Restaurant)
@@ -73,11 +73,16 @@ class RestaurantPredicate(models.Model):
     value = models.NullBooleanField(default=None)
 
     def __unicode__(self):
-        return str(self.restaurant) + "/" + self.question + "/index:" + str(self.index)
+        """
+        Returns a textual representation of the RestaurantPredicate. With Python 2 this must be __unicode__ instead of __str__.
+        """
+        return str(self.restaurant) + "/" + self.question
 
-
+"""
+Model representing one crowd worker task. (One HIT on Mechanical Turk.)
+"""
 class Task(models.Model):
-    # the predicate that this task is answering
+    # the item-predicate pair that this task is answering
     restaurantPredicate = models.ForeignKey(RestaurantPredicate)
 
     # the answer provided by the worker, null until answered
@@ -89,16 +94,20 @@ class Task(models.Model):
     # the worker's ID number
     workerID = models.IntegerField(default=0)
 
-    # the time it takes for the worker to complete a question
+    # the time it takes for the worker to complete the question
+    # currently not being used for anything but may be incorporated into the eddy in the future
     completionTime = models.IntegerField(default=0)
 
-    # set to True if the worker check's "I don't know"
+    # set to True if the worker checks "I don't know"
     IDontKnow = models.BooleanField(default=False, blank=True)
 
-    # a place for workers to give feedback on the task
+    # a text field for workers to give feedback on the task
     feedback = models.CharField(max_length=500, blank=True)
 
     def __unicode__(self):
+        """
+        Returns a textual representation of the Task. With Python 2 this must be __unicode__ instead of __str__.
+        """
         return "Task from worker " + str(self.workerID)
 
 
@@ -122,7 +131,9 @@ class PredicateBranch(models.Model):
     def __unicode__(self):
         return "Predicate branch with question: " + str(self.question)
 
-
+"""
+Restricts worker ID to positive integers. Used in IDForm in forms.py.
+"""
 class WorkerID(models.Model):
     # ID of the worker
     workerID = models.IntegerField(validators=[validate_positive], unique=True)

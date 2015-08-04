@@ -1,8 +1,8 @@
 dynamicfilterapp Package
-=============
+==========================
 
 :mod:`dynamicfilterapp` Package
---------------------
+--------------------------------
 
 .. automodule:: dynamicfilterapp.__init__
     :members:

@@ -1,4 +1,4 @@
-def run_simulation(self, algorithm, parameters, predicateAnswers, dictionary):
+
 
 def test_many_simulation(self, parameters):
         """
@@ -146,9 +146,7 @@ def set_correct_answers(self, branches, branchSelectivities, answers):
                 predicateAnswers[pred] = answers[i]
                 i += 1
 
-        return predicateAnswers
-
-        
+        return predicateAnswers      
 def test_many_simulation_controller(self):
         """
         Calls the test_many_simulation function with as many sets of parameters as are specified.

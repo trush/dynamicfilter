@@ -1,4 +1,0 @@
-Models
-======
-.. automodule:: dynamicfilterapp.tests
-    :members:

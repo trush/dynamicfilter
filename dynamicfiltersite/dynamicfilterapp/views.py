@@ -11,6 +11,10 @@ from scipy.special import btdtr
 import random
 
 def index(request):
+    """
+    The landing page where workers enter their ID before proceeding to a question. This page isn't used when
+    experiments are run through Mechanical Turk.
+    """
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
@@ -31,8 +35,8 @@ def index(request):
 
 def answer_question(request, IDnumber):
     """
-    Displays and processes input from a form where the user can answer a question about a
-    predicate.
+    Displays and processes input from a form where the user can answer a question about an
+    item-predicate pair.
     """
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
