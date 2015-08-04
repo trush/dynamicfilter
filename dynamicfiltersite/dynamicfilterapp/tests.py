@@ -38,7 +38,7 @@ def enterRestaurant(restaurantName, zipNum):
     Also creates three corresponding predicates and predicate branches. (No longer in use since we're doing 10 predicates.)
     """
     r = Restaurant(name=restaurantName, url="www.test.com", street="Test Address", city="Berkeley", state="CA",
-        zipCode=zipNum, country="USA", text="Please answer a question!")
+        zipCode=zipNum, country="USA")
     r.queueIndex = len(Restaurant.objects.all())
     r.save()
 
@@ -61,18 +61,18 @@ def enterPredicateBranch(question, index, returnedTotal, returnedNo):
 
 
 class SimulationTest(TestCase):
-"""
-We run simulations of our algorithm to evaluate its performance against other algorithms. In general, we use a test database of 
-items and predicates, and use the algorithm to "ask" questions, which are answered with simulated worker responses. These worker responses 
-are sampled from a set of pre-gathered Mechanical Turk HITs. Parameters for the simulations are specified in the test_controller method, 
-which are what should be called to run the simulations.
+    """
+    We run simulations of our algorithm to evaluate its performance against other algorithms. In general, we use a test database of 
+    items and predicates, and use the algorithm to "ask" questions, which are answered with simulated worker responses. These worker responses 
+    are sampled from a set of pre-gathered Mechanical Turk HITs. Parameters for the simulations are specified in the test_controller method, 
+    which are what should be called to run the simulations.
 
-The simulations may also be run using made-up worker responses (generated using Python's random functions). Methods for such simulations
-have been moved to simulation_generated_responses.py.
+    The simulations may also be run using made-up worker responses (generated using Python's random functions). Methods for such simulations
+    have been moved to simulation_generated_responses.py.
 
-To run simulations: 
-python manage.py test dynamicfilterapp.tests.SimulationTest.test_sample_data_simulation_controller
-"""
+    To run simulations: 
+    python manage.py test dynamicfilterapp.tests.SimulationTest.test_controller
+    """
     def test_controller(self):
         """
         Calls the many_simulations function once for each set of specified parameters. One simulation is one run of each algorithm. The user
@@ -95,7 +95,7 @@ python manage.py test dynamicfilterapp.tests.SimulationTest.test_sample_data_sim
         # A set of parameters for one call to many_simulations
         # The user may copy these lines to define and append more sets of parameters, which will results
         # in more calls to many_simulations
-        set1 =[ 1000, # number of simulations to be run with these parameters
+        set1 =[ 100, # number of simulations to be run with these parameters
                 20, # number of restaurants
                 [4,5,8], # indices of the questions to use (between 1 and 10 questions may be specified, with indices 0 to 9)
                 recordAggregateStats,
@@ -271,7 +271,7 @@ python manage.py test dynamicfilterapp.tests.SimulationTest.test_sample_data_sim
 
         # zip lists so that they are written as columns, not rows
         for row in map(None, taskCount, selectivities[0], selectivities[1], selectivities[2], selectivities[3], selectivities[4], 
-        selectivities[5], selectivities[6], selectivities[7], selectivities[8], selectivities[9], wheresWaldo, taskAnswers, 
+        selectivities[5], selectivities[6], selectivities[7], selectivities[8], selectivities[9], branchHistory, taskAnswers, 
         tasksPerRestaurant, predicateList, tasks, returnedNo, returnedTotal, rests, answers[0], answers[1], answers[2], answers[3], 
         answers[4], answers[5], answers[6], answers[7], answers[8], answers[9], predicateCorrectAnswers[0], 
         predicateCorrectAnswers[1], predicateCorrectAnswers[2], predicateCorrectAnswers[3], predicateCorrectAnswers[4], 
@@ -281,9 +281,22 @@ python manage.py test dynamicfilterapp.tests.SimulationTest.test_sample_data_sim
 
         # append a column of percent done data to the existing file
         # TODO see if this method is more elegant for the other data
+
+        if algorithm==eddy:
+            print "adding to csv"
+            fd = open('MTurk_Results/percentdone_eddy.csv','a')
+            writer = csv.writer(fd)
+            [writer.writerow(r) for r in [percentDone]]
+
         if algorithm==eddy2:
             print "adding to csv"
-            fd = open('percentdone.csv','a')
+            fd = open('MTurk_Results/percentdone_eddy2.csv','a')
+            writer = csv.writer(fd)
+            [writer.writerow(r) for r in [percentDone]]
+
+        if algorithm==random:
+            print "adding to csv"
+            fd = open('MTurk_Results/percentdone_random.csv','a')
             writer = csv.writer(fd)
             [writer.writerow(r) for r in [percentDone]]
 
@@ -402,7 +415,7 @@ python manage.py test dynamicfilterapp.tests.SimulationTest.test_sample_data_sim
 
         for i in range(NUM_RESTAURANTS):
             r = Restaurant(name=restaurantNames[i], url="www.test.com", street="Test Address", city="Berkeley", state="CA",
-            zipCode=i, country="USA", text="Please answer a question!")
+            zipCode=i, country="USA")
             r.queueIndex = len(Restaurant.objects.all())
             r.save()
 
@@ -446,8 +459,18 @@ python manage.py test dynamicfilterapp.tests.SimulationTest.test_sample_data_sim
         aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
                            "random num tasks", "random correct percentage"]]
 
-        # start the file where we'll record the percent done data
-        with open('percentdone.csv', 'w') as csvfile:
+        # start the file where we'll record the percent done data for eddy
+        with open('MTurk_Results/percentdone_eddy.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            [writer.writerow(r) for r in ["percentDone"]]
+
+        # start the file where we'll record the percent done data for eddy2
+        with open('MTurk_Results/percentdone_eddy2.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            [writer.writerow(r) for r in ["percentDone"]]
+
+        # start the file where we'll record the percent done data for random
+        with open('MTurk_Results/percentdone_random.csv', 'w') as csvfile:
             writer = csv.writer(csvfile)
             [writer.writerow(r) for r in ["percentDone"]]
 
