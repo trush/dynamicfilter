@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 import datetime as DT
 import pylab
 import sys
+import math
+import csv
+
+from scipy.stats import beta
 
 # run by typing 
 # python mturk_results_reader.py Batch_2019634_batch_results_cleaned.csv correct_answers.csv 
@@ -47,9 +51,9 @@ uniqueQuestions = np.genfromtxt(fname=correctAnswersFile,
 
 # prints all the questions
 uniqueQuestionsList = list(uniqueQuestions.tolist())
-for question in uniqueQuestionsList:
-	print question
-print "\n"
+# for question in uniqueQuestionsList:
+# 	print question
+# print "\n"
 
 #----------Find Selectivities --------------
 # get a list of all 6,000 (question, answer) pairs
@@ -70,10 +74,9 @@ for question in uniqueQuestionsList:
 for entry in answersCount:
 	# print entry
 	countDict = answersCount[entry]
-	
 	selectivity = (countDict[-100]+countDict[-80]+countDict[-60])/600.0
-	print entry
-	print "Selectivity: " + str(selectivity) + "\n"
+	# print entry
+	# print "Selectivity: " + str(selectivity) + "\n"
 #--------------------------------------------
 
 # create a dictionary of (restaurant, question) keys and boolean correct answer values
@@ -92,6 +95,40 @@ for restRow in answers:
 		wrongRightCounts[key] = [0,0]
 
 restaurantQuestionAnswers = [(value3, value4,value5) for (value0, value1, value2, value3, value4, value5) in data]
+
+yesNoCount = {}
+for (restaurant, question, answer) in restaurantQuestionAnswers:
+	yesNoCount[(restaurant,question)] = [1,1]
+
+for (restaurant, question, answer) in restaurantQuestionAnswers:
+	if answer < 0:
+		yesNoCount[(restaurant,question)][1] += 1
+	elif answer > 0:
+		yesNoCount[(restaurant,question)][0] += 1
+
+predicate = []
+restaurantArray = []
+numYes = []
+numNo = []
+entropy = []
+for (restaurant,question) in yesNoCount:
+	predicate.append(question)
+	restaurantArray.append(restaurant)
+	numYes.append(yesNoCount[(restaurant,question)][0]-1)
+	numNo.append(yesNoCount[(restaurant,question)][1]-1)
+
+	probYes = float(yesNoCount[(restaurant,question)][0]) / (yesNoCount[(restaurant,question)][0] + yesNoCount[(restaurant,question)][1])
+  	entr = -1*(probYes * math.log(probYes, 10) + (1-probYes) * math.log(1-probYes, 10))
+
+  	entropy.append(entr)
+
+results = [["Predicate", "Restaurant", "Number of Yes", "Number of No", "Entropy"]]
+for row in map(None, predicate, restaurantArray, numYes, numNo, entropy):
+	results.append(row)
+
+with open('table.csv', 'w') as csvfile:
+    writer = csv.writer(csvfile)
+    [writer.writerow(r) for r in results]
 
 # initializes dictionary of confidence levels and how many times each one is used
 confidenceLevelDist = {}
