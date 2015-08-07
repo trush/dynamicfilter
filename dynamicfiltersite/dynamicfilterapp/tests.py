@@ -97,7 +97,7 @@ class SimulationTest(TestCase):
         # in more calls to many_simulations
         set1 =[ 100, # number of simulations to be run with these parameters
                 20, # number of restaurants
-                [4,5,8], # indices of the questions to use (between 1 and 10 questions may be specified, with indices 0 to 9)
+                [0,2,9], # indices of the questions to use (between 1 and 10 questions may be specified, with indices 0 to 9)
                 recordAggregateStats,
                 eddy,
                 eddy2,
