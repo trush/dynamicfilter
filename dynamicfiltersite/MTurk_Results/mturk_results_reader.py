@@ -4,6 +4,8 @@ import datetime as DT
 import pylab
 import sys
 
+from scipy.stats import beta
+
 # run by typing 
 # python mturk_results_reader.py Batch_2019634_batch_results_cleaned.csv correct_answers.csv 
 
@@ -70,11 +72,12 @@ for question in uniqueQuestionsList:
 for entry in answersCount:
 	# print entry
 	countDict = answersCount[entry]
-	
 	selectivity = (countDict[-100]+countDict[-80]+countDict[-60])/600.0
 	print entry
-	print "Selectivity: " + str(selectivity) + "\n"
+	# print "Selectivity: " + str(selectivity) + "\n"
 #--------------------------------------------
+
+
 
 # create a dictionary of (restaurant, question) keys and boolean correct answer values
 correctAnswers = {}
@@ -92,6 +95,34 @@ for restRow in answers:
 		wrongRightCounts[key] = [0,0]
 
 restaurantQuestionAnswers = [(value3, value4,value5) for (value0, value1, value2, value3, value4, value5) in data]
+
+yesNoCount = {}
+for (restaurant, question, answer) in restaurantQuestionAnswers:
+	yesNoCount[(restaurant,question)] = [1,1]
+
+for (restaurant, question, answer) in restaurantQuestionAnswers:
+	if answer < 0:
+		yesNoCount[(restaurant,question)][1] += 1
+	elif answer > 0:
+		yesNoCount[(restaurant,question)][0] += 1
+
+questionStdev = {}
+for question in uniqueQuestionsList:
+	questionStdev[question] = 0
+
+for (restaurant,question) in yesNoCount:
+	yesRight = beta.std(yesNoCount[(restaurant,question)][0], yesNoCount[(restaurant,question)][1])
+	noRight = beta.std(yesNoCount[(restaurant,question)][1], yesNoCount[(restaurant,question)][0])
+	
+	if yesRight < noRight:
+		questionStdev[question] += yesRight
+	else:
+		questionStdev[question] += noRight
+
+for question in questionStdev:
+	questionStdev[question] /= 20
+
+print questionStdev
 
 # initializes dictionary of confidence levels and how many times each one is used
 confidenceLevelDist = {}
