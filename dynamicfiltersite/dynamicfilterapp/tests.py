@@ -17,12 +17,21 @@ import datetime
 import csv
 import os
 from itertools import izip_longest
+import matplotlib.pyplot as plt
 
 # set the modules of the imported functions so that Sphinx doesn't generate documentation for them
 # (some libraries have a default module of 'None' which Sphinx fills in as belonging to this module
 # unless it's otherwise defined)
 random.__module__ = "random"
 normal.__module__ = "random"
+
+MTURK_ENTROPY_VALUES = [0.259, 0.127, 0.198, 0.171, 0.108, 0.125, 0.191, 0.179, 0.104, 0.213]
+MTURK_SELECTIVITIES = [0.95, 1.0, 0.0, 0.2, 0.95, 0.95, 0.8, 0.75, 0.05, 0.65]
+
+fastTrackRecord = False
+percentRecord = False
+itemsNotEvalRecord = False
+selVSambRecord = True
 
 def enterTask(ID, workerAnswer, time, confidence, predicate):
     """
@@ -95,7 +104,7 @@ class SimulationTest(TestCase):
         # A set of parameters for one call to many_simulations
         # The user may copy these lines to define and append more sets of parameters, which will results
         # in more calls to many_simulations
-        set1 =[ 100, # number of simulations to be run with these parameters
+        set1 =[ 2, # number of simulations to be run with these parameters
                 20, # number of restaurants
                 [4,5,8], # indices of the questions to use (between 1 and 10 questions may be specified, with indices 0 to 9)
                 recordAggregateStats,
@@ -110,9 +119,6 @@ class SimulationTest(TestCase):
             print "Parameter set: " + str(parameters)
             self.many_simulations(parameters)
 
-       # an audio alert that plays when the tests are complete
-       # note: customizable to say any message :)
-        os.system('say "Aye aye, captain!"')
 
     def run_simulation(self, algorithm, parameters, predicateAnswers, dictionary):
         """
@@ -161,7 +167,13 @@ class SimulationTest(TestCase):
         IDcounter = 100
 
         # choose one predicate to start
-        predicate = algorithm(IDcounter, len(QUESTION_INDICES))
+        if fastTrackRecord and algorithm == eddy2: # keeps track of how many votes are fast-tracked
+            predicateAndFastTrackCount = algorithm(IDcounter, len(QUESTION_INDICES), 0)
+            predicate = predicateAndFastTrackCount[0]
+            fast_track = predicateAndFastTrackCount[1]
+        else :
+            predicate = algorithm(IDcounter, len(QUESTION_INDICES))
+        
         taskIndex = 0
 
         # Run this loop until there are no more predicates needing evaluation
@@ -231,7 +243,12 @@ class SimulationTest(TestCase):
             IDcounter += 1
 
             # get the next predicate from the eddy (None if there are no more)
-            predicate = algorithm(IDcounter, len(QUESTION_INDICES))
+            if fastTrackRecord and algorithm == eddy2: # keeps track of how many votes are fast-tracked
+                predicateAndFastTrackCount = algorithm(IDcounter, len(QUESTION_INDICES), fast_track)
+                predicate = predicateAndFastTrackCount[0]
+                fast_track = predicateAndFastTrackCount[1]
+            else :
+                predicate = algorithm(IDcounter, len(QUESTION_INDICES))
 
         # extract data for results file
 
@@ -279,27 +296,113 @@ class SimulationTest(TestCase):
         predicateCorrectAnswers[9]):
             results.append(row)
 
+        branchQuestions = []
+        if itemsNotEvalRecord: # toggle for whether or not you want to keep track of how many items have not been evaluated by that branch
+            itemsNotEval = {}
+            for i in range(len(parameters[2])):
+                branch = PredicateBranch.objects.all()[i]
+                branchQuestions.append(branch.question)
+                itemsNotEval[branch] = 0
+
+            filteredPreds = RestaurantPredicate.objects.filter(question__in=branchQuestions)
+            for pred in filteredPreds:
+                if pred.value == None:
+                    branch = PredicateBranch.objects.filter(question=pred.question)[0]
+                    itemsNotEval[branch] += 1
+            
+            moreResults = []
+            for i in range(len(branchQuestions)):
+                branch = PredicateBranch.objects.filter(question=branchQuestions[i])[0]
+                array = [parameters[2][i], branchQuestions[i], float(branch.returnedNo)/branch.returnedTotal, itemsNotEval[branch]]
+                moreResults.append(array)
+            moreResults.append([])
+
+        if selVSambRecord:
+            selVsAmb = []
+            for i in range(len(parameters[2])):
+                branch = PredicateBranch.objects.all()[i]
+                branchQuestions.append(branch.question)
+
+            for i in range(len(branchQuestions)):
+                branch = PredicateBranch.objects.filter(question=branchQuestions[i])[0]
+                array = [MTURK_ENTROPY_VALUES[branch.index], MTURK_SELECTIVITIES[branch.index], float(branch.returnedNo)/branch.returnedTotal, abs(MTURK_SELECTIVITIES[branch.index] - float(branch.returnedNo)/branch.returnedTotal)]
+                selVsAmb.append(array)
+            selVsAmb.append([])
+
         # append a column of percent done data to the existing file
         # TODO see if this method is more elegant for the other data
 
         if algorithm==eddy:
             print "adding to csv"
-            fd = open('MTurk_Results/percentdone_eddy.csv','a')
-            writer = csv.writer(fd)
-            [writer.writerow(r) for r in [percentDone]]
 
-        if algorithm==eddy2:
-            print "adding to csv"
-            fd = open('MTurk_Results/percentdone_eddy2.csv','a')
-            writer = csv.writer(fd)
-            [writer.writerow(r) for r in [percentDone]]
+            if percentRecord: 
+                fd = open('MTurk_Results/percentdone_eddy.csv','a')
+                writer = csv.writer(fd)
+                [writer.writerow(r) for r in [percentDone]]
+                fd.flush()
+
+            if itemsNotEvalRecord:
+                fd2 = open('test_results/eddy_notEval.csv','a')
+                writer2 = csv.writer(fd2)
+                [writer2.writerow(r) for r in moreResults]
+                fd2.flush()
+
+            if selVSambRecord:
+                fd3 = open('test_results/eddy_selVSamb.csv','a')
+                writer3 = csv.writer(fd3)
+                [writer3.writerow(r) for r in selVsAmb]
+                fd3.flush()
 
         if algorithm==randomAlgorithm:
             print "adding to csv"
-            fd = open('MTurk_Results/percentdone_random.csv','a')
-            writer = csv.writer(fd)
-            [writer.writerow(r) for r in [percentDone]]
+            if percentRecord: 
+                fd2 = open('MTurk_Results/percentdone_random.csv','a')
+                writer2 = csv.writer(fd2)
+                [writer2.writerow(r) for r in [percentDone]]
+                fd2.flush()
 
+            if itemsNotEvalRecord:
+                fd = open('test_results/random_notEval.csv','a')
+                writer = csv.writer(fd)
+                [writer.writerow(r) for r in moreResults]
+                fd.flush()
+
+            if selVSambRecord:
+                fd3 = open('test_results/random_selVSamb.csv','a')
+                writer3 = csv.writer(fd3)
+                [writer3.writerow(r) for r in selVsAmb]
+                fd3.flush()
+
+        if algorithm==eddy2:
+            print "adding to csv"
+
+            if percentRecord: 
+                fd = open('MTurk_Results/percentdone_eddy2.csv','a')
+                writer = csv.writer(fd)
+                [writer.writerow(r) for r in [percentDone]]
+                fd.flush()
+
+            if itemsNotEvalRecord: 
+                fd2 = open('test_results/eddy2_notEval.csv','a')
+                writer2 = csv.writer(fd2)
+                [writer2.writerow(r) for r in moreResults]
+                fd2.flush()
+
+            if fastTrackRecord:
+                fd3 = open('test_results/eddy2_fast_track.csv','a')
+                writer3 = csv.writer(fd3)
+                writer3.writerow(["Number of Votes Fast-Tracked", "Total Votes"])
+                writer3.writerow([])
+                fd3.flush()
+                [writer3.writerow(r) for r in [[fast_track, taskIndex]]]
+                fd3.flush()
+
+            if selVSambRecord:
+                fd4 = open('test_results/eddy2_selVSamb.csv','a')
+                writer4 = csv.writer(fd4)
+                [writer4.writerow(r) for r in selVsAmb]
+                fd4.flush()
+                
         return results
 
     def get_correct_answers(self, filename, uniqueQuestionsList):
@@ -459,23 +562,65 @@ class SimulationTest(TestCase):
         aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
                            "random num tasks", "random correct percentage"]]
 
-        # start the file where we'll record the percent done data for eddy
-        with open('MTurk_Results/percentdone_eddy.csv', 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            [writer.writerow(r) for r in ["percentDone"]]
+        if percentRecord:
+            # start the file where we'll record the percent done data for eddy
+            with open('MTurk_Results/percentdone_eddy.csv', 'w') as csvfile:
+                writer = csv.writer(csvfile)
+                [writer.writerow(r) for r in ["percentDone"]]
 
-        # start the file where we'll record the percent done data for eddy2
-        with open('MTurk_Results/percentdone_eddy2.csv', 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            [writer.writerow(r) for r in ["percentDone"]]
+            # start the file where we'll record the percent done data for eddy2
+            with open('MTurk_Results/percentdone_eddy2.csv', 'w') as csvfile:
+                writer2 = csv.writer(csvfile)
+                [writer2.writerow(r) for r in ["percentDone"]]
 
-        # start the file where we'll record the percent done data for random
-        with open('MTurk_Results/percentdone_random.csv', 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            [writer.writerow(r) for r in ["percentDone"]]
+            # start the file where we'll record the percent done data for random
+            with open('MTurk_Results/percentdone_random.csv', 'w') as csvfile:
+                writer3 = csv.writer(csvfile)
+                [writer3.writerow(r) for r in ["percentDone"]]
+
+        if itemsNotEvalRecord:
+
+            fd = open('test_results/eddy_notEval.csv','w')
+            writer = csv.writer(fd)
+            writer.writerow(["Index", "Question", "Selectivity", "Number of Items Not Evaluated"])
+            writer.writerow([])
+            fd.flush()
+
+            fd2 = open('test_results/random_notEval.csv','w')
+            writer2 = csv.writer(fd2)
+            writer2.writerow(["Index", "Question", "Selectivity", "Number of Items Not Evaluated"])
+            writer2.writerow([])
+            fd2.flush()
+
+            fd3 = open('test_results/eddy2_notEval.csv','w')
+            writer3 = csv.writer(fd3)
+            writer3.writerow(["Index", "Question", "Selectivity", "Number of Items Not Evaluated"])
+            writer3.writerow([])
+            fd3.flush()
+
+        if selVSambRecord: 
+
+            fd4 = open('test_results/eddy_selVSamb.csv', 'w')
+            writer4 = csv.writer(fd4)
+            writer4.writerow(["Entropy Value", "Actual Selectivity", "Estimated Selectivity", "Difference"])
+            writer4.writerow([])
+            fd4.flush()
+
+            fd5 = open('test_results/eddy2_selVSamb.csv', 'w')
+            writer5 = csv.writer(fd5)
+            writer5.writerow(["Entropy Value", "Actual Selectivity", "Estimated Selectivity", "Difference"])
+            writer5.writerow([])
+            fd5.flush()
+
+            fd6 = open('test_results/random_selVSamb.csv', 'w')
+            writer6 = csv.writer(fd6)
+            writer6.writerow(["Entropy Value", "Actual Selectivity", "Estimated Selectivity", "Difference"])
+            writer6.writerow([])
+            fd6.flush()
 
         # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
         # Each algorithm (eddy, eddy2, and random) is run NUM_SIMULATIONS times
+
         for k in range(NUM_SIMULATIONS):
 
             print "Eddy " + str(k)
@@ -525,6 +670,87 @@ class SimulationTest(TestCase):
         self.clear_database()
   
         if recordAggregateStats: self.write_results(aggregateResults, "aggregate_results")
+
+        # plots entropy values vs. difference in actual and estimated selectivities
+        if selVSambRecord:
+            with open("test_results/eddy_selVSamb.csv", "r") as f:
+                data = [row for row in csv.reader(f)]
+                data = data[1:]
+
+                data2 = []
+                for i in range(len(data)):
+                    if len(data[i]) != 0:
+                        data2.append(data[i])
+
+                x1 = [float(row[0]) for row in data2]
+                y1 = [float(row[3]) for row in data2]
+
+            with open("test_results/eddy2_selVSamb.csv", "r") as f:
+                data = [row for row in csv.reader(f)]
+                data = data[1:]
+
+                data2 = []
+                for i in range(len(data)):
+                    if len(data[i]) != 0:
+                        data2.append(data[i])
+
+                x2 = [float(row[0]) for row in data2]
+                y2 = [float(row[3]) for row in data2]
+
+            with open("test_results/random_selVSamb.csv", "r") as f:
+                data = [row for row in csv.reader(f)]
+                data = data[1:]
+
+                data2 = []
+                for i in range(len(data)):
+                    if len(data[i]) != 0:
+                        data2.append(data[i])
+
+                x3 = [float(row[0]) for row in data2]
+                y3 = [float(row[3]) for row in data2]
+
+            arrayX = [x1, x2, x3]
+            arrayY = [y1, y2, y3]
+
+            # loop through this three times
+            for i in range(len(arrayX)):
+                # sort the data
+                reorder = sorted(range(len(arrayX[i])), key = lambda ii: arrayX[i][ii])
+                arrayX[i] = [arrayX[i][ii] for ii in reorder]
+                arrayY[i] = [arrayY[i][ii] for ii in reorder]
+
+                # make the scatter plot
+                plt.scatter(arrayX[i], arrayY[i], s=30, alpha=0.15, marker='o')
+
+                # determine best fit line
+                par = np.polyfit(arrayX[i], arrayY[i], 1, full=True)
+
+                slope=par[0][0]
+                intercept=par[0][1]
+                xl = [min(arrayX[i]), max(arrayX[i])]
+                yl = [slope*xx + intercept  for xx in xl]
+
+                # coefficient of determination, plot text
+                variance = np.var(arrayY[i])
+                residuals = np.var([(slope*xx + intercept - yy)  for xx,yy in zip(arrayX[i],arrayY[i])])
+                Rsqr = np.round(1-residuals/variance, decimals=2)
+                plt.text(.9*max(arrayX[i])+.1*min(arrayX[i]),.9*max(arrayY[i])+.1*min(arrayY[i]),'$R^2 = %0.2f$'% Rsqr, fontsize=30)
+
+                plt.xlabel("Entropy Values")
+                plt.ylabel("Difference between Actual and Estimated Selectivities")
+
+                plt.plot(xl, yl, '-r')
+                
+                if i == 0:
+                    plt.savefig('test_results/eddy_selVSamb.png')
+                elif i == 1:
+                    plt.savefig('test_results/eddy2_selVSamb.png')
+                else:
+                    plt.savefig('test_results/random_selVSamb.png')
+
+                plt.clf()
+                plt.cla()
+
 
     def write_results(self, results, label):
         """

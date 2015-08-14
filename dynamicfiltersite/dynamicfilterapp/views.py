@@ -70,6 +70,12 @@ def answer_question(request, IDnumber):
             # confidence level is the decimal value of worker's vote
             confLevel = abs(float(form.cleaned_data['answerToQuestion']))
 
+            # toggle for whether or not you want to weight by confidence level
+            # if true, then it does NOT weight by confidence level
+            if False:
+                if confLevel != 0:
+                    confLevel = 100
+
             # create a new Task with relevant information and store it in the database
             task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, confidenceLevel=confLevel,
                 workerID = IDnumber, completionTime = timeToComplete, IDontKnow=idk, feedback=form.cleaned_data['feedback'])

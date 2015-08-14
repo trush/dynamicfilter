@@ -1,0 +1,402 @@
+Index,Question,Selectivity,Number of Items Not Evaluated
+
+4,Does this restaurant serve Chinese food?,0.8652849740932642,9
+5,Is this restaurant open until midnight?,0.9071428571428571,10
+8,Does this restaurant have its own website?,0.0982367758186398,9
+
+4,Does this restaurant serve Chinese food?,0.9060913705583757,9
+5,Is this restaurant open until midnight?,0.8692660550458715,10
+8,Does this restaurant have its own website?,0.058548009367681494,9
+
+4,Does this restaurant serve Chinese food?,0.8497536945812808,11
+5,Is this restaurant open until midnight?,0.9308641975308642,7
+8,Does this restaurant have its own website?,0.024861878453038673,11
+
+4,Does this restaurant serve Chinese food?,0.8855721393034826,5
+5,Is this restaurant open until midnight?,0.879265091863517,12
+8,Does this restaurant have its own website?,0.1377049180327869,14
+
+4,Does this restaurant serve Chinese food?,0.9048991354466858,9
+5,Is this restaurant open until midnight?,0.9251336898395722,11
+8,Does this restaurant have its own website?,0.11038961038961038,13
+
+4,Does this restaurant serve Chinese food?,0.8500000000000001,8
+5,Is this restaurant open until midnight?,0.9183168316831684,10
+8,Does this restaurant have its own website?,0.09404388714733543,15
+
+4,Does this restaurant serve Chinese food?,0.8716577540106952,10
+5,Is this restaurant open until midnight?,0.899736147757256,9
+8,Does this restaurant have its own website?,0.10191082802547771,15
+
+4,Does this restaurant serve Chinese food?,0.8405063291139241,8
+5,Is this restaurant open until midnight?,0.8901734104046243,11
+8,Does this restaurant have its own website?,0.0672782874617737,13
+
+4,Does this restaurant serve Chinese food?,0.9088319088319088,11
+5,Is this restaurant open until midnight?,0.9287410926365796,8
+8,Does this restaurant have its own website?,0.061764705882352944,13
+
+4,Does this restaurant serve Chinese food?,0.901595744680851,11
+5,Is this restaurant open until midnight?,0.915625,10
+8,Does this restaurant have its own website?,0.09863945578231292,13
+
+4,Does this restaurant serve Chinese food?,0.8292134831460674,8
+5,Is this restaurant open until midnight?,0.8578811369509044,10
+8,Does this restaurant have its own website?,0.04986149584487535,12
+
+4,Does this restaurant serve Chinese food?,0.8880407124681934,7
+5,Is this restaurant open until midnight?,0.9450867052023122,13
+8,Does this restaurant have its own website?,0.06896551724137932,14
+
+4,Does this restaurant serve Chinese food?,0.8994974874371859,8
+5,Is this restaurant open until midnight?,0.9108635097493037,12
+8,Does this restaurant have its own website?,0.01440922190201729,10
+
+4,Does this restaurant serve Chinese food?,0.8365122615803814,10
+5,Is this restaurant open until midnight?,0.8766066838046274,9
+8,Does this restaurant have its own website?,0.049738219895287955,11
+
+4,Does this restaurant serve Chinese food?,0.8623024830699776,7
+5,Is this restaurant open until midnight?,0.8801020408163265,13
+8,Does this restaurant have its own website?,0.043343653250773995,16
+
+4,Does this restaurant serve Chinese food?,0.9217603911980441,6
+5,Is this restaurant open until midnight?,0.9428571428571428,14
+8,Does this restaurant have its own website?,0.054945054945054944,11
+
+4,Does this restaurant serve Chinese food?,0.8672086720867209,9
+5,Is this restaurant open until midnight?,0.8708860759493671,10
+8,Does this restaurant have its own website?,0.12903225806451613,15
+
+4,Does this restaurant serve Chinese food?,0.9141414141414141,6
+5,Is this restaurant open until midnight?,0.877022653721683,15
+8,Does this restaurant have its own website?,0.09198813056379822,13
+
+4,Does this restaurant serve Chinese food?,0.9212410501193318,7
+5,Is this restaurant open until midnight?,0.926751592356688,13
+8,Does this restaurant have its own website?,0.0821529745042493,14
+
+4,Does this restaurant serve Chinese food?,0.8617886178861789,8
+5,Is this restaurant open until midnight?,0.9171597633136096,10
+8,Does this restaurant have its own website?,0.08695652173913043,15
+
+4,Does this restaurant serve Chinese food?,0.8233890214797136,10
+5,Is this restaurant open until midnight?,0.9020501138952165,8
+8,Does this restaurant have its own website?,0.10355029585798818,13
+
+4,Does this restaurant serve Chinese food?,0.8941504178272981,11
+5,Is this restaurant open until midnight?,0.9058171745152355,9
+8,Does this restaurant have its own website?,0.07570977917981073,12
+
+4,Does this restaurant serve Chinese food?,0.8614130434782609,9
+5,Is this restaurant open until midnight?,0.9160104986876639,9
+8,Does this restaurant have its own website?,0.0791139240506329,14
+
+4,Does this restaurant serve Chinese food?,0.8562300319488818,12
+5,Is this restaurant open until midnight?,0.9760765550239234,7
+8,Does this restaurant have its own website?,0.11214953271028037,16
+
+4,Does this restaurant serve Chinese food?,0.896640826873385,9
+5,Is this restaurant open until midnight?,0.8868894601542416,11
+8,Does this restaurant have its own website?,0.10231023102310231,14
+
+4,Does this restaurant serve Chinese food?,0.9367469879518072,12
+5,Is this restaurant open until midnight?,0.924433249370277,9
+8,Does this restaurant have its own website?,0.12307692307692308,14
+
+4,Does this restaurant serve Chinese food?,0.922680412371134,6
+5,Is this restaurant open until midnight?,0.90633608815427,14
+8,Does this restaurant have its own website?,0.04199475065616798,10
+
+4,Does this restaurant serve Chinese food?,0.8668407310704962,9
+5,Is this restaurant open until midnight?,0.918767507002801,10
+8,Does this restaurant have its own website?,0.0963172804532578,14
+
+4,Does this restaurant serve Chinese food?,0.8921832884097035,12
+5,Is this restaurant open until midnight?,0.8886075949367089,7
+8,Does this restaurant have its own website?,0.04220779220779221,14
+
+4,Does this restaurant serve Chinese food?,0.8705882352941177,13
+5,Is this restaurant open until midnight?,0.8838862559241705,6
+8,Does this restaurant have its own website?,0.08185053380782917,13
+
+4,Does this restaurant serve Chinese food?,0.8696741854636593,8
+5,Is this restaurant open until midnight?,0.8670212765957447,11
+8,Does this restaurant have its own website?,0.1305732484076433,12
+
+4,Does this restaurant serve Chinese food?,0.9048723897911832,6
+5,Is this restaurant open until midnight?,0.8828125,12
+8,Does this restaurant have its own website?,0.05958549222797927,11
+
+4,Does this restaurant serve Chinese food?,0.9040178571428572,5
+5,Is this restaurant open until midnight?,0.8547486033519555,14
+8,Does this restaurant have its own website?,0.11143695014662755,14
+
+4,Does this restaurant serve Chinese food?,0.8344827586206895,8
+5,Is this restaurant open until midnight?,0.8994252873563219,10
+8,Does this restaurant have its own website?,0.07344632768361582,13
+
+4,Does this restaurant serve Chinese food?,0.9565217391304348,12
+5,Is this restaurant open until midnight?,0.9451073985680192,8
+8,Does this restaurant have its own website?,0.0457516339869281,14
+
+4,Does this restaurant serve Chinese food?,0.8384798099762469,9
+5,Is this restaurant open until midnight?,0.8971291866028709,10
+8,Does this restaurant have its own website?,0.1256544502617801,13
+
+4,Does this restaurant serve Chinese food?,0.836021505376344,10
+5,Is this restaurant open until midnight?,0.8930348258706466,10
+8,Does this restaurant have its own website?,0.09467455621301776,12
+
+4,Does this restaurant serve Chinese food?,0.8984126984126984,12
+5,Is this restaurant open until midnight?,0.933806146572104,8
+8,Does this restaurant have its own website?,0.04941860465116279,12
+
+4,Does this restaurant serve Chinese food?,0.8451776649746192,11
+5,Is this restaurant open until midnight?,0.9348958333333334,8
+8,Does this restaurant have its own website?,0.10074626865671642,18
+
+4,Does this restaurant serve Chinese food?,0.8706467661691542,11
+5,Is this restaurant open until midnight?,0.9025522041763341,7
+8,Does this restaurant have its own website?,0.03560830860534124,14
+
+4,Does this restaurant serve Chinese food?,0.8619718309859156,11
+5,Is this restaurant open until midnight?,0.9657894736842106,9
+8,Does this restaurant have its own website?,0.09364548494983277,14
+
+4,Does this restaurant serve Chinese food?,0.8891687657430729,8
+5,Is this restaurant open until midnight?,0.9131652661064426,12
+8,Does this restaurant have its own website?,0.10455764075067024,10
+
+4,Does this restaurant serve Chinese food?,0.8925619834710744,12
+5,Is this restaurant open until midnight?,0.9237875288683604,8
+8,Does this restaurant have its own website?,0.03903903903903904,15
+
+4,Does this restaurant serve Chinese food?,0.8333333333333333,9
+5,Is this restaurant open until midnight?,0.9129287598944592,8
+8,Does this restaurant have its own website?,0.09375,13
+
+4,Does this restaurant serve Chinese food?,0.8942307692307692,12
+5,Is this restaurant open until midnight?,0.9362244897959183,7
+8,Does this restaurant have its own website?,0.04395604395604395,16
+
+4,Does this restaurant serve Chinese food?,0.8716577540106952,12
+5,Is this restaurant open until midnight?,0.8744075829383885,6
+8,Does this restaurant have its own website?,0.0896358543417367,15
+
+4,Does this restaurant serve Chinese food?,0.863768115942029,10
+5,Is this restaurant open until midnight?,0.9359331476323121,8
+8,Does this restaurant have its own website?,0.1,16
+
+4,Does this restaurant serve Chinese food?,0.8752997601918464,8
+5,Is this restaurant open until midnight?,0.8911174785100288,10
+8,Does this restaurant have its own website?,0.06951871657754011,10
+
+4,Does this restaurant serve Chinese food?,0.8277777777777778,12
+5,Is this restaurant open until midnight?,0.921985815602837,6
+8,Does this restaurant have its own website?,0.10597826086956523,11
+
+4,Does this restaurant serve Chinese food?,0.855072463768116,9
+5,Is this restaurant open until midnight?,0.9012658227848102,9
+8,Does this restaurant have its own website?,0.078125,13
+
+4,Does this restaurant serve Chinese food?,0.85595567867036,9
+5,Is this restaurant open until midnight?,0.8861386138613861,9
+8,Does this restaurant have its own website?,0.04075235109717869,14
+
+4,Does this restaurant serve Chinese food?,0.8817204301075268,11
+5,Is this restaurant open until midnight?,0.9262086513994912,10
+8,Does this restaurant have its own website?,0.10610932475884244,14
+
+4,Does this restaurant serve Chinese food?,0.9254143646408839,10
+5,Is this restaurant open until midnight?,0.8829787234042553,10
+8,Does this restaurant have its own website?,0.08663366336633664,12
+
+4,Does this restaurant serve Chinese food?,0.8610421836228289,10
+5,Is this restaurant open until midnight?,0.8753117206982544,8
+8,Does this restaurant have its own website?,0.0625,12
+
+4,Does this restaurant serve Chinese food?,0.8328445747800586,12
+5,Is this restaurant open until midnight?,0.9111675126903553,6
+8,Does this restaurant have its own website?,0.07291666666666667,15
+
+4,Does this restaurant serve Chinese food?,0.901685393258427,11
+5,Is this restaurant open until midnight?,0.9052863436123348,7
+8,Does this restaurant have its own website?,0.034383954154727794,12
+
+4,Does this restaurant serve Chinese food?,0.9204545454545453,11
+5,Is this restaurant open until midnight?,0.8147208121827412,7
+8,Does this restaurant have its own website?,0.05161290322580645,14
+
+4,Does this restaurant serve Chinese food?,0.8647959183673468,10
+5,Is this restaurant open until midnight?,0.9035532994923858,11
+8,Does this restaurant have its own website?,0.07207207207207207,15
+
+4,Does this restaurant serve Chinese food?,0.8438356164383561,9
+5,Is this restaurant open until midnight?,0.9234828496042217,10
+8,Does this restaurant have its own website?,0.07777777777777778,11
+
+4,Does this restaurant serve Chinese food?,0.8962765957446809,7
+5,Is this restaurant open until midnight?,0.896067415730337,11
+8,Does this restaurant have its own website?,0.04237288135593221,11
+
+4,Does this restaurant serve Chinese food?,0.8632075471698114,8
+5,Is this restaurant open until midnight?,0.9508196721311474,11
+8,Does this restaurant have its own website?,0.08148148148148149,17
+
+4,Does this restaurant serve Chinese food?,0.8775000000000001,6
+5,Is this restaurant open until midnight?,0.9191374663072777,12
+8,Does this restaurant have its own website?,0.06753246753246754,12
+
+4,Does this restaurant serve Chinese food?,0.9160305343511451,8
+5,Is this restaurant open until midnight?,0.9362880886426591,12
+8,Does this restaurant have its own website?,0.0967741935483871,13
+
+4,Does this restaurant serve Chinese food?,0.9088607594936708,8
+5,Is this restaurant open until midnight?,0.8555240793201133,11
+8,Does this restaurant have its own website?,0.0967741935483871,15
+
+4,Does this restaurant serve Chinese food?,0.8362068965517242,14
+5,Is this restaurant open until midnight?,0.925507900677201,5
+8,Does this restaurant have its own website?,0.13123359580052493,13
+
+4,Does this restaurant serve Chinese food?,0.877237851662404,8
+5,Is this restaurant open until midnight?,0.9039039039039041,11
+8,Does this restaurant have its own website?,0.08387096774193549,14
+
+4,Does this restaurant serve Chinese food?,0.8968058968058967,8
+5,Is this restaurant open until midnight?,0.88659793814433,12
+8,Does this restaurant have its own website?,0.025210084033613443,9
+
+4,Does this restaurant serve Chinese food?,0.8728606356968216,9
+5,Is this restaurant open until midnight?,0.8816901408450705,12
+8,Does this restaurant have its own website?,0.1184573002754821,14
+
+4,Does this restaurant serve Chinese food?,0.8921568627450981,6
+5,Is this restaurant open until midnight?,0.8879551820728291,12
+8,Does this restaurant have its own website?,0.08231707317073172,12
+
+4,Does this restaurant serve Chinese food?,0.9078212290502794,10
+5,Is this restaurant open until midnight?,0.9625,9
+8,Does this restaurant have its own website?,0.049999999999999996,13
+
+4,Does this restaurant serve Chinese food?,0.8181818181818182,13
+5,Is this restaurant open until midnight?,0.9191919191919191,6
+8,Does this restaurant have its own website?,0.07017543859649122,8
+
+4,Does this restaurant serve Chinese food?,0.932258064516129,12
+5,Is this restaurant open until midnight?,0.9183673469387754,8
+8,Does this restaurant have its own website?,0.050909090909090904,16
+
+4,Does this restaurant serve Chinese food?,0.8588588588588589,12
+5,Is this restaurant open until midnight?,0.8954869358669834,6
+8,Does this restaurant have its own website?,0.060000000000000005,15
+
+4,Does this restaurant serve Chinese food?,0.8873994638069707,9
+5,Is this restaurant open until midnight?,0.8980099502487562,9
+8,Does this restaurant have its own website?,0.09574468085106384,14
+
+4,Does this restaurant serve Chinese food?,0.8490566037735848,9
+5,Is this restaurant open until midnight?,0.8682170542635659,8
+8,Does this restaurant have its own website?,0.04030226700251889,11
+
+4,Does this restaurant serve Chinese food?,0.8700980392156863,6
+5,Is this restaurant open until midnight?,0.9364548494983278,14
+8,Does this restaurant have its own website?,0.10227272727272728,14
+
+4,Does this restaurant serve Chinese food?,0.9088541666666666,9
+5,Is this restaurant open until midnight?,0.914004914004914,9
+8,Does this restaurant have its own website?,0.034013605442176874,13
+
+4,Does this restaurant serve Chinese food?,0.9263959390862945,7
+5,Is this restaurant open until midnight?,0.9214659685863874,12
+8,Does this restaurant have its own website?,0.01858736059479554,15
+
+4,Does this restaurant serve Chinese food?,0.8502824858757063,12
+5,Is this restaurant open until midnight?,0.888888888888889,8
+8,Does this restaurant have its own website?,0.08450704225352113,14
+
+4,Does this restaurant serve Chinese food?,0.8738738738738739,13
+5,Is this restaurant open until midnight?,0.9032967032967033,7
+8,Does this restaurant have its own website?,0.0862533692722372,9
+
+4,Does this restaurant serve Chinese food?,0.87146529562982,8
+5,Is this restaurant open until midnight?,0.9018087855297157,11
+8,Does this restaurant have its own website?,0.08,11
+
+4,Does this restaurant serve Chinese food?,0.8766066838046274,8
+5,Is this restaurant open until midnight?,0.936986301369863,10
+8,Does this restaurant have its own website?,0.05177111716621253,10
+
+4,Does this restaurant serve Chinese food?,0.9331683168316832,6
+5,Is this restaurant open until midnight?,0.9449275362318841,13
+8,Does this restaurant have its own website?,0.07717041800643086,12
+
+4,Does this restaurant serve Chinese food?,0.93029490616622,10
+5,Is this restaurant open until midnight?,0.9395604395604397,10
+8,Does this restaurant have its own website?,0.09205020920502094,17
+
+4,Does this restaurant serve Chinese food?,0.9084337349397591,8
+5,Is this restaurant open until midnight?,0.8830409356725145,12
+8,Does this restaurant have its own website?,0.10846560846560846,12
+
+4,Does this restaurant serve Chinese food?,0.8537234042553191,8
+5,Is this restaurant open until midnight?,0.8626506024096385,10
+8,Does this restaurant have its own website?,0.030487804878048783,14
+
+4,Does this restaurant serve Chinese food?,0.8627450980392158,6
+5,Is this restaurant open until midnight?,0.9217877094972068,12
+8,Does this restaurant have its own website?,0.04885057471264368,14
+
+4,Does this restaurant serve Chinese food?,0.8454545454545455,13
+5,Is this restaurant open until midnight?,0.9453681710213776,6
+8,Does this restaurant have its own website?,0.0909090909090909,17
+
+4,Does this restaurant serve Chinese food?,0.9175824175824175,8
+5,Is this restaurant open until midnight?,0.8580246913580247,11
+8,Does this restaurant have its own website?,0.09876543209876544,12
+
+4,Does this restaurant serve Chinese food?,0.8560975609756097,7
+5,Is this restaurant open until midnight?,0.9430199430199431,13
+8,Does this restaurant have its own website?,0.06093189964157706,15
+
+4,Does this restaurant serve Chinese food?,0.8815165876777251,7
+5,Is this restaurant open until midnight?,0.9673590504451038,12
+8,Does this restaurant have its own website?,0.04057971014492753,13
+
+4,Does this restaurant serve Chinese food?,0.8860103626943006,11
+5,Is this restaurant open until midnight?,0.8537234042553191,8
+8,Does this restaurant have its own website?,0.07932011331444759,10
+
+4,Does this restaurant serve Chinese food?,0.8931116389548693,7
+5,Is this restaurant open until midnight?,0.894578313253012,12
+8,Does this restaurant have its own website?,0.030581039755351678,14
+
+4,Does this restaurant serve Chinese food?,0.8383561643835616,9
+5,Is this restaurant open until midnight?,0.9396984924623116,10
+8,Does this restaurant have its own website?,0.08361204013377926,13
+
+4,Does this restaurant serve Chinese food?,0.7916666666666666,15
+5,Is this restaurant open until midnight?,0.9015317286652079,5
+8,Does this restaurant have its own website?,0.0634441087613293,12
+
+4,Does this restaurant serve Chinese food?,0.8588588588588589,12
+5,Is this restaurant open until midnight?,0.9058524173027991,7
+8,Does this restaurant have its own website?,0.05913978494623656,9
+
+4,Does this restaurant serve Chinese food?,0.8728813559322034,10
+5,Is this restaurant open until midnight?,0.8595641646489105,9
+8,Does this restaurant have its own website?,0.0700280112044818,10
+
+4,Does this restaurant serve Chinese food?,0.8898305084745763,13
+5,Is this restaurant open until midnight?,0.9307875894988067,8
+8,Does this restaurant have its own website?,0.1263537906137184,14
+
+4,Does this restaurant serve Chinese food?,0.8782383419689118,9
+5,Is this restaurant open until midnight?,0.9029850746268655,9
+8,Does this restaurant have its own website?,0.09446254071661238,16
+
+4,Does this restaurant serve Chinese food?,0.867283950617284,9
+5,Is this restaurant open until midnight?,0.9305135951661632,12
+8,Does this restaurant have its own website?,0.13671875,15
+

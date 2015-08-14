@@ -3,6 +3,8 @@ from scipy.special import btdtr
 from random import randint, choice
 from math import exp
 
+import csv
+
 # we need at least half of the answers to be True in order for the value of the predicate to be True
 # and same for False's
 DECISION_THRESHOLD = 0.5
@@ -16,6 +18,10 @@ GAMMA = 0.1
 
 INDEX = 0
 MEMORY_THRESHOLD = 0.1
+
+WEIGHT_FACTOR = 2
+ADDITIVE_FACTOR = 90
+FALSE_THRESHOLD = 0.30
 
 def aggregate_responses(predicate):
     """
@@ -179,6 +185,73 @@ def eddy(ID, numOfPredicates):
 
     return chosenPredicate
 
+def eddy2(ID, numOfPredicates, fast_track):
+    """
+    Picks a  Restaurant, then uses a lottery system to determine the next PredicateBranch to send the Restaurant to. 
+    If the Restaurant is likely to be False for one particular PredicateBranch, it may be "fast-tracked" to that PB rather
+    than choosing via the lottery.
+    """
+    # find the first Restaurant in the queue that isn't finished
+    sortedRestaurants = Restaurant.objects.exclude(queueIndex=-1).order_by('queueIndex')
+
+    # return if there are no unfinished Restaurants, otherwise take the first one in the queue
+    if len(sortedRestaurants)==0:
+        return [None, fast_track]
+    else:
+        rest = sortedRestaurants[0]
+
+    # find all the Tasks this worker has completed
+    completedTasks = Task.objects.filter(workerID=ID)
+    
+    # find all the RestaurantPredicates matching these completed Tasks
+    completedPredicates = RestaurantPredicate.objects.filter(
+        id__in=completedTasks.values('restaurantPredicate_id'))
+
+    # get only incomplete RestaurantPredicates matching this Restaurant and eligible to this worker
+    incompletePredicates = RestaurantPredicate.objects.exclude(id__in=completedPredicates).filter(restaurant__hasFailed=False).filter(value=None, restaurant=rest)
+ 
+    # check for RestaurantPredicates that are likely to evaluate to False (meeting the specified uncertainty threshold)
+    almostFalsePredicates = []
+
+    # finds all the predicates that are almost False, less than 30% uncertain
+    for pred in incompletePredicates:
+        numYes = len(Task.objects.filter(restaurantPredicate=pred, answer=True))
+        numNo = len(Task.objects.filter(restaurantPredicate=pred, answer=False))
+        uncertainty = btdtr(numNo+1,numYes+1,0.50)
+
+        if uncertainty < FALSE_THRESHOLD:
+            almostFalsePredicates.append( (uncertainty, pred) )
+
+    if len(almostFalsePredicates) > 0:
+        # sort according to uncertainty, ascendingly, and return the predicate
+        # which is the second item of the first tuple
+        almostFalsePredicates.sort()
+
+        fast_track += 1
+
+        return [almostFalsePredicates[0][1], fast_track]
+
+    # If we've failed to find a predicate to prioritize, run the lottery on all eligible PBs
+    # finds eligible predicate branches
+    eligiblePredicateBranches = []
+    for i in range(numOfPredicates):
+        for pred in incompletePredicates:
+            if pred.index == i:
+                eligiblePredicateBranches.append( PredicateBranch.objects.filter(index=i)[0])
+                break
+
+    # finds predicate branch using weighted lottery
+    if (len(eligiblePredicateBranches) != 0):
+        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
+    else:
+        return [None, fast_track]
+
+    # Find the RestaurantPredicate corresponding to this Restaurant and 
+    # PredicateBranch
+    chosenPredicate = RestaurantPredicate.objects.filter(restaurant=rest, question=chosenBranch.question)[0]
+
+    return [chosenPredicate, fast_track]
+    
 def eddy2(ID, numOfPredicates):
     """
     Picks a  Restaurant, then uses a lottery system to determine the next PredicateBranch to send the Restaurant to. 
@@ -206,7 +279,6 @@ def eddy2(ID, numOfPredicates):
  
     # check for RestaurantPredicates that are likely to evaluate to False (meeting the specified uncertainty threshold)
     almostFalsePredicates = []
-    FALSE_THRESHOLD = 0.30 # was 0.15
 
     # finds all the predicates that are almost False, less than 30% uncertain
     for pred in incompletePredicates:
@@ -221,7 +293,7 @@ def eddy2(ID, numOfPredicates):
         # sort according to uncertainty, ascendingly, and return the predicate
         # which is the second item of the first tuple
         almostFalsePredicates.sort()
-        
+
         return almostFalsePredicates[0][1]
 
     # If we've failed to find a predicate to prioritize, run the lottery on all eligible PBs
@@ -244,7 +316,7 @@ def eddy2(ID, numOfPredicates):
     chosenPredicate = RestaurantPredicate.objects.filter(restaurant=rest, question=chosenBranch.question)[0]
 
     return chosenPredicate
-    
+
 def decrementStatus(index, restaurant):
     """
     decrease the status by 1 once an answer has been submitted for that predicate
@@ -344,9 +416,12 @@ def runLotteryWeighted(pbSet):
             highestSelectivity = float(highestBranch.returnedNo)/highestBranch.returnedTotal
 
     # favors most selective branch
-    weightingFactor = 2
-    tickets[highestBranch] *= weightingFactor
-    totalTickets += tickets[highestBranch]*(weightingFactor-1)/weightingFactor
+    if True:
+        tickets[highestBranch] *= WEIGHT_FACTOR
+        totalTickets += tickets[highestBranch]*(WEIGHT_FACTOR-1)/WEIGHT_FACTOR
+    else:
+        tickets[highestBranch] += ADDITIVE_FACTOR
+        totalTickets += ADDITIVE_FACTOR
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
@@ -376,7 +451,8 @@ def runLotteryWeightedWithMemory(pbSet):
     PredicateBranch in order to favor it more strongly. Remembers which PredicateBranch had the highest selectivity
     in the last run of the lottery, and requires that another PredicateBranch have a selectivity that is higher by a certain 
     threshold in order to become the new favored PredicateBranch. This is done so that the choice of which PredicateBranch is
-    weighted (favored) changes less often.
+    weighted (favored) changes less often. (This lottery is kept for possible future exploration but not currently
+    in use.)
     """
     global INDEX
 
@@ -413,18 +489,19 @@ def runLotteryWeightedWithMemory(pbSet):
 
     # if the branch picked before still exists, check if new branch surpasses threshold
     if pastBranchExists:
+        # TODO: should not change branch more often as tasks increase aka memory threshold should increase
         if float(highestBranch.returnedNo)/float(highestBranch.returnedTotal) - float(
             predBranch.returnedNo)/float(predBranch.returnedTotal) < MEMORY_THRESHOLD: 
             changeBranch = False
 
     # favors the most selective one if it surpasses the threshold
-    weightingFactor = 2
+    # TODO: should have an additive option
     if changeBranch:
-        tickets[highestBranch] *= weightingFactor
-        totalTickets += tickets[highestBranch]/weightingFactor*(weightingFactor-1)
+        tickets[highestBranch] *= WEIGHT_FACTOR
+        totalTickets += tickets[highestBranch]/WEIGHT_FACTOR*(WEIGHT_FACTOR-1)
     else:
-        tickets[predBranch] *= weightingFactor
-        totalTickets += tickets[predBranch]/weightingFactor*(weightingFactor-1)
+        tickets[predBranch] *= WEIGHT_FACTOR
+        totalTickets += tickets[predBranch]/WEIGHT_FACTOR*(WEIGHT_FACTOR-1)
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
@@ -467,11 +544,11 @@ def runLotteryDynamicallyWeighted(pbSet):
         if t > (float(highestBranch.returnedNo)/highestBranch.returnedTotal)*1000:
             highestBranch = branch
 
+    # TODO: how quickly should weighting increase? When should it stop increasing? Up to what weight should it increase?
     if len(Task.objects.all()) < 100:
         tickets[highestBranch] *= (1+len(Task.objects.all())/25*.25)
     else:
         tickets[highestBranch] *= 2
-
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
@@ -508,6 +585,7 @@ def runLotteryWithUniform(pbSet):
     tickets = {}
     highestBranch = pbSet[0]
 
+    # TODO: find optimal alpha/gamma values. Don't even know if this is implemented correctly.
     for branch in pbSet:
         totalTickets += float((1+ALPHA)**(branch.returnedNo))
 
