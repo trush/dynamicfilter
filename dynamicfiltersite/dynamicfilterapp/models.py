@@ -1,5 +1,4 @@
 from django.db import models
-from fields import CustomCommaSeparatedIntegerField
 from django.core.validators import RegexValidator
 from validator import validate_positive
 from dynamic_models import get_survey_response_model
