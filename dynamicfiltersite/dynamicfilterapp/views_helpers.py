@@ -22,6 +22,8 @@ MEMORY_THRESHOLD = 0.1
 WEIGHT_FACTOR = 2
 ADDITIVE_FACTOR = 90
 FALSE_THRESHOLD = 0.30
+MULTIPLICATIVE = True
+NUM_TASKS_TILL_ACCURATE = 200
 
 def aggregate_responses(predicate):
     """
@@ -317,6 +319,52 @@ def eddy2(ID, numOfPredicates):
 
     return chosenPredicate
 
+def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnswers):
+    unfinishedRPs = RestaurantPredicate.objects.filter(value=None)
+
+    # cost of each rest/pred pair = minimum number of questions necessary 
+    # so that rest/pred pair can satisfy uncertainty level
+    cost = {}
+    for (rest, pred) in correctAnswers:
+        cost[(rest, pred)] = 0
+
+    for restPred in unfinishedRPs:
+        yes = Task.objects.filter(restaurantPredicate=predicate, answer = True)
+        no = Task.objects.filter(restaurantPredicate=predicate, answer = False)
+
+        # initialize the number of yes's and no's to 0
+        totalYes = 0.0
+        totalNo = 0.0
+
+        # for all predicates answered yes
+        for pred in yes:
+            # increase total number of yes by the confidence level indicated
+            totalYes += pred.confidenceLevel/100.0
+            # increase total number of no by 100 - confidence level indicated
+            totalNo += 1 - pred.confidenceLevel/100.0
+
+        # for all predicates answered no
+        for pred in no:
+            # increase total number of no by 100 - the confidence level 
+            # indicated
+            totalYes += 1 - pred.confidenceLevel/100.0
+            # increase total number of no by confidence level indicated
+            totalNo += pred.confidenceLevel/100.0
+
+        # How we compute the uncertaintly level changes depending on whether the answer is True or False
+        uncertaintyLevelTrue = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
+        uncertaintyLevelFalse = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
+
+        # if uncertaintyLevelTrue > uncertaintyLevelFalse:
+        #   check how many more tasks need to be answered as True in order for the rest/pred to have a concrete value of True
+        # else:
+        #   check how many more tasks needed to be answered as False in order for rest/pred to have concrete value of False
+
+        # store number of additional questions into cost with rest/pred as key
+
+    # rank = [(true selectivity) - 1] / (cost-per-rest/pred pair)
+    return None
+
 def decrementStatus(index, restaurant):
     """
     decrease the status by 1 once an answer has been submitted for that predicate
@@ -416,7 +464,7 @@ def runLotteryWeighted(pbSet):
             highestSelectivity = float(highestBranch.returnedNo)/highestBranch.returnedTotal
 
     # favors most selective branch
-    if True:
+    if MULTIPLICATIVE:
         tickets[highestBranch] *= WEIGHT_FACTOR
         totalTickets += tickets[highestBranch]*(WEIGHT_FACTOR-1)/WEIGHT_FACTOR
     else:
@@ -496,12 +544,20 @@ def runLotteryWeightedWithMemory(pbSet):
 
     # favors the most selective one if it surpasses the threshold
     # TODO: should have an additive option
-    if changeBranch:
-        tickets[highestBranch] *= WEIGHT_FACTOR
-        totalTickets += tickets[highestBranch]/WEIGHT_FACTOR*(WEIGHT_FACTOR-1)
+    if MULTIPLICATIVE:
+        if changeBranch:
+            tickets[highestBranch] *= WEIGHT_FACTOR
+            totalTickets += tickets[highestBranch]/WEIGHT_FACTOR*(WEIGHT_FACTOR-1)
+        else:
+            tickets[predBranch] *= WEIGHT_FACTOR
+            totalTickets += tickets[predBranch]/WEIGHT_FACTOR*(WEIGHT_FACTOR-1)
     else:
-        tickets[predBranch] *= WEIGHT_FACTOR
-        totalTickets += tickets[predBranch]/WEIGHT_FACTOR*(WEIGHT_FACTOR-1)
+        if changeBranch:
+            tickets[highestBranch] += ADDITIVE_FACTOR
+            totalTickets += ADDITIVE_FACTOR
+        else:
+            tickets[predBranch] *= ADDITIVE_FACTOR
+            totalTickets += ADDITIVE_FACTOR
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
@@ -545,10 +601,13 @@ def runLotteryDynamicallyWeighted(pbSet):
             highestBranch = branch
 
     # TODO: how quickly should weighting increase? When should it stop increasing? Up to what weight should it increase?
-    if len(Task.objects.all()) < 100:
-        tickets[highestBranch] *= (1+len(Task.objects.all())/25*.25)
+    if len(Task.objects.all()) < NUM_TASKS_TILL_ACCURATE:
+        totalTickets -= tickets[highestBranch]
+        tickets[highestBranch] *= (1+len(Task.objects.all())/NUM_TASKS_TILL_ACCURATE*(WEIGHT_FACTOR-1))
+        totalTickets += tickets[highestBranch]
     else:
-        tickets[highestBranch] *= 2
+        tickets[highestBranch] *= WEIGHT_FACTOR
+        totalTickets += tickets[highestBranch]*(WEIGHT_FACTOR-1)/WEIGHT_FACTOR
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
@@ -585,10 +644,11 @@ def runLotteryWithUniform(pbSet):
     tickets = {}
     highestBranch = pbSet[0]
 
-    # TODO: find optimal alpha/gamma values. Don't even know if this is implemented correctly.
+    # TODO: find optimal alpha/gamma values. Is this even the right formula?
     for branch in pbSet:
         totalTickets += float((1+ALPHA)**(branch.returnedNo))
 
+    # TODO: is this even the right formula?
     for branch in pbSet:
         tickets[branch] = ( (float(1+ALPHA)**(branch.returnedNo))/totalTickets*(1-GAMMA) + GAMMA/len(PredicateBranch.objects.all()) ) * 1000
         rangeRand+= tickets[branch]

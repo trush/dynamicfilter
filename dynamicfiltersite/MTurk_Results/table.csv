@@ -13,7 +13,7 @@ Would a typical meal at this restaurant cost more than $30?,Zachary's Chicago Pi
 Does this restaurant have its own website?,Comal,30,0,0.06039333741795431
 Does this restaurant have drinks for those under 21?,FIVE,19,7,0.25982518101310587
 Does this restaurant have more than 20 items on its menu?,Eureka!,29,0,0.06188951184750252
-Does this restaurant serve breakfast?,La Note Restaurant Provencal,27,2,0.13807818926197835
+Does this restaurant serve breakfast?,La Note Restaurant Provencal,27,2,0.13807818926197832
 Does this restaurant have a parking lot?,Bette's Oceanview Diner,9,19,0.27643459094367495
 Does this restaurant serve breakfast?,Angeline's Louisiana Kitchen,2,27,0.13807818926197832
 Does this restaurant have drinks for those under 21?,Zachary's Chicago Pizza,25,2,0.14444383198860247
@@ -26,7 +26,7 @@ Does this restaurant serve breakfast?,Great China,6,24,0.22814415029175789
 Does this restaurant have a drive-through?,Rivoli,1,29,0.1015344272912236
 Would a typical meal at this restaurant cost more than $30?,FIVE,16,11,0.2945425973471576
 Does this restaurant serve Chinese food?,Eureka!,1,29,0.1015344272912236
-Does this restaurant have drinks for those under 21?,Great China,24,3,0.17423454334334265
+Does this restaurant have drinks for those under 21?,Great China,24,3,0.17423454334334268
 Does this restaurant have a romantic atmosphere?,FIVE,25,3,0.17053635430122518
 Does this restaurant serve Chinese food?,Vik's Chaat and Market,2,27,0.13807818926197832
 Does this restaurant have a romantic atmosphere?,Platano,6,22,0.235940371102848
@@ -41,7 +41,7 @@ Does this restaurant have a romantic atmosphere?,Gregoire,4,26,0.188222739133257
 Is this restaurant open until midnight?,Urbann Turbann,2,28,0.13512167509400866
 Does this restaurant serve breakfast?,Cheese Board Pizza,8,22,0.25802739040245093
 Does this restaurant have a parking lot?,Rivoli,7,16,0.2722459462973894
-Does this restaurant have a parking lot?,Gregoire,6,23,0.23198246540916484
+Does this restaurant have a parking lot?,Gregoire,6,23,0.23198246540916487
 Does this restaurant have a romantic atmosphere?,Great China,9,20,0.273084107079037
 Does this restaurant have a romantic atmosphere?,La Note Restaurant Provencal,16,11,0.2945425973471576
 Does this restaurant have a romantic atmosphere?,Rivoli,28,2,0.13512167509400866
@@ -73,7 +73,7 @@ Would a typical meal at this restaurant cost more than $30?,La Note Restaurant P
 Does this restaurant have a drive-through?,Chez Panisse,0,28,0.06346985675067154
 Does this restaurant serve breakfast?,Zachary's Chicago Pizza,3,26,0.16700486810509502
 Does this restaurant have more than 20 items on its menu?,Platano,29,1,0.1015344272912236
-Does this restaurant have a parking lot?,Platano,5,24,0.21338079966966617
+Does this restaurant have a parking lot?,Platano,5,24,0.21338079966966614
 Does this restaurant have a parking lot?,FIVE,8,19,0.2689917048564199
 Does this restaurant have a romantic atmosphere?,Toss Noodle Bar,5,23,0.21732201127364886
 Does this restaurant have drinks for those under 21?,La Note Restaurant Provencal,26,2,0.14118174150460758
@@ -164,7 +164,7 @@ Would a typical meal at this restaurant cost more than $30?,Brazil Cafe,0,29,0.0
 Does this restaurant have its own website?,Chez Panisse,30,0,0.06039333741795431
 Does this restaurant have a drive-through?,Gregoire,1,26,0.10898828673962437
 Does this restaurant serve Chinese food?,Zachary's Chicago Pizza,1,29,0.1015344272912236
-Does this restaurant have a parking lot?,Comal,6,23,0.23198246540916484
+Does this restaurant have a parking lot?,Comal,6,23,0.23198246540916487
 Does this restaurant serve breakfast?,Comal,1,28,0.10389066382144398
 Does this restaurant have a drive-through?,Angeline's Louisiana Kitchen,1,29,0.1015344272912236
 Does this restaurant have drinks for those under 21?,Chez Panisse,19,9,0.27643459094367495

@@ -1,5 +1,7 @@
 This is the README file for the test.py file.
 
+Run tests by typing this into the terminal: python manage.py test dynamicfilterapp.tests.SimulationTest.test_controller
+
 Near the top of the file, there are four boolean values. Each of these can be toggled to True or False whenever you want depending on what you want to record as a csv file.
 
 fastTrackRecord will keep track of how many votes have been fast-tracked by eddy2.

@@ -17,25 +17,25 @@ correctAnswersFile = sys.argv[2]
 # read in data from workers
 data = np.genfromtxt(fname=filename, 
 									dtype={'formats': [np.dtype('S30'), np.dtype('S15'), np.dtype(int),
-									       			   np.dtype('S50'), np.dtype('S100'), np.dtype(int)],
+													   np.dtype('S50'), np.dtype('S100'), np.dtype(int)],
 											'names': ['AssignmentId', 'WorkerId', 'WorkTimeInSeconds',
-												      'Input.Restaurant', 'Input.Question', 'Answer.Q1AnswerPart1']},
-								    delimiter=',',
-								    usecols=range(6),
-								    skip_header=1)
+													  'Input.Restaurant', 'Input.Question', 'Answer.Q1AnswerPart1']},
+									delimiter=',',
+									usecols=range(6),
+									skip_header=1)
 
 # read in correct answer data
 answers = np.genfromtxt(fname=correctAnswersFile, 
 									dtype={'formats': [np.dtype('S30'), np.dtype(bool), np.dtype(bool),
-									                   np.dtype(bool), np.dtype(bool), np.dtype(bool),
-									                   np.dtype(bool), np.dtype(bool), np.dtype(bool),
-									                   np.dtype(bool), np.dtype(bool),],
+													   np.dtype(bool), np.dtype(bool), np.dtype(bool),
+													   np.dtype(bool), np.dtype(bool), np.dtype(bool),
+													   np.dtype(bool), np.dtype(bool),],
 											'names': ['Restaurant', 'a0', 'a1', 'a2', 'a3',
-											          'a4', 'a5', 'a6', 'a7',
-											          'a8', 'a9']},
-								    delimiter=',',
-								    usecols=range(11),
-								    skip_header=1)
+													  'a4', 'a5', 'a6', 'a7',
+													  'a8', 'a9']},
+									delimiter=',',
+									usecols=range(11),
+									skip_header=1)
 
 # read in questions (from the first line of the correct answers file)
 uniqueQuestions = np.genfromtxt(fname=correctAnswersFile, 
@@ -43,11 +43,11 @@ uniqueQuestions = np.genfromtxt(fname=correctAnswersFile,
 									np.dtype('S100'),np.dtype('S100'),np.dtype('S100'),np.dtype('S100'),
 									np.dtype('S100'),np.dtype('S100'),np.dtype('S100'),],
 											'names': ['a0', 'a1', 'a2', 'a3',
-											          'a4', 'a5', 'a6', 'a7',
-											          'a8', 'a9']},
-								    delimiter=',',
-								    usecols=range(1,11),
-								    skip_footer=21)
+													  'a4', 'a5', 'a6', 'a7',
+													  'a8', 'a9']},
+									delimiter=',',
+									usecols=range(1,11),
+									skip_footer=21)
 
 # prints all the questions
 uniqueQuestionsList = list(uniqueQuestions.tolist())
@@ -118,17 +118,17 @@ for (restaurant,question) in yesNoCount:
 	numNo.append(yesNoCount[(restaurant,question)][1]-1)
 
 	probYes = float(yesNoCount[(restaurant,question)][0]) / (yesNoCount[(restaurant,question)][0] + yesNoCount[(restaurant,question)][1])
-  	entr = -1*(probYes * math.log(probYes, 10) + (1-probYes) * math.log(1-probYes, 10))
+	entr = -1*(probYes * math.log(probYes, 10) + (1-probYes) * math.log(1-probYes, 10))
 
-  	entropy.append(entr)
+	entropy.append(entr)
 
 results = [["Predicate", "Restaurant", "Number of Yes", "Number of No", "Entropy"]]
 for row in map(None, predicate, restaurantArray, numYes, numNo, entropy):
 	results.append(row)
 
 with open('table.csv', 'w') as csvfile:
-    writer = csv.writer(csvfile)
-    [writer.writerow(r) for r in results]
+	writer = csv.writer(csvfile)
+	[writer.writerow(r) for r in results]
 
 # initializes dictionary of confidence levels and how many times each one is used
 confidenceLevelDist = {}
@@ -161,15 +161,15 @@ for (rest, quest, ans) in restaurantQuestionAnswers:
 	 answer = False
 	 # ans is the confidence level of the answer because answer is represented at 0,+-60,80,100
 	 if ans > 0:
-	 	answer = True
+		answer = True
 
 	 # Putting IDK is also a wrong answer
 	 if answer != correctAnswer:
-	 	l = wrongRightCounts[(rest,quest)]
-	 	l[0] += 1
+		l = wrongRightCounts[(rest,quest)]
+		l[0] += 1
 	 else:
-	 	l = wrongRightCounts[(rest,quest)]
-	 	l[1] += 1
+		l = wrongRightCounts[(rest,quest)]
+		l[1] += 1
 
 # print "--------------"
 # print wrongRightCounts
@@ -251,7 +251,7 @@ for (workerID, rest, quest, ans) in workerIDtuples:
 	answer = False
 	# ans is the confidence level of the answer because answer is represented at 0,+-60,80,100
 	if ans > 0:
-	 	answer = True
+		answer = True
 
 	# Putting IDK is also a wrong answer
 	if answer != correctAnswer:
@@ -308,6 +308,31 @@ for workerID in uniqueWorkerIDs:
 # print workerErrorWhenYes
 # print "--------------"
 # print workerErrorWhenNo
+
+# finds probability of answering True when answer is False
+predicateError = {}
+restQuestionAnswer = [(value3, value4,value5) for (value0, value1, value2, value3, value4, value5) in data]
+for (rest, question, answer) in restQuestionAnswer:
+	predicateError[(rest, question)] = [0,1]
+
+for (rest, question, ans) in restQuestionAnswer:
+	correctAnswer = correctAnswers[(rest,quest)]
+	
+	answer = False
+	# ans is the confidence level of the answer because answer is represented at 0,+-60,80,100
+	if ans > 0:
+		answer = True
+
+	if answer != correctAnswer:
+		predicateError[(rest,question)][0] += 1
+
+	predicateError[(rest,question)][1] += 1
+
+for key in predicateError:
+	predicateError[key] = float(predicateError[key][0])/predicateError[key][1]
+
+# print "--------------"
+# print predicateError
 
 # calculates the difference in error percentage from when the true value is True and False
 workerErrorDiff = {}
@@ -478,4 +503,3 @@ for (rest, quest, ans) in restaurantQuestionAnswers:
 for question in uniqueQuestionsList:
 	dicYesNo[question] = 'Ratio of Yes to No Answers: ' + str(float(dicYesNo[question][0])/dicYesNo[question][1]) + ", Difficulty: " + str(diffDic[question])
 	# print question + " || " + dicYesNo[question]
-
