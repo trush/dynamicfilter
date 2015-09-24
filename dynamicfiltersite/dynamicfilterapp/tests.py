@@ -28,10 +28,10 @@ normal.__module__ = "random"
 MTURK_ENTROPY_VALUES = [0.259, 0.127, 0.198, 0.171, 0.108, 0.125, 0.191, 0.179, 0.104, 0.213]
 MTURK_SELECTIVITIES = [0.95, 1.0, 0.0, 0.2, 0.95, 0.95, 0.8, 0.75, 0.05, 0.65]
 
-fastTrackRecord = False
-percentRecord = True
-itemsNotEvalRecord = True
-selVSambRecord = True
+fastTrackRecord = False # keeping track of fast-tracked votes
+percentRecord = True # records percentage of items filtered after each task is inputted
+itemsNotEvalRecord = True # records how many items weren't evaluated by each branch
+selVSambRecord = True # keeps track of difference of estimated and actual selectivity levels with respect to ambiguity levels
 
 def enterTask(ID, workerAnswer, time, confidence, predicate):
     """
@@ -261,19 +261,23 @@ class SimulationTest(TestCase):
         # print selectivities
         for restaurant in Restaurant.objects.all():
             tasksPerRestaurant.append(len(Task.objects.filter(restaurantPredicate__restaurant=restaurant)))
-    
+        
+        # appends title for each predicate
         predicateList = ["Predicate"]
         for i in range(len(branches)):
             predicateList.append("predicate " + str(i))
 
+        # appends number of tasks needed to evaluted each restaurant-predicate pair
         tasks = ["Tasks"]
         for i in range(len(branches)):
             tasks.append(len(Task.objects.filter(restaurantPredicate__index=i)))
 
+        # appends number of tasks returned No for each predicate branch
         returnedNo = ["Returned No"]
         for i in range(len(branches)):
             returnedNo.append(PredicateBranch.objects.filter(index=i)[0].returnedNo)
 
+        # appends number of tasks each predicate branch completed
         returnedTotal = ["Returned Total"]
         for i in range(len(branches)):
             returnedTotal.append(PredicateBranch.objects.filter(index=i)[0].returnedTotal)
@@ -283,6 +287,8 @@ class SimulationTest(TestCase):
         answers = [["P" + str(i)] for i in range(10)]
         predicateCorrectAnswers = [["P" + str(i) + " True"] for i in range(10)]
 
+        # appends each restaurant to rests, value of restaurant predicate to answers
+        # and correct answer of restaurant predicate to predicateCorrectAnswers
         for r in Restaurant.objects.all():
             rests.append(r)
             for i in range(numOfPredicates):
@@ -303,17 +309,20 @@ class SimulationTest(TestCase):
         branchQuestions = []
         if itemsNotEvalRecord: # toggle for whether or not you want to keep track of how many items have not been evaluated by that branch
             itemsNotEval = {}
+            # initializes dictionary of items not evaluated at 0
             for i in range(len(parameters[2])):
                 branch = PredicateBranch.objects.all()[i]
                 branchQuestions.append(branch.question)
                 itemsNotEval[branch] = 0
 
+            # increments value of key in dictionary based on number of items not evaluated for each Predicate Branch
             filteredPreds = RestaurantPredicate.objects.filter(question__in=branchQuestions)
             for pred in filteredPreds:
                 if pred.value == None:
                     branch = PredicateBranch.objects.filter(question=pred.question)[0]
                     itemsNotEval[branch] += 1
             
+            # appends values of predicate branch, question, estimated selectivities, and items not evaluated 
             moreResults = []
             for i in range(len(branchQuestions)):
                 branch = PredicateBranch.objects.filter(question=branchQuestions[i])[0]
@@ -321,6 +330,7 @@ class SimulationTest(TestCase):
                 moreResults.append(array)
             moreResults.append([])
 
+        # kept track of values of entropy, actual selectivities, estimated selectivities, difference in two selectivities
         if selVSambRecord:
             selVsAmb = []
             for i in range(len(parameters[2])):
@@ -336,6 +346,7 @@ class SimulationTest(TestCase):
         # append a column of percent done data to the existing file
         # TODO see if this method is more elegant for the other data
 
+        # depending on algorithm, write to files with certain name
         if algorithm==eddy:
             print "adding to csv"
 
@@ -643,6 +654,7 @@ class SimulationTest(TestCase):
                 writer3 = csv.writer(csvfile)
                 [writer3.writerow(r) for r in ["percentDone"]]
 
+        # depending on algorithm, write to files with certain name
         if itemsNotEvalRecord:
 
             fd = open('test_results/eddy_notEval.csv','w')
@@ -876,6 +888,7 @@ class SimulationTest(TestCase):
 
                 plt.plot(xl, yl, '-r')
                 
+                # depending on index, write graph to file with certain name
                 if i == 0:
                     plt.savefig('test_results/eddy_selVSamb.png')
                 elif i == 1:

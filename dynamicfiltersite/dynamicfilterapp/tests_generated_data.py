@@ -139,6 +139,7 @@ def set_correct_answers(self, branches, branchSelectivities, answers):
         # for pred in predicates:
         #     predicateAnswers[pred] = False
 
+        # set each predicate to predicateAnswers to answers from restaurant predicate pairs
         i = 0
         for rest in Restaurant.objects.all():
             for pb in PredicateBranch.objects.order_by('index'):

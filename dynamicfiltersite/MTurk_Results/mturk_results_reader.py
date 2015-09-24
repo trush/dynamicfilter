@@ -85,27 +85,32 @@ correctAnswers = {}
 # dictionary of (restaurant, question) keys and two-index array as values
 wrongRightCounts = {}
 
+# 
 for restRow in answers:
 	r = list(restRow)
 
 	for i in range(10):
-		key = (r[0], uniqueQuestionsList[i])
-		value = r[i+1]
-		correctAnswers[key] = value
-		wrongRightCounts[key] = [0,0]
+		key = (r[0], uniqueQuestionsList[i]) # key is restaurant and question
+		value = r[i+1] # answer to that restaurant predicate pair
+		correctAnswers[key] = value # put both in dictionary
+		wrongRightCounts[key] = [0,0] # initialize wrong/right counts at 0,0
 
 restaurantQuestionAnswers = [(value3, value4,value5) for (value0, value1, value2, value3, value4, value5) in data]
 
+# initializes number of yes and no to 1
 yesNoCount = {}
 for (restaurant, question, answer) in restaurantQuestionAnswers:
 	yesNoCount[(restaurant,question)] = [1,1]
 
+# increments yes/no by 1 for each answer
 for (restaurant, question, answer) in restaurantQuestionAnswers:
 	if answer < 0:
 		yesNoCount[(restaurant,question)][1] += 1
 	elif answer > 0:
 		yesNoCount[(restaurant,question)][0] += 1
 
+
+#calculate entropy of each restaurant predicate pairs
 predicate = []
 restaurantArray = []
 numYes = []

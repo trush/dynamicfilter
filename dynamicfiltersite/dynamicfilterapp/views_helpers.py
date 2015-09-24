@@ -77,6 +77,7 @@ def aggregate_responses(predicate):
                 predicateFailed = True
                 break
 
+        # if predicate fails one predicate, we mark it as failed to never evaluated it again
         if predicateFailed:
             predicate.restaurant = markFailed(predicate)
 
@@ -328,41 +329,21 @@ def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnsw
     for (rest, pred) in correctAnswers:
         cost[(rest, pred)] = 0
 
-    for restPred in unfinishedRPs:
-        yes = Task.objects.filter(restaurantPredicate=predicate, answer = True)
-        no = Task.objects.filter(restaurantPredicate=predicate, answer = False)
+    # each restaurant-predicate pair only has one type of error:
+    # probability of saying T when F or probability of saying F when T
+    # with that error, we can estimate how many more questions will be necessary
+    # to fufill the uncertainty threshold
+        # best way to estimate number of tasks needed to fulfill threshold?
 
-        # initialize the number of yes's and no's to 0
-        totalYes = 0.0
-        totalNo = 0.0
+    # that number of questions translates into a "cost" for each rest-pred pair
+    # how do i synthesize all the rest-pred pairs in order to create a cost for
+    # the predicate as a whole?
 
-        # for all predicates answered yes
-        for pred in yes:
-            # increase total number of yes by the confidence level indicated
-            totalYes += pred.confidenceLevel/100.0
-            # increase total number of no by 100 - confidence level indicated
-            totalNo += 1 - pred.confidenceLevel/100.0
+    # but not every rest-pred pair will be evaluated
+    # becasue if rest fails one pred, then other related preds don't need to be eval
 
-        # for all predicates answered no
-        for pred in no:
-            # increase total number of no by 100 - the confidence level 
-            # indicated
-            totalYes += 1 - pred.confidenceLevel/100.0
-            # increase total number of no by confidence level indicated
-            totalNo += pred.confidenceLevel/100.0
 
-        # How we compute the uncertaintly level changes depending on whether the answer is True or False
-        uncertaintyLevelTrue = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
-        uncertaintyLevelFalse = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
-
-        # if uncertaintyLevelTrue > uncertaintyLevelFalse:
-        #   check how many more tasks need to be answered as True in order for the rest/pred to have a concrete value of True
-        # else:
-        #   check how many more tasks needed to be answered as False in order for rest/pred to have concrete value of False
-
-        # store number of additional questions into cost with rest/pred as key
-
-    # rank = [(true selectivity) - 1] / (cost-per-rest/pred pair)
+    # rank = [(actual selectivity) - 1] / (cost-per-rest/pred pair)
     return None
 
 def decrementStatus(index, restaurant):

@@ -6,7 +6,7 @@ def test_simulation(self):
     AVERAGE_TIME = 60000 # 60 seconds
     STANDARD_DEV = 20000 # 20 seconds
     CONFIDENCE_OPTIONS = [60,60,80,100,100]
-    PERSONALITIES = [0,0,0,0,0]
+    PERSONALITIES = [0,0,0,0,0] # worker error rate, assumes only 5 workers
     SELECTIVITY_0 = 0.0
     SELECTIVITY_1 = 0.0
     SELECTIVITY_2 = 0.0
@@ -21,6 +21,7 @@ def test_simulation(self):
         enterRestaurant("Kate " + str(i), i)
 
     branches = PredicateBranch.objects.all()
+    # dictionary of predicate branches and their likelihood of answering wrong
     branchDifficulties = {branches[0] : 0.0,
                           branches[1] : 0.0,
                           branches[2] : 0.0}
@@ -36,14 +37,19 @@ def test_simulation(self):
     # set answers based on predicate's selectivity
     while len(allRestPreds0) != 0:
 
+        # choose random restaurant-predicate in allRestPreds0
         restPred = choice(allRestPreds0)
+        # takes out chosen restaurant-predicate
         allRestPreds0 = allRestPreds0.exclude(id=restPred.id)
 
+        # if random number falls within selectivity range, make it false
+        # else make it True
         if random() < SELECTIVITY_0:
             predicateAnswers[restPred] = False
         else:
             predicateAnswers[restPred] = True
 
+    # same logic as previous while loop
     while len(allRestPreds1) != 0:
         restPred = choice(allRestPreds1)
         allRestPreds1 = allRestPreds1.exclude(id=restPred.id)
@@ -53,6 +59,7 @@ def test_simulation(self):
         else:
             predicateAnswers[restPred] = True
 
+    # same logic as first while loop
     while len(allRestPreds2) != 0:
         restPred = choice(allRestPreds2)
         allRestPreds2 = allRestPreds2.exclude(id=restPred.id)
@@ -120,10 +127,12 @@ def test_simulation(self):
         updateCounts(pB, task)
         decrementStatus(predicate.index, predicate.restaurant)
         
+        # check value of certain predicate status of certain restaurant equals 0
         statusName = "predicate" + str(predicate.index) + "Status"
-        if getattr(predicate.restaurant, statusName)==0:
+        if getattr(predicate.restaurant, statusName)==0: 
             predicate.restaurant = aggregate_responses(predicate)
 
+        # TODO: not sure if evaluator line is necessary
         predicate.restaurant.evaluator = None
         predicate.save()
 
@@ -137,7 +146,7 @@ def test_simulation(self):
     l.append(["Simulation Test:", label])
     l.append(["Timestamp:", str(now)])
     l.append(["Number of tasks completed by workers:", str(len(Task.objects.all()))])
-    l.append(["Total Restaurants: ",NUM_RESTAURANTS])
+    l.append(["Total Restaurants: ", NUM_RESTAURANTS])
 
     # Of the answered predicates, count how many are correct
     correctCount = 0
@@ -145,13 +154,17 @@ def test_simulation(self):
         if predicate.value == predicateAnswers[predicate]:
             correctCount += 1
 
+    # append to array the percentage of items that have a correct value
     l.append(["Correct percentage:", float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))])
 
+    # adds up the time it took to complete each question
+    # not useful result to have because time distribution is not written correctly
     totalCompletionTime = 0
     for task in Task.objects.all():
         totalCompletionTime += task.completionTime
     l.append(["Total completion time of all tasks (minutes):", totalCompletionTime/60000.0])
 
+    # appends each of the values listed below to the array
     l.append([])
     l.append(["PredicateBranch", "Difficulty", "Ideal Selectivity", "Unweighted Task Selectivity", "Weighted Task Selectivity", "Total Returned", "Returned No"])
     for branch in PredicateBranch.objects.all():
@@ -171,21 +184,30 @@ def test_simulation(self):
         else:
             predicateBranchRow.append("None evaluated")
 
+        # records weighted task selectivity, total returned, # of no's returned
         predicateBranchRow.append(float(branch.returnedNo)/branch.returnedTotal)
         predicateBranchRow.append(branch.returnedTotal)
         predicateBranchRow.append(branch.returnedNo)
         l.append(predicateBranchRow)
 
+    # appends each of the values listed below
     l.append([])
     l.append(["Restaurant", "Predicate 0", "Predicate 1", "Predicate 2", "Passed Filter"])
     for rest in Restaurant.objects.all():
         restaurantRow = []
+
+        # appends name of restaurant
         restaurantRow.append(rest.name)
+
+        # appends value of each predicate for the restaurant
         for predicate in RestaurantPredicate.objects.filter(restaurant=rest):
             restaurantRow.append(predicate.value)
+
+        # appends result of restaurant with respect to total criteria
         restaurantRow.append(not rest.hasFailed)
         l.append(restaurantRow)
 
+    # write out results in array l to a file 
     with open('test_results/test' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
         [writer.writerow(r) for r in l]

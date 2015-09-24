@@ -13,6 +13,8 @@ class LotteryTestClass:
     predicate2 = [0.70, 0, 0.0, 1.0]
     predicate3 = [0.85, 0, 0.0, 1.0]
     predicates = [predicate1, predicate2, predicate3]
+
+    # boolean value to make things easier to debug, runs print statements
     debug = False
 
     def runLottery(self):
@@ -23,6 +25,7 @@ class LotteryTestClass:
 
             rand = randint(1, totalTickets)
             if self.debug: print "rand int: " + str(rand)
+
             # check if rand falls in the range corresponding to each predicate
             lowBound = 0
             highBound = self.predicates[0][3]*100
@@ -73,3 +76,4 @@ class LotteryTestClass:
             
         # recompute selectivity
         predicate[3] = (predicate[2] + 1)/ (predicate[1]+1)
+        

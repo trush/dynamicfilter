@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 
+<!-- loads this form when user first opens website, asks user to put ID num -->
+
 <form name = 'ID_form' action="{% url 'index' %}" method='post'>
 	{% csrf_token %}
 	<h2>Welcome to Dynamic Filter</h2>

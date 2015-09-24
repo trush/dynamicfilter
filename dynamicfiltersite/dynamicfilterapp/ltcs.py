@@ -1,4 +1,4 @@
-# helpful test script for lottery_test.py
+# runs lottery from lottery_test.py
 
 from lottery_test import LotteryTestClass
 
