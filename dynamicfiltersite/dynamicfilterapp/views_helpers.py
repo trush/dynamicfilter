@@ -333,15 +333,13 @@ def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnsw
     # probability of saying T when F or probability of saying F when T
     # with that error, we can estimate how many more questions will be necessary
     # to fufill the uncertainty threshold
-        # best way to estimate number of tasks needed to fulfill threshold?
-
-    # that number of questions translates into a "cost" for each rest-pred pair
+    
     # how do i synthesize all the rest-pred pairs in order to create a cost for
     # the predicate as a whole?
 
-    # but not every rest-pred pair will be evaluated
-    # becasue if rest fails one pred, then other related preds don't need to be eval
-
+    # can come up with formula for cost of predicate in two ways:
+    # 1) make cost of first restaurant off queue to determine cost of predicate
+    # 2) make cost of predicate a decaying exponential weighting of the first few restaurants
 
     # rank = [(actual selectivity) - 1] / (cost-per-rest/pred pair)
     return None

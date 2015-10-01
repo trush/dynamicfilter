@@ -29,9 +29,9 @@ MTURK_ENTROPY_VALUES = [0.259, 0.127, 0.198, 0.171, 0.108, 0.125, 0.191, 0.179, 
 MTURK_SELECTIVITIES = [0.95, 1.0, 0.0, 0.2, 0.95, 0.95, 0.8, 0.75, 0.05, 0.65]
 
 fastTrackRecord = False # keeping track of fast-tracked votes
-percentRecord = True # records percentage of items filtered after each task is inputted
-itemsNotEvalRecord = True # records how many items weren't evaluated by each branch
-selVSambRecord = True # keeps track of difference of estimated and actual selectivity levels with respect to ambiguity levels
+percentRecord = False # records percentage of items filtered after each task is inputted
+itemsNotEvalRecord = False # records how many items weren't evaluated by each branch
+selVSambRecord = False # keeps track of difference of estimated and actual selectivity levels with respect to ambiguity levels
 
 def enterTask(ID, workerAnswer, time, confidence, predicate):
     """
@@ -95,9 +95,9 @@ class SimulationTest(TestCase):
         # If True, information about individual runs of the algorithm will be recorded in separate files.
         # Will generate one file per algorithm per simulation.
         eddy = False
-        eddy2 = False
+        eddy2 = True
         random = False
-        optimal_eddy = True
+        optimal_eddy = False
         
         parameterSets = []
         # selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
@@ -105,9 +105,9 @@ class SimulationTest(TestCase):
         # A set of parameters for one call to many_simulations
         # The user may copy these lines to define and append more sets of parameters, which will results
         # in more calls to many_simulations
-        set1 =[ 5, # number of simulations to be run with these parameters
-                20, # number of restaurants
-                [4,5,8], # indices of the questions to use (between 1 and 10 questions may be specified, with indices 0 to 9)
+        set1 =[ 1, # number of simulations to be run with these parameters
+                1, # number of restaurants
+                [4], # indices of the questions to use (between 1 and 10 questions may be specified, with indices 0 to 9)
                 recordAggregateStats,
                 eddy,
                 eddy2,
@@ -570,13 +570,13 @@ class SimulationTest(TestCase):
         # reads in true predicate selectivities
         with open("MTurk_Results/List_of_Predicate_Selectivities.csv", "rU") as f:
             sel = [row for row in csv.reader(f)]
-            print sel
+            # print sel
 
         selectivities = []
         for i in range(len(sel)):
             if i != 0:
                 selectivities.append(float(sel[i][0]))
-        print selectivities
+        # print selectivities
 
         # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
 
@@ -795,8 +795,9 @@ class SimulationTest(TestCase):
             for predicate in RestaurantPredicate.objects.exclude(value=None):
                 if predicate.value == predicateAnswers[(predicate.restaurant.name, predicate.question)]:
                     correctCount += 1
-            optimalEddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
-            
+            # optimalEddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+            optimalEddyCorrectPercentage = 0
+
             if recordEddyStats: self.write_results(results_optimal_eddy, "optimal_eddy")
             self.reset_simulation()
 
