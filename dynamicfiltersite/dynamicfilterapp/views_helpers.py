@@ -11,7 +11,7 @@ DECISION_THRESHOLD = 0.5
 
 # the uncertainty level determined by the beta distribution function needs to be less than 0.15
 # for us to fix the predicate's value
-UNCERTAINTY_THRESHOLD = 0.15
+UNCERTAINTY_THRESHOLD = 0.10
 
 ALPHA = 0.9
 GAMMA = 0.1
@@ -321,28 +321,60 @@ def eddy2(ID, numOfPredicates):
     return chosenPredicate
 
 def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnswers):
-    unfinishedRPs = RestaurantPredicate.objects.filter(value=None)
+    # find the first Restaurant in the queue that isn't finished
+    sortedRestaurants = Restaurant.objects.exclude(queueIndex=-1).order_by('queueIndex')
+
+    # return if there are no unfinished Restaurants, otherwise take the first one in the queue
+    if len(sortedRestaurants)==0:
+        return None
+    else:
+        rest = sortedRestaurants[0]
+
+    # find all the Tasks this worker has completed
+    completedTasks = Task.objects.filter(workerID=ID)
+    
+    # find all the RestaurantPredicates matching these completed Tasks
+    completedPredicates = RestaurantPredicate.objects.filter(
+        id__in=completedTasks.values('restaurantPredicate_id'))
+
+    unfinishedRPs = RestaurantPredicate.objects.exclude(id__in=completedPredicates).filter(restaurant__hasFailed=False).filter(value=None, restaurant=rest)
 
     # cost of each rest/pred pair = minimum number of questions necessary 
     # so that rest/pred pair can satisfy uncertainty level
     cost = {}
-    for (rest, pred) in correctAnswers:
-        cost[(rest, pred)] = 0
+    for rp in unfinishedRPs:
+        cost[rp] = 0
 
-    # each restaurant-predicate pair only has one type of error:
-    # probability of saying T when F or probability of saying F when T
-    # with that error, we can estimate how many more questions will be necessary
-    # to fufill the uncertainty threshold
-    
-    # how do i synthesize all the rest-pred pairs in order to create a cost for
-    # the predicate as a whole?
+    for restPred in unfinishedRPs:
+        numYes = len(Task.objects.filter(restaurantPredicate=pred, answer=True))
+        numNo = len(Task.objects.filter(restaurantPredicate=pred, answer=False))
+
+        # uncertainty: assume we only want uncertainty if correct answer is false
+        #              or we want uncertainty if correct answer is majority
+        uncertainty = btdtr(numNo+1,numYes+1,0.50)
+
+        moreQ = 0
+        for (i = numNo+2, , i++) {
+            if btdtr(i,numYes+1,0.50) < UNCERTAINTY_THRESHOLD:
+                moreQ = i-numNo-1
+                break
+        }
+
+        cost[restPred] = moreQ
+
+    questions = sys.maxint
+    for rp in cost:
+        if cost[rp] < questions:
+            questions = cost[rp]
+            restPred = rp
+
+    return restPred
 
     # can come up with formula for cost of predicate in two ways:
     # 1) make cost of first restaurant off queue to determine cost of predicate
     # 2) make cost of predicate a decaying exponential weighting of the first few restaurants
 
     # rank = [(actual selectivity) - 1] / (cost-per-rest/pred pair)
-    return None
 
 def decrementStatus(index, restaurant):
     """

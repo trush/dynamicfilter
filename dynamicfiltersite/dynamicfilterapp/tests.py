@@ -95,7 +95,7 @@ class SimulationTest(TestCase):
         # If True, information about individual runs of the algorithm will be recorded in separate files.
         # Will generate one file per algorithm per simulation.
         eddy = False
-        eddy2 = True
+        eddy2 = False
         random = False
         optimal_eddy = False
         
@@ -105,9 +105,9 @@ class SimulationTest(TestCase):
         # A set of parameters for one call to many_simulations
         # The user may copy these lines to define and append more sets of parameters, which will results
         # in more calls to many_simulations
-        set1 =[ 1, # number of simulations to be run with these parameters
-                1, # number of restaurants
-                [4], # indices of the questions to use (between 1 and 10 questions may be specified, with indices 0 to 9)
+        set1 =[ 100, # number of simulations to be run with these parameters
+                20, # number of restaurants
+                [4,5,8], # indices of the questions to use (between 1 and 10 questions may be specified, with indices 0 to 9)
                 recordAggregateStats,
                 eddy,
                 eddy2,

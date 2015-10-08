@@ -3,7 +3,7 @@ About the Simulations
 Specify simulation parameters in SimulationTest.test_controller in tests.py. Refer to that documentation for further instructions and an explanation of what we are simulating. 
 
 Use the Django test framework to call test_controller as follows:
-python manage.py test dynamicfilterapp.tests.SimulationTest.test_controller
+python2.7 manage.py test dynamicfilterapp.tests.SimulationTest.test_controller
 
 
 Simulation Notes
