@@ -182,6 +182,7 @@ class SimulationTest(TestCase):
 
         # Run this loop until there are no more predicates needing evaluation
         while (predicate != None):
+            
             # get the current set of PredicateBranches (accessed here to make sure we have the up-to-date versions of the PBs)
             currentBranches = PredicateBranch.objects.all().order_by("index")
 
@@ -201,6 +202,7 @@ class SimulationTest(TestCase):
             value = choice(dictionary[predicate])
             while value == 0:
                 value = choice(dictionary[predicate])
+                
 
             # the boolean (Yes/No) aspect of the answer is encoded as the sign of value
             if value > 0:
@@ -245,17 +247,19 @@ class SimulationTest(TestCase):
             predicate.save()
 
             IDcounter += 1
-
+            
             # get the next predicate from the eddy (None if there are no more)
             if fastTrackRecord and algorithm == eddy2: # keeps track of how many votes are fast-tracked
                 predicateAndFastTrackCount = algorithm(IDcounter, len(QUESTION_INDICES), fast_track)
                 predicate = predicateAndFastTrackCount[0]
                 fast_track = predicateAndFastTrackCount[1]
-            else :
+            elif algorithm == optimal_eddy:
+                predicate = algorithm(IDcounter, len(QUESTION_INDICES), predicateError, selectivities, correctAnswers)
+            else:
                 predicate = algorithm(IDcounter, len(QUESTION_INDICES))
 
         # extract data for results file
-
+        print "C'MON"
         branches = PredicateBranch.objects.all().order_by("index")
 
         # print selectivities

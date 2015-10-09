@@ -4,6 +4,7 @@ from random import randint, choice
 from math import exp
 
 import csv
+import sys
 
 # we need at least half of the answers to be True in order for the value of the predicate to be True
 # and same for False's
@@ -11,7 +12,7 @@ DECISION_THRESHOLD = 0.5
 
 # the uncertainty level determined by the beta distribution function needs to be less than 0.15
 # for us to fix the predicate's value
-UNCERTAINTY_THRESHOLD = 0.10
+UNCERTAINTY_THRESHOLD = 0.20
 
 ALPHA = 0.9
 GAMMA = 0.1
@@ -345,7 +346,7 @@ def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnsw
     for rp in unfinishedRPs:
         cost[rp] = 0
 
-    for restPred in unfinishedRPs:
+    for pred in unfinishedRPs:
         numYes = len(Task.objects.filter(restaurantPredicate=pred, answer=True))
         numNo = len(Task.objects.filter(restaurantPredicate=pred, answer=False))
 
@@ -353,21 +354,19 @@ def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnsw
         #              or we want uncertainty if correct answer is majority
         uncertainty = btdtr(numNo+1,numYes+1,0.50)
 
-        moreQ = 0
-        for (i = numNo+2, , i++) {
-            if btdtr(i,numYes+1,0.50) < UNCERTAINTY_THRESHOLD:
-                moreQ = i-numNo-1
-                break
-        }
+        alpha = numNo+1
+        beta = numYes+1
+        while btdtr(alpha,beta,0.50) < UNCERTAINTY_THRESHOLD:
+            alpha += 1
 
-        cost[restPred] = moreQ
+        cost[pred] = alpha - numNo - 1
 
     questions = sys.maxint
     for rp in cost:
         if cost[rp] < questions:
             questions = cost[rp]
             restPred = rp
-
+    
     return restPred
 
     # can come up with formula for cost of predicate in two ways:
