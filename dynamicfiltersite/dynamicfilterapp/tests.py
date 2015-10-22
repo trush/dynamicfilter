@@ -107,7 +107,7 @@ class SimulationTest(TestCase):
         # in more calls to many_simulations
         set1 =[ 100, # number of simulations to be run with these parameters
                 20, # number of restaurants
-                [4,5,8], # indices of the questions to use (between 1 and 10 questions may be specified, with indices 0 to 9)
+                [0,8,9], # indices of the questions to use (between 1 and 10 questions may be specified, with indices 0 to 9)
                 recordAggregateStats,
                 eddy,
                 eddy2,
@@ -179,22 +179,21 @@ class SimulationTest(TestCase):
             predicate = algorithm(IDcounter, len(QUESTION_INDICES))
         
         taskIndex = 0
-
+        count = 0
         # Run this loop until there are no more predicates needing evaluation
         while (predicate != None):
-            
             # get the current set of PredicateBranches (accessed here to make sure we have the up-to-date versions of the PBs)
             currentBranches = PredicateBranch.objects.all().order_by("index")
 
             # add the current selectivity statistics to the results file
             for i in range(len(currentBranches)):
                 selectivities[i].append(1.0*currentBranches[i].returnedNo/currentBranches[i].returnedTotal)
-        
+
             # note the percent of items complete
             numDone = len(Restaurant.objects.filter(queueIndex=-1))*1.0
             numTotal = len(Restaurant.objects.all())*1.0
             percentDone.append(numDone/numTotal)
-            
+
             # choose a time by sampling from a distribution
             completionTime = normal(AVERAGE_TIME, STANDARD_DEV)
 
@@ -202,8 +201,7 @@ class SimulationTest(TestCase):
             value = choice(dictionary[predicate])
             while value == 0:
                 value = choice(dictionary[predicate])
-                
-
+            
             # the boolean (Yes/No) aspect of the answer is encoded as the sign of value
             if value > 0:
                 answer = True
@@ -247,7 +245,7 @@ class SimulationTest(TestCase):
             predicate.save()
 
             IDcounter += 1
-            
+
             # get the next predicate from the eddy (None if there are no more)
             if fastTrackRecord and algorithm == eddy2: # keeps track of how many votes are fast-tracked
                 predicateAndFastTrackCount = algorithm(IDcounter, len(QUESTION_INDICES), fast_track)
@@ -259,7 +257,6 @@ class SimulationTest(TestCase):
                 predicate = algorithm(IDcounter, len(QUESTION_INDICES))
 
         # extract data for results file
-        print "C'MON"
         branches = PredicateBranch.objects.all().order_by("index")
 
         # print selectivities
@@ -632,7 +629,7 @@ class SimulationTest(TestCase):
 
         # gets a dictionary of the answers from the sample data, where the key is a predicate and the value is a list of answers
         sampleDataDict = self.get_sample_answer_dict(cleanedDataFilename)
-
+        
         # make the header for the aggregate results csv
         aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
                            "random num tasks", "random correct percentage", "optimal eddy num tasks", "optimal eddy correct percentage"]]
@@ -742,7 +739,7 @@ class SimulationTest(TestCase):
 
         for key in predicateError:
             predicateError[key] = float(predicateError[key][0])/predicateError[key][1]
-
+            
         # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
         # Each algorithm (eddy, eddy2, and random) is run NUM_SIMULATIONS times
 
@@ -800,9 +797,9 @@ class SimulationTest(TestCase):
                 if predicate.value == predicateAnswers[(predicate.restaurant.name, predicate.question)]:
                     correctCount += 1
             # optimalEddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
-            optimalEddyCorrectPercentage = 0
+            optimalEddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
 
-            if recordEddyStats: self.write_results(results_optimal_eddy, "optimal_eddy")
+            if recordOptimalStats: self.write_results(results_optimal_eddy, "optimal_eddy")
             self.reset_simulation()
 
             if recordAggregateStats: aggregateResults.append([eddyTasks, eddyCorrectPercentage, eddy2Tasks, eddy2CorrectPercentage, randomTasks, randomCorrectPercentage, optimalEddyTasks, optimalEddyCorrectPercentage])

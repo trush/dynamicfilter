@@ -5,6 +5,7 @@ from math import exp
 
 import csv
 import sys
+import random
 
 # we need at least half of the answers to be True in order for the value of the predicate to be True
 # and same for False's
@@ -324,7 +325,7 @@ def eddy2(ID, numOfPredicates):
 def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnswers):
     # find the first Restaurant in the queue that isn't finished
     sortedRestaurants = Restaurant.objects.exclude(queueIndex=-1).order_by('queueIndex')
-
+    
     # return if there are no unfinished Restaurants, otherwise take the first one in the queue
     if len(sortedRestaurants)==0:
         return None
@@ -346,9 +347,13 @@ def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnsw
     for rp in unfinishedRPs:
         cost[rp] = 0
 
+    existFalse = False
+
     for pred in unfinishedRPs:
         numYes = len(Task.objects.filter(restaurantPredicate=pred, answer=True))
         numNo = len(Task.objects.filter(restaurantPredicate=pred, answer=False))
+
+        error = predicateError[(rest.name, pred.question)];
 
         # uncertainty: assume we only want uncertainty if correct answer is false
         #              or we want uncertainty if correct answer is majority
@@ -356,17 +361,44 @@ def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnsw
 
         alpha = numNo+1
         beta = numYes+1
-        while btdtr(alpha,beta,0.50) < UNCERTAINTY_THRESHOLD:
-            alpha += 1
+        
+        # TODO: what to do when error is more than 0.5? wrong answer appears more often then right answer
+        if (correctAnswers[(rest.name, pred.question)] == True and error < 0.5):
+            while btdtr(beta, alpha, 0.50) > UNCERTAINTY_THRESHOLD:
+                rand = random.random();
+                if rand < error:
+                    alpha += 1
+                else:
+                    beta += 1
+        else:
+            print correctAnswers[(rest.name, pred.question)]
+            print error
+            while btdtr(alpha,beta,0.50) > UNCERTAINTY_THRESHOLD:
 
-        cost[pred] = alpha - numNo - 1
+                existFalse = True
 
+                rand = random.random();
+                if rand < error:
+                    beta += 1
+                else:
+                    alpha += 1
+
+        cost[pred] = alpha - (numNo+1) + beta - (numYes+1)
+       
     questions = sys.maxint
-    for rp in cost:
-        if cost[rp] < questions:
-            questions = cost[rp]
-            restPred = rp
-    
+    restPred = unfinishedRPs[0]
+
+    if existFalse:
+        for rp in cost:
+            if cost[rp] < questions and correctAnswers[(rest.name, pred.question)] == False:
+                question = cost[rp]
+                restPred = rp
+    else:
+        for rp in cost:
+            if cost[rp] < questions :
+                questions = cost[rp]
+                restPred = rp
+
     return restPred
 
     # can come up with formula for cost of predicate in two ways:
