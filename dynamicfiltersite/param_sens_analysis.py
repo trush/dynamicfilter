@@ -1,7 +1,14 @@
-# put names of files into an array
-# each file should represent a batch of simulations for a value
-# and for each file, we should get one point (average of tasks)
+# run with python2.7 param_sens_analysis.py
+
+# TODO: why only open eddy_selVSamb.csv?
+#       there are three other eddies it should be able to adapt to
+
+# plots ambiguities (entropy values) vs. differences between
+# actual and estimated selectivities in order to find a relationship
+# between the two
+
 with open("test_results/eddy_selVSamb.csv", "r") as f:
+
     data = [row for row in csv.reader(f)]
     data = data[1:]
 
@@ -18,8 +25,9 @@ with open("test_results/eddy_selVSamb.csv", "r") as f:
     arrayX = [x1]
     arrayY = [y1]
 
-    # loop through this three times
+    # loop through
     for i in range(len(arrayX)):
+
         # sort the data
         reorder = sorted(range(len(arrayX[i])), key = lambda ii: arrayX[i][ii])
         arrayX[i] = [arrayX[i][ii] for ii in reorder]
@@ -40,7 +48,8 @@ with open("test_results/eddy_selVSamb.csv", "r") as f:
         variance = np.var(arrayY[i])
         residuals = np.var([(slope*xx + intercept - yy)  for xx,yy in zip(arrayX[i],arrayY[i])])
         Rsqr = np.round(1-residuals/variance, decimals=2)
-        plt.text(.9*max(arrayX[i])+.1*min(arrayX[i]),.9*max(arrayY[i])+.1*min(arrayY[i]),'$R^2 = %0.2f$'% Rsqr, fontsize=30)
+        plt.text(.9*max(arrayX[i])+.1*min(arrayX[i]),.9*max(arrayY[i])+.1*min(arrayY[i]),
+            '$R^2 = %0.2f$'% Rsqr, fontsize=30)
 
         plt.xlabel("Entropy Values")
         plt.ylabel("Difference between Actual and Estimated Selectivities")

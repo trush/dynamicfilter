@@ -5,14 +5,15 @@ from math import exp
 
 import csv
 import sys
+import math
 import random
 
-# we need at least half of the answers to be True in order for the value of the predicate to be True
-# and same for False's
+# we need at least half of the answers to be True in order for the value of the 
+# predicate to be True and same for False's
 DECISION_THRESHOLD = 0.5
 
-# the uncertainty level determined by the beta distribution function needs to be less than 0.15
-# for us to fix the predicate's value
+# the uncertainty level determined by the beta distribution function needs to be 
+# less than 0.15 for us to fix the predicate's value
 UNCERTAINTY_THRESHOLD = 0.20
 
 ALPHA = 0.9
@@ -22,17 +23,18 @@ INDEX = 0
 MEMORY_THRESHOLD = 0.1
 
 WEIGHT_FACTOR = 2
-ADDITIVE_FACTOR = 90
 FALSE_THRESHOLD = 0.30
 MULTIPLICATIVE = True
 NUM_TASKS_TILL_ACCURATE = 200
+NUM_OPTIMAL_TRIALS = 10
 
 def aggregate_responses(predicate):
     """
-    Checks if predicate needs to be answered 0 more times. If uncertainty criteria are met,
-    combines worker responses into one value for the predicate. Otherwise, adds five to the 
-    appropriate predicateStatus so that more answers will be collected.
+    Checks if predicate needs to be answered 0 more times. If uncertainty criteria 
+    are met, combines worker responses into one value for the predicate. Otherwise, 
+    adds five to the appropriate predicateStatus so that more answers will be collected.
     """
+
     # retrieves the number of yes answers and number of no answers for the 
     # predicate relative to the answers' confidence levels
     yes = Task.objects.filter(restaurantPredicate=predicate, answer = True)
@@ -57,7 +59,8 @@ def aggregate_responses(predicate):
         # increase total number of no by confidence level indicated
         totalNo += pred.confidenceLevel/100.0
 
-    # How we compute the uncertaintly level changes depending on whether the answer is True or False
+    # How we compute the uncertaintly level changes depending on whether the 
+    # answer is True or False
     uncertaintyLevelTrue = btdtr(totalYes+1, totalNo+1, DECISION_THRESHOLD)
     uncertaintyLevelFalse = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
 
@@ -69,7 +72,8 @@ def aggregate_responses(predicate):
     elif totalNo > totalYes and uncertaintyLevelFalse < UNCERTAINTY_THRESHOLD:
         predicate.value = False
 
-        # flag for the Restaurant failing a predicate (and thus not passing all the predicates)
+        # flag for the Restaurant failing a predicate (and thus not passing all 
+        #    the predicates)
         predicateFailed = False
 
         # iterates through all the fields in this restaurant's model
@@ -79,7 +83,8 @@ def aggregate_responses(predicate):
                 predicateFailed = True
                 break
 
-        # if predicate fails one predicate, we mark it as failed to never evaluated it again
+        # if predicate fails one predicate, we mark it as failed to never evaluated 
+        # it again
         if predicateFailed:
             predicate.restaurant = markFailed(predicate)
 
@@ -96,9 +101,10 @@ def aggregate_responses(predicate):
 
 def printResults():
     """
-    If there are no more predicates to be evaluated, print the restaurants satisfying all
-    predicates to the terminal.
+    If there are no more predicates to be evaluated, print the restaurants 
+    satisfying all predicates to the terminal.
     """
+
     left = RestaurantPredicate.objects.filter(value=None)
 
     if len(left)==0:
@@ -113,9 +119,10 @@ def printResults():
 
 def markFailed(predicate):
     """
-    Set all predicate status fields to -1 to indicate that it needs no further evaluation (because
-    it has failed a predicate)
+    Set all predicate status fields to -1 to indicate that it needs no further 
+    evaluation (because it has failed a predicate)
     """
+
     predicate.restaurant.hasFailed = True
     predicate.restaurant.queueIndex = -1
 
@@ -123,55 +130,45 @@ def markFailed(predicate):
 
 def updateCounts(pB, task):
     """
-    updates the predicate branch's total and "No!" counts relative to the confidence levels
+    updates the predicate branch's total and "No!" counts relative to the 
+    confidence levels
     """
+
     if task.answer==True:
         pB.returnedTotal += float(task.confidenceLevel)/100.0
     elif task.answer==False:
         pB.returnedTotal += float(task.confidenceLevel)/100.0
         pB.returnedNo += float(task.confidenceLevel)/100.0
-    # print "PB counts updated to: total: " + str(pB.returnedTotal) + " and no: " + str(pB.returnedNo) 
+    
     pB.save()
-
-# def findNumPredicates():
-#     # all fields for a restaurant referenced by an incomplete predicate
-#     restaurantFields = RestaurantPredicate.objects.all()[0].restaurant._meta.fields
-
-#     # finds number of predicate statuses
-#     numOfPredicateStatuses = 0
-#     for field in restaurantFields:
-#         if field.verbose_name.startswith('predicate') and field.verbose_name.endswith('Status'):
-#             numOfPredicateStatuses += 1
-
-#     return numOfPredicateStatuses
 
 def eddy(ID, numOfPredicates):
     """
     Uses a random lottery system to determine which eligible predicate should be
     evaluated next.
     """
+
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
     # find all the predicates matching these completed tasks
     completedPredicates = RestaurantPredicate.objects.filter(
         id__in=completedTasks.values('restaurantPredicate_id'))
     
-    # excludes all completed predicates from all restaurant predicates to get only incompleted ones
+    # excludes all completed predicates from all restaurant predicates to get 
+    # only incompleted ones
     incompletePredicates1 = RestaurantPredicate.objects.exclude(id__in=completedPredicates)
 
     incompletePredicates = incompletePredicates1.filter(restaurant__hasFailed=False).filter(value=None)
-    # # print "incompletePredicates: "
-    # for ip in incompletePredicates:
-    #     print ip
+    
     # finds eligible predicate branches
     eligiblePredicateBranches = []
-    # print "numOfPredicates: " + str(numOfPredicates)
+    
     for i in range(numOfPredicates):
         for pred in incompletePredicates:
             if pred.index==i:
                 eligiblePredicateBranches.append(PredicateBranch.objects.filter(index=i)[0])
                 break
-    # print "Eligible predicate branches: " + str(eligiblePredicateBranches)
+    
     if (len(eligiblePredicateBranches) != 0):
         chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
     else:
@@ -186,20 +183,24 @@ def eddy(ID, numOfPredicates):
 
     # Find the RestaurantPredicate corresponding to this Restaurant and 
     # PredicateBranch
-    chosenPredicate = RestaurantPredicate.objects.filter(restaurant = chosenRestaurant, question = chosenBranch.question)[0]
+    chosenPredicate = RestaurantPredicate.objects.filter(restaurant = chosenRestaurant, 
+        question = chosenBranch.question)[0]
 
     return chosenPredicate
 
 def eddy2(ID, numOfPredicates, fast_track):
     """
-    Picks a  Restaurant, then uses a lottery system to determine the next PredicateBranch to send the Restaurant to. 
-    If the Restaurant is likely to be False for one particular PredicateBranch, it may be "fast-tracked" to that PB rather
-    than choosing via the lottery.
+    Picks a  Restaurant, then uses a lottery system to determine the next 
+    PredicateBranch to send the Restaurant to. If the Restaurant is likely to be 
+    False for one particular PredicateBranch, it may be "fast-tracked" to that 
+    PB rather than choosing via the lottery.
     """
+
     # find the first Restaurant in the queue that isn't finished
     sortedRestaurants = Restaurant.objects.exclude(queueIndex=-1).order_by('queueIndex')
 
-    # return if there are no unfinished Restaurants, otherwise take the first one in the queue
+    # return if there are no unfinished Restaurants, otherwise take the first one 
+    # in the queue
     if len(sortedRestaurants)==0:
         return [None, fast_track]
     else:
@@ -212,10 +213,12 @@ def eddy2(ID, numOfPredicates, fast_track):
     completedPredicates = RestaurantPredicate.objects.filter(
         id__in=completedTasks.values('restaurantPredicate_id'))
 
-    # get only incomplete RestaurantPredicates matching this Restaurant and eligible to this worker
+    # get only incomplete RestaurantPredicates matching this Restaurant and 
+    # eligible to this worker
     incompletePredicates = RestaurantPredicate.objects.exclude(id__in=completedPredicates).filter(restaurant__hasFailed=False).filter(value=None, restaurant=rest)
  
-    # check for RestaurantPredicates that are likely to evaluate to False (meeting the specified uncertainty threshold)
+    # check for RestaurantPredicates that are likely to evaluate to False 
+    # (meeting the specified uncertainty threshold)
     almostFalsePredicates = []
 
     # finds all the predicates that are almost False, less than 30% uncertain
@@ -224,8 +227,8 @@ def eddy2(ID, numOfPredicates, fast_track):
         numNo = len(Task.objects.filter(restaurantPredicate=pred, answer=False))
         uncertainty = btdtr(numNo+1,numYes+1,0.50)
 
-        if uncertainty < FALSE_THRESHOLD:
-            almostFalsePredicates.append( (uncertainty, pred) )
+        # if uncertainty < FALSE_THRESHOLD:
+        #     almostFalsePredicates.append( (uncertainty, pred) )
 
     if len(almostFalsePredicates) > 0:
         # sort according to uncertainty, ascendingly, and return the predicate
@@ -236,8 +239,8 @@ def eddy2(ID, numOfPredicates, fast_track):
 
         return [almostFalsePredicates[0][1], fast_track]
 
-    # If we've failed to find a predicate to prioritize, run the lottery on all eligible PBs
-    # finds eligible predicate branches
+    # If we've failed to find a predicate to prioritize, run the lottery on all 
+    # eligible PBs finds eligible predicate branches
     eligiblePredicateBranches = []
     for i in range(numOfPredicates):
         for pred in incompletePredicates:
@@ -247,26 +250,33 @@ def eddy2(ID, numOfPredicates, fast_track):
 
     # finds predicate branch using weighted lottery
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
+        if MULTIPLICATIVE:
+            chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
+        else:
+            chosenBranch = runLottery(eligiblePredicateBranches)
     else:
         return [None, fast_track]
 
     # Find the RestaurantPredicate corresponding to this Restaurant and 
     # PredicateBranch
-    chosenPredicate = RestaurantPredicate.objects.filter(restaurant=rest, question=chosenBranch.question)[0]
+    chosenPredicate = RestaurantPredicate.objects.filter(restaurant=rest, 
+        question=chosenBranch.question)[0]
 
     return [chosenPredicate, fast_track]
     
 def eddy2(ID, numOfPredicates):
     """
-    Picks a  Restaurant, then uses a lottery system to determine the next PredicateBranch to send the Restaurant to. 
-    If the Restaurant is likely to be False for one particular PredicateBranch, it may be "fast-tracked" to that PB rather
-    than choosing via the lottery.
+    Picks a  Restaurant, then uses a lottery system to determine the next 
+    PredicateBranch to send the Restaurant to. If the Restaurant is likely to be 
+    False for one particular PredicateBranch, it may be "fast-tracked" to that 
+    PB rather than choosing via the lottery.
     """
+
     # find the first Restaurant in the queue that isn't finished
     sortedRestaurants = Restaurant.objects.exclude(queueIndex=-1).order_by('queueIndex')
 
-    # return if there are no unfinished Restaurants, otherwise take the first one in the queue
+    # return if there are no unfinished Restaurants, otherwise take the first 
+    # one in the queue
     if len(sortedRestaurants)==0:
         return None
     else:
@@ -279,10 +289,12 @@ def eddy2(ID, numOfPredicates):
     completedPredicates = RestaurantPredicate.objects.filter(
         id__in=completedTasks.values('restaurantPredicate_id'))
 
-    # get only incomplete RestaurantPredicates matching this Restaurant and eligible to this worker
+    # get only incomplete RestaurantPredicates matching this Restaurant and 
+    # eligible to this worker
     incompletePredicates = RestaurantPredicate.objects.exclude(id__in=completedPredicates).filter(restaurant__hasFailed=False).filter(value=None, restaurant=rest)
  
-    # check for RestaurantPredicates that are likely to evaluate to False (meeting the specified uncertainty threshold)
+    # check for RestaurantPredicates that are likely to evaluate to False 
+    # (meeting the specified uncertainty threshold)
     almostFalsePredicates = []
 
     # finds all the predicates that are almost False, less than 30% uncertain
@@ -291,8 +303,8 @@ def eddy2(ID, numOfPredicates):
         numNo = len(Task.objects.filter(restaurantPredicate=pred, answer=False))
         uncertainty = btdtr(numNo+1,numYes+1,0.50)
 
-        if uncertainty < FALSE_THRESHOLD:
-            almostFalsePredicates.append( (uncertainty, pred) )
+        # if uncertainty < FALSE_THRESHOLD:
+        #     almostFalsePredicates.append( (uncertainty, pred) )
 
     if len(almostFalsePredicates) > 0:
         # sort according to uncertainty, ascendingly, and return the predicate
@@ -301,8 +313,8 @@ def eddy2(ID, numOfPredicates):
 
         return almostFalsePredicates[0][1]
 
-    # If we've failed to find a predicate to prioritize, run the lottery on all eligible PBs
-    # finds eligible predicate branches
+    # If we've failed to find a predicate to prioritize, run the lottery on all 
+    # eligible PBs finds eligible predicate branches
     eligiblePredicateBranches = []
     for i in range(numOfPredicates):
         for pred in incompletePredicates:
@@ -312,21 +324,114 @@ def eddy2(ID, numOfPredicates):
 
     # finds predicate branch using weighted lottery
     if (len(eligiblePredicateBranches) != 0):
-        chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
+        if MULTIPLICATIVE:
+            chosenBranch = runLotteryWeighted(eligiblePredicateBranches)
+        else:
+            chosenBranch = runLottery(eligiblePredicateBranches)
     else:
         return None
 
     # Find the RestaurantPredicate corresponding to this Restaurant and 
     # PredicateBranch
-    chosenPredicate = RestaurantPredicate.objects.filter(restaurant=rest, question=chosenBranch.question)[0]
+    chosenPredicate = RestaurantPredicate.objects.filter(restaurant=rest, 
+        question=chosenBranch.question)[0]
 
     return chosenPredicate
 
-def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnswers):
+def optimal_eddy_script(ID, numOfPredicates, predError, selectivities, correctAnswers):
+
     # find the first Restaurant in the queue that isn't finished
     sortedRestaurants = Restaurant.objects.exclude(queueIndex=-1).order_by('queueIndex')
     
-    # return if there are no unfinished Restaurants, otherwise take the first one in the queue
+    # find all the Tasks this worker has completed
+    completedTasks = Task.objects.filter(workerID=ID)
+    
+    # find all the RestaurantPredicates matching these completed Tasks
+    completedPredicates = RestaurantPredicate.objects.filter(
+        id__in=completedTasks.values('restaurantPredicate_id'))
+
+    unfinishedRPs = RestaurantPredicate.objects.exclude(id__in=completedPredicates).filter(restaurant__hasFailed=False).filter(value=None)
+
+    # cost of each rest/pred pair = minimum number of questions necessary 
+    # so that rest/pred pair can satisfy uncertainty level
+    cost = {}
+    rank = {}
+    answers = {}
+    selectivityDict = {}
+    entropy = {}
+    for rp in unfinishedRPs:
+        rank[rp] = 0
+        cost[rp] = 0
+        answers[rp] = []
+        selectivityDict[rp] = 0
+        entropy[rp] = 0
+
+    for pred in unfinishedRPs:
+        error = predError[(pred.restaurant.name, pred.question)];
+
+        # uncertainty: assume we only want uncertainty if correct answer is false
+        #              or we want uncertainty if correct answer is majority
+        answer = correctAnswers[(pred.restaurant.name, pred.question)]
+
+        for i in range(NUM_OPTIMAL_TRIALS):
+            alpha = 1
+            beta = 1
+
+            while (btdtr(alpha, beta, 0.50) > UNCERTAINTY_THRESHOLD and btdtr(beta, 
+                alpha, 0.50) > UNCERTAINTY_THRESHOLD) or alpha+beta < 7:
+
+                rand = random.random();
+                if rand < error:
+                    if answer:
+                        alpha += 1
+                    else:
+                        beta += 1
+                else:
+                    if answer:
+                        beta += 1
+                    else:
+                        alpha += 1
+
+            cost[pred] += alpha+beta-7
+            rank[pred] += (selectivities[pred.index] - 1)*1.0 / (alpha + beta + 1 - 7)
+
+            if (btdtr(alpha, beta, 0.5) < UNCERTAINTY_THRESHOLD):
+                answers[pred].append(False)
+            else:
+                answers[pred].append(True)
+
+            probYes = 1.0*beta/(beta+alpha)  
+            entr = -1*(probYes * math.log(probYes, 10) + (1-probYes) * math.log(1-probYes, 10))
+            entropy[pred] += entr
+
+            selectivityDict[pred] += 1.0*alpha/(alpha+beta)
+            
+    for pred in unfinishedRPs:
+        cost[pred] = cost[pred] / NUM_OPTIMAL_TRIALS
+        rank[pred] = rank[pred] / NUM_OPTIMAL_TRIALS
+        selectivityDict[pred] = selectivityDict[pred] / NUM_OPTIMAL_TRIALS
+        entropy[pred] = entropy[pred] / NUM_OPTIMAL_TRIALS   
+
+    # write results to file
+    results = [["Entropy", "Estimated Selectivity", "Cost", "Answer", "Rank"]]
+    for pred in unfinishedRPs:
+        row = [ entropy[pred], selectivityDict[pred], cost[pred], answers[pred], 
+            rank[pred] ]
+        results.append(row)
+
+    fd = open('test_results/optimal_datasheet.csv','a')
+    writer = csv.writer(fd)
+    [writer.writerow(r) for r in results]
+    fd.flush()
+
+
+def optimal_eddy(ID, numOfPredicates, predError, selectivities, correctAnswers):
+
+    # find the first Restaurant in the queue that isn't finished
+    sortedRestaurants = Restaurant.objects.exclude(queueIndex=-1).order_by('queueIndex')
+    
+    # return if there are no unfinished Restaurants, otherwise take the first 
+    # one in the queue
     if len(sortedRestaurants)==0:
         return None
     else:
@@ -340,7 +445,7 @@ def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnsw
         id__in=completedTasks.values('restaurantPredicate_id'))
 
     unfinishedRPs = RestaurantPredicate.objects.exclude(id__in=completedPredicates).filter(restaurant__hasFailed=False).filter(value=None, restaurant=rest)
-
+   
     # cost of each rest/pred pair = minimum number of questions necessary 
     # so that rest/pred pair can satisfy uncertainty level
     cost = {}
@@ -348,69 +453,67 @@ def optimal_eddy(ID, numOfPredicates, predicateError, selectivities, correctAnsw
         cost[rp] = 0
 
     existFalse = False
+    falsePreds = []
 
     for pred in unfinishedRPs:
         numYes = len(Task.objects.filter(restaurantPredicate=pred, answer=True))
         numNo = len(Task.objects.filter(restaurantPredicate=pred, answer=False))
 
-        error = predicateError[(rest.name, pred.question)];
+        error = predError[(rest.name, pred.question)];
 
         # uncertainty: assume we only want uncertainty if correct answer is false
         #              or we want uncertainty if correct answer is majority
         uncertainty = btdtr(numNo+1,numYes+1,0.50)
+        answer = correctAnswers[(rest.name, pred.question)]
 
         alpha = numNo+1
         beta = numYes+1
-        
-        # TODO: what to do when error is more than 0.5? wrong answer appears more often then right answer
-        if (correctAnswers[(rest.name, pred.question)] == True and error < 0.5):
-            while btdtr(beta, alpha, 0.50) > UNCERTAINTY_THRESHOLD:
-                rand = random.random();
-                if rand < error:
+
+        while btdtr(alpha, beta, 0.50) > UNCERTAINTY_THRESHOLD and btdtr(beta, 
+            alpha, 0.50) > UNCERTAINTY_THRESHOLD:
+
+            rand = random.random();
+            if rand < error:
+                if answer:
                     alpha += 1
                 else:
                     beta += 1
-        else:
-            print correctAnswers[(rest.name, pred.question)]
-            print error
-            while btdtr(alpha,beta,0.50) > UNCERTAINTY_THRESHOLD:
-
-                existFalse = True
-
-                rand = random.random();
-                if rand < error:
+            else:
+                if answer:
                     beta += 1
                 else:
                     alpha += 1
+            
+        if btdtr(alpha, beta, 0.50) < UNCERTAINTY_THRESHOLD:
+            existFalse = True
+            falsePreds.append(pred)
 
-        cost[pred] = alpha - (numNo+1) + beta - (numYes+1)
+        cost[pred] = (selectivities[pred.index] - 1) / (alpha - (numNo+1) + beta - (numYes+1) + 1)
        
-    questions = sys.maxint
-    restPred = unfinishedRPs[0]
+    tempCost = sys.maxint
+    if len(unfinishedRPs) > 0:
+        restPred = unfinishedRPs[0]
+    else:
+        restPred = None
 
     if existFalse:
-        for rp in cost:
-            if cost[rp] < questions and correctAnswers[(rest.name, pred.question)] == False:
-                question = cost[rp]
+        for rp in falsePreds:
+            if cost[rp] < tempCost:
+                tempCost = cost[rp]
                 restPred = rp
     else:
         for rp in cost:
-            if cost[rp] < questions :
-                questions = cost[rp]
+            if cost[rp] < tempCost :
+                tempCost = cost[rp]
                 restPred = rp
-
+   
     return restPred
-
-    # can come up with formula for cost of predicate in two ways:
-    # 1) make cost of first restaurant off queue to determine cost of predicate
-    # 2) make cost of predicate a decaying exponential weighting of the first few restaurants
-
-    # rank = [(actual selectivity) - 1] / (cost-per-rest/pred pair)
 
 def decrementStatus(index, restaurant):
     """
     decrease the status by 1 once an answer has been submitted for that predicate
     """
+
     check = 'predicate' + str(index)
 
     # iterates through all the fields in restaurant
@@ -438,8 +541,8 @@ def incrementStatus(index, restaurant):
 
 def findTotalTickets(pbSet):
     """
-    Find the total number of "tickets" held by a set of PredicateBranches, multiplying their
-    selectivities by 1000 and casting them to integers.
+    Find the total number of "tickets" held by a set of PredicateBranches, 
+    multiplying their selectivities by 1000 and casting them to integers.
     """
     totalTickets = 0
 
@@ -488,8 +591,8 @@ def runLottery(pbSet):
 
 def runLotteryWeighted(pbSet):
     """
-    Runs a ticket-based lottery to choose a PredicateBranch. Doubles the tickets of the most selective
-    PredicateBranch in order to favor it more strongly.
+    Runs a ticket-based lottery to choose a PredicateBranch. Doubles the tickets 
+    of the most selective PredicateBranch in order to favor it more strongly.
     """
     totalTickets = 0
     tickets = {}
@@ -506,12 +609,8 @@ def runLotteryWeighted(pbSet):
             highestSelectivity = float(highestBranch.returnedNo)/highestBranch.returnedTotal
 
     # favors most selective branch
-    if MULTIPLICATIVE:
-        tickets[highestBranch] *= WEIGHT_FACTOR
-        totalTickets += tickets[highestBranch]*(WEIGHT_FACTOR-1)/WEIGHT_FACTOR
-    else:
-        tickets[highestBranch] += ADDITIVE_FACTOR
-        totalTickets += ADDITIVE_FACTOR
+    tickets[highestBranch] *= WEIGHT_FACTOR
+    totalTickets += tickets[highestBranch]*(WEIGHT_FACTOR-1)/WEIGHT_FACTOR
 
     # generate random number between 1 and totalTickets
     rand = randint(1, int(totalTickets))
@@ -537,13 +636,16 @@ def runLotteryWeighted(pbSet):
 
 def runLotteryWeightedWithMemory(pbSet):
     """
-    Runs a ticket-based lottery to choose a PredicateBranch. Doubles the tickets of the most selective
-    PredicateBranch in order to favor it more strongly. Remembers which PredicateBranch had the highest selectivity
-    in the last run of the lottery, and requires that another PredicateBranch have a selectivity that is higher by a certain 
-    threshold in order to become the new favored PredicateBranch. This is done so that the choice of which PredicateBranch is
-    weighted (favored) changes less often. (This lottery is kept for possible future exploration but not currently
-    in use.)
+    Runs a ticket-based lottery to choose a PredicateBranch. Doubles the tickets 
+    of the most selective PredicateBranch in order to favor it more strongly. 
+    Remembers which PredicateBranch had the highest selectivity in the last run 
+    of the lottery, and requires that another PredicateBranch have a selectivity 
+    that is higher by a certain threshold in order to become the new favored 
+    PredicateBranch. This is done so that the choice of which PredicateBranch is
+    weighted (favored) changes less often. (This lottery is kept for possible 
+    future exploration but not currently in use.)
     """
+
     global INDEX
 
     changeBranch = True
@@ -579,7 +681,8 @@ def runLotteryWeightedWithMemory(pbSet):
 
     # if the branch picked before still exists, check if new branch surpasses threshold
     if pastBranchExists:
-        # TODO: should not change branch more often as tasks increase aka memory threshold should increase
+        # TODO: should not change branch more often as tasks increase aka memory 
+        #       threshold should increase
         if float(highestBranch.returnedNo)/float(highestBranch.returnedTotal) - float(
             predBranch.returnedNo)/float(predBranch.returnedTotal) < MEMORY_THRESHOLD: 
             changeBranch = False
@@ -627,11 +730,13 @@ def runLotteryWeightedWithMemory(pbSet):
 
 def runLotteryDynamicallyWeighted(pbSet):
     """
-    Runs a ticket-based lottery to choose a PredicateBranch. Increases the tickets of the most selective
-    PredicateBranch in order to favor it more strongly. The weighting factor increases with the number of
-    tasks done, up to a maximum of 2. (This lottery is kept for possible future exploration but not currently
+    Runs a ticket-based lottery to choose a PredicateBranch. Increases the tickets 
+    of the most selective PredicateBranch in order to favor it more strongly. 
+    The weighting factor increases with the number of tasks done, up to a maximum 
+    of 2. (This lottery is kept for possible future exploration but not currently
     in use.)
     """
+
     totalTickets = 0
     tickets = {}
     highestBranch = pbSet[0]
@@ -642,7 +747,8 @@ def runLotteryDynamicallyWeighted(pbSet):
         if t > (float(highestBranch.returnedNo)/highestBranch.returnedTotal)*1000:
             highestBranch = branch
 
-    # TODO: how quickly should weighting increase? When should it stop increasing? Up to what weight should it increase?
+    # TODO: how quickly should weighting increase? When should it stop increasing? 
+    #       Up to what weight should it increase?
     if len(Task.objects.all()) < NUM_TASKS_TILL_ACCURATE:
         totalTickets -= tickets[highestBranch]
         tickets[highestBranch] *= (1+len(Task.objects.all())/NUM_TASKS_TILL_ACCURATE*(WEIGHT_FACTOR-1))
@@ -677,10 +783,12 @@ def runLotteryDynamicallyWeighted(pbSet):
 
 def runLotteryWithUniform(pbSet):
     """
-    Runs a ticket-based lottery to choose a PredicateBranch. Averages the selectivity distribution with a uniform distribution
-    to favor "exploration" of different PredicateBranches more strongly. (This lottery is kept for possible future exploration but not currently
-    in use.)
+    Runs a ticket-based lottery to choose a PredicateBranch. Averages the 
+    selectivity distribution with a uniform distribution to favor "exploration" 
+    of different PredicateBranches more strongly. (This lottery is kept for 
+    possible future exploration but not currently in use.)
     """
+
     totalTickets = 0.0
     rangeRand = 0.0
     tickets = {}
@@ -722,9 +830,11 @@ def runLotteryWithUniform(pbSet):
     
 def findRestaurant(predicateBranch,ID):
     """
-    Finds the restaurant with the highest priority for a specified predicate such that the relevant worker
-    has not answered the relevant question about the restaurant.
+    Finds the restaurant with the highest priority for a specified predicate such 
+    that the relevant worker has not answered the relevant question about the 
+    restaurant.
     """
+
     # find all the tasks this worker has completed
     completedTasks = Task.objects.filter(workerID=ID)
 
@@ -741,66 +851,12 @@ def findRestaurant(predicateBranch,ID):
 
     return prioritized[0]
 
-# def findRestaurant(predicateBranch,ID):
-#     """
-#     Finds a random eligible restaurant.
-#     """
-#     # find all the tasks this worker has completed
-#     completedTasks = Task.objects.filter(workerID=ID)
-
-#     # find all the predicates for this branch that have been done by the worker
-#     completedPredicates = RestaurantPredicate.objects.filter(question=predicateBranch.question).filter(
-#         id__in=completedTasks.values('restaurantPredicate_id')).filter(value=None)
-
-#     # get the Restaurants NOT associated with the completed predicates
-#     rSet = Restaurant.objects.exclude(id__in=completedPredicates.values('restaurant_id')).exclude(hasFailed=True).order_by('?')
-
-#     return rSet[0]
-
-#------------------------------------------------------------------------------------------------------------------------------------#
-  
-    #     if status > 0:
-    #         lowestStat = status
-    #         break
-
-    # lowestUncertainty = 1.0
-    # predicate = RestaurantPredicate.objects.filter(question=predicateBranch.question)[0]
-    # for restaurant in prioritized:
-    #     status = getattr(restaurant, predStatus)
-
-    #     if status > lowestStat:
-    #         break
-
-    #     if status == lowestStat:
-
-    #         yes = Task.objects.filter(restaurantPredicate=predicate, answer = True)
-    #         no = Task.objects.filter(restaurantPredicate=predicate, answer = False)
-
-    #         totalYes = 0.0
-    #         totalNo = 0.0
-
-    #         for pred in yes:
-    #             totalYes += pred.confidenceLevel/100.0
-    #             totalNo += 1 - pred.confidenceLevel/100.0
-
-    #         for pred in no:
-    #             totalYes += 1 - pred.confidenceLevel/100.0
-    #             totalNo += pred.confidenceLevel/100.0
-
-    #         uncertaintyLevelFalse = btdtr(totalNo+1, totalYes+1, DECISION_THRESHOLD)
-
-    #         if uncertaintyLevelFalse < lowestUncertainty:
-    #             chosenRestaurant = restaurant
-    #             lowestUncertainty = uncertaintyLevelFalse
-
-    # return chosenRestaurant
-
-#--------------------------------------------------------------------------------------------------------------------------------------#
-
 def randomAlgorithm(ID, numOfPredicates):
     """
-    Randomly selects the next predicate from the available choices. Does not use lottery or queue.
+    Randomly selects the next predicate from the available choices. Does not use 
+    lottery or queue.
     """
+
     # get all the tasks this worker has done
     completedTasks = Task.objects.filter(workerID=ID)
 

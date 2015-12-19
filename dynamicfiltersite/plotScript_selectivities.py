@@ -1,5 +1,10 @@
 # Code adapted from tutorial at http://www.bogotobogo.com/python/python_matplotlib.php
 
+# run with python2.7 plotScript_selectivities.py test_results/csv_file_name.csv
+
+# works on eddy individual run csv file with three predicates. 
+# plots estimated selectivities vs number of tasks completed
+
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime as DT
@@ -9,12 +14,20 @@ import sys
 filename = sys.argv[1]
 
 # load data from csv file, skip 2 rows, delimit by commas
-data = np.loadtxt(filename, skiprows=2, delimiter=',', dtype={'names': ('task number', 'selectivity 1', 'selectivity 2', 'selectivity 3'),
-          'formats': (np.int, np.float, np.float, np.float)})
+data = np.loadtxt(filename, skiprows=2, delimiter=',', dtype={'names': ('task number', 
+	'selectivity 1', 'selectivity 2', 'selectivity 3'), 'formats': (np.int, np.float, 
+	np.float, np.float)})
 
+# number of each task
 m = [value0 for (value0, value1, value2, value3) in data]
+
+# estimated selectivity of predicate 0
 s1 = [value1 for (value0, value1, value2, value3) in data]
+
+# estimated selectivity of predicate 1
 s2 = [value2 for (value0, value1, value2, value3) in data]
+
+# estimated selectivity of predicate 2
 s3 = [value3 for (value0, value1, value2, value3) in data]
 
 fig = plt.figure()

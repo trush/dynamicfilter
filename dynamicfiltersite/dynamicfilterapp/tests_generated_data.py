@@ -1,8 +1,9 @@
-
+# TODO: need to find out how to use this file
 
 def test_many_simulation(self, parameters):
         """
-        A version of test_simulation that runs many simulations repeatedly in order to get aggregated data.
+        A version of test_simulation that runs many simulations repeatedly in 
+        order to get aggregated data.
         """
 
         # record simulation identifying information to be put in each results file
@@ -33,16 +34,22 @@ def test_many_simulation(self, parameters):
         recordRandomStats = parameters[13]
 
         # establish a set of known correct answers
-        predicateAnswers = self.set_correct_answers(branches, branchSelectivities, parameters[14])
+        predicateAnswers = self.set_correct_answers(branches, branchSelectivities, 
+            parameters[14])
 
-        aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
-                           "random num tasks", "random correct percentage"]]
+        aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", 
+            "eddy 2 num tasks", "eddy2 correct percentage", "random num tasks", 
+            "random correct percentage"]]
 
-        # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
+        # Use the established items, questions, selectivities, difficulties, etc 
+        # to run as many simulations as specified
         for k in range(NUM_SIMULATIONS):
 
             print "Eddy " + str(k)
-            results_eddy = self.run_simulation(eddy, branches, branchDifficulties, parameters, predicateAnswers)
+
+            results_eddy = self.run_simulation(eddy, branches, branchDifficulties, 
+                parameters, predicateAnswers)
+
             eddyTasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -56,7 +63,10 @@ def test_many_simulation(self, parameters):
             self.reset_simulation()
 
             print "Eddy2 " + str(k)
-            results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, parameters, predicateAnswers)
+
+            results_eddy = self.run_simulation(eddy2, branches, branchDifficulties, 
+                parameters, predicateAnswers)
+
             eddy2Tasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -70,7 +80,10 @@ def test_many_simulation(self, parameters):
             self.reset_simulation()
 
             print "Random " + str(k)
-            results_random = self.run_simulation(randomAlgorithm, branches, branchDifficulties, parameters, predicateAnswers)
+
+            results_random = self.run_simulation(randomAlgorithm, branches, 
+                branchDifficulties, parameters, predicateAnswers)
+
             randomTasks = len(Task.objects.all())
 
             # Of the answered predicates, count how many are correct
@@ -83,15 +96,21 @@ def test_many_simulation(self, parameters):
             if recordRandomStats: self.write_results(results_random, "random")
             self.reset_simulation()
 
-            if recordAggregateStats: aggregateResults.append([eddyTasks, eddyCorrectPercentage, eddy2Tasks, eddy2CorrectPercentage, randomTasks, randomCorrectPercentage])
+            if recordAggregateStats: 
+                aggregateResults.append([eddyTasks, eddyCorrectPercentage, 
+                    eddy2Tasks, eddy2CorrectPercentage, randomTasks, 
+                    randomCorrectPercentage])
 
         self.clear_database()
   
         if recordAggregateStats: self.write_results(aggregateResults, "aggregate_results")
+
+
 def set_correct_answers(self, branches, branchSelectivities, answers):
         """
         Creates a dictionary with a correct answer for each predicate in the database.
         """
+
         # dictionary of correct answers
         predicateAnswers = {}
         
@@ -143,16 +162,24 @@ def set_correct_answers(self, branches, branchSelectivities, answers):
         i = 0
         for rest in Restaurant.objects.all():
             for pb in PredicateBranch.objects.order_by('index'):
-                pred = RestaurantPredicate.objects.filter(restaurant=rest, index=pb.index)[0]
+
+                pred = RestaurantPredicate.objects.filter(restaurant=rest, 
+                    index=pb.index)[0]
+
                 predicateAnswers[pred] = answers[i]
                 i += 1
 
-        return predicateAnswers      
+        return predicateAnswers  
+
 def test_many_simulation_controller(self):
         """
-        Calls the test_many_simulation function with as many sets of parameters as are specified.
+        Calls the test_many_simulation function with as many sets of parameters 
+        as are specified.
         """
-        recordAggregateStats = True # record the number of tasks and correct percentage for each run of each algorithm in one file
+
+        recordAggregateStats = True # record the number of tasks and correct 
+                                    # percentage for each run of each algorithm 
+                                    # in one file
 
         # choose whether to record individual run stats in separate files
         eddy = False

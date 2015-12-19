@@ -12,8 +12,8 @@ import random
 
 def index(request):
     """
-    The landing page where workers enter their ID before proceeding to a question. This page isn't used when
-    experiments are run through Mechanical Turk.
+    The landing page where workers enter their ID before proceeding to a question. 
+    This page isn't used when experiments are run through Mechanical Turk.
     """
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
@@ -35,8 +35,8 @@ def index(request):
 
 def answer_question(request, IDnumber):
     """
-    Displays and processes input from a form where the user can answer a question about an
-    item-predicate pair.
+    Displays and processes input from a form where the user can answer a question 
+    about an item-predicate pair.
     """
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
@@ -48,7 +48,8 @@ def answer_question(request, IDnumber):
         # check whether it's valid:
         if form.is_valid():
 
-            # get time to complete in number of milliseconds, or use flag value if there's no elapsed_time
+            # get time to complete in number of milliseconds, or use flag value 
+            # if there's no elapsed_time
             timeToComplete = request.POST.get('elapsed_time', 42)
 
             # Convert entered answer to type compatible with NullBooleanField
@@ -77,26 +78,32 @@ def answer_question(request, IDnumber):
                     confLevel = 100
 
             # create a new Task with relevant information and store it in the database
-            task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, confidenceLevel=confLevel,
-                workerID = IDnumber, completionTime = timeToComplete, IDontKnow=idk, feedback=form.cleaned_data['feedback'])
+            task = Task(restaurantPredicate = toBeAnswered, answer = form_answer, 
+                confidenceLevel=confLevel, workerID = IDnumber, 
+                completionTime = timeToComplete, IDontKnow=idk, 
+                feedback=form.cleaned_data['feedback'])
             task.save()
 
              # get the PredicateBranch associated with this predicate
             pB = PredicateBranch.objects.filter(question=toBeAnswered.question)[0]
             updateCounts(pB, task)
 
-            # decreases status of one predicate in the restaurant by 1 because it was just answered
+            # decreases status of one predicate in the restaurant by 1 because 
+            # it was just answered
             decrementStatus(toBeAnswered.index, toBeAnswered.restaurant)
 
             statusName = "predicate" + str(toBeAnswered.index) + "Status"
             if getattr(toBeAnswered.restaurant, statusName)==0:
-                # then aggregate responses to check if the predicate has been answered enough times to have a fixed value
+                # then aggregate responses to check if the predicate has been
+                # answered enough times to have a fixed value
                 toBeAnswered.restaurant = aggregate_responses(toBeAnswered)     
 
-            # now the toBeAnswered restaurant comes out of the predicate branch and is not being evaluated anymore 
+            # now the toBeAnswered restaurant comes out of the predicate branch 
+            # and is not being evaluated anymore 
             toBeAnswered.restaurant.evaluator = None
 
-            # set the queue index to be right after the current last thing (only used in eddy 2)
+            # set the queue index to be right after the current last thing (only 
+            #   used in eddy 2)
             currentLastIndex = Restaurant.objects.order_by('-queueIndex')[0].queueIndex
             toBeAnswered.restaurant.queueIndex = currentLastIndex + 1
             
@@ -117,14 +124,16 @@ def answer_question(request, IDnumber):
             
         form = WorkerForm(label_suffix='')
 
-    return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 'predicate': toBeAnswered, 'workerID': IDnumber })
+    return render(request, 'dynamicfilterapp/answer_question.html', {'form': form, 
+        'predicate': toBeAnswered, 'workerID': IDnumber })
 
 def completed_question(request, IDnumber):
     """
-    Displays a page informing the worker that their answer was recorded, with a link to
-    answer another question.
+    Displays a page informing the worker that their answer was recorded, with a 
+    link to answer another question.
     """
-    return render(request, 'dynamicfilterapp/completed_question.html', {'workerID': IDnumber})
+    return render(request, 'dynamicfilterapp/completed_question.html', 
+        {'workerID': IDnumber})
 
 def no_questions(request, IDnumber):
     """

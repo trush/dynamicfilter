@@ -37,7 +37,8 @@ class Restaurant(models.Model):
     # set to True if one of the predicates has been evaluated to False
     hasFailed = models.BooleanField(default=False)
 
-    # the index of the PredicateBranch currently evaluating this Restaurant (None if it's not currently being evaluated)
+    # the index of the PredicateBranch currently evaluating this Restaurant 
+    # (None if it's not currently being evaluated)
     # Used to track where the Restaurant is in the eddy
     evaluator = models.IntegerField(null=True,blank=True,default=None)
 
@@ -46,11 +47,14 @@ class Restaurant(models.Model):
 
     def __unicode__(self):
         """
-        Returns a textual representation of the Restaurant. With Python 2 this must be __unicode__ instead of __str__.
+        Returns a textual representation of the Restaurant. With Python 2 this 
+        must be __unicode__ instead of __str__.
         """
+
         return str(self.name)
 
     class Meta:
+
         # prevents two Restaurants from having the same address
         unique_together = ("street", "city", "state", "zipCode", "country")
 
@@ -59,6 +63,7 @@ class RestaurantPredicate(models.Model):
     """
     Model representing an item-predicate pair. 
     """
+
     # the restaurant with which this predicate is affiliated
     restaurant = models.ForeignKey(Restaurant)
 
@@ -73,8 +78,10 @@ class RestaurantPredicate(models.Model):
 
     def __unicode__(self):
         """
-        Returns a textual representation of the RestaurantPredicate. With Python 2 this must be __unicode__ instead of __str__.
+        Returns a textual representation of the RestaurantPredicate. With Python 
+        2 this must be __unicode__ instead of __str__.
         """
+
         return str(self.restaurant) + "/" + self.question
 
 
@@ -82,6 +89,7 @@ class Task(models.Model):
     """
     Model representing one crowd worker task. (One HIT on Mechanical Turk.)
     """
+
     # the item-predicate pair that this task is answering
     restaurantPredicate = models.ForeignKey(RestaurantPredicate)
 
@@ -95,7 +103,8 @@ class Task(models.Model):
     workerID = models.IntegerField(default=0)
 
     # the time it takes for the worker to complete the question
-    # currently not being used for anything but may be incorporated into the eddy in the future
+    # currently not being used for anything but may be incorporated into the eddy 
+    # in the future
     completionTime = models.IntegerField(default=0)
 
     # set to True if the worker checks "I don't know"
@@ -106,8 +115,10 @@ class Task(models.Model):
 
     def __unicode__(self):
         """
-        Returns a textual representation of the Task. With Python 2 this must be __unicode__ instead of __str__.
+        Returns a textual representation of the Task. With Python 2 this must 
+        be __unicode__ instead of __str__.
         """
+
         return "Task from worker " + str(self.workerID)
 
 
@@ -115,6 +126,7 @@ class PredicateBranch(models.Model):
     """
     Model representing one predicate (a branch in eddy terminology).
     """
+
     # the index of this branch of the eddy 
     # corresponds to the index in the matching RestaurantPredicates
     index = models.IntegerField(default=None)
@@ -138,5 +150,7 @@ class WorkerID(models.Model):
     """
     Restricts worker ID to positive integers. Used in IDForm in forms.py.
     """
+
     # ID of the worker
     workerID = models.IntegerField(validators=[validate_positive], unique=True)
+    

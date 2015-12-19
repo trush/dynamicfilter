@@ -5,7 +5,9 @@ from django.test.utils import setup_test_environment
 from django.core.urlresolvers import reverse
 
 # What we wrote 
-from views_helpers import eddy, eddy2, optimal_eddy, aggregate_responses, decrementStatus, updateCounts, incrementStatus, findRestaurant, randomAlgorithm
+from views_helpers import eddy, eddy2, optimal_eddy, optimal_eddy_script 
+from views_helpers import aggregate_responses, decrementStatus, updateCounts
+from views_helpers import incrementStatus, findRestaurant, randomAlgorithm
 from .forms import RestaurantAdminForm
 from .models import Restaurant, RestaurantPredicate, Task, PredicateBranch
 
@@ -19,46 +21,83 @@ import os
 from itertools import izip_longest
 import matplotlib.pyplot as plt
 
-# set the modules of the imported functions so that Sphinx doesn't generate documentation for them
-# (some libraries have a default module of 'None' which Sphinx fills in as belonging to this module
-# unless it's otherwise defined)
+# set the modules of the imported functions so that Sphinx doesn't generate 
+# documentation for them (some libraries have a default module of 'None' which 
+# Sphinx fills in as belonging to this module unless it's otherwise defined)
 random.__module__ = "random"
 normal.__module__ = "random"
 
-MTURK_ENTROPY_VALUES = [0.259, 0.127, 0.198, 0.171, 0.108, 0.125, 0.191, 0.179, 0.104, 0.213]
+MTURK_ENTROPY_VALUES = [0.259, 0.127, 0.198, 0.171, 0.108, 0.125, 0.191, 0.179, 
+0.104, 0.213]
 MTURK_SELECTIVITIES = [0.95, 1.0, 0.0, 0.2, 0.95, 0.95, 0.8, 0.75, 0.05, 0.65]
 
 fastTrackRecord = False # keeping track of fast-tracked votes
 percentRecord = False # records percentage of items filtered after each task is inputted
 itemsNotEvalRecord = False # records how many items weren't evaluated by each branch
-selVSambRecord = False # keeps track of difference of estimated and actual selectivity levels with respect to ambiguity levels
+selVSambRecord = False # keeps track of difference of estimated and actual 
+                       # selectivity levels with respect to ambiguity levels
+
+# If True, number of tasks and correct percentage for each run of each algorithm 
+#   will be recorded in one file.
+# Generates one file per parameter set defined below.
+recordAggregateStats = True 
+
+# boolean switch for creating excel datasheet for optimal algorithm
+# contains entropy, estimated selectivities, cost, answer set, and rank values
+# TODO: find out how to sort spreadsheet by rank
+#       see if there is any correlation among cost, rank, ambiguity
+#       change estimated selectivities to actual selectivities
+#       write script to simulate running through optimal algorithm by going down 
+#           sorted data sheet and adding each cost
+createDataSet = True
+
+# If True, information about individual runs of the algorithm will be recorded 
+#   in separate files.
+# Will generate one file per algorithm per simulation.
+eddyInd = False
+eddy2Ind = True
+randomInd = False
+optimalEddyInd = True
+
+runEddy = False # whether or not to run eddy algorithm
+runEddy2 = True # whether or not to run eddy2 algorithm
+runRandom = False # whether or not to run random algorithm
+runOptimalEddy = True # whether or not to run optimal eddy algorithm
 
 def enterTask(ID, workerAnswer, time, confidence, predicate):
     """
     Creates and saves a new task with the specified field values.
     """
-    task = Task(workerID=ID, completionTime=time, answer=workerAnswer, confidenceLevel=confidence, restaurantPredicate=predicate)
+
+    task = Task(workerID=ID, completionTime=time, answer=workerAnswer,
+        confidenceLevel=confidence, restaurantPredicate=predicate)
     task.save()
     return task
 
 def enterRestaurant(restaurantName, zipNum):
     """
-    Makes a new restaurant with a given name and zip code, which the caller provides to ensure uniqueness.
-    Also creates three corresponding predicates and predicate branches. (No longer in use since we're doing 10 predicates.)
+    Makes a new restaurant with a given name and zip code, which the caller 
+    provides to ensure uniqueness. Also creates three corresponding predicates 
+    and predicate branches. (No longer in use since we're doing 10 predicates.
     """
-    r = Restaurant(name=restaurantName, url="www.test.com", street="Test Address", city="Berkeley", state="CA",
-        zipCode=zipNum, country="USA")
+
+    r = Restaurant(name=restaurantName, url="www.test.com", street="Test Address",
+        city="Berkeley", state="CA", zipCode=zipNum, country="USA")
     r.queueIndex = len(Restaurant.objects.all())
     r.save()
 
     # Create the three associated predicates
-    RestaurantPredicate.objects.create(index=0, restaurant=r, question="Does this restaurant accept credit cards?")
-    RestaurantPredicate.objects.create(index=1, restaurant=r, question="Is this a good restaurant for kids?      ")
-    RestaurantPredicate.objects.create(index=2, restaurant=r, question="Does this restaurant serve Choco Pies?   ")
+    RestaurantPredicate.objects.create(index=0, restaurant=r,
+        question="Does this restaurant accept credit cards?")
+    RestaurantPredicate.objects.create(index=1, restaurant=r,
+        question="Is this a good restaurant for kids?      ")
+    RestaurantPredicate.objects.create(index=2, restaurant=r,
+        question="Does this restaurant serve Choco Pies?   ")
         
     # Create the three predicate branches if they don't exist yet
     for predicate in RestaurantPredicate.objects.all():
-        PredicateBranch.objects.get_or_create(index=predicate.index, question=predicate.question)
+        PredicateBranch.objects.get_or_create(index=predicate.index,
+            question=predicate.question)
 
     return r
 
@@ -66,67 +105,283 @@ def enterPredicateBranch(question, index, returnedTotal, returnedNo):
     """
     Create and save a PredicateBranch with the specified field values.
     """
-    PredicateBranch.objects.get_or_create(question=question, index=index, returnedTotal=returnedTotal, returnedNo=returnedNo)
+
+    PredicateBranch.objects.get_or_create(question=question, index=index,
+        returnedTotal=returnedTotal, returnedNo=returnedNo)
 
 
 class SimulationTest(TestCase):
-    """
-    We run simulations of our algorithm to evaluate its performance against other algorithms. In general, we use a test database of 
-    items and predicates, and use the algorithm to "ask" questions, which are answered with simulated worker responses. These worker responses 
-    are sampled from a set of pre-gathered Mechanical Turk HITs. Parameters for the simulations are specified in the test_controller method, 
-    which are what should be called to run the simulations.
 
-    The simulations may also be run using made-up worker responses (generated using Python's random functions). Methods for such simulations
-    have been moved to simulation_generated_responses.py.
+    """
+    We run simulations of our algorithm to evaluate its performance against 
+    other algorithms. In general, we use a test database of items and predicates,
+    and use the algorithm to "ask" questions, which are answered with simulated
+    worker responses. These worker responses are sampled from a set of pre-gathered
+    Mechanical Turk HITs. Parameters for the simulations are specified in the 
+    test_controller method, which are what should be called to run the simulations.
+
+    The simulations may also be run using made-up worker responses (generated 
+    using Python's random functions). Methods for such simulations have been 
+    moved to simulation_generated_responses.py.
 
     To run simulations: 
     python manage.py test dynamicfilterapp.tests.SimulationTest.test_controller
     """
+
     def test_controller(self):
         """
-        Calls the many_simulations function once for each set of specified parameters. One simulation is one run of each algorithm. The user
-        may specify any number of simulations to be run with each set of parameters.
-        The user may edit other values in this method to change simulation parameters what information is recorded about the simulations.
+        Calls the many_simulations function once for each set of specified 
+        parameters. One simulation is one run of each algorithm. The user may 
+        specify any number of simulations to be run with each set of parameters.
+        The user may edit other values in this method to change simulation 
+        parameters what information is recorded about the simulations.
         """
-        # If True, number of tasks and correct percentage for each run of each algorithm will be recorded in one file.
-        # Generates one file per parameter set defined below.
-        recordAggregateStats = True 
-
-        # If True, information about individual runs of the algorithm will be recorded in separate files.
-        # Will generate one file per algorithm per simulation.
-        eddy = False
-        eddy2 = False
-        random = False
-        optimal_eddy = False
         
         parameterSets = []
         # selectivity 0, selectivity 1, selectivity 2, branchDifficulties dictionary
 
         # A set of parameters for one call to many_simulations
-        # The user may copy these lines to define and append more sets of parameters, which will results
-        # in more calls to many_simulations
-        set1 =[ 100, # number of simulations to be run with these parameters
+        # The user may copy these lines to define and append more sets of 
+        #   parameters, which will results in more calls to many_simulations
+        set1 =[ 1, # number of simulations to be run with these parameters
                 20, # number of restaurants
-                [0,8,9], # indices of the questions to use (between 1 and 10 questions may be specified, with indices 0 to 9)
-                recordAggregateStats,
-                eddy,
-                eddy2,
-                random, 
-                optimal_eddy,
-                ]
+                [0,2,9], # indices of the questions to use (between 1 and 10 
+                         # questions may be specified, with indices 0 to 9)
+            ]
         parameterSets.append(set1)
 
-        # call many_simulations for each parameter set
-        for parameters in parameterSets:
-            print "Parameter set: " + str(parameters)
-            self.many_simulations(parameters)
+        # 1,4,5 - three most selective
+        # 4,5,8 - least ambiguous questions
+        # 0,2,9 - most ambiguous questions
+        # 2,3,8 - least selective
+
+        if createDataSet:
+            for parameters in parameterSets:
+                print "Parameter set: " + str(parameters)
+                self.make_dataset(parameters)
+
+        if not createDataSet:
+            # call many_simulations for each parameter set
+            for parameters in parameterSets:
+                print "Parameter set: " + str(parameters)
+                self.many_simulations(parameters)
+
+    def make_dataset(self, parameters):
+
+        correctAnswersFile = "MTurk_Results/correct_answers.csv"
+        cleanedDataFilename = "MTurk_Results/Batch_2019634_batch_results_cleaned.csv"
+        predSelFile = "MTurk_Results/List_of_Predicate_Selectivities.csv"
+
+        NUM_SIMULATIONS = parameters[0]
+        NUM_RESTAURANTS = parameters[1]
+        QUESTION_INDICES = parameters[2]
+
+        # record simulation-identifying information to be put in each results file
+        label=[]
+        label.append(["Parameters:", str(parameters)])
+        now = datetime.datetime.now() # get the timestamp
+        label.append(["Time stamp:", str(now)])
+
+        data = np.genfromtxt(fname=cleanedDataFilename, 
+                                    dtype={'formats': [np.dtype('S30'), np.dtype('S15'), 
+                                                np.dtype(int), np.dtype('S50'), 
+                                                np.dtype('S100'), np.dtype(int)],
+                                            'names': ['AssignmentId', 'WorkerId', 
+                                                'WorkTimeInSeconds', 'Input.Restaurant', 
+                                                'Input.Question', 'Answer.Q1AnswerPart1']},
+                                    delimiter=',',
+                                    usecols=range(6),
+                                    skip_header=1)
+
+        # read in correct answer data
+        answers = np.genfromtxt(fname=correctAnswersFile, 
+                                    dtype={'formats': [np.dtype('S30'), np.dtype(bool), 
+                                                np.dtype(bool), np.dtype(bool), 
+                                                np.dtype(bool), np.dtype(bool),
+                                                np.dtype(bool), np.dtype(bool), 
+                                                np.dtype(bool), np.dtype(bool), 
+                                                np.dtype(bool),],
+                                            'names': ['Restaurant', 'a0', 'a1', 
+                                                'a2', 'a3', 'a4', 'a5', 'a6', 'a7',
+                                                'a8', 'a9']},
+                                    delimiter=',',
+                                    usecols=range(11),
+                                    skip_header=1)
+
+        # get a list of the unique questions by pulling out the headers of the 
+        # correct answers file
+        uniqueQuestions = np.genfromtxt(fname=correctAnswersFile, 
+                                    dtype={'formats': [np.dtype('S100'),
+                                                np.dtype('S100'),np.dtype('S100'), 
+                                                np.dtype('S100'), np.dtype('S100'),
+                                                np.dtype('S100'),np.dtype('S100'),
+                                                np.dtype('S100'),np.dtype('S100'),
+                                                np.dtype('S100'),],
+                                            'names': ['a0', 'a1', 'a2', 'a3',
+                                                      'a4', 'a5', 'a6', 'a7',
+                                                      'a8', 'a9']},
+                                    delimiter=',',
+                                    usecols=range(1,11),
+                                    skip_footer=21)
+        uniqueQuestionsList = list(uniqueQuestions.tolist())
+       
+        # reads in true predicate selectivities
+        with open("MTurk_Results/List_of_Predicate_Selectivities.csv", "rU") as f:
+            sel = [row for row in csv.reader(f)]
+            # print sel
+
+        selectivities = []
+        for i in range(len(sel)):
+            if i != 0:
+                selectivities.append(float(sel[i][0]))
+
+        # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
+
+        # Our simulations use the same 20 Restaurants
+        restaurantNames = ["Rivoli", "Zachary's Chicago Pizza", "Gather", 
+                            "Angeline's Louisiana Kitchen", "Comal", 
+                            "La Note Restaurant Provencal", "Ajanta",
+                            "Vik's Chaat and Market", "Chez Panisse",
+                            "Cheese Board Pizza", "FIVE", "Oliveto Restaurant",
+                            "Bette's Oceanview Diner", "Platano", "Brazil Cafe",
+                            "Gregoire", "Toss Noodle Bar", "Eureka!", "Great China",
+                            "Urbann Turbann"]
+
+        for i in range(NUM_RESTAURANTS):
+            r = Restaurant(name=restaurantNames[i], url="www.test.com",
+                street="Test Address", city="Berkeley", state="CA",
+            zipCode=i, country="USA")
+            r.queueIndex = len(Restaurant.objects.all())
+            r.save()
+
+        numOfPredicates = len(QUESTION_INDICES)
+
+        # create predicate branches using the specified questions
+        pbIndex = 0
+        for index in QUESTION_INDICES:
+            q = uniqueQuestionsList[index]
+            enterPredicateBranch(q, pbIndex, 1.0, 1.0)
+            pbIndex += 1
+
+        # get a list of the indices of questions we aren't using
+        unselectedQuestions = [x for x in range(10) if x not in QUESTION_INDICES]
+
+        # update the unselected PredicateBranches so they follow the selected oness
+        for i in unselectedQuestions:
+            q = uniqueQuestionsList[index]
+            enterPredicateBranch(q, pbIndex, 1.0, 1.0)
+            pbIndex += 1
+
+        for p in PredicateBranch.objects.filter(index__lt=numOfPredicates):
+            # make a corresponding predicate for each restaurant
+            for r in Restaurant.objects.all():
+                p = RestaurantPredicate(restaurant=r, index=p.index,
+                    question=p.question)
+                p.save()
+
+        # get a dictionary of known correct answers where the key is (restaurant,
+        #   question) and the value is a boolean
+        predicateAnswers = self.get_correct_answers(correctAnswersFile,
+            uniqueQuestionsList)
+
+        # gets a dictionary of the answers from the sample data, where the key 
+        #   is a predicate and the value is a list of answers
+        sampleDataDict = self.get_sample_answer_dict(cleanedDataFilename)
+
+        # makes dictionary of correct answers
+        correctAnswers = {}
+        likelyAnswers = {}
+        for restRow in answers:
+            r = list(restRow)
+
+            for i in range(10):
+                key = (r[0], uniqueQuestionsList[i])
+                value = r[i+1]
+                correctAnswers[key] = value
+
+        # finds probability of answering True when answer is False
+        predicateError = {}
+        adjustedError = {}
+        restQuestionAnswer = [(value3, value4,value5) for (value0, value1, 
+            value2, value3, value4, value5) in data]
+
+        for (rest, question, answer) in restQuestionAnswer:
+            predicateError[(rest, question)] = [0,1]
+
+        for (rest, question, ans) in restQuestionAnswer:
+            correctAnswer = correctAnswers[(rest,question)]
+            
+            answer = False
+
+            # ans is the confidence level of the answer because answer is 
+            #   represented at 0,+-60,80,100
+            if ans > 0:
+                answer = True
+
+            if answer != correctAnswer:
+                predicateError[(rest,question)][0] += 1
+
+            predicateError[(rest,question)][1] += 1
+
+        for key in predicateError:
+            predicateError[key] = float(predicateError[key][0])/predicateError[key][1]
+            
+            if predicateError[key] < 0.5:
+                likelyAnswers[key] = correctAnswers[key]
+            else:
+                likelyAnswers[key] = not correctAnswers[key]
+        
+        for key in predicateError:
+            if predicateError[key] > 0.5:
+                adjustedError[key] = 1 - predicateError[key]
+            else:
+                adjustedError[key] = predicateError[key]
+
+        # Use the established items, questions, selectivities, difficulties, etc 
+        # to run as many simulations as specified
+        # Each algorithm (eddy, eddy2, and random) is run NUM_SIMULATIONS times
+
+        for k in range(NUM_SIMULATIONS):
+
+            toBeAdded = []
+
+            print "Optimal Eddy Script " + str(k)
+            results_optimal_eddy = self.finish_dataset(optimal_eddy_script, 
+                parameters, predicateAnswers, sampleDataDict, predicateError, 
+                selectivities, correctAnswers)
+            
+            self.reset_simulation()
+
+        self.clear_database()
 
 
-    def run_simulation(self, algorithm, parameters, predicateAnswers, dictionary, predicateError, selectivities, correctAnswers):
+    def finish_dataset(self, algorithm, parameters, predicateAnswers, dictionary,
+        predicateError, selectivities, correctAnswers):
+
+        # get the simulation parameters from the parameters list
+        QUESTION_INDICES = parameters[2]
+        numOfPredicates = len(QUESTION_INDICES)
+
+        # the header for the outputted csv file
+        results = [["Restaurant", "Predicate Selectivity", "Cost", "Answer T/F", "Rank"]]
+
+        # We sample with replacement from a small set of answers, so we don't 
+        # bother for simulating workers doing multiple tasks
+        # Rather, for the sake of simplicity, each Task is done by a worker with 
+        # a new ID start keeping track of worker IDs at 100
+        IDcounter = 100
+
+        predicate = algorithm(IDcounter, len(QUESTION_INDICES), predicateError, 
+            MTURK_SELECTIVITIES, correctAnswers)
+
+
+    def run_simulation(self, algorithm, parameters, predicateAnswers, dictionary,
+        predicateError, selectivities, correctAnswers):
+
         """
         Runs one simulation of the filtering process with one specified algorithm.
         """
-
+        
         # get the simulation parameters from the parameters list
         QUESTION_INDICES = parameters[2]
         numOfPredicates = len(QUESTION_INDICES)
@@ -137,21 +392,31 @@ class SimulationTest(TestCase):
         STANDARD_DEV = 20000 # 20 seconds
 
         # the header for the outputted csv file
-        results = [["taskCount", "Selectivity0", "Selectivity1", "Selectivity2", "Selectivity3", "Selectivity4", "Selectivity5", 
-                    "Selectivity6", "Selectivity7", "Selectivity8", "Selectivity9", "Predicate Evaluated", "Answer", "tasksPerRestaurant",
-                    "Task & Answer Distribution", "------", "------", "------", "------",
-                    "Evaluated Answers", "------", "------", "------", "------", "------", "------", "------", "------", "------",
-                    "Correct Answers", "------", "------", "------",  "------",  "------",  "------",  "------",  "------",  "------"]]
+        results = [["taskCount", "Selectivity0", "Selectivity1", "Selectivity2", 
+                    "Selectivity3", "Selectivity4", "Selectivity5", "Selectivity6",
+                    "Selectivity7", "Selectivity8", "Selectivity9", "Predicate Evaluated", 
+                    "Answer", "tasksPerRestaurant", "Task & Answer Distribution", 
+                    "------", "------", "------", "------", "Evaluated Answers", 
+                    "------", "------", "------", "------", "------", "------", 
+                    "------", "------", "------", "Correct Answers", "------", 
+                    "------", "------",  "------",  "------",  "------",  "------",  
+                    "------",  "------"]]
 
-        # Initialize all the lists where data will be recorded, which will be written into a results file
+        # so far, set up for only 3 predicates
+        results2 = [["Tasks Number", "Predicate Index Selected by Eddy2", 
+                    "Estimated Selectivity 0", "Estimated Selectivity 1",
+                    "Estimated Selectivity 2", "Predicate Index Selected by Optimal Eddy", 
+                    "Actual Selectivity 0", "Actual Selectivity 1", "Actual Selectivity 2"]]
 
         # how many Tasks are required to decide if each Restaurant passes the filter
         tasksPerRestaurant = []
         
-        # a list of lists, where the selectivity of each PredicateBranch is recorded after every Task is entered
+        # a list of lists, where the selectivity of each PredicateBranch is 
+        # recorded after every Task is entered
         selectivities = [[] for i in range(10)]
 
-        # keeps an index for each Task completed -- mainly useful for printing in results file next to other data
+        # keeps an index for each Task completed -- mainly useful for printing 
+        # in results file next to other data
         taskCount = []
 
         # an ordered list of all the answers given in Tasks
@@ -163,9 +428,10 @@ class SimulationTest(TestCase):
         # what percent of items are done being evaluated, recorded after every task
         percentDone = []
 
-        # We sample with replacement from a small set of answers, so we don't bother for simulating workers doing multiple tasks
-        # Rather, for the sake of simplicity, each Task is done by a worker with a new ID
-        # start keeping track of worker IDs at 100
+        # We sample with replacement from a small set of answers, so we don't 
+        # bother for simulating workers doing multiple tasks
+        # Rather, for the sake of simplicity, each Task is done by a worker with 
+        # a new ID start keeping track of worker IDs at 100
         IDcounter = 100
 
         # choose one predicate to start
@@ -174,15 +440,17 @@ class SimulationTest(TestCase):
             predicate = predicateAndFastTrackCount[0]
             fast_track = predicateAndFastTrackCount[1]
         elif algorithm == optimal_eddy: 
-            predicate = algorithm(IDcounter, len(QUESTION_INDICES), predicateError, selectivities, correctAnswers)
+            predicate = algorithm(IDcounter, len(QUESTION_INDICES), predicateError, MTURK_SELECTIVITIES, correctAnswers)
         else:
             predicate = algorithm(IDcounter, len(QUESTION_INDICES))
         
         taskIndex = 0
         count = 0
+
         # Run this loop until there are no more predicates needing evaluation
         while (predicate != None):
-            # get the current set of PredicateBranches (accessed here to make sure we have the up-to-date versions of the PBs)
+            # get the current set of PredicateBranches (accessed here to make 
+            #    sure we have the up-to-date versions of the PBs)
             currentBranches = PredicateBranch.objects.all().order_by("index")
 
             # add the current selectivity statistics to the results file
@@ -252,14 +520,14 @@ class SimulationTest(TestCase):
                 predicate = predicateAndFastTrackCount[0]
                 fast_track = predicateAndFastTrackCount[1]
             elif algorithm == optimal_eddy:
-                predicate = algorithm(IDcounter, len(QUESTION_INDICES), predicateError, selectivities, correctAnswers)
+                predicate = algorithm(IDcounter, len(QUESTION_INDICES), 
+                    predicateError, MTURK_SELECTIVITIES, correctAnswers)
             else:
                 predicate = algorithm(IDcounter, len(QUESTION_INDICES))
 
         # extract data for results file
         branches = PredicateBranch.objects.all().order_by("index")
 
-        # print selectivities
         for restaurant in Restaurant.objects.all():
             tasksPerRestaurant.append(len(Task.objects.filter(restaurantPredicate__restaurant=restaurant)))
         
@@ -298,32 +566,41 @@ class SimulationTest(TestCase):
                     predicateCorrectAnswers[i].append(predicateAnswers[(p.restaurant.name,p.question)])
 
         # zip lists so that they are written as columns, not rows
-        for row in map(None, taskCount, selectivities[0], selectivities[1], selectivities[2], selectivities[3], selectivities[4], 
-        selectivities[5], selectivities[6], selectivities[7], selectivities[8], selectivities[9], branchHistory, taskAnswers, 
-        tasksPerRestaurant, predicateList, tasks, returnedNo, returnedTotal, rests, answers[0], answers[1], answers[2], answers[3], 
-        answers[4], answers[5], answers[6], answers[7], answers[8], answers[9], predicateCorrectAnswers[0], 
-        predicateCorrectAnswers[1], predicateCorrectAnswers[2], predicateCorrectAnswers[3], predicateCorrectAnswers[4], 
-        predicateCorrectAnswers[5], predicateCorrectAnswers[6], predicateCorrectAnswers[7], predicateCorrectAnswers[8], 
-        predicateCorrectAnswers[9]):
+        for row in map(None, taskCount, selectivities[0], selectivities[1], 
+            selectivities[2], selectivities[3], selectivities[4], selectivities[5], 
+            selectivities[6], selectivities[7], selectivities[8], selectivities[9], 
+            branchHistory, taskAnswers, tasksPerRestaurant, predicateList, tasks, 
+            returnedNo, returnedTotal, rests, answers[0], answers[1], answers[2], 
+            answers[3], answers[4], answers[5], answers[6], answers[7], answers[8], 
+            answers[9], predicateCorrectAnswers[0], predicateCorrectAnswers[1], 
+            predicateCorrectAnswers[2], predicateCorrectAnswers[3], predicateCorrectAnswers[4], 
+            predicateCorrectAnswers[5], predicateCorrectAnswers[6], predicateCorrectAnswers[7], 
+            predicateCorrectAnswers[8], predicateCorrectAnswers[9]):
+
             results.append(row)
 
         branchQuestions = []
-        if itemsNotEvalRecord: # toggle for whether or not you want to keep track of how many items have not been evaluated by that branch
+        if itemsNotEvalRecord: # toggle for whether or not you want to keep track 
+                               # of how many items have not been evaluated by that branch
+            
             itemsNotEval = {}
+
             # initializes dictionary of items not evaluated at 0
             for i in range(len(parameters[2])):
                 branch = PredicateBranch.objects.all()[i]
                 branchQuestions.append(branch.question)
                 itemsNotEval[branch] = 0
 
-            # increments value of key in dictionary based on number of items not evaluated for each Predicate Branch
+            # increments value of key in dictionary based on number of items not 
+            # evaluated for each Predicate Branch
             filteredPreds = RestaurantPredicate.objects.filter(question__in=branchQuestions)
             for pred in filteredPreds:
                 if pred.value == None:
                     branch = PredicateBranch.objects.filter(question=pred.question)[0]
                     itemsNotEval[branch] += 1
             
-            # appends values of predicate branch, question, estimated selectivities, and items not evaluated 
+            # appends values of predicate branch, question, estimated selectivities, 
+            # and items not evaluated 
             moreResults = []
             for i in range(len(branchQuestions)):
                 branch = PredicateBranch.objects.filter(question=branchQuestions[i])[0]
@@ -331,7 +608,8 @@ class SimulationTest(TestCase):
                 moreResults.append(array)
             moreResults.append([])
 
-        # kept track of values of entropy, actual selectivities, estimated selectivities, difference in two selectivities
+        # kept track of values of entropy, actual selectivities, estimated selectivities, 
+        # difference in two selectivities
         if selVSambRecord:
             selVsAmb = []
             for i in range(len(parameters[2])):
@@ -344,11 +622,8 @@ class SimulationTest(TestCase):
                 selVsAmb.append(array)
             selVsAmb.append([])
 
-        # append a column of percent done data to the existing file
-        # TODO see if this method is more elegant for the other data
-
         # depending on algorithm, write to files with certain name
-        if algorithm==eddy:
+        if algorithm==eddy and runEddy:
             print "adding to csv"
 
             if percentRecord: 
@@ -369,7 +644,7 @@ class SimulationTest(TestCase):
                 [writer3.writerow(r) for r in selVsAmb]
                 fd3.flush()
 
-        if algorithm==randomAlgorithm:
+        if algorithm==randomAlgorithm and runRandom:
             print "adding to csv"
             if percentRecord: 
                 fd2 = open('MTurk_Results/percentdone_random.csv','a')
@@ -389,7 +664,7 @@ class SimulationTest(TestCase):
                 [writer3.writerow(r) for r in selVsAmb]
                 fd3.flush()
 
-        if algorithm==eddy2:
+        if algorithm==eddy2 and runEddy2:
             print "adding to csv"
 
             if percentRecord: 
@@ -419,7 +694,7 @@ class SimulationTest(TestCase):
                 [writer4.writerow(r) for r in selVsAmb]
                 fd4.flush()
 
-        if algorithm==optimal_eddy:
+        if algorithm==optimal_eddy and runOptimalEddy:
             print "adding to csv"
 
             if percentRecord: 
@@ -444,23 +719,26 @@ class SimulationTest(TestCase):
 
     def get_correct_answers(self, filename, uniqueQuestionsList):
         """
-        Read in the correct answers to 10 questions about 20 Restaurants from a csv file and store them in a dictionary
-        where the key is a tuple (Restaurant, question) and the value is a boolean.
+        Read in the correct answers to 10 questions about 20 Restaurants from a 
+        csv file and store them in a dictionary where the key is a tuple 
+        (Restaurant, question) and the value is a boolean.
         """
         # read in correct answer data
         answers = np.genfromtxt(fname=filename, 
-                                dtype={'formats': [np.dtype('S30'), np.dtype(bool), np.dtype(bool),
-                                                   np.dtype(bool), np.dtype(bool), np.dtype(bool),
-                                                   np.dtype(bool), np.dtype(bool), np.dtype(bool),
-                                                   np.dtype(bool), np.dtype(bool),],
-                                        'names': ['Restaurant', 'a0', 'a1', 'a2', 'a3',
-                                                  'a4', 'a5', 'a6', 'a7',
-                                                  'a8', 'a9']},
+                                dtype={'formats': [np.dtype('S30'), np.dtype(bool), 
+                                            np.dtype(bool), np.dtype(bool), 
+                                            np.dtype(bool), np.dtype(bool), 
+                                            np.dtype(bool), np.dtype(bool), 
+                                            np.dtype(bool), np.dtype(bool),
+                                            np.dtype(bool),],
+                                        'names': ['Restaurant', 'a0', 'a1', 'a2', 
+                                            'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9']},
                                 delimiter=',',
                                 usecols=range(11),
                                 skip_header=1)
 
-        # create a dictionary of (restaurant, question) keys and boolean correct answer values
+        # create a dictionary of (restaurant, question) keys and boolean correct 
+        # answer values
         correctAnswers = {}
 
         # fill in the dictionary with values read in
@@ -476,23 +754,30 @@ class SimulationTest(TestCase):
 
     def get_sample_answer_dict(self, filename):
         """
-        Reads in a file of pre-gathered Mechanical Turk HITs and makes a dictionary where the key is a RestaurantPredicate and
-        the value is a list of all the HITs for that RestaurantPredicate. This list is the set that our simulations can sample 
-        answers from. At present, the csv file downloaded from Mechanical Turk must be copied and then edited to only include 
-        the six columns of data that we use here.
+        Reads in a file of pre-gathered Mechanical Turk HITs and makes a 
+        dictionary where the key is a RestaurantPredicate and the value is a 
+        list of all the HITs for that RestaurantPredicate. This list is the set 
+        that our simulations can sample answers from. At present, the csv file 
+        downloaded from Mechanical Turk must be copied and then edited to only 
+        include the six columns of data that we use here.
         """
+
         # read in worker data from cleaned file
         data = np.genfromtxt(fname=filename, 
-                            dtype={'formats': [np.dtype('S30'), np.dtype('S15'), np.dtype(int),
-                                               np.dtype('S50'), np.dtype('S100'), np.dtype(int)],
-                                    'names': ['AssignmentId', 'WorkerId', 'WorkTimeInSeconds',
-                                              'Input.Restaurant', 'Input.Question', 'Answer.Q1AnswerPart1']},
+                            dtype={'formats': [np.dtype('S30'), np.dtype('S15'), 
+                                        np.dtype(int), np.dtype('S50'), np.dtype('S100'), 
+                                        np.dtype(int)],
+                                    'names': ['AssignmentId', 'WorkerId', 
+                                        'WorkTimeInSeconds', 'Input.Restaurant', 
+                                        'Input.Question', 'Answer.Q1AnswerPart1']},
                             delimiter=',',
                             usecols=range(6),
                             skip_header=1)
 
-        # Get a list of all the tasks in the file, represented as tuples of (resturant, question, answer)
-        tasks = [(restaurant, question, answer) for (assignmentId, workerId, workTimeInSeconds, restaurant, question, answer) in data]
+        # Get a list of all the tasks in the file, represented as tuples of 
+        # (resturant, question, answer)
+        tasks = [(restaurant, question, answer) for (assignmentId, workerId, 
+            workTimeInSeconds, restaurant, question, answer) in data]
         
         # create the dictionary and populate it with empty lists
         sampleData = {}
@@ -501,24 +786,30 @@ class SimulationTest(TestCase):
 
         # Add every task's answer into the appropriate list in the dictionary
         for (restaurant, question, answer) in tasks:
+
             # answer==0 means worker answered "I don't know"
             if answer != 0:
-                # get the RestaurantPredicates matching this task (will be a QuerySet of length 1 or 0)
+
+                # get the RestaurantPredicates matching this task (will be a 
+                #    QuerySet of length 1 or 0)
                 predKey = RestaurantPredicate.objects.filter(question=question).filter(restaurant__name=restaurant)
-                # Some tasks won't have matching RestaurantPredicates, since we may not be using all the possible predicates
+                
+                # Some tasks won't have matching RestaurantPredicates, since we 
+                # may not be using all the possible predicates
                 if len(predKey) > 0:
                     sampleData[predKey[0]].append(answer)
 
         return sampleData
 
-
-
     def many_simulations(self, parameters):
         """
-        A manager function that calls run_simulation a certain number of times with various algorithms.
+        A manager function that calls run_simulation a certain number of times 
+        with various algorithms.
         """
+
         # files to read in correct answers and pre-gathered HITs
-        # TODO consider an alternate strategy so file names aren't hard-coded here (maybe put them in the controller)
+        # TODO: consider an alternate strategy so file names aren't hard-coded 
+        #       here (maybe put them in the controller)
         correctAnswersFile = "MTurk_Results/correct_answers.csv"
         cleanedDataFilename = "MTurk_Results/Batch_2019634_batch_results_cleaned.csv"
         predSelFile = "MTurk_Results/List_of_Predicate_Selectivities.csv"
@@ -534,32 +825,39 @@ class SimulationTest(TestCase):
         label.append(["Time stamp:", str(now)])
 
         data = np.genfromtxt(fname=cleanedDataFilename, 
-                                    dtype={'formats': [np.dtype('S30'), np.dtype('S15'), np.dtype(int),
-                                                       np.dtype('S50'), np.dtype('S100'), np.dtype(int)],
-                                            'names': ['AssignmentId', 'WorkerId', 'WorkTimeInSeconds',
-                                                      'Input.Restaurant', 'Input.Question', 'Answer.Q1AnswerPart1']},
+                                    dtype={'formats': [np.dtype('S30'), np.dtype('S15'), 
+                                                np.dtype(int), np.dtype('S50'), 
+                                                np.dtype('S100'), np.dtype(int)],
+                                            'names': ['AssignmentId', 'WorkerId', 
+                                                'WorkTimeInSeconds', 'Input.Restaurant', 
+                                                'Input.Question', 'Answer.Q1AnswerPart1']},
                                     delimiter=',',
                                     usecols=range(6),
                                     skip_header=1)
 
         # read in correct answer data
         answers = np.genfromtxt(fname=correctAnswersFile, 
-                                    dtype={'formats': [np.dtype('S30'), np.dtype(bool), np.dtype(bool),
-                                                       np.dtype(bool), np.dtype(bool), np.dtype(bool),
-                                                       np.dtype(bool), np.dtype(bool), np.dtype(bool),
-                                                       np.dtype(bool), np.dtype(bool),],
-                                            'names': ['Restaurant', 'a0', 'a1', 'a2', 'a3',
-                                                      'a4', 'a5', 'a6', 'a7',
-                                                      'a8', 'a9']},
+                                    dtype={'formats': [np.dtype('S30'), np.dtype(bool), 
+                                                np.dtype(bool), np.dtype(bool), 
+                                                np.dtype(bool), np.dtype(bool),
+                                                np.dtype(bool), np.dtype(bool), 
+                                                np.dtype(bool), np.dtype(bool), 
+                                                np.dtype(bool),],
+                                            'names': ['Restaurant', 'a0', 'a1', 
+                                                'a2', 'a3','a4', 'a5', 'a6', 'a7',
+                                                'a8', 'a9']},
                                     delimiter=',',
                                     usecols=range(11),
                                     skip_header=1)
 
-        # get a list of the unique questions by pulling out the headers of the correct answers file
+        # get a list of the unique questions by pulling out the headers of the 
+        # correct answers file
         uniqueQuestions = np.genfromtxt(fname=correctAnswersFile, 
-                                    dtype={'formats': [np.dtype('S100'),np.dtype('S100'),np.dtype('S100'),
-                                    np.dtype('S100'),np.dtype('S100'),np.dtype('S100'),np.dtype('S100'),
-                                    np.dtype('S100'),np.dtype('S100'),np.dtype('S100'),],
+                                    dtype={'formats': [np.dtype('S100'),np.dtype('S100'),
+                                                np.dtype('S100'), np.dtype('S100'),
+                                                np.dtype('S100'),np.dtype('S100'),
+                                                np.dtype('S100'), np.dtype('S100'),
+                                                np.dtype('S100'),np.dtype('S100'),],
                                             'names': ['a0', 'a1', 'a2', 'a3',
                                                       'a4', 'a5', 'a6', 'a7',
                                                       'a8', 'a9']},
@@ -577,19 +875,23 @@ class SimulationTest(TestCase):
         for i in range(len(sel)):
             if i != 0:
                 selectivities.append(float(sel[i][0]))
-        # print selectivities
 
         # Create restaurants with corresponding RestaurantPredicates and PredicateBranches
 
         # Our simulations use the same 20 Restaurants
-        restaurantNames = ["Rivoli", "Zachary's Chicago Pizza", "Gather", "Angeline's Louisiana Kitchen", "Comal",
-                            "La Note Restaurant Provencal", "Ajanta", "Vik's Chaat and Market", "Chez Panisse", "Cheese Board Pizza",
-                            "FIVE", "Oliveto Restaurant", "Bette's Oceanview Diner", "Platano", "Brazil Cafe",
-                            "Gregoire", "Toss Noodle Bar", "Eureka!", "Great China", "Urbann Turbann"]
+        restaurantNames = ["Rivoli", "Zachary's Chicago Pizza", "Gather", 
+                            "Angeline's Louisiana Kitchen", "Comal",
+                            "La Note Restaurant Provencal", "Ajanta", 
+                            "Vik's Chaat and Market", "Chez Panisse", 
+                            "Cheese Board Pizza", "FIVE", "Oliveto Restaurant", 
+                            "Bette's Oceanview Diner", "Platano", "Brazil Cafe",
+                            "Gregoire", "Toss Noodle Bar", "Eureka!", "Great China", 
+                            "Urbann Turbann"]
 
         for i in range(NUM_RESTAURANTS):
-            r = Restaurant(name=restaurantNames[i], url="www.test.com", street="Test Address", city="Berkeley", state="CA",
-            zipCode=i, country="USA")
+            r = Restaurant(name=restaurantNames[i], url="www.test.com", 
+                street="Test Address", city="Berkeley", state="CA", zipCode=i, 
+                country="USA")
             r.queueIndex = len(Restaurant.objects.all())
             r.save()
 
@@ -605,7 +907,7 @@ class SimulationTest(TestCase):
         # get a list of the indices of questions we aren't using
         unselectedQuestions = [x for x in range(10) if x not in QUESTION_INDICES]
 
-        # update the unselected PredicateBranches so they follow the selected oness
+        # update the unselected PredicateBranches so they follow the selected ones
         for i in unselectedQuestions:
             q = uniqueQuestionsList[index]
             enterPredicateBranch(q, pbIndex, 1.0, 1.0)
@@ -617,99 +919,132 @@ class SimulationTest(TestCase):
                 p = RestaurantPredicate(restaurant=r, index=p.index, question=p.question)
                 p.save()
 
-        # get the boolean values controlling which data are recorded in files
-        recordAggregateStats = parameters[3]
-        recordEddyStats = parameters[4]
-        recordEddy2Stats = parameters[5]
-        recordRandomStats = parameters[6]
-        recordOptimalStats = parameters[7]
-
-        # get a dictionary of known correct answers where the key is (restaurant, question) and the value is a boolean
+        # get a dictionary of known correct answers where the key is (restaurant, 
+        #    question) and the value is a boolean
         predicateAnswers = self.get_correct_answers(correctAnswersFile, uniqueQuestionsList)
 
-        # gets a dictionary of the answers from the sample data, where the key is a predicate and the value is a list of answers
+        # gets a dictionary of the answers from the sample data, where the key 
+        # is a predicate and the value is a list of answers
         sampleDataDict = self.get_sample_answer_dict(cleanedDataFilename)
         
+        toBeAdded = []
+        if runEddy:
+            toBeAdded.append("eddy num tasks")
+            toBeAdded.append("eddy correct percentages")
+
+        if runEddy2:
+            toBeAdded.append("eddy2 num tasks")
+            toBeAdded.append("eddy2 correct percentages")
+
+        if runRandom:
+            toBeAdded.append("random num tasks")
+            toBeAdded.append("random correct percentages")
+
+        if runOptimalEddy:
+            toBeAdded.append("optimal eddy num tasks")
+            toBeAdded.append("optimal eddy correct percentages")
+
         # make the header for the aggregate results csv
-        aggregateResults = [label, ["eddy num tasks", "eddy correct percentage", "eddy 2 num tasks", "eddy2 correct percentage", 
-                           "random num tasks", "random correct percentage", "optimal eddy num tasks", "optimal eddy correct percentage"]]
+        aggregateResults = [label, toBeAdded]
 
         if percentRecord:
             # start the file where we'll record the percent done data for eddy
-            with open('MTurk_Results/percentdone_eddy.csv', 'w') as csvfile:
-                writer = csv.writer(csvfile)
-                [writer.writerow(r) for r in ["percentDone"]]
+            if runEddy:
+                with open('MTurk_Results/percentdone_eddy.csv', 'w') as csvfile:
+                    writer = csv.writer(csvfile)
+                    [writer.writerow(r) for r in ["percentDone"]]
 
-            # start the file where we'll record the percent done data for eddy2
-            with open('MTurk_Results/percentdone_eddy2.csv', 'w') as csvfile:
-                writer2 = csv.writer(csvfile)
-                [writer2.writerow(r) for r in ["percentDone"]]
+            if runEddy2:
+                # start the file where we'll record the percent done data for eddy2
+                with open('MTurk_Results/percentdone_eddy2.csv', 'w') as csvfile:
+                    writer2 = csv.writer(csvfile)
+                    [writer2.writerow(r) for r in ["percentDone"]]
 
-            # start the file where we'll record the percent done data for random
-            with open('MTurk_Results/percentdone_random.csv', 'w') as csvfile:
-                writer3 = csv.writer(csvfile)
-                [writer3.writerow(r) for r in ["percentDone"]]
+            if runRandom:
+                # start the file where we'll record the percent done data for random
+                with open('MTurk_Results/percentdone_random.csv', 'w') as csvfile:
+                    writer3 = csv.writer(csvfile)
+                    [writer3.writerow(r) for r in ["percentDone"]]
 
-            # start the file where we'll record the percent done data for optimal_eddy
-            with open('MTurk_Results/percentdone_optimal.csv', 'w') as csvfile:
-                writer3 = csv.writer(csvfile)
-                [writer3.writerow(r) for r in ["percentDone"]]
+            if runOptimalEddy:
+                # start the file where we'll record the percent done data for optimal_eddy
+                with open('MTurk_Results/percentdone_optimal.csv', 'w') as csvfile:
+                    writer3 = csv.writer(csvfile)
+                    [writer3.writerow(r) for r in ["percentDone"]]
 
         # depending on algorithm, write to files with certain name
         if itemsNotEvalRecord:
 
-            fd = open('test_results/eddy_notEval.csv','w')
-            writer = csv.writer(fd)
-            writer.writerow(["Index", "Question", "Selectivity", "Number of Items Not Evaluated"])
-            writer.writerow([])
-            fd.flush()
+            if runEddy:
+                fd = open('test_results/eddy_notEval.csv','w')
+                writer = csv.writer(fd)
+                writer.writerow(["Index", "Question", "Selectivity", 
+                    "Number of Items Not Evaluated"])
+                writer.writerow([])
+                fd.flush()
 
-            fd3 = open('test_results/eddy2_notEval.csv','w')
-            writer3 = csv.writer(fd3)
-            writer3.writerow(["Index", "Question", "Selectivity", "Number of Items Not Evaluated"])
-            writer3.writerow([])
-            fd3.flush()
+            if runEddy2:
+                fd3 = open('test_results/eddy2_notEval.csv','w')
+                writer3 = csv.writer(fd3)
+                writer3.writerow(["Index", "Question", "Selectivity", 
+                    "Number of Items Not Evaluated"])
+                writer3.writerow([])
+                fd3.flush()
 
-            fd2 = open('test_results/random_notEval.csv','w')
-            writer2 = csv.writer(fd2)
-            writer2.writerow(["Index", "Question", "Selectivity", "Number of Items Not Evaluated"])
-            writer2.writerow([])
-            fd2.flush()
+            if runRandom:
+                fd2 = open('test_results/random_notEval.csv','w')
+                writer2 = csv.writer(fd2)
+                writer2.writerow(["Index", "Question", "Selectivity", 
+                    "Number of Items Not Evaluated"])
+                writer2.writerow([])
+                fd2.flush()
 
-            fd4 = open('test_results/optimal_notEval.csv','w')
-            writer4 = csv.writer(fd4)
-            writer4.writerow(["Index", "Question", "Selectivity", "Number of Items Not Evaluated"])
-            writer4.writerow([])
-            fd3.flush()
+            if runOptimalEddy:
+                fd4 = open('test_results/optimal_notEval.csv','w')
+                writer4 = csv.writer(fd4)
+                writer4.writerow(["Index", "Question", "Selectivity", 
+                    "Number of Items Not Evaluated"])
+                writer4.writerow([])
+                fd3.flush()
 
         if selVSambRecord: 
 
-            fd4 = open('test_results/eddy_selVSamb.csv', 'w')
-            writer4 = csv.writer(fd4)
-            writer4.writerow(["Entropy Value", "Actual Selectivity", "Estimated Selectivity", "Difference"])
-            writer4.writerow([])
-            fd4.flush()
+            if runEddy:
+                fd4 = open('test_results/eddy_selVSamb.csv', 'w')
+                writer4 = csv.writer(fd4)
+                writer4.writerow(["Entropy Value", "Actual Selectivity", 
+                    "Estimated Selectivity", "Difference"])
+                writer4.writerow([])
+                fd4.flush()
 
-            fd5 = open('test_results/eddy2_selVSamb.csv', 'w')
-            writer5 = csv.writer(fd5)
-            writer5.writerow(["Entropy Value", "Actual Selectivity", "Estimated Selectivity", "Difference"])
-            writer5.writerow([])
-            fd5.flush()
+            if runEddy2:
+                fd5 = open('test_results/eddy2_selVSamb.csv', 'w')
+                writer5 = csv.writer(fd5)
+                writer5.writerow(["Entropy Value", "Actual Selectivity", 
+                    "Estimated Selectivity", "Difference"])
+                writer5.writerow([])
+                fd5.flush()
 
-            fd6 = open('test_results/random_selVSamb.csv', 'w')
-            writer6 = csv.writer(fd6)
-            writer6.writerow(["Entropy Value", "Actual Selectivity", "Estimated Selectivity", "Difference"])
-            writer6.writerow([])
-            fd6.flush()
+            if runRandom:
+                fd6 = open('test_results/random_selVSamb.csv', 'w')
+                writer6 = csv.writer(fd6)
+                writer6.writerow(["Entropy Value", "Actual Selectivity", 
+                    "Estimated Selectivity", "Difference"])
+                writer6.writerow([])
+                fd6.flush()
 
-            fd7 = open('test_results/optimal_selVSamb.csv', 'w')
-            writer7 = csv.writer(fd7)
-            writer7.writerow(["Entropy Value", "Actual Selectivity", "Estimated Selectivity", "Difference"])
-            writer7.writerow([])
-            fd6.flush()
+            if runOptimalEddy:
+                fd7 = open('test_results/optimal_selVSamb.csv', 'w')
+                writer7 = csv.writer(fd7)
+                writer7.writerow(["Entropy Value", "Actual Selectivity", 
+                    "Estimated Selectivity", "Difference"])
+                writer7.writerow([])
+                fd6.flush()
 
         # makes dictionary of correct answers
         correctAnswers = {}
+        likelyAnswers = {}
+
         for restRow in answers:
             r = list(restRow)
 
@@ -720,15 +1055,20 @@ class SimulationTest(TestCase):
 
         # finds probability of answering True when answer is False
         predicateError = {}
-        restQuestionAnswer = [(value3, value4,value5) for (value0, value1, value2, value3, value4, value5) in data]
+        adjustedError = {}
+        restQuestionAnswer = [(value3, value4,value5) for (value0, value1, 
+            value2, value3, value4, value5) in data]
+
         for (rest, question, answer) in restQuestionAnswer:
             predicateError[(rest, question)] = [0,1]
+
 
         for (rest, question, ans) in restQuestionAnswer:
             correctAnswer = correctAnswers[(rest,question)]
             
             answer = False
-            # ans is the confidence level of the answer because answer is represented at 0,+-60,80,100
+            # ans is the confidence level of the answer because answer is 
+            # represented at 0,+-60,80,100
             if ans > 0:
                 answer = True
 
@@ -739,70 +1079,122 @@ class SimulationTest(TestCase):
 
         for key in predicateError:
             predicateError[key] = float(predicateError[key][0])/predicateError[key][1]
-            
-        # Use the established items, questions, selectivities, difficulties, etc to run as many simulations as specified
+            if predicateError[key] < 0.5:
+                likelyAnswers[key] = correctAnswers[key]
+            else:
+                likelyAnswers[key] = not correctAnswers[key]
+        
+        for key in predicateError:
+            if predicateError[key] > 0.5:
+                adjustedError[key] = 1 - predicateError[key]
+            else:
+                adjustedError[key] = predicateError[key]
+        # Use the established items, questions, selectivities, difficulties, etc 
+        # to run as many simulations as specified
         # Each algorithm (eddy, eddy2, and random) is run NUM_SIMULATIONS times
 
         for k in range(NUM_SIMULATIONS):
 
-            print "Eddy " + str(k)
-            results_eddy = self.run_simulation(eddy, parameters, predicateAnswers, sampleDataDict, predicateError, selectivities, correctAnswers)
-            eddyTasks = len(Task.objects.all())
+            toBeAdded = []
 
-            # Of the answered predicates, count how many are correct
-            correctCount = 0
-            for predicate in RestaurantPredicate.objects.exclude(value=None):
-                if predicate.value == predicateAnswers[(predicate.restaurant.name, predicate.question)]:
-                    correctCount += 1
-            eddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
-            
-            if recordEddyStats: self.write_results(results_eddy, "eddy")
-            self.reset_simulation()
+            if runEddy:
+                print "Eddy " + str(k)
 
-            print "Eddy2 " + str(k)
-            results_eddy = self.run_simulation(eddy2, parameters, predicateAnswers, sampleDataDict, predicateError, selectivities, correctAnswers)
-            eddy2Tasks = len(Task.objects.all())
+                results_eddy = self.run_simulation(eddy, parameters, predicateAnswers, 
+                    sampleDataDict, predicateError, selectivities, correctAnswers)
 
-            # Of the answered predicates, count how many are correct
-            correctCount = 0
-            for predicate in RestaurantPredicate.objects.exclude(value=None):
-                if predicate.value == predicateAnswers[(predicate.restaurant.name, predicate.question)]:
-                    correctCount += 1
-            eddy2CorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
-            
-            if recordEddyStats: self.write_results(results_eddy, "eddy2")
-            self.reset_simulation()
+                eddyTasks = len(Task.objects.all())
 
-            print "Random " + str(k)
-            results_random = self.run_simulation(randomAlgorithm, parameters, predicateAnswers, sampleDataDict, predicateError, selectivities, correctAnswers)
-            randomTasks = len(Task.objects.all())
+                # Of the answered predicates, count how many are correct
+                correctCount = 0
+                for predicate in RestaurantPredicate.objects.exclude(value=None):
+                    if predicate.value == predicateAnswers[(predicate.restaurant.name, 
+                        predicate.question)]:
 
-            # Of the answered predicates, count how many are correct
-            correctCount = 0
-            for predicate in RestaurantPredicate.objects.exclude(value=None):
-                if predicate.value == predicateAnswers[(predicate.restaurant.name, predicate.question)]:
-                    correctCount += 1
-            randomCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
-            
-            if recordRandomStats: self.write_results(results_random, "random")
-            self.reset_simulation()
+                        correctCount += 1
 
-            print "Optimal Eddy " + str(k)
-            results_optimal_eddy = self.run_simulation(optimal_eddy, parameters, predicateAnswers, sampleDataDict, predicateError, selectivities, correctAnswers)
-            optimalEddyTasks = len(Task.objects.all())
+                eddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+                
+                toBeAdded.append(eddyTasks)
+                toBeAdded.append(eddyCorrectPercentage)
 
-            # Of the answered predicates, count how many are correct
-            correctCount = 0
-            for predicate in RestaurantPredicate.objects.exclude(value=None):
-                if predicate.value == predicateAnswers[(predicate.restaurant.name, predicate.question)]:
-                    correctCount += 1
-            # optimalEddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
-            optimalEddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+                if eddyInd: self.write_results(results_eddy, "eddy")
+                self.reset_simulation()
 
-            if recordOptimalStats: self.write_results(results_optimal_eddy, "optimal_eddy")
-            self.reset_simulation()
+            if runEddy2:
+                print "Eddy2 " + str(k)
 
-            if recordAggregateStats: aggregateResults.append([eddyTasks, eddyCorrectPercentage, eddy2Tasks, eddy2CorrectPercentage, randomTasks, randomCorrectPercentage, optimalEddyTasks, optimalEddyCorrectPercentage])
+                results_eddy = self.run_simulation(eddy2, parameters, predicateAnswers, 
+                    sampleDataDict, predicateError, selectivities, correctAnswers)
+
+                eddy2Tasks = len(Task.objects.all())
+
+                # Of the answered predicates, count how many are correct
+                correctCount = 0
+                for predicate in RestaurantPredicate.objects.exclude(value=None):
+                    if predicate.value == predicateAnswers[(predicate.restaurant.name, 
+                        predicate.question)]:
+
+                        correctCount += 1
+
+                eddy2CorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+                
+                toBeAdded.append(eddy2Tasks)
+                toBeAdded.append(eddy2CorrectPercentage)
+
+                if eddy2Ind: self.write_results(results_eddy, "eddy2")
+                self.reset_simulation()
+
+            if runRandom:
+                print "Random " + str(k)
+
+                results_random = self.run_simulation(randomAlgorithm, parameters, 
+                    predicateAnswers, sampleDataDict, predicateError, selectivities, 
+                    correctAnswers)
+
+                randomTasks = len(Task.objects.all())
+
+                # Of the answered predicates, count how many are correct
+                correctCount = 0
+                for predicate in RestaurantPredicate.objects.exclude(value=None):
+                    if predicate.value == predicateAnswers[(predicate.restaurant.name, 
+                        predicate.question)]:
+
+                        correctCount += 1
+
+                randomCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+                
+                toBeAdded.append(randomTasks)
+                toBeAdded.append(randomCorrectPercentage)
+
+                if randomInd: self.write_results(results_random, "random")
+                self.reset_simulation()
+
+            if runOptimalEddy:
+                print "Optimal Eddy " + str(k)
+
+                results_optimal_eddy = self.run_simulation(optimal_eddy, parameters, 
+                    predicateAnswers, sampleDataDict, predicateError, selectivities, correctAnswers)
+               
+                optimalEddyTasks = len(Task.objects.all())
+
+                # Of the answered predicates, count how many are correct
+                correctCount = 0
+                for predicate in RestaurantPredicate.objects.exclude(value=None):
+                    if predicate.value == predicateAnswers[(predicate.restaurant.name, 
+                        predicate.question)]:
+
+                        correctCount += 1
+
+                optimalEddyCorrectPercentage = float(correctCount)/len(RestaurantPredicate.objects.exclude(value=None))
+
+                toBeAdded.append(optimalEddyTasks)
+                toBeAdded.append(optimalEddyCorrectPercentage)
+
+                if optimalEddyInd: self.write_results(results_optimal_eddy, "optimal_eddy")
+                self.reset_simulation()
+
+            if recordAggregateStats: aggregateResults.append(toBeAdded)
 
         self.clear_database()
   
@@ -810,104 +1202,106 @@ class SimulationTest(TestCase):
 
         # plots entropy values vs. difference in actual and estimated selectivities
         if selVSambRecord:
-            with open("test_results/eddy_selVSamb.csv", "r") as f:
-                data = [row for row in csv.reader(f)]
-                data = data[1:]
+            if runEddy:
+                with open("test_results/eddy_selVSamb.csv", "r") as f:
+                    data = [row for row in csv.reader(f)]
+                    data = data[1:]
 
-                data2 = []
-                for i in range(len(data)):
-                    if len(data[i]) != 0:
-                        data2.append(data[i])
+                    data2 = []
+                    for i in range(len(data)):
+                        if len(data[i]) != 0:
+                            data2.append(data[i])
 
-                x1 = [float(row[0]) for row in data2]
-                y1 = [float(row[3]) for row in data2]
+                    x = [float(row[0]) for row in data2]
+                    y = [float(row[3]) for row in data2]
 
-            with open("test_results/eddy2_selVSamb.csv", "r") as f:
-                data = [row for row in csv.reader(f)]
-                data = data[1:]
+                    selVSambGraph(x, y, "eddy")
 
-                data2 = []
-                for i in range(len(data)):
-                    if len(data[i]) != 0:
-                        data2.append(data[i])
+            if runEddy2:
+                with open("test_results/eddy2_selVSamb.csv", "r") as f:
+                    data = [row for row in csv.reader(f)]
+                    data = data[1:]
 
-                x2 = [float(row[0]) for row in data2]
-                y2 = [float(row[3]) for row in data2]
+                    data2 = []
+                    for i in range(len(data)):
+                        if len(data[i]) != 0:
+                            data2.append(data[i])
 
-            with open("test_results/random_selVSamb.csv", "r") as f:
-                data = [row for row in csv.reader(f)]
-                data = data[1:]
+                    x = [float(row[0]) for row in data2]
+                    y = [float(row[3]) for row in data2]
 
-                data2 = []
-                for i in range(len(data)):
-                    if len(data[i]) != 0:
-                        data2.append(data[i])
+                    selVSambGraph(x, y, "eddy2")
 
-                x3 = [float(row[0]) for row in data2]
-                y3 = [float(row[3]) for row in data2]
+            if runRandom:
+                with open("test_results/random_selVSamb.csv", "r") as f:
+                    data = [row for row in csv.reader(f)]
+                    data = data[1:]
 
-            with open("test_results/optimal_selVSamb.csv", "r") as f:
-                data = [row for row in csv.reader(f)]
-                data = data[1:]
+                    data2 = []
+                    for i in range(len(data)):
+                        if len(data[i]) != 0:
+                            data2.append(data[i])
 
-                data2 = []
-                for i in range(len(data)):
-                    if len(data[i]) != 0:
-                        data2.append(data[i])
+                    x = [float(row[0]) for row in data2]
+                    y = [float(row[3]) for row in data2]
 
-                x4 = [float(row[0]) for row in data2]
-                y4 = [float(row[3]) for row in data2]
+                    selVSambGraph(x, y, "random")
 
-            arrayX = [x1, x2, x3, x4]
-            arrayY = [y1, y2, y3, y4]
+            if runOptimalEddy:
+                with open("test_results/optimal_selVSamb.csv", "r") as f:
+                    data = [row for row in csv.reader(f)]
+                    data = data[1:]
 
-            # loop through this three times
-            for i in range(len(arrayX)):
-                # sort the data
-                reorder = sorted(range(len(arrayX[i])), key = lambda ii: arrayX[i][ii])
-                arrayX[i] = [arrayX[i][ii] for ii in reorder]
-                arrayY[i] = [arrayY[i][ii] for ii in reorder]
+                    data2 = []
+                    for i in range(len(data)):
+                        if len(data[i]) != 0:
+                            data2.append(data[i])
 
-                # make the scatter plot
-                plt.scatter(arrayX[i], arrayY[i], s=30, alpha=0.15, marker='o')
+                    x = [float(row[0]) for row in data2]
+                    y = [float(row[3]) for row in data2]
 
-                # determine best fit line
-                par = np.polyfit(arrayX[i], arrayY[i], 1, full=True)
+                    selVSambGraph(x, y, "optimal_eddy")
 
-                slope=par[0][0]
-                intercept=par[0][1]
-                xl = [min(arrayX[i]), max(arrayX[i])]
-                yl = [slope*xx + intercept  for xx in xl]
 
-                # coefficient of determination, plot text
-                variance = np.var(arrayY[i])
-                residuals = np.var([(slope*xx + intercept - yy)  for xx,yy in zip(arrayX[i],arrayY[i])])
-                Rsqr = np.round(1-residuals/variance, decimals=2)
-                plt.text(.9*max(arrayX[i])+.1*min(arrayX[i]),.9*max(arrayY[i])+.1*min(arrayY[i]),'$R^2 = %0.2f$'% Rsqr, fontsize=30)
+    def selVSambGraph(self, x, y):
 
-                plt.xlabel("Entropy Values")
-                plt.ylabel("Difference between Actual and Estimated Selectivities")
+        # sort the data
+        reorder = sorted(range(len(x)), key = lambda ii: x[i])
+        x = [x[i] for i in reorder]
+        y= [y[i] for i in reorder]
 
-                plt.plot(xl, yl, '-r')
-                
-                # depending on index, write graph to file with certain name
-                if i == 0:
-                    plt.savefig('test_results/eddy_selVSamb.png')
-                elif i == 1:
-                    plt.savefig('test_results/eddy2_selVSamb.png')
-                elif i == 2:
-                    plt.savefig('test_results/random_selVSamb.png')
-                else: 
-                    plt.savefig('test_results/optimal_selVSamb.png')
+        # make the scatter plot
+        plt.scatter(x, y, s=30, alpha=0.15, marker='o')
 
-                plt.clf()
-                plt.cla()
+        # determine best fit line
+        par = np.polyfit(x, y, 1, full=True)
+
+        slope=par[0][0]
+        intercept=par[0][1]
+        xl = [min(x), max(x)]
+        yl = [slope*xx + intercept  for xx in xl]
+
+        # coefficient of determination, plot text
+        variance = np.var(y)
+        residuals = np.var([(slope*xx + intercept - yy)  for xx,yy in zip(x,y)])
+        Rsqr = np.round(1-residuals/variance, decimals=2)
+        plt.text(.9*max(x)+.1*min(x),.9*max(y)+.1*min(y),'$R^2 = %0.2f$'% Rsqr, fontsize=30)
+
+        plt.xlabel("Entropy Values")
+        plt.ylabel("Difference between Actual and Estimated Selectivities")
+
+        plt.plot(xl, yl, '-r')
+        plt.savefig('test_results/' + algorithm + '_selVSamb.png')
+
+        plt.clf()
+        plt.cla()
 
 
     def write_results(self, results, label):
         """
         Write results from a list into a csv file named using a timestamp.
         """
+        
         now = datetime.datetime.now() # get the timestamp
 
         # write the number of tasks and correct percentage to a csv file
@@ -917,8 +1311,10 @@ class SimulationTest(TestCase):
 
     def reset_simulation(self):
         """
-        Clear out answers and reset status values while not deleting Restaurants, RestaurantPredicates, or PredicateBranches
+        Clear out answers and reset status values while not deleting Restaurants, 
+        RestaurantPredicates, or PredicateBranches
         """
+
         # deletes all tasks in database
         Task.objects.all().delete()
 
@@ -956,11 +1352,8 @@ class SimulationTest(TestCase):
         """
         Remove all objects from the test database.
         """
+
         Restaurant.objects.all().delete()
         RestaurantPredicate.objects.all().delete()
         Task.objects.all().delete()
         PredicateBranch.objects.all().delete()
-
-    
-
-

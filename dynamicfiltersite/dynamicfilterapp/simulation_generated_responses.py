@@ -1,3 +1,5 @@
+# TODO: need to find out how to run this file
+
 def test_simulation(self):
 
     label = raw_input("Label this simulation test: ")
@@ -21,6 +23,7 @@ def test_simulation(self):
         enterRestaurant("Kate " + str(i), i)
 
     branches = PredicateBranch.objects.all()
+
     # dictionary of predicate branches and their likelihood of answering wrong
     branchDifficulties = {branches[0] : 0.0,
                           branches[1] : 0.0,
@@ -39,6 +42,7 @@ def test_simulation(self):
 
         # choose random restaurant-predicate in allRestPreds0
         restPred = choice(allRestPreds0)
+
         # takes out chosen restaurant-predicate
         allRestPreds0 = allRestPreds0.exclude(id=restPred.id)
 
@@ -51,6 +55,7 @@ def test_simulation(self):
 
     # same logic as previous while loop
     while len(allRestPreds1) != 0:
+
         restPred = choice(allRestPreds1)
         allRestPreds1 = allRestPreds1.exclude(id=restPred.id)
 
@@ -61,6 +66,7 @@ def test_simulation(self):
 
     # same logic as first while loop
     while len(allRestPreds2) != 0:
+
         restPred = choice(allRestPreds2)
         allRestPreds2 = allRestPreds2.exclude(id=restPred.id)
 
@@ -87,6 +93,7 @@ def test_simulation(self):
     predicate = eddy(IDcounter)
   
     while (predicate != None):
+
         # default answer is the correct choice
         answer = predicateAnswers[predicate]
 
@@ -96,7 +103,8 @@ def test_simulation(self):
         # randomly select a confidence level
         confidenceLevel = choice(CONFIDENCE_OPTIONS)
 
-        # if the correct answer is False, then add it to the ideal dictionary to keep track
+        # if the correct answer is False, then add it to the ideal dictionary to 
+        # keep track
         if answer == False:
             predIdealNo[branches[predicate.index]] += 1
 
@@ -138,6 +146,7 @@ def test_simulation(self):
 
         # increase IDcounter
         IDcounter += 1
+        
         # get a predicate from the eddy
         predicate = eddy(IDcounter)
     
@@ -166,7 +175,9 @@ def test_simulation(self):
 
     # appends each of the values listed below to the array
     l.append([])
-    l.append(["PredicateBranch", "Difficulty", "Ideal Selectivity", "Unweighted Task Selectivity", "Weighted Task Selectivity", "Total Returned", "Returned No"])
+    l.append(["PredicateBranch", "Difficulty", "Ideal Selectivity", 
+        '"Unweighted Task Selectivity", "Weighted Task Selectivity", 
+        "Total Returned", "Returned No"])
     for branch in PredicateBranch.objects.all():
         predicateBranchRow = []
         predicateBranchRow.append(branch.question)
@@ -211,7 +222,3 @@ def test_simulation(self):
     with open('test_results/test' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
         [writer.writerow(r) for r in l]
-
-    # with open('test_results/graph' + str(now.date())+ "_" + str(now.time())[:-7] + '.csv', 'w') as csvfile:
-    #     writer = csv.writer(csvfile)
-    #     [writer.writerow(r) for r in graphData]

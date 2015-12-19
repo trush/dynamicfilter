@@ -1,5 +1,10 @@
 # Code adapted from tutorial at http://www.bogotobogo.com/python/python_matplotlib.php
 
+# run with python2.7 plotScript_aggregate.py test_results/csv_aggregate_file_name.csv
+
+# only works with aggregate csv file with one eddy and random 
+# plots estimated selectivities over task number for all three predicates
+
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime as DT
@@ -10,8 +15,9 @@ import sys
 filename = sys.argv[1]
 
 # read in data from csv file, skips first row, delimits by comma
-data = np.loadtxt(filename, skiprows=1, delimiter=',', dtype={'names': ('eddy num tasks', 'eddy correct percentage', 'random num tasks', 'random correct percentage'),
-          'formats': (np.int, np.int, np.int, np.int)})
+data = np.loadtxt(filename, skiprows=1, delimiter=',', dtype={'names': ('eddy num tasks', 
+	'eddy correct percentage', 'random num tasks', 'random correct percentage'),
+    'formats': (np.int, np.float, np.int, np.float)})
 
 # get the columns of the csv file as separate lists
 eddyTasks = [value0 for (value0, value1, value2, value3) in data]

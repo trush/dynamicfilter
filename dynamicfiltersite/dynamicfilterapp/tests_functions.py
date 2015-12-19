@@ -1,12 +1,18 @@
+# TODO: need to find out how to run this
+
 class AggregateResponsesTestCase(TestCase):
     """
     Tests the aggregate_responses() function
     """
+
     def test_aggregate_five_yes(self):
         """
-        Entering five yes votes should result in all predicate statuses being set to -1.
+        Entering five yes votes should result in all predicate statuses being 
+        set to -1.
         """
+
         r = enterRestaurant("Chipotle", 20349)
+
         # get the zeroeth predicate
         p = RestaurantPredicate.objects.filter(restaurant=r).order_by('-index')[0]
 
@@ -28,13 +34,16 @@ class AggregateResponsesTestCase(TestCase):
         Entering five votes with 80 percent confidence (three yes) should cause
         5 more responses to be required
         """
+
         r = enterRestaurant("Chipotle", 20349)
+
         # get the zeroeth predicate
         p = RestaurantPredicate.objects.filter(restaurant=r).order_by('index')[0]
 
         # Enter three "Yes" answers with 80% confidence
         for i in range(3):
             enterTask(i, True, 1000, 80, p)
+
         # Enter three "No" answers with 80% confidence
         for i in range(2):
             enterTask(i+3, False, 1000, 80, p)
@@ -52,7 +61,9 @@ class AggregateResponsesTestCase(TestCase):
         """
         If no responses have been entered, all statuses should stay at 5.
         """
+
         r = enterRestaurant("Chipotle", 20349)
+
         # get the zeroeth predicate
         p = RestaurantPredicate.objects.filter(restaurant=r).order_by('index')[0]
 
@@ -71,6 +82,7 @@ class AnswerQuestionViewTests(TestCase):
         """
         Trying to access the answer_question URL with no ID should cause a 404.
         """
+
         response = self.client.get('/dynamicfilterapp/answer_question/')
         self.assertEqual(response.status_code, 404)
 
@@ -80,6 +92,7 @@ class RestaurantCreationTests(TestCase):
         """
         tests to see if three predicates are created with each restaurant
         """
+
         # make a new RestaurantAdminForm and get the Restaurant created
         rForm = RestaurantAdminForm()
         r = rForm.save()
@@ -95,6 +108,7 @@ class NoQuestionViewTests(TestCase):
         """
         tests the no_questions view to make sure it displays the correct web page
         """
+
         response = self.client.get(reverse('no_questions', args=[self.WORKER_ID]))
         self.assertContains(response, "There are no more questions to be answered at this time.")   
 
@@ -104,6 +118,7 @@ class UpdateCountsTests(TestCase):
         """
         tests updateCounts() to make sure it increments returnedTotal and returnedNo appropriately
         """
+
         # made a restaurant
         restaurant = enterRestaurant('Kate', 91871)
 
@@ -137,6 +152,7 @@ class FindRestaurantTests(TestCase):
         Given three possible restaurants, should choose the one with the lowest value for the relevant
         predicateStatus that's not -1 or 0. (Test for three predicates)
         """
+
         r1 = enterRestaurant("Chipotle", 100)
         r1.predicate0Status = -1 # in practice all fields would be -1 if one was
         r1.predicate1Status = 0
@@ -168,6 +184,7 @@ class FindRestaurantTests(TestCase):
         """
         The worker has answered all three questions for the second restaurant.
         """
+
         r1 = enterRestaurant("Chipotle", 100)
         r1.predicate0Status = -1 # in practice all fields would be -1 if one was
         r1.predicate1Status = 0
@@ -203,6 +220,7 @@ class FindRestaurantTests(TestCase):
         The first restaurant has already failed a predicate.
         The worker has answered all three questions for the second restaurant.
         """
+
         r1 = enterRestaurant("Chipotle", 100)
         r1.predicate0Status = -1
         r1.predicate1Status = -1
@@ -239,6 +257,7 @@ class DecrementStatusTests(TestCase):
         """
         tests decrementStatus() method to make sure it can decrement each status bit
         """
+
         # made a restaurant
         restaurant = enterRestaurant('Kate', 91871)
 
@@ -258,6 +277,7 @@ class IncrementStatusTests(TestCase):
         """
         tests incrementStatusByFive() when the status bit is not 0. it should do nothing
         """
+
         # made a restaurant
         restaurant = enterRestaurant('Kate', 91871)
 
@@ -269,6 +289,7 @@ class IncrementStatusTests(TestCase):
         """
         tests incrementStatusByFive() when the status bit is 0.
         """
+
         # made a restaurant
         restaurant = enterRestaurant('Kate', 91871)
 
@@ -290,6 +311,7 @@ class findTotalTicketsTests(TestCase):
         """
         tests findTotalTickets() to correctly find the total number of tickets
         """
+
         # make restaurant
         enterRestaurant('Kate', 10000)
 
@@ -312,3 +334,4 @@ class findTotalTicketsTests(TestCase):
 
         # should equal 2000
         self.assertEqual(result, 2000)
+        
