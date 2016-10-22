@@ -1,4 +1,4 @@
-# run with python plotScript_alg_hist.py 0first_hotel_0_1.csv 1first_hotel_1_3.csv queue_eddy_hotel_0_1.csv random_hotel_0_1.csv ;open graphs/andys_dist_of_varied_selectivities_normalized.png 
+# run with python plotScript_andys_gen_dist_of_varied_selectivities_normalized.py; open graphs/andys_dist_of_varied_selectivities_normalized.png 
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,10 +6,14 @@ import seaborn as sns
 import pylab
 import sys
 
+csv_files = ["1first_hotel_1_3.csv",      \
+             "queue_eddy_hotel_0_1.csv",  \
+             "random_hotel_0_1.csv",      \
+             "0first_hotel_0_1.csv"]
+
 num_tasks_array = []
-for i in range(1,5):
-	num_tasks_array.append(list(np.loadtxt(sys.argv[i], delimiter=',')))
-	print "appending " + sys.argv[i]
+for i in range(0,4):
+	num_tasks_array.append(list(np.loadtxt(csv_files[i], delimiter=',')))
 
 sns.set(style="white", palette="muted", color_codes=False)
 
@@ -18,7 +22,7 @@ ax = fig.add_subplot(111)
 sns.despine(left=True)
 
 # the histogram of the data
-alg_list = ["'Gym?' first", "Under $80?' first", "dynamic filter", "random"]
+alg_list = ["Under $80?' first", "dynamic filter", "random", "'Gym?' first"]
 linestyles=["-","-","-","-"]
 markers=["^","o","v","s"]
 for i in range(len(num_tasks_array)):
