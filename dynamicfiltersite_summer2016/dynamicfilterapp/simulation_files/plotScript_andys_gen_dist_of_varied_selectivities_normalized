@@ -1,4 +1,4 @@
-# run with python plotScript_alg_hist.py <filenames>
+# run with python plotScript_alg_hist.py 0first_hotel_0_1.csv 1first_hotel_1_3.csv queue_eddy_hotel_0_1.csv random_hotel_0_1.csv ;open graphs/andys_dist_of_varied_selectivities_normalized.png 
 
 import numpy as np
 import matplotlib.pyplot as plt
