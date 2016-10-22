@@ -22,7 +22,7 @@ ax = fig.add_subplot(111)
 sns.despine(left=True)
 
 # the histogram of the data
-alg_list = ["Under $80?' first", "dynamic filter", "random", "'Great View?' first"]
+alg_list = ["'Under $80?' first", "dynamic filter", "random", "'Great View?' first"]
 linestyles=["-","-","-","-"]
 markers=["^","o","v","s"]
 for i in range(len(num_tasks_array)):
@@ -30,10 +30,10 @@ for i in range(len(num_tasks_array)):
 
 ax.set_xlabel('Number of Tasks')
 ax.set_ylabel('Frequency')
-ax.set_title('Distribution of Varied Selectivities Normalized')
+ax.set_title('Distribution of Varied Cost Normalized')
 #ax.set_xlim(100, 320)
 ax.grid(True)
 
 #plt.tight_layout()
 #plt.show()
-plt.savefig('graphs/andys_dist_of_varied_selectivities_normalized.png')
+plt.savefig('graphs/andys_dist_of_varied_cost_normalized.png')
