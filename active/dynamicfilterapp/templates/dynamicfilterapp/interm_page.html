@@ -1,0 +1,20 @@
+<html>
+    <!-- Switch body tag to use the one that submits form automatically on page load -->
+    <!-- <body onload="document.turksubmit.submit()"> -->
+<body>
+        <form action="{{ url }}" name="interm_page" method="POST">
+        {% csrf_token %}
+
+	  This form should automatically submit. If not, please press submit.
+<br/>
+
+<!-- include mturk values -->
+<input type="hidden" id="assignmentId" value="{{ assignmentId }}" name="assignmentId"/>
+<input type="hidden" id="workerId" value="{{ workerId }}" name="workerId"/>
+<input type="hidden" id="hitId" value="{{ hitId }}" name="hitId"/>
+<!-- TODO should also submit the answer the worker provided -->
+
+	<input type="submit" value="Submit HIT" />
+        </form>
+    </body>
+</html>
