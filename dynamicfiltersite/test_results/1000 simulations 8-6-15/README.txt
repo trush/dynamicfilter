@@ -1,1 +1,0 @@
-This is the simulation run for the poster and work-in-progress figures.

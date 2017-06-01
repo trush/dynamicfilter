@@ -1,7 +1,0 @@
-List of Predicate Selectivities, Qualitative Cost
-
-0.16, cheap
-0.88, kinda cheap
-0.03, medium cost
-0.62, kinda expensive
-0.01, cheap
