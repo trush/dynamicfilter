@@ -428,6 +428,10 @@ class SimulationTest(TestCase):
 
 		if DEBUG_FLAG:
 			print "Debug Flag Set!"
+
+			print "ITEM_TYPE: " + ITEM_TYPE
+			print "NUM_WORKERS" + str(NUM_WORKERS)
+			print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
 			print "REAL_DATA: " + str(REAL_DATA)
 			print "NUM_SIM: " + str(NUM_SIM)
 			print "OUTPUT_PATH: " + OUTPUT_PATH
