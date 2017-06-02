@@ -4,6 +4,9 @@ import csv
 import sys
 
 ITEM_TYPE = "Hotel"
+# files in the folder pointed to by INPUT_PATH should have form
+# <ITEM_TYPE>_suffix.csv
+INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 
 def load_database():
 	"""
@@ -11,7 +14,7 @@ def load_database():
 	"""
 	# read in the questions
 	ID = 0
-	f = open('dynamicfilterapp/simulation_files/hotels/hotel_questions.csv', 'r')
+	f = open(INPUT_PATH + ITEM_TYPE + '_questions.csv', 'r')
 	for line in f:
 		line = line.rstrip('\n')
 		q = Question.objects.create(question_ID=ID, question_text=line)
@@ -25,11 +28,11 @@ def load_database():
 
 	# read in the items
 	ID = 0
-	with open('dynamicfilterapp/simulation_files/hotels/hotels.csv', 'r') as f:
+	with open(INPUT_PATH + ITEM_TYPE + '_items.csv', 'r') as f:
 		itemData = f.read()
 	items = itemData.split("\n")
 
-	with open('dynamicfilterapp/simulation_files/hotels/hotel_addresses.csv', 'r') as f1:
+	with open(INPUT_PATH + ITEM_TYPE + '_addresses.csv', 'r') as f1:
 		addressData = f1.read()
 	addresses = addressData.split("\n")
 
@@ -64,4 +67,3 @@ def make_task_file():
 	for ip in IP_Pair.objects.all():
 		f.write(ip.item.name + ',"' + ip.item.address + '",' + ip.predicate.question.question_text + '\n')
 	f.close()
-
