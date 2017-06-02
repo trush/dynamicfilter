@@ -4,7 +4,7 @@
 from django.db import models
 from django.test import TestCase
 
-# # What we wrote 
+# # What we wrote
 from views_helpers import *
 from .models import *
 from synthesized_data import *
@@ -12,6 +12,7 @@ from synthesized_data import *
 # # Python tools
 import numpy as np
 from random import randint, choice
+import sys
 
 ITEM_TYPE = "Hotels"
 NUM_WORKERS = 101
@@ -32,7 +33,16 @@ CHOSEN_PREDS = [2,3]
 # 0,2,9 - most ambiguous questions
 # 2,3,8 - least selective
 
-NUM_SIM = 200
+## Modularity settings (WIP)
+REAL_DATA = True
+NUM_SIM = 2
+DEBUG_FLAG = False
+OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
+RUN_NAME = 'default_name'
+RUN_TASKS_COUNT = True
+RUN_DATA_STATS = True
+RUN_AVERAGE_COST = True
+RUN_SINGLE_PAIR = True
 
 class SimulationTest(TestCase):
 	"""
@@ -80,27 +90,27 @@ class SimulationTest(TestCase):
 
 	def get_sample_answer_dict(self, filename):
 		"""
-		Reads in a file of pre-gathered Mechanical Turk HITs and makes a 
-		dictionary where the key is a IP_Pair and the value is a 
-		list of all the HITs answers for that IP_Pair. This list is the set 
-		that our simulations can sample answers from. At present, the csv file 
-		downloaded from Mechanical Turk must be copied and then edited to only 
+		Reads in a file of pre-gathered Mechanical Turk HITs and makes a
+		dictionary where the key is a IP_Pair and the value is a
+		list of all the HITs answers for that IP_Pair. This list is the set
+		that our simulations can sample answers from. At present, the csv file
+		downloaded from Mechanical Turk must be copied and then edited to only
 		include the four columns of data that we use here.
 		"""
 		# read in worker data from cleaned file
-		data = np.genfromtxt(fname=filename, 
+		data = np.genfromtxt(fname=filename,
 							dtype={'formats': [np.dtype(int), np.dtype('S100'),
 										np.dtype('S200'), np.dtype(int)],
-									'names': ['WorkTimeInSeconds', 'Input.Hotel', 
+									'names': ['WorkTimeInSeconds', 'Input.Hotel',
 										'Input.Question', 'Answer.Q1AnswerPart1']},
 							delimiter=',',
 							usecols=range(4),
 							skip_header=1)
 
-		# Get a list of all the tasks in the file, represented as tuples of 
+		# Get a list of all the tasks in the file, represented as tuples of
 		# (item, question, answer)
 		tasks = [(item, question, answer) for (workTimeInSeconds, item, question, answer) in data]
-		
+
 		# create the dictionary and populate it with empty lists
 		sampleData = {}
 		for p in IP_Pair.objects.all():
@@ -112,39 +122,39 @@ class SimulationTest(TestCase):
 			# answer==0 means worker answered "I don't know"
 			if answer != 0:
 
-				# get the RestaurantPredicates matching this task (will be a 
+				# get the RestaurantPredicates matching this task (will be a
 				# QuerySet of length 1 or 0)
 				predKey = IP_Pair.objects.filter(predicate__question__question_text=question).filter(item__name=item)
-				
-				# Some tasks won't have matching RestaurantPredicates, since we 
+
+				# Some tasks won't have matching RestaurantPredicates, since we
 				# may not be using all the possible predicates
 				if len(predKey) > 0:
 					if answer > 0:
 						sampleData[predKey[0]].append(True)
 					elif answer < 0:
 						sampleData[predKey[0]].append(False)
-					
+
 		return sampleData
 
 	def get_correct_answers(self, filename):
 		"""
-		Read in the correct answers to 10 questions about 20 Items from a 
-		csv file and store them in a dictionary where the key is a tuple 
+		Read in the correct answers to 10 questions about 20 Items from a
+		csv file and store them in a dictionary where the key is a tuple
 		(item, question) and the value is a boolean.
 		"""
 		# read in correct answer data
-		answers = np.genfromtxt(fname=filename, 
-								dtype={'formats': [np.dtype('S100'), np.dtype(bool), 
-											np.dtype(bool), np.dtype(bool), 
-											np.dtype(bool), np.dtype(bool), 
-											np.dtype(bool), np.dtype(bool), 
+		answers = np.genfromtxt(fname=filename,
+								dtype={'formats': [np.dtype('S100'), np.dtype(bool),
+											np.dtype(bool), np.dtype(bool),
+											np.dtype(bool), np.dtype(bool),
+											np.dtype(bool), np.dtype(bool),
 											np.dtype(bool), np.dtype(bool),
 											np.dtype(bool),],
-										'names': ['Item', 'a0', 'a1', 'a2', 
+										'names': ['Item', 'a0', 'a1', 'a2',
 											'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9']},
 								delimiter=',')
 
-		# create a dictionary of (item, predicate) keys and boolean correct 
+		# create a dictionary of (item, predicate) keys and boolean correct
 		# answer values
 		correctAnswers = {}
 
@@ -212,15 +222,16 @@ class SimulationTest(TestCase):
 				ip_pair = None
 
 			elif worker_done(workerID):
-				print "worker has no tasks to do"
-				
+				if DEBUG_FLAG:
+					print "worker has no tasks to do"
+
 			else:
 				ip_pair = pending_eddy(workerID)
 				self.simulate_task(ip_pair, workerID, dictionary)
 				move_window()
 				num_tasks += 1
-			
-		print num_tasks
+
+		#print num_tasks
 		#output_selectivities()
 		#output_cost()
 		return num_tasks
@@ -243,7 +254,7 @@ class SimulationTest(TestCase):
 
 			elif worker_done(workerID):
 				print "worker has no tasks to do"
-				
+
 			else:
 				ip_pair = pending_eddy(workerID)
 				self.syn_simulate_task(ip_pair, workerID, switch)
@@ -251,8 +262,8 @@ class SimulationTest(TestCase):
 				num_tasks += 1
 				if num_tasks == 200:
 					switch = 1
-			
-		print num_tasks
+
+		#print num_tasks
 		#output_selectivities()
 		#output_cost()
 		return num_tasks
@@ -287,13 +298,15 @@ class SimulationTest(TestCase):
 		"""
 		Finds the average cost per ip_pair
 		"""
-		f = open('dynamicfilterapp/simulation_files/estimated_costs.csv', 'a')
-		
+		if DEBUG_FLAG:
+			print "Running: sim_average_cost"
+		f = open(OUTPUT_PATH + RUN_NAME + '_estimated_costs.csv', 'a')
+
 		for p in CHOSEN_PREDS:
 			pred_cost = 0.0
 			pred = Predicate.objects.all().get(pk=p+1)
 			f.write(pred.question.question_text + '\n')
-			
+
 			#iterate through to find each ip cost
 			for ip in IP_Pair.objects.filter(predicate=pred):
 				item_cost = 0.0
@@ -336,12 +349,17 @@ class SimulationTest(TestCase):
 			pred_cost = float(pred_cost)/len(IP_Pair.objects.filter(predicate=pred))
 			f.write('\npredicate average cost: ' + str(pred_cost) + '\n \n')
 		f.close()
+		if DEBUG_FLAG:
+			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_estimated_costs.csv'
 
 	def sim_single_pair_cost(self, dictionary, ip):
 		"""
 		Samples a large number of runs for a single ip_pair and records all the costs for the runs
 		"""
-		f = open('dynamicfilterapp/simulation_files/single_pair_cost.csv', 'w')
+		if DEBUG_FLAG:
+			print "Running: sim_single_pair_cost"
+
+		f = open(OUTPUT_PATH + RUN_NAME + '_single_pair_cost.csv', 'w')
 		num_runs = 5000
 		for x in range(num_runs):
 			item_cost = 0
@@ -376,12 +394,16 @@ class SimulationTest(TestCase):
 			ip.status_votes = 0
 			f.write(str(item_cost) + ',')
 		f.close()
+		if DEBUG_FLAG:
+			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_single_pair_cost.csv'
 
 	def output_data_stats(self, dictionary):
 		"""
 		outputs statistics on the given dictionary
 		"""
-		f = open('dynamicfilterapp/simulation_files/hotels/hotel_ip_stats.csv', 'w')
+		if DEBUG_FLAG:
+			print "Running: output_data_stats"
+		f = open(OUTPUT_PATH + RUN_NAME + '_ip_stats.csv', 'w')
 		f.write('ip_pair, numTrue, numFalse, overallVote\n')
 		for ip in IP_Pair.objects.all():
 			#print len(dictionary[ip])
@@ -391,6 +413,8 @@ class SimulationTest(TestCase):
 			f.write(str(ip) + ', ' + str(numTrue) + ', ' + str(numFalse)
 				+ ', ' + str(overallVote) + '\n')
 		f.close()
+		if DEBUG_FLAG:
+			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_ip_stats.csv'
 
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
@@ -400,36 +424,57 @@ class SimulationTest(TestCase):
 		"""
 		print "Simulation is being tested"
 
-		#____REAL DATA____#
-		sampleData = self.load_data()
 
-		#____SYNTHESIZED DATA____#
-		#syn_load_data()
-		
+
+		if DEBUG_FLAG:
+			print "Debug Flag Set!"
+
+			print "ITEM_TYPE: " + ITEM_TYPE
+			print "NUM_WORKERS" + str(NUM_WORKERS)
+			print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
+			print "REAL_DATA: " + str(REAL_DATA)
+			print "NUM_SIM: " + str(NUM_SIM)
+			print "OUTPUT_PATH: " + OUTPUT_PATH
+			print "RUN_NAME: " + RUN_NAME
+			print "RUN_TASKS_COUNT: " + str(RUN_TASKS_COUNT)
+			print "RUN_DATA_STATS: " + str(RUN_DATA_STATS)
+			print "RUN_AVERAGE_COST: " + str(RUN_AVERAGE_COST)
+			print "RUN_SINGLE_PAIR: " + str(RUN_SINGLE_PAIR)
+
+		if REAL_DATA:
+			sampleData = self.load_data()
+			if RUN_DATA_STATS:
+				self.output_data_stats(sampleData)
+				self.reset_database()
+			if RUN_AVERAGE_COST:
+				self.sim_average_cost(sampleData)
+				self.reset_database()
+			if RUN_SINGLE_PAIR:
+				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker()))
+				self.reset_database()
+		else:
+			syn_load_data()
+
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
 		# correctAnswers = self.get_correct_answers('dynamicfilterapp/simulation_files/restaurants/correct_answers.csv')
 		# passedItems = self.get_passed_items(correctAnswers)
-		
-		#____SIMULATION____#
-		f = open('dynamicfilterapp/simulation_files/random_2_3.csv', 'a')
-		for i in range(NUM_SIM):
-			print i
-			
-			#____REAL DATA____#
-			num_tasks = self.run_sim(sampleData)
-			
-			#____SYNTHESIZED DATA____#
-			#num_tasks = self.syn_run_sim()
 
-			#____FOR LOOKING AT ACCURACY OF RUNS___#
-			# num_incorrect = self.final_item_mismatch(passedItems)
-			# print "This is number of incorrect items: ", num_incorrect
-			
-			f.write(str(num_tasks) + ',')
-			self.reset_database()
-			
-		f.write('\n')
-		f.close()
-
-
-
+		if RUN_TASKS_COUNT:
+			if DEBUG_FLAG:
+				print "Running: task_count"
+			f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
+			for i in range(NUM_SIM):
+				#print i
+				if REAL_DATA:
+					num_tasks = self.run_sim(sampleData)
+				else:
+					num_tasks = self.syn_run_sim()
+				#____FOR LOOKING AT ACCURACY OF RUNS___#
+				# num_incorrect = self.final_item_mismatch(passedItems)
+				# print "This is number of incorrect items: ", num_incorrect
+				f.write(str(num_tasks) + ',')
+				self.reset_database()
+			f.write('\n')
+			f.close()
+			if DEBUG_FLAG:
+				print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_tasks_count.csv'
