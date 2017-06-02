@@ -13,6 +13,7 @@ from synthesized_data import *
 import numpy as np
 from random import randint, choice
 import sys
+import io
 
 ITEM_TYPE = "Restaurant"
 NUM_WORKERS = 101
@@ -40,11 +41,11 @@ DEBUG_FLAG = False
 IP_PAIR_DATA_FILE = 'real_data1.csv'
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-RUN_NAME = 'default_name'
+RUN_NAME = 'comma_test'
 RUN_TASKS_COUNT = True
-RUN_DATA_STATS = True
-RUN_AVERAGE_COST = True
-RUN_SINGLE_PAIR = True
+RUN_DATA_STATS = False
+RUN_AVERAGE_COST = False
+RUN_SINGLE_PAIR = False
 
 class SimulationTest(TestCase):
 	"""
@@ -59,7 +60,7 @@ class SimulationTest(TestCase):
 		"""
 		# read in the questions
 		ID = 0
-		f = open(INPUT_PATH + ITEM_TYPE '_questions.csv', 'r')
+		f = open(INPUT_PATH + ITEM_TYPE + '_questions.csv', 'r')
 		for line in f:
 			line = line.rstrip('\n')
 			q = Question(question_ID=ID, question_text=line)
@@ -207,11 +208,15 @@ class SimulationTest(TestCase):
 			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
 
+
 	def run_sim(self, dictionary):
 		"""
-		Runs a single simulation
+		Runs a single simulation (either using real or syhthetic data depending on
+		setting at top of test_simulations.py)
+		Returns an integer: total number of tasks completed in the sim
 		"""
 		num_tasks = 0
+		switch = 0
 
 		#pick a dummy ip_pair
 		ip_pair = IP_Pair()
@@ -229,37 +234,12 @@ class SimulationTest(TestCase):
 
 			else:
 				ip_pair = pending_eddy(workerID)
-				self.simulate_task(ip_pair, workerID, dictionary)
-				move_window()
-				num_tasks += 1
 
-		#print num_tasks
-		#output_selectivities()
-		#output_cost()
-		return num_tasks
+				if REAL_DATA :
+					self.simulate_task(ip_pair, workerID, dictionary)
+				else:
+					self.syn_simulate_task(ip_pair, workerID, switch)
 
-	def syn_run_sim(self):
-		"""
-		Runs a single simulation
-		"""
-		num_tasks = 0
-		switch = 0
-
-		#pick a dummy ip_pair
-		ip_pair = IP_Pair()
-
-		while(ip_pair != None):
-			# only increment if worker is actually doing a task
-			workerID = self.pick_worker()
-			if not IP_Pair.objects.filter(isDone=False):
-				ip_pair = None
-
-			elif worker_done(workerID):
-				print "worker has no tasks to do"
-
-			else:
-				ip_pair = pending_eddy(workerID)
-				self.syn_simulate_task(ip_pair, workerID, switch)
 				move_window()
 				num_tasks += 1
 				if num_tasks == 200:
@@ -394,8 +374,14 @@ class SimulationTest(TestCase):
 			ip.num_yes = 0
 			ip.num_no = 0
 			ip.status_votes = 0
-			f.write(str(item_cost) + ',')
+
+			if x == (num_runs - 1) :
+				f.write(str(item_cost))
+			else:
+				f.write(str(item_cost) + ',')
+
 		f.close()
+
 		if DEBUG_FLAG:
 			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_single_pair_cost.csv'
 
@@ -455,6 +441,7 @@ class SimulationTest(TestCase):
 				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker()))
 				self.reset_database()
 		else:
+			sampleData = {}
 			syn_load_data()
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
@@ -467,14 +454,16 @@ class SimulationTest(TestCase):
 			f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
 			for i in range(NUM_SIM):
 				#print i
-				if REAL_DATA:
-					num_tasks = self.run_sim(sampleData)
-				else:
-					num_tasks = self.syn_run_sim()
+				num_tasks = self.run_sim(sampleData)
+
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				# num_incorrect = self.final_item_mismatch(passedItems)
 				# print "This is number of incorrect items: ", num_incorrect
-				f.write(str(num_tasks) + ',')
+				if i == (NUM_SIM - 1) :
+					f.write(str(num_tasks))
+				else:
+					f.write(str(num_tasks) + ',')
+
 				self.reset_database()
 			f.write('\n')
 			f.close()
