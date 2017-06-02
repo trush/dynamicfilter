@@ -46,6 +46,8 @@ RUN_TASKS_COUNT = True
 RUN_DATA_STATS = False
 RUN_AVERAGE_COST = False
 RUN_SINGLE_PAIR = False
+OUTPUT_SELECTIVITIES = False
+OUTPUT_COST = False
 
 class SimulationTest(TestCase):
 	"""
@@ -246,8 +248,12 @@ class SimulationTest(TestCase):
 					switch = 1
 
 		#print num_tasks
-		#output_selectivities()
-		#output_cost()
+		if OUTPUT_SELECTIVITIES:
+			output_selectivities()
+
+		if OUTPUT_COST:
+			output_cost()
+
 		return num_tasks
 
 

@@ -18,8 +18,8 @@ FALSE_THRESHOLD = 0.2
 DECISION_THRESHOLD = 0.5
 CUT_OFF = 21
 
-ITEM_TYPE = "Hotels"
-
+ITEM_TYPE = "Restaurant"
+OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 # indicies of the questions in simulation_files/questions.csv
 CHOSEN_PREDS = [2,3]
 
@@ -228,7 +228,7 @@ def updateCounts(workerTask, chosenIP):
     if workerTask.answer == True:
         chosenIP.value += 1
         chosenIP.num_yes += 1
-        
+
     elif workerTask.answer == False:
         chosenIP.value -= 1
         chosenIP.num_no +=1
@@ -248,7 +248,7 @@ def updateCounts(workerTask, chosenIP):
 
         # we are certain enough about the answer or at cut off point
         if (uncertaintyLevel < UNCERTAINTY_THRESHOLD)|(chosenIP.num_yes+chosenIP.num_no >= CUT_OFF):
-            
+
             #____FOR OUTPUT_SELECTIVITES()____#
             #if not IP_Pair.objects.filter(isDone=True).filter(item=chosenIP.item):
             #    chosenPred.num_ip_complete += 1
@@ -266,7 +266,7 @@ def updateCounts(workerTask, chosenIP):
                 chosenPred.queue_is_full = False
                 chosenIP.item.inQueue = False
                 chosenIP.item.save()
-            
+
             # first update all ip's with failed items
             IP_Pair.objects.filter(item__hasFailed=True).update(isDone=True)
         else:
@@ -289,7 +289,7 @@ def output_selectivities():
     """
     Writes out the sample selectivites from a run
     """
-    f = open('dynamicfilterapp/simulation_files/sample_selectivites.csv', 'a')
+    f = open(OUTPUT_PATH + ITEM_TYPE + '_sample_selectivites.csv', 'a')
     for p in CHOSEN_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
         f.write(str(pred.selectivity) + ", " + str(pred.totalTasks) + ", " + str(pred.num_ip_complete) + "; ")
@@ -300,7 +300,7 @@ def output_cost():
     """
     Writes out the cost of each ip_pair, the average cost for the predicate, and the selectivity for the predicate
     """
-    f = open('dynamicfilterapp/simulation_files/sample_cost.csv', 'a')
+    f = open(OUTPUT_PATH + ITEM_TYPE + '_sample_cost.csv', 'a')
     for p in CHOSEN_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
         f.write(pred.question.question_text + '\n')
