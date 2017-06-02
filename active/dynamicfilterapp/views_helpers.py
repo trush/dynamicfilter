@@ -285,22 +285,22 @@ def updateCounts(workerTask, chosenIP):
     chosenIP.save()
 
 #____________IMPORT/EXPORT CSV FILE____________#
-def output_selectivities():
+def output_selectivities(run_name):
     """
     Writes out the sample selectivites from a run
     """
-    f = open(OUTPUT_PATH + ITEM_TYPE + '_sample_selectivites.csv', 'a')
+    f = open(OUTPUT_PATH + run_name + '_sample_selectivites.csv', 'a')
     for p in CHOSEN_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
         f.write(str(pred.selectivity) + ", " + str(pred.totalTasks) + ", " + str(pred.num_ip_complete) + "; ")
     f.write('\n')
     f.close()
 
-def output_cost():
+def output_cost(run_name):
     """
     Writes out the cost of each ip_pair, the average cost for the predicate, and the selectivity for the predicate
     """
-    f = open(OUTPUT_PATH + ITEM_TYPE + '_sample_cost.csv', 'a')
+    f = open(OUTPUT_PATH + run_name + '_sample_cost.csv', 'a')
     for p in CHOSEN_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
         f.write(pred.question.question_text + '\n')

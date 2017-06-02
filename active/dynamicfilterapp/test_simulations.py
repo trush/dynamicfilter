@@ -41,13 +41,14 @@ DEBUG_FLAG = False
 IP_PAIR_DATA_FILE = 'real_data1.csv'
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-RUN_NAME = 'comma_test'
+RUN_NAME = 'friday'
 RUN_TASKS_COUNT = True
 RUN_DATA_STATS = False
 RUN_AVERAGE_COST = False
 RUN_SINGLE_PAIR = False
-OUTPUT_SELECTIVITIES = False
-OUTPUT_COST = False
+OUTPUT_SELECTIVITIES = True
+OUTPUT_COST = True
+TEST_ACCURACY = False
 
 class SimulationTest(TestCase):
 	"""
@@ -249,10 +250,10 @@ class SimulationTest(TestCase):
 
 		#print num_tasks
 		if OUTPUT_SELECTIVITIES:
-			output_selectivities()
+			output_selectivities(RUN_NAME)
 
 		if OUTPUT_COST:
-			output_cost()
+			output_cost(RUN_NAME)
 
 		return num_tasks
 
@@ -270,8 +271,8 @@ class SimulationTest(TestCase):
 		for item in Item.objects.all():
 			if all(correctAnswers[item,predicate] == True for predicate in predicates):
 				passedItems.append(item)
-		print "number of passed items: ", len(passedItems)
-		print "passed items: ", passedItems
+		#print "number of passed items: ", len(passedItems)
+		#print "passed items: ", passedItems
 		return passedItems
 
 	def final_item_mismatch(self, passedItems):
@@ -451,8 +452,9 @@ class SimulationTest(TestCase):
 			syn_load_data()
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
-		# correctAnswers = self.get_correct_answers('dynamicfilterapp/simulation_files/restaurants/correct_answers.csv')
-		# passedItems = self.get_passed_items(correctAnswers)
+		if TEST_ACCURACY:
+			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv')
+			passedItems = self.get_passed_items(correctAnswers)
 
 		if RUN_TASKS_COUNT:
 			if DEBUG_FLAG:
@@ -463,8 +465,11 @@ class SimulationTest(TestCase):
 				num_tasks = self.run_sim(sampleData)
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
-				# num_incorrect = self.final_item_mismatch(passedItems)
-				# print "This is number of incorrect items: ", num_incorrect
+				if TEST_ACCURACY:
+					num_incorrect = self.final_item_mismatch(passedItems)
+					print "This is number of incorrect items: ", num_incorrect
+					#TODO write this to a csv file?
+
 				if i == (NUM_SIM - 1) :
 					f.write(str(num_tasks))
 				else:
