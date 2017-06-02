@@ -20,7 +20,6 @@ TAGS:
   #MULTIPLE       - currently takes in multiple files
   #NEW            - newschool, uses for format
   #AUTORUN        - is capable of being used for autogenerating graphs (doesn't mean that it currently does)
-  #LOST           - literally can't find the file?
   #SPECIAL_TOPIC  - of questionable value (at least for automation)
 
 
@@ -55,6 +54,7 @@ Plots 5 different algorithms on the same graph for comparison
 Takes in data run from RUN_TASKS_COUNT.
 Should give a more nuanced comparison between algorithms using number of tasks before completion as a metric
 
+
 #LEGACY
 #MULTIPLE
 _percent_done
@@ -63,13 +63,6 @@ This plots the percent of ip_pairs done over the number of tasks for given input
 Currently set to take two different files in, Compare between two different versions of the algorithm
 Can't currently find the Data that should exist to be passed into this function #TODO find the data
 
-
-#LOST?
-_queue_size_sim
-———————————
-This one doesn't appear to exist?
-#TODO remove this section?
-Plots the number of tasks vs. the queue size for synthetic data
 
 #LEGACY
 #MULTIPLE
@@ -92,13 +85,14 @@ Will plot the average task counts vs the queue size
 This data currently can't be auto generated, and must be pieced together from several runs of RUN_TASKS_COUNT
 #TODO talk about the value of this graph, and if we want to be able to auto generate data of this type or not
 
+
 #LEGACY
 _tasks_uncertainty
 ———————————
 Plots the number of tasks vs. the uncertainty level
 Hardcoded to accept only one file, but the file is the result of multiple testing runs
 Looks to compare how well different algorithms hold up under increasing uncertainty
-
+#TODO make single use? split into multiple and single?
 
 #NEW
 #AUTORUN
