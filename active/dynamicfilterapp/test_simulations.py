@@ -14,7 +14,7 @@ import numpy as np
 from random import randint, choice
 import sys
 
-ITEM_TYPE = "Hotels"
+ITEM_TYPE = "Restaurant"
 NUM_WORKERS = 101
 
 # indicies of the questions loaded into database
@@ -37,6 +37,8 @@ CHOSEN_PREDS = [2,3]
 REAL_DATA = True
 NUM_SIM = 2
 DEBUG_FLAG = False
+IP_PAIR_DATA_FILE = 'real_data1.csv'
+INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 RUN_NAME = 'default_name'
 RUN_TASKS_COUNT = True
@@ -57,7 +59,7 @@ class SimulationTest(TestCase):
 		"""
 		# read in the questions
 		ID = 0
-		f = open('dynamicfilterapp/simulation_files/restaurants/questions.csv', 'r')
+		f = open(INPUT_PATH + ITEM_TYPE '_questions.csv', 'r')
 		for line in f:
 			line = line.rstrip('\n')
 			q = Question(question_ID=ID, question_text=line)
@@ -69,7 +71,7 @@ class SimulationTest(TestCase):
 
 		# read in the items
 		ID = 0
-		with open('dynamicfilterapp/simulation_files/restaurants/items.csv', 'r') as f:
+		with open(INPUT_PATH + ITEM_TYPE + '_items.csv', 'r') as f:
 			itemData = f.read()
 		items = itemData.split('\n')
 		for item in items:
@@ -85,7 +87,7 @@ class SimulationTest(TestCase):
 				ip_pair.save()
 
 		# make a dictionary of all the ip_pairs and their values
-		sampleData = self.get_sample_answer_dict('dynamicfilterapp/simulation_files/restaurants/real_data1.csv')
+		sampleData = self.get_sample_answer_dict(INPUT_PATH + IP_PAIR_DATA_FILE)
 		return sampleData
 
 	def get_sample_answer_dict(self, filename):
