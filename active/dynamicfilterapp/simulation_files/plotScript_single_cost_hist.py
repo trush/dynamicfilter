@@ -30,3 +30,12 @@ def single_cost_gen(filename, dest):
     #plt.show()
     now = DT.datetime.now()
     plt.savefig(dest + '_single_cost.png')
+
+
+
+def main():
+	filename = sys.argv[1]
+	single_cost_gen(filename, filename[:-4])
+
+if __name__ == "__main__":
+    main()

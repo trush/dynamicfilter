@@ -12,6 +12,9 @@ PLOTSCRIPTS:
 note - some of these files use seaborn. Be sure to install seaborn with:
 sudo pip install seaborn
 
+note - many of these files break if the input csv ends with a dangling comma,
+please strip your last commas if you're getting a str->float conversion error
+
 TAGS:
   #LEGACY         - oldschool, unchanged
   #MULTIPLE       - currently takes in multiple files
@@ -28,12 +31,14 @@ _accuracy_uncertainty
 This plots the number of incorrect items vs. the uncertainty level
 currently takes in a rather complicated hand crafted file.
 Requires multiple runs of many algorithms with different sets of predicates
+Only really makes sense for synthetic data
 #TODO talk about how this should be automated
+#TODO create a custom method just for this test
 
 
 #NEW
 #AUTORUN
-_alg_hist
+_alg_tasks_hist
 ———————————
 Takes in the data from many runs of the same simulation.
 Plots the distribution of the number of tasks it took to complete a run.
@@ -42,7 +47,7 @@ Takes in data run from RUN_TASKS_COUNT. Now can Auto-Run from the test_simulatio
 
 #LEGACY
 #MULTIPLE
-_alg_hist_multiple
+_alg_tasks_hist_multiple
 ———————————
 This plots a histogram of the number of tasks inside given input files of multiple simulations
 Currently meant to take in 5 different testing outputs #TODO fix this?
@@ -72,6 +77,7 @@ _routed_items
 ———————————
 Displays the number of items routed first to one of two predicates for given input files
 Compares two different algorithms against one another
+Asks for two distinct files one for each algorithm
 Can't find where the data comes from yet
 
 

@@ -1,5 +1,5 @@
-# run with python plotScript_alg_hist.py <filenames>
-
+# run with python plotScript_alg_hist.py <filename>
+# or autorun with tests in test_simulations
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -27,3 +27,11 @@ def alg_count_gen(filename, dest):
 	#plt.tight_layout()
 	#plt.show()
 	plt.savefig(dest + '_task_count.png')
+
+
+def main():
+	filename = sys.argv[1]
+	alg_count_gen(filename, filename[:-4])
+
+if __name__ == "__main__":
+    main()
