@@ -1,9 +1,9 @@
 from models import *
+from toggles import *
 
 import csv
 import sys
 
-ITEM_TYPE = "Hotel"
 # files in the folder pointed to by DATA_PATH should have form
 # <ITEM_TYPE>_suffix.csv to be read properly
 DATA_PATH = 'dynamicfilterapp/simulation_files/hotels/'
