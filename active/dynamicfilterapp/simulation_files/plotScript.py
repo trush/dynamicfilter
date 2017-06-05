@@ -66,6 +66,8 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
     ax.set_xlabel(labels[0])
     ax.set_ylabel(labels[1])
     ax.set_title(title)
+    # Add legend
+    legend = ax.legend()
     #ax.set_xlim(100, 320)
     ax.grid(True)
 
@@ -97,4 +99,32 @@ def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr 
     #plot curve of best fit
     #plt.plot(queue_size, np.poly1d(np.polyfit(queue_size, num_tasks, 1))(queue_size))
     #plt.show()
+    plt.savefig(dest)
+def multi_line_graph_gen(xL, yL, dest, legendList, labels = ('',''), title = '', stderrL = []):
+    # Make the graph
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    # Catch bad data inputs
+    if len(xL) != len(yL):
+        raise ValueError('xL and yL are different lengths!')
+
+    # Plot each given line
+    for i in range(len(xL)):
+        x, y = xL[i], yL[i]
+        # If given errors, plot them
+        if len(stderrL) != 0:
+            std = stderrL[i]
+            ax.errorbar(x,y,yerr=std, label=legendList[i])
+        else:
+            ax.plot(x, y, label=legendList[i])
+
+    # Label the axes
+    plt.xlabel(labels[0])
+    plt.ylabel(labels[1])
+
+    # Title the graph
+    plt.title(title)
+    # Add legend
+    legend = ax.legend()
+    # save
     plt.savefig(dest)
