@@ -71,7 +71,7 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
     ax.grid(True)
     plt.savefig(dest_resolver(dest))
 
-def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr = []):
+def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr = [], square = False):
     """
     Generate a linegraph from a set of x and y points, optional parameters:
         labels a touple in the format ('x-axis label', 'y-axis label')
@@ -81,9 +81,9 @@ def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr 
     std = []
     if len(stderr) != 0:
         std = [stderr]
-    multi_line_graph_gen([xpoints],[ypoints], [''], dest, labels=labels, title = title, stderrL = std)
+    multi_line_graph_gen([xpoints],[ypoints], [''], dest, labels=labels, title = title, stderrL = std, square = square)
 
-def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '', stderrL = []):
+def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '', stderrL = [], square = False):
     """
     plot multiple linegraphs on one graph. takes in lists of lists of x and y
     values for each graph, a list of strings for naming each linegraph and an
@@ -119,4 +119,9 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     if len(xL) > 1:
         legend = ax.legend()
     # save
+    mx = 0
+    for L in xL+yL:
+        mx = max(L)
+    if square:
+        plt.axis([-1,mx,-1,mx])
     plt.savefig(dest_resolver(dest))

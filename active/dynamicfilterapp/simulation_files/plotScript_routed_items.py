@@ -26,7 +26,7 @@ def main():
     dest = 'graphs/routed_items_cost_switch.png'
     labels = ('Syn Question 0','Syn Question 1')
     title = 'Number of Routed First Items (Cost Switch at 200 Tasks)'
-    multi_line_graph_gen(xl, yl, leg, dest, labels = labels, title = title)
+    multi_line_graph_gen(xl, yl, leg, dest, labels = labels, title = title, square = True)
 
 if __name__ == "__main__":
     main()
