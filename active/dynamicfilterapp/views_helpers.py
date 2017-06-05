@@ -21,7 +21,10 @@ CUT_OFF = 21
 ITEM_TYPE = "Restaurant"
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 # indicies of the questions in simulation_files/questions.csv
-CHOSEN_PREDS = [2,3]
+
+CONTROLLED_RUN_PREDS = [3, 2]
+# CHOSEN_PREDS should be a list of 2 predicates (for now). They will be
+# passed items in the order they appear in the list.
 
 # HOTEL PREDICATE INDEX
 # 0 - not selective and not ambiguous
@@ -36,8 +39,7 @@ CHOSEN_PREDS = [2,3]
 # 0,2,9 - most ambiguous questions
 # 2,3,8 - least selective
 
-# one and only one eddy system can be true
-EDDY_SYS = 3
+EDDY_SYS = 1
 # EDDY SYS KEY:
 # 1 - queue pending system
 # 2 - random system
@@ -51,6 +53,9 @@ ITEM_SYS = 2
 
 SLIDING_WINDOW = False
 LIFETIME = 10
+
+SELECTIVITY_PREDS = [2, 3] #predicates whose selectivities we want to estimate
+COST_PREDS = [2, 3]
 
 #_____________EDDY ALGORITHMS____________#
 def worker_done(ID):
@@ -86,7 +91,7 @@ def pending_eddy(ID):
     completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
     incompleteIP = unfinishedList.exclude(id__in=completedIP)
 
-    #if queue_pending_system:
+    #queue_pending_system:
     if (EDDY_SYS == 1):
         # filter out the ips that are not in the queue of full predicates
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
@@ -94,7 +99,7 @@ def pending_eddy(ID):
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
         chosenIP = lotteryPendingQueue(incompleteIP)
 
-    #elif random_system:
+    #random_system:
     elif (EDDY_SYS == 2):
         startedIPs = incompleteIP.filter(isStarted=True)
         if len(startedIPs) != 0:
@@ -103,9 +108,10 @@ def pending_eddy(ID):
         chosenIP.isStarted = True
         chosenIP.save()
 
-    #elif controlled_system:
+    #controlled_system:
     elif (EDDY_SYS == 3):
-        chosenPred = Predicate.objects.get(pk=1+CHOSEN_PREDS[1])
+        #this config will run pred[0] first ALWAYS and then pred[1]
+        chosenPred = Predicate.objects.get(pk=1+CONTROLLED_RUN_PREDS[0])
         tempSet = incompleteIP.filter(predicate=chosenPred)
         if len(tempSet) != 0:
             incompleteIP = tempSet
@@ -303,7 +309,7 @@ def output_selectivities(run_name):
     Writes out the sample selectivites from a run
     """
     f = open(OUTPUT_PATH + run_name + '_sample_selectivites.csv', 'a')
-    for p in CHOSEN_PREDS:
+    for p in SELECTIVITY_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
         f.write(str(pred.selectivity) + ", " + str(pred.totalTasks) + ", " + str(pred.num_ip_complete) + "; ")
     f.write('\n')
@@ -314,7 +320,8 @@ def output_cost(run_name):
     Writes out the cost of each ip_pair, the average cost for the predicate, and the selectivity for the predicate
     """
     f = open(OUTPUT_PATH + run_name + '_sample_cost.csv', 'a')
-    for p in CHOSEN_PREDS:
+
+    for p in COST_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
         f.write(pred.question.question_text + '\n')
         avg_cost = 0.0;

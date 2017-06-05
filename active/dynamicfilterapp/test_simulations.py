@@ -19,7 +19,10 @@ ITEM_TYPE = "Restaurant"
 NUM_WORKERS = 101
 
 # indicies of the questions loaded into database
-CHOSEN_PREDS = [2,3]
+FILTER_BY_PREDS = [2, 3] #predicates we actually want to filter data set by (used for accuracy)
+CONTROLLED_RUN_PREDS = [2,3] #predicates used in a controlled simulated run
+COST_PREDS = [2, 3] #predicates whose cost we want to estimate
+EDDY_SYS = 1
 
 # HOTEL PREDICATE INDEX
 # 0 - not selective and not ambiguous
@@ -85,7 +88,13 @@ class SimulationTest(TestCase):
 			i.save()
 			ID += 1
 
-		predicates = list(Predicate.objects.all()[pred] for pred in CHOSEN_PREDS)
+		if (EDDY_SYS == 3):
+			predicates = list(Predicate.objects.all()[pred] for pred in CONTROLLED_RUN_PREDS)
+
+		else:
+			predicates = list(Predicate.objects.all())
+		print str(predicates)
+
 		itemList = Item.objects.all()
 		for p in predicates:
 			for i in itemList:
@@ -267,7 +276,7 @@ class SimulationTest(TestCase):
 		"""
 		passedItems = []
 		# get chosen predicates
-		predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
+		predicates = [Predicate.objects.get(pk=pred+1) for pred in FILTER_BY_PREDS]
 
 		#filter out all items that pass all predicates
 		for item in Item.objects.all():
@@ -293,7 +302,7 @@ class SimulationTest(TestCase):
 			print "Running: sim_average_cost"
 		f = open(OUTPUT_PATH + RUN_NAME + '_estimated_costs.csv', 'a')
 
-		for p in CHOSEN_PREDS:
+		for p in CONTROLLED_RUN_PREDS:
 			pred_cost = 0.0
 			pred = Predicate.objects.all().get(pk=p+1)
 			f.write(pred.question.question_text + '\n')
@@ -428,7 +437,7 @@ class SimulationTest(TestCase):
 
 			print "ITEM_TYPE: " + ITEM_TYPE
 			print "NUM_WORKERS: " + str(NUM_WORKERS)
-			print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
+			#print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
 			print "REAL_DATA: " + str(REAL_DATA)
 			print "INPUT_PATH: " + INPUT_PATH
 			print "OUTPUT_PATH: " + OUTPUT_PATH
