@@ -37,14 +37,22 @@ CHOSEN_PREDS = [2,3]
 # 2,3,8 - least selective
 
 # one and only one eddy system can be true
-queue_pending_system = False
-random_system = True
-controlled_system = False
+EDDY_SYS = 3
+#KEY:
+# 1 - queue pending system
+# 2 - random system
+# 3 - controlled system
 
-item_started_system = False
-item_almost_false_system = False
+ITEM_SYS = 2
+# KEY:
+# 0 - randomly choose an item
+# 1 - item-started system
+# 2 - item-almost-false system
 
-sliding_window = False
+#item_started_system = False
+#item_almost_false_system = False
+
+SLIDING_WINDOW = False
 LIFETIME = 10
 
 #_____________EDDY ALGORITHMS____________#
@@ -56,7 +64,8 @@ def worker_done(ID):
     completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
     incompleteIP = IP_Pair.objects.filter(isDone=False).exclude(id__in=completedIP)
 
-    if queue_pending_system:
+    if (EDDY_SYS == 1):
+    #if queue_pending_system:
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
@@ -80,14 +89,16 @@ def pending_eddy(ID):
     completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
     incompleteIP = unfinishedList.exclude(id__in=completedIP)
 
-    if queue_pending_system:
+    #if queue_pending_system:
+    if (EDDY_SYS == 1):
         # filter out the ips that are not in the queue of full predicates
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
         chosenIP = lotteryPendingQueue(incompleteIP)
 
-    elif random_system:
+    #elif random_system:
+    elif (EDDY_SYS == 2):
         startedIPs = incompleteIP.filter(isStarted=True)
         if len(startedIPs) != 0:
             incompleteIP = startedIPs
@@ -95,7 +106,8 @@ def pending_eddy(ID):
         chosenIP.isStarted = True
         chosenIP.save()
 
-    elif controlled_system:
+    #elif controlled_system:
+    elif (EDDY_SYS == 3):
         chosenPred = Predicate.objects.get(pk=1+CHOSEN_PREDS[1])
         tempSet = incompleteIP.filter(predicate=chosenPred)
         if len(tempSet) != 0:
@@ -108,7 +120,7 @@ def move_window():
     """
     Checks to see if ticket has reached lifetime
     """
-    if sliding_window:
+    if SLIDING_WINDOW:
         # get the chosen predicates
         pred = Predicate.objects.filter(pk__in=[p+1 for p in CHOSEN_PREDS])
 
@@ -127,12 +139,14 @@ def chooseItem(ipSet):
     """
     Chooses random item for right now
     """
-    if item_started_system:
+    if (ITEM_SYS == 1):
+    #if item_started_system:
         tempSet = ipSet.filter(item__isStarted=True)
         if len(tempSet) != 0:
             ipSet = tempSet
 
-    if item_almost_false_system:
+    elif (ITEM_SYS == 2):
+    #if item_almost_false_system:
         tempSet = ipSet.filter(item__almostFalse=True)
         if len(tempSet) != 0:
             ipSet = tempSet
@@ -149,7 +163,6 @@ def lotteryPendingTickets(ipSet):
     seen = set()
     seen_add = seen.add
     predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
-    print predicates
 
     weightList = np.array([(pred.num_tickets - pred.num_pending) for pred in predicates])
     # make everything positive
@@ -160,7 +173,7 @@ def lotteryPendingTickets(ipSet):
     if totalTickets == 0:
         chosenPred = choice(predicates)
     else:
-        print weightList
+        #print weightList
         probList = [float(weight)/float(totalTickets) for weight in weightList]
         #print probList
         chosenPred = np.random.choice(predicates, p=probList)
@@ -175,7 +188,7 @@ def lotteryPendingTickets(ipSet):
     chosenIP.predicate.num_pending += 1
     chosenIP.predicate.save()
 
-    print chosenIP
+    #print chosenIP
     return chosenIP
 
 def lotteryPendingQueue(ipSet):
@@ -184,9 +197,11 @@ def lotteryPendingQueue(ipSet):
     """
     # make list of possible predicates and remove duplicates
     predicates = [ip.predicate for ip in ipSet]
+    #print str(predicates) + "before seen are removed"
     seen = set()
     seen_add = seen.add
     predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
+    #print str(predicates) + "after seen are removed"
 
     #choose the predicate
     weightList = np.array([pred.num_tickets for pred in predicates])
@@ -260,7 +275,8 @@ def updateCounts(workerTask, chosenIP):
             chosenIP.item.save()
 
             # take one from the queue
-            if queue_pending_system:
+            if (EDDY_SYS == 1):
+            #if queue_pending_system:
                 chosenIP.inQueue = False
                 chosenPred.num_pending -= 1
                 chosenPred.queue_is_full = False

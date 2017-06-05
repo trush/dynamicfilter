@@ -36,19 +36,19 @@ CHOSEN_PREDS = [2,3]
 
 ## Modularity settings (WIP)
 REAL_DATA = True
-NUM_SIM = 2
-DEBUG_FLAG = False
+NUM_SIM = 1
+DEBUG_FLAG = True
 IP_PAIR_DATA_FILE = 'real_data1.csv'
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-RUN_NAME = 'friday'
+RUN_NAME = 'monday0505'
 RUN_TASKS_COUNT = True
-RUN_DATA_STATS = False
-RUN_AVERAGE_COST = False
-RUN_SINGLE_PAIR = False
+RUN_DATA_STATS = True
+RUN_AVERAGE_COST = True
+RUN_SINGLE_PAIR = True
 OUTPUT_SELECTIVITIES = True
 OUTPUT_COST = True
-TEST_ACCURACY = False
+TEST_ACCURACY = True
 
 class SimulationTest(TestCase):
 	"""
@@ -214,7 +214,7 @@ class SimulationTest(TestCase):
 
 	def run_sim(self, dictionary):
 		"""
-		Runs a single simulation (either using real or syhthetic data depending on
+		Runs a single simulation (either using real or synthetic data depending on
 		setting at top of test_simulations.py)
 		Returns an integer: total number of tasks completed in the sim
 		"""
@@ -425,10 +425,11 @@ class SimulationTest(TestCase):
 			print "Debug Flag Set!"
 
 			print "ITEM_TYPE: " + ITEM_TYPE
-			print "NUM_WORKERS" + str(NUM_WORKERS)
+			print "NUM_WORKERS: " + str(NUM_WORKERS)
 			print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
 			print "REAL_DATA: " + str(REAL_DATA)
 			print "NUM_SIM: " + str(NUM_SIM)
+			print "INPUT_PATH: " + INPUT_PATH
 			print "OUTPUT_PATH: " + OUTPUT_PATH
 			print "RUN_NAME: " + RUN_NAME
 			print "RUN_TASKS_COUNT: " + str(RUN_TASKS_COUNT)
