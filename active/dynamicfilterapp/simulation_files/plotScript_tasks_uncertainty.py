@@ -44,7 +44,7 @@ def main():
     labels = ('Tasks Completed','Uncertainty')
     title = 'Tasks Completed vs Uncertainty'
 
-    multi_line_graph_gen(xlist, ylist, dest, legends, labels = labels, title = title, stderrL = slist)
+    multi_line_graph_gen(xlist, ylist, legends, dest, labels = labels, title = title, stderrL = slist)
 
 if __name__ == "__main__":
     main()

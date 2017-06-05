@@ -18,7 +18,7 @@ please strip your last commas if you're getting a str->float conversion error
 TAGS:
   #LEGACY         - oldschool, unchanged
   #MULTIPLE       - currently takes in multiple files
-  #NEW            - newschool, uses for format
+  #UPDATED            - newschool, uses for format
   #AUTORUN        - is capable of being used for autogenerating graphs (doesn't mean that it currently does)
   #SPECIAL_TOPIC  - of questionable value (at least for automation)
 
@@ -35,7 +35,7 @@ Only really makes sense for synthetic data
 #TODO create a custom method just for this test
 
 
-#NEW
+#UPDATED
 #AUTORUN
 _alg_tasks_hist
 ———————————
@@ -44,7 +44,7 @@ Plots the distribution of the number of tasks it took to complete a run.
 Takes in data run from RUN_TASKS_COUNT. Now can Auto-Run from the test_simulations file.
 
 
-#LEGACY
+#UPDATED
 #MULTIPLE
 _alg_tasks_hist_multiple
 ———————————
@@ -57,22 +57,22 @@ Should give a more nuanced comparison between algorithms using number of tasks b
 
 #LEGACY
 #MULTIPLE
+#MYSTERY?
 _percent_done
 ———————————
 This plots the percent of ip_pairs done over the number of tasks for given input files
 Currently set to take two different files in, Compare between two different versions of the algorithm
-Can't currently find the Data that should exist to be passed into this function #TODO find the data
+Can't currently find the Data that should exist to be passed into this function
 
 
-#LEGACY
+#UPDATED
 #MULTIPLE
 _routed_items
 ———————————
 Displays the number of items routed first to one of two predicates for given input files
 Compares two different algorithms against one another
 Asks for two distinct files one for each algorithm
-Can't find where the data comes from yet
-
+#TODO find data
 
 #LEGACY
 #SPECIAL_TOPIC
@@ -86,7 +86,8 @@ This data currently can't be auto generated, and must be pieced together from se
 #TODO talk about the value of this graph, and if we want to be able to auto generate data of this type or not
 
 
-#LEGACY
+#UPDATED
+#SPECIAL_TOPIC
 _tasks_uncertainty
 ———————————
 Plots the number of tasks vs. the uncertainty level
@@ -94,7 +95,7 @@ Hardcoded to accept only one file, but the file is the result of multiple testin
 Looks to compare how well different algorithms hold up under increasing uncertainty
 #TODO make single use? split into multiple and single?
 
-#NEW
+#UPDATED
 #AUTORUN
 _single_cost_hist
 ———————————
