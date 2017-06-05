@@ -36,16 +36,18 @@ CHOSEN_PREDS = [2,3]
 
 ## Modularity settings (WIP)
 REAL_DATA = True
-NUM_SIM = 1
 DEBUG_FLAG = True
 IP_PAIR_DATA_FILE = 'real_data1.csv'
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 RUN_NAME = 'monday0505'
 RUN_TASKS_COUNT = True
+NUM_SIM = 1
 RUN_DATA_STATS = True
 RUN_AVERAGE_COST = True
+COST_SAMPLES = 1000
 RUN_SINGLE_PAIR = True
+SINGLE_PAIR_RUNS = 5000
 OUTPUT_SELECTIVITIES = True
 OUTPUT_COST = True
 TEST_ACCURACY = True
@@ -280,7 +282,7 @@ class SimulationTest(TestCase):
 		Returns the number of incorrect items
 		"""
 		sim_passedItems = Item.objects.all().filter(hasFailed=False)
-		print sim_passedItems
+		#print sim_passedItems
 		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
 
 	def sim_average_cost(self, dictionary):
@@ -299,8 +301,8 @@ class SimulationTest(TestCase):
 			#iterate through to find each ip cost
 			for ip in IP_Pair.objects.filter(predicate=pred):
 				item_cost = 0.0
-				# sample 1000 times
-				for x in range(1000):
+				# sample COST_SAMPLES times
+				for x in range(COST_SAMPLES):
 					# running one sampling
 					while ip.status_votes < NUM_CERTAIN_VOTES:
 						# get the vote
@@ -331,7 +333,7 @@ class SimulationTest(TestCase):
 					ip.num_no = 0
 					ip.status_votes = 0
 
-				item_cost = item_cost/1000.0
+				item_cost = item_cost/float(COST_SAMPLES)
 				pred_cost += item_cost
 				f.write(ip.item.name + ': ' + str(item_cost) + " ")
 
@@ -349,8 +351,8 @@ class SimulationTest(TestCase):
 			print "Running: sim_single_pair_cost"
 
 		f = open(OUTPUT_PATH + RUN_NAME + '_single_pair_cost.csv', 'w')
-		num_runs = 5000
-		for x in range(num_runs):
+		#num_runs = 5000
+		for x in range(SINGLE_PAIR_RUNS):
 			item_cost = 0
 			# running one sampling
 			while ip.status_votes < NUM_CERTAIN_VOTES:
@@ -382,7 +384,7 @@ class SimulationTest(TestCase):
 			ip.num_no = 0
 			ip.status_votes = 0
 
-			if x == (num_runs - 1) :
+			if x == (SINGLE_PAIR_RUNS - 1) :
 				f.write(str(item_cost))
 			else:
 				f.write(str(item_cost) + ',')
@@ -428,14 +430,24 @@ class SimulationTest(TestCase):
 			print "NUM_WORKERS: " + str(NUM_WORKERS)
 			print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
 			print "REAL_DATA: " + str(REAL_DATA)
-			print "NUM_SIM: " + str(NUM_SIM)
 			print "INPUT_PATH: " + INPUT_PATH
 			print "OUTPUT_PATH: " + OUTPUT_PATH
 			print "RUN_NAME: " + RUN_NAME
 			print "RUN_TASKS_COUNT: " + str(RUN_TASKS_COUNT)
+
+			if RUN_TASKS_COUNT:
+				print "NUM_SIM: " + str(NUM_SIM)
+
 			print "RUN_DATA_STATS: " + str(RUN_DATA_STATS)
+
 			print "RUN_AVERAGE_COST: " + str(RUN_AVERAGE_COST)
+			if RUN_AVERAGE_COST:
+				print "Number of samples for avg. cost: " + str(COST_SAMPLES)
+
 			print "RUN_SINGLE_PAIR: " + str(RUN_SINGLE_PAIR)
+			if RUN_SINGLE_PAIR:
+				print "Number of runs for single pair data: " + str(SINGLE_PAIR_RUNS)
+
 
 		if REAL_DATA:
 			sampleData = self.load_data()

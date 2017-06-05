@@ -38,19 +38,16 @@ CHOSEN_PREDS = [2,3]
 
 # one and only one eddy system can be true
 EDDY_SYS = 3
-#KEY:
+# EDDY SYS KEY:
 # 1 - queue pending system
 # 2 - random system
 # 3 - controlled system
 
 ITEM_SYS = 2
-# KEY:
+# ITEM SYS KEY:
 # 0 - randomly choose an item
 # 1 - item-started system
 # 2 - item-almost-false system
-
-#item_started_system = False
-#item_almost_false_system = False
 
 SLIDING_WINDOW = False
 LIFETIME = 10
@@ -289,7 +286,7 @@ def updateCounts(workerTask, chosenIP):
             chosenIP.status_votes -= 2
 
     # POSSIBLE IMPLEMENTAION OF ALMOST_FALSE
-    elif item_almost_false_system and chosenIP.value < 0:
+    elif ((ITEM_SYS == 2) and (chosenIP.value < 0)):
         uncertainty = btdtr(chosenIP.num_no+1,chosenIP.num_yes+1, DECISION_THRESHOLD)
         if uncertainty < FALSE_THRESHOLD:
             chosenIP.item.almostFalse = True
