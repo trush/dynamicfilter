@@ -1,7 +1,7 @@
 import datetime as DT
 now = DT.datetime.now()
 
-RUN_NAME = 'monday0505' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'toggles' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 #TODO: integrate this file with existing files to ensure same stuff happens
 
 ITEM_TYPE = "Restaurant"
@@ -12,16 +12,24 @@ IP_PAIR_DATA_FILE = 'real_data1.csv'
 
 DEBUG_FLAG = True # useful print statements turned on
 
+####################### CONFIGURING CONSENSUS ##############################
+NUM_CERTAIN_VOTES = 5
+UNCERTAINTY_THRESHOLD = 0.2
+FALSE_THRESHOLD = 0.2
+DECISION_THRESHOLD = 0.5
+CUT_OFF = 21
+
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
-EDDY_SYS = 3
+NUM_WORKERS = 101
+EDDY_SYS = 1
 # EDDY SYS KEY:
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
-CONTROLLED_RUN_PREDS = [3, 2] #predicates used in a controlled simulated run
+CONTROLLED_RUN_PREDS = [2, 3] #predicates used in a controlled simulated run
 # CONTROLLED_RUN_PREDS should be a list of 2 predicates (for now). They will be
 # passed items in the order they appear in the list.
 
@@ -38,7 +46,7 @@ CONTROLLED_RUN_PREDS = [3, 2] #predicates used in a controlled simulated run
 # 0,2,9 - most ambiguous questions
 # 2,3,8 - least selective
 
-ITEM_SYS = 2
+ITEM_SYS = 0
 # ITEM SYS KEY:
 # 0 - randomly choose an item
 # 1 - item-started system
@@ -70,7 +78,7 @@ TEST_ACCURACY = True
 FILTER_BY_PREDS = [2, 3] # predicates we want to check successful filtering by
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
-NUM_SIM = 1 # how many simulations to run?
+NUM_SIM = 3 # how many simulations to run?
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_SELECTIVITIES = True

@@ -6,56 +6,12 @@ from math import exp
 from django.db.models import Q
 from django.db.models import F
 
+from toggles import *
+
 import csv
 import sys
 import math
 import random
-
-NUM_CERTAIN_VOTES = 5
-PENDING_QUEUE_SIZE = 1
-UNCERTAINTY_THRESHOLD = 0.2
-FALSE_THRESHOLD = 0.2
-DECISION_THRESHOLD = 0.5
-CUT_OFF = 21
-
-ITEM_TYPE = "Restaurant"
-OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-# indicies of the questions in simulation_files/questions.csv
-
-CONTROLLED_RUN_PREDS = [3, 2]
-# CHOSEN_PREDS should be a list of 2 predicates (for now). They will be
-# passed items in the order they appear in the list.
-
-# HOTEL PREDICATE INDEX
-# 0 - not selective and not ambiguous
-# 1 - selective and not ambiguous
-# 2 - not selective and medium ambiguity
-# 3 - medium selectivity and ambiguous
-# 4 - not selective and not ambiguous
-
-# RESTAURANT PREDICATE INDEX
-# 1,4,5 - three most selective
-# 4,5,8 - least ambiguous questions
-# 0,2,9 - most ambiguous questions
-# 2,3,8 - least selective
-
-EDDY_SYS = 1
-# EDDY SYS KEY:
-# 1 - queue pending system
-# 2 - random system
-# 3 - controlled system
-
-ITEM_SYS = 2
-# ITEM SYS KEY:
-# 0 - randomly choose an item
-# 1 - item-started system
-# 2 - item-almost-false system
-
-SLIDING_WINDOW = False
-LIFETIME = 10
-
-SELECTIVITY_PREDS = [2, 3] #predicates whose selectivities we want to estimate
-COST_PREDS = [2, 3]
 
 #_____________EDDY ALGORITHMS____________#
 def worker_done(ID):

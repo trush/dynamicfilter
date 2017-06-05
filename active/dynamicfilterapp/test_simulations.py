@@ -8,52 +8,13 @@ from django.test import TestCase
 from views_helpers import *
 from .models import *
 from synthesized_data import *
+from toggles import *
 
 # # Python tools
 import numpy as np
 from random import randint, choice
 import sys
 import io
-
-ITEM_TYPE = "Restaurant"
-NUM_WORKERS = 101
-
-# indicies of the questions loaded into database
-FILTER_BY_PREDS = [2, 3] #predicates we actually want to filter data set by (used for accuracy)
-CONTROLLED_RUN_PREDS = [2,3] #predicates used in a controlled simulated run
-COST_PREDS = [2, 3] #predicates whose cost we want to estimate
-EDDY_SYS = 1
-
-# HOTEL PREDICATE INDEX
-# 0 - not selective and not ambiguous
-# 1 - selective and not ambiguous
-# 2 - not selective and medium ambiguity
-# 3 - medium selectivity and ambiguous
-# 4 - not selective and not ambiguous
-
-# RESTAURANT PREDICATE INDEX
-# 1,4,5 - three most selective
-# 4,5,8 - least ambiguous questions
-# 0,2,9 - most ambiguous questions
-# 2,3,8 - least selective
-
-## Modularity settings (WIP)
-REAL_DATA = True
-DEBUG_FLAG = True
-IP_PAIR_DATA_FILE = 'real_data1.csv'
-INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
-OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-RUN_NAME = 'monday0505'
-RUN_TASKS_COUNT = True
-NUM_SIM = 1
-RUN_DATA_STATS = True
-RUN_AVERAGE_COST = True
-COST_SAMPLES = 1000
-RUN_SINGLE_PAIR = True
-SINGLE_PAIR_RUNS = 5000
-OUTPUT_SELECTIVITIES = True
-OUTPUT_COST = True
-TEST_ACCURACY = True
 
 class SimulationTest(TestCase):
 	"""
@@ -93,7 +54,7 @@ class SimulationTest(TestCase):
 
 		else:
 			predicates = list(Predicate.objects.all())
-		print str(predicates)
+		#print str(predicates)
 
 		itemList = Item.objects.all()
 		for p in predicates:
@@ -437,15 +398,11 @@ class SimulationTest(TestCase):
 
 			print "ITEM_TYPE: " + ITEM_TYPE
 			print "NUM_WORKERS: " + str(NUM_WORKERS)
-			#print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
 			print "REAL_DATA: " + str(REAL_DATA)
 			print "INPUT_PATH: " + INPUT_PATH
 			print "OUTPUT_PATH: " + OUTPUT_PATH
 			print "RUN_NAME: " + RUN_NAME
-			print "RUN_TASKS_COUNT: " + str(RUN_TASKS_COUNT)
 
-			if RUN_TASKS_COUNT:
-				print "NUM_SIM: " + str(NUM_SIM)
 
 			print "RUN_DATA_STATS: " + str(RUN_DATA_STATS)
 
@@ -456,6 +413,27 @@ class SimulationTest(TestCase):
 			print "RUN_SINGLE_PAIR: " + str(RUN_SINGLE_PAIR)
 			if RUN_SINGLE_PAIR:
 				print "Number of runs for single pair data: " + str(SINGLE_PAIR_RUNS)
+
+			print "TEST_ACCURACY: " + str(TEST_ACCURACY)
+
+			if TEST_ACCURACY:
+				print "Preds for accuracy test: " + str(FILTER_BY_PREDS)
+
+			print "RUN_TASKS_COUNT: " + str(RUN_TASKS_COUNT)
+
+			if RUN_TASKS_COUNT:
+				print "NUM_SIM: " + str(NUM_SIM)
+
+				if (EDDY_SYS == 3):
+					print "CONTROLLED_RUN_PREDS: " + str(CONTROLLED_RUN_PREDS)
+
+				print "OUTPUT_SELECTIVITIES: " + str(SELECTIVITY_PREDS)
+				if OUTPUT_SELECTIVITIES:
+					print "SELECTIVITY_PREDS: " + str(SELECTIVITY_PREDS)
+
+				print "OUTPUT_COST: " + str(OUTPUT_COST)
+				if OUTPUT_COST:
+					print "COST_PREDS: " + str(COST_PREDS)
 
 
 		if REAL_DATA:
