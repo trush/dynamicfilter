@@ -49,7 +49,7 @@ def syn_answer(chosenIP, switch):
 		value = decision(cost_prob_list[ID])
 
 	return value
-	
+
 def decision(probability):
 	"""
 	return true or false based on probability that the answer will be true

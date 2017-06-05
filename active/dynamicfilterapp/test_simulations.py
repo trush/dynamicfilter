@@ -8,41 +8,13 @@ from django.test import TestCase
 from views_helpers import *
 from .models import *
 from synthesized_data import *
+from toggles import *
 
 # # Python tools
 import numpy as np
 from random import randint, choice
 import sys
-
-ITEM_TYPE = "Hotels"
-NUM_WORKERS = 101
-
-# indicies of the questions loaded into database
-CHOSEN_PREDS = [2,3]
-
-# HOTEL PREDICATE INDEX
-# 0 - not selective and not ambiguous
-# 1 - selective and not ambiguous
-# 2 - not selective and medium ambiguity
-# 3 - medium selectivity and ambiguous
-# 4 - not selective and not ambiguous
-
-# RESTAURANT PREDICATE INDEX
-# 1,4,5 - three most selective
-# 4,5,8 - least ambiguous questions
-# 0,2,9 - most ambiguous questions
-# 2,3,8 - least selective
-
-## Modularity settings (WIP)
-REAL_DATA = True
-NUM_SIM = 2
-DEBUG_FLAG = False
-OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-RUN_NAME = 'default_name'
-RUN_TASKS_COUNT = True
-RUN_DATA_STATS = True
-RUN_AVERAGE_COST = True
-RUN_SINGLE_PAIR = True
+import io
 
 class SimulationTest(TestCase):
 	"""
@@ -57,7 +29,7 @@ class SimulationTest(TestCase):
 		"""
 		# read in the questions
 		ID = 0
-		f = open('dynamicfilterapp/simulation_files/restaurants/questions.csv', 'r')
+		f = open(INPUT_PATH + ITEM_TYPE + '_questions.csv', 'r')
 		for line in f:
 			line = line.rstrip('\n')
 			q = Question(question_ID=ID, question_text=line)
@@ -69,7 +41,7 @@ class SimulationTest(TestCase):
 
 		# read in the items
 		ID = 0
-		with open('dynamicfilterapp/simulation_files/restaurants/items.csv', 'r') as f:
+		with open(INPUT_PATH + ITEM_TYPE + '_items.csv', 'r') as f:
 			itemData = f.read()
 		items = itemData.split('\n')
 		for item in items:
@@ -77,7 +49,13 @@ class SimulationTest(TestCase):
 			i.save()
 			ID += 1
 
-		predicates = list(Predicate.objects.all()[pred] for pred in CHOSEN_PREDS)
+		if (EDDY_SYS == 3):
+			predicates = list(Predicate.objects.all()[pred] for pred in CONTROLLED_RUN_PREDS)
+
+		else:
+			predicates = list(Predicate.objects.all())
+		#print str(predicates)
+
 		itemList = Item.objects.all()
 		for p in predicates:
 			for i in itemList:
@@ -85,7 +63,7 @@ class SimulationTest(TestCase):
 				ip_pair.save()
 
 		# make a dictionary of all the ip_pairs and their values
-		sampleData = self.get_sample_answer_dict('dynamicfilterapp/simulation_files/restaurants/real_data1.csv')
+		sampleData = self.get_sample_answer_dict(INPUT_PATH + IP_PAIR_DATA_FILE)
 		return sampleData
 
 	def get_sample_answer_dict(self, filename):
@@ -205,11 +183,15 @@ class SimulationTest(TestCase):
 			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
 
+
 	def run_sim(self, dictionary):
 		"""
-		Runs a single simulation
+		Runs a single simulation (either using real or synthetic data depending on
+		setting at top of test_simulations.py)
+		Returns an integer: total number of tasks completed in the sim
 		"""
 		num_tasks = 0
+		switch = 0
 
 		#pick a dummy ip_pair
 		ip_pair = IP_Pair()
@@ -227,45 +209,24 @@ class SimulationTest(TestCase):
 
 			else:
 				ip_pair = pending_eddy(workerID)
-				self.simulate_task(ip_pair, workerID, dictionary)
-				move_window()
-				num_tasks += 1
 
-		#print num_tasks
-		#output_selectivities()
-		#output_cost()
-		return num_tasks
+				if REAL_DATA :
+					self.simulate_task(ip_pair, workerID, dictionary)
+				else:
+					self.syn_simulate_task(ip_pair, workerID, switch)
 
-	def syn_run_sim(self):
-		"""
-		Runs a single simulation
-		"""
-		num_tasks = 0
-		switch = 0
-
-		#pick a dummy ip_pair
-		ip_pair = IP_Pair()
-
-		while(ip_pair != None):
-			# only increment if worker is actually doing a task
-			workerID = self.pick_worker()
-			if not IP_Pair.objects.filter(isDone=False):
-				ip_pair = None
-
-			elif worker_done(workerID):
-				print "worker has no tasks to do"
-
-			else:
-				ip_pair = pending_eddy(workerID)
-				self.syn_simulate_task(ip_pair, workerID, switch)
 				move_window()
 				num_tasks += 1
 				if num_tasks == 200:
 					switch = 1
 
 		#print num_tasks
-		#output_selectivities()
-		#output_cost()
+		if OUTPUT_SELECTIVITIES:
+			output_selectivities(RUN_NAME)
+
+		if OUTPUT_COST:
+			output_cost(RUN_NAME)
+
 		return num_tasks
 
 
@@ -276,14 +237,14 @@ class SimulationTest(TestCase):
 		"""
 		passedItems = []
 		# get chosen predicates
-		predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
+		predicates = [Predicate.objects.get(pk=pred+1) for pred in FILTER_BY_PREDS]
 
 		#filter out all items that pass all predicates
 		for item in Item.objects.all():
 			if all(correctAnswers[item,predicate] == True for predicate in predicates):
 				passedItems.append(item)
-		print "number of passed items: ", len(passedItems)
-		print "passed items: ", passedItems
+		#print "number of passed items: ", len(passedItems)
+		#print "passed items: ", passedItems
 		return passedItems
 
 	def final_item_mismatch(self, passedItems):
@@ -291,7 +252,7 @@ class SimulationTest(TestCase):
 		Returns the number of incorrect items
 		"""
 		sim_passedItems = Item.objects.all().filter(hasFailed=False)
-		print sim_passedItems
+		#print sim_passedItems
 		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
 
 	def sim_average_cost(self, dictionary):
@@ -302,7 +263,7 @@ class SimulationTest(TestCase):
 			print "Running: sim_average_cost"
 		f = open(OUTPUT_PATH + RUN_NAME + '_estimated_costs.csv', 'a')
 
-		for p in CHOSEN_PREDS:
+		for p in CONTROLLED_RUN_PREDS:
 			pred_cost = 0.0
 			pred = Predicate.objects.all().get(pk=p+1)
 			f.write(pred.question.question_text + '\n')
@@ -310,8 +271,8 @@ class SimulationTest(TestCase):
 			#iterate through to find each ip cost
 			for ip in IP_Pair.objects.filter(predicate=pred):
 				item_cost = 0.0
-				# sample 1000 times
-				for x in range(1000):
+				# sample COST_SAMPLES times
+				for x in range(COST_SAMPLES):
 					# running one sampling
 					while ip.status_votes < NUM_CERTAIN_VOTES:
 						# get the vote
@@ -342,7 +303,7 @@ class SimulationTest(TestCase):
 					ip.num_no = 0
 					ip.status_votes = 0
 
-				item_cost = item_cost/1000.0
+				item_cost = item_cost/float(COST_SAMPLES)
 				pred_cost += item_cost
 				f.write(ip.item.name + ': ' + str(item_cost) + " ")
 
@@ -360,8 +321,8 @@ class SimulationTest(TestCase):
 			print "Running: sim_single_pair_cost"
 
 		f = open(OUTPUT_PATH + RUN_NAME + '_single_pair_cost.csv', 'w')
-		num_runs = 5000
-		for x in range(num_runs):
+		#num_runs = 5000
+		for x in range(SINGLE_PAIR_RUNS):
 			item_cost = 0
 			# running one sampling
 			while ip.status_votes < NUM_CERTAIN_VOTES:
@@ -392,8 +353,14 @@ class SimulationTest(TestCase):
 			ip.num_yes = 0
 			ip.num_no = 0
 			ip.status_votes = 0
-			f.write(str(item_cost) + ',')
+
+			if x == (SINGLE_PAIR_RUNS - 1) :
+				f.write(str(item_cost))
+			else:
+				f.write(str(item_cost) + ',')
+
 		f.close()
+
 		if DEBUG_FLAG:
 			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_single_pair_cost.csv'
 
@@ -430,16 +397,44 @@ class SimulationTest(TestCase):
 			print "Debug Flag Set!"
 
 			print "ITEM_TYPE: " + ITEM_TYPE
-			print "NUM_WORKERS" + str(NUM_WORKERS)
-			print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
+			print "NUM_WORKERS: " + str(NUM_WORKERS)
 			print "REAL_DATA: " + str(REAL_DATA)
-			print "NUM_SIM: " + str(NUM_SIM)
+			print "INPUT_PATH: " + INPUT_PATH
 			print "OUTPUT_PATH: " + OUTPUT_PATH
 			print "RUN_NAME: " + RUN_NAME
-			print "RUN_TASKS_COUNT: " + str(RUN_TASKS_COUNT)
+
+
 			print "RUN_DATA_STATS: " + str(RUN_DATA_STATS)
+
 			print "RUN_AVERAGE_COST: " + str(RUN_AVERAGE_COST)
+			if RUN_AVERAGE_COST:
+				print "Number of samples for avg. cost: " + str(COST_SAMPLES)
+
 			print "RUN_SINGLE_PAIR: " + str(RUN_SINGLE_PAIR)
+			if RUN_SINGLE_PAIR:
+				print "Number of runs for single pair data: " + str(SINGLE_PAIR_RUNS)
+
+			print "TEST_ACCURACY: " + str(TEST_ACCURACY)
+
+			if TEST_ACCURACY:
+				print "Preds for accuracy test: " + str(FILTER_BY_PREDS)
+
+			print "RUN_TASKS_COUNT: " + str(RUN_TASKS_COUNT)
+
+			if RUN_TASKS_COUNT:
+				print "NUM_SIM: " + str(NUM_SIM)
+
+				if (EDDY_SYS == 3):
+					print "CONTROLLED_RUN_PREDS: " + str(CONTROLLED_RUN_PREDS)
+
+				print "OUTPUT_SELECTIVITIES: " + str(SELECTIVITY_PREDS)
+				if OUTPUT_SELECTIVITIES:
+					print "SELECTIVITY_PREDS: " + str(SELECTIVITY_PREDS)
+
+				print "OUTPUT_COST: " + str(OUTPUT_COST)
+				if OUTPUT_COST:
+					print "COST_PREDS: " + str(COST_PREDS)
+
 
 		if REAL_DATA:
 			sampleData = self.load_data()
@@ -453,11 +448,13 @@ class SimulationTest(TestCase):
 				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker()))
 				self.reset_database()
 		else:
+			sampleData = {}
 			syn_load_data()
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
-		# correctAnswers = self.get_correct_answers('dynamicfilterapp/simulation_files/restaurants/correct_answers.csv')
-		# passedItems = self.get_passed_items(correctAnswers)
+		if TEST_ACCURACY:
+			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv')
+			passedItems = self.get_passed_items(correctAnswers)
 
 		if RUN_TASKS_COUNT:
 			if DEBUG_FLAG:
@@ -465,14 +462,19 @@ class SimulationTest(TestCase):
 			f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
 			for i in range(NUM_SIM):
 				#print i
-				if REAL_DATA:
-					num_tasks = self.run_sim(sampleData)
-				else:
-					num_tasks = self.syn_run_sim()
+				num_tasks = self.run_sim(sampleData)
+
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
-				# num_incorrect = self.final_item_mismatch(passedItems)
-				# print "This is number of incorrect items: ", num_incorrect
-				f.write(str(num_tasks) + ',')
+				if TEST_ACCURACY:
+					num_incorrect = self.final_item_mismatch(passedItems)
+					print "This is number of incorrect items: ", num_incorrect
+					#TODO write this to a csv file?
+
+				if i == (NUM_SIM - 1) :
+					f.write(str(num_tasks))
+				else:
+					f.write(str(num_tasks) + ',')
+
 				self.reset_database()
 			f.write('\n')
 			f.close()
