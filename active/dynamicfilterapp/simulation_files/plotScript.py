@@ -9,13 +9,17 @@ from collections import defaultdict
 import os.path
 
 def dest_resolver(dest):
+    """
+    given a filename (ending in .png) returns a version which wont overide data
+    """
+    if dest[-4:] != '.png':
+        raise ValueError('Invalid File Extention')
     if os.path.isfile(dest):
-        name = dest
         num = 1
-        name += '(1)'
+        name = dest [:-4] + str(num) + dest[-4:]
         while os.path.isfile(name):
-            num+=1
-            name[-2] = num
+            num += 1
+            name = dest [:-4] + str(num) + dest[-4:]
         return name
     else:
         return dest
@@ -43,7 +47,7 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=True):
     	ax.set_ylabel(labels[1])
     	ax.set_title(title)
     	ax.grid(True)
-        plt.savefig(dest)
+        plt.savefig(dest_resolver(dest))
 
 def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
     """
@@ -65,8 +69,7 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
     ax.set_title(title)
     #ax.set_xlim(100, 320)
     ax.grid(True)
-
-    plt.savefig(dest)
+    plt.savefig(dest_resolver(dest))
 
 def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr = []):
     """
@@ -116,4 +119,4 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     if len(xL) > 1:
         legend = ax.legend()
     # save
-    plt.savefig(dest)
+    plt.savefig(dest_resolver(dest))

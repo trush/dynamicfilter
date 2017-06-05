@@ -11,12 +11,13 @@ from plotScript import multi_hist_gen
 
 def main():
 	num_tasks_array = []
+	alg_list = []
 	for i in range(1,len(sys.argv)):
 		num_tasks_array.append(list(np.loadtxt(sys.argv[i], delimiter=',')))
-	alg_list = ["first", "second", "third","4","5","6"]
+		alg_list.append(str(sys.argv[i]))
 	lbls = ('Number of Tasks', 'Frequency')
-	title = 'Distribution of Synthesized Cost Switch Normalized'
-	multi_hist_gen(num_tasks_array, alg_list, "TESTINGNAME.png", labels=lbls, title=title)
+	title = 'Comparitive Task Counts'
+	multi_hist_gen(num_tasks_array, alg_list, "comparitive_task_counts.png", labels=lbls, title=title)
 
 if __name__ == "__main__":
     main()
