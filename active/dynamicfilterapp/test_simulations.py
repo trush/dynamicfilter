@@ -187,7 +187,7 @@ class SimulationTest(TestCase):
 	def run_sim(self, dictionary):
 		"""
 		Runs a single simulation (either using real or synthetic data depending on
-		setting at top of test_simulations.py)
+		setting in toggles.py)
 		Returns an integer: total number of tasks completed in the sim
 		"""
 		num_tasks = 0
