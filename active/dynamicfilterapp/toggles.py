@@ -31,8 +31,9 @@ EDDY_SYS = 1
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
-CONTROLLED_RUN_PREDS = [2, 3] #predicates used in a controlled simulated run
-# CONTROLLED_RUN_PREDS should be a list of 2 predicates (for now). They will be
+CHOSEN_PREDS = [2, 3] # predicates that will be used when run on real data
+# If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a 
+# list of 2 predicates (for now). They will be
 # passed items in the order they appear in the list.
 
 # HOTEL PREDICATE INDEX
@@ -70,8 +71,6 @@ GEN_GRAPHS = False
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
-
-TESTING_PRED_RESTRICTION = True
 
 RUN_DATA_STATS = False
 

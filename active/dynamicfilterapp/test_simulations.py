@@ -53,13 +53,8 @@ class SimulationTest(TestCase):
 			i.save()
 			ID += 1
 
-		#TODO TOGGLEABLE for testing reasons
-		if (EDDY_SYS == 3) or (TESTING_PRED_RESTRICTION):
-			predicates = list(Predicate.objects.all()[pred] for pred in CONTROLLED_RUN_PREDS)
-
-		else:
-			predicates = list(Predicate.objects.all())
-		#print str(predicates)
+		# only use the predicates listed in CHOSEN_PREDS
+		predicates = list(Predicate.objects.all()[pred] for pred in CHOSEN_PREDS)
 
 		itemList = Item.objects.all()
 		for p in predicates:
@@ -189,7 +184,7 @@ class SimulationTest(TestCase):
 		if (not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING:
 			if DEBUG_FLAG:
 				print "running Item Routing Once!"
-			predicates = [Predicate.objects.get(pk=pred+1) for pred in ROUTING_PREDS]
+			predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
 			C, L, seen = [], [], []
 			for i in range(len(predicates)):
 				C.append(0)
