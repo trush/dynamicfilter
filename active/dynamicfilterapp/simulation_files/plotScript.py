@@ -124,7 +124,7 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     # save
     mx = 0
     for L in xL+yL:
-        mx = max(L)
+        mx = max(L+[mx])
     if square:
-        plt.axis([-1,mx,-1,mx])
+        plt.axis([-1,mx+2,-1,mx+2])
     plt.savefig(dest_resolver(dest))

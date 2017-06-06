@@ -255,7 +255,8 @@ class SimulationTest(TestCase):
 			if GEN_GRAPHS:
 				dest = OUTPUT_PATH+RUN_NAME+'_item_routing.png'
 				title = RUN_NAME + ' Item Routing'
-				line_graph_gen(L[0],L[1],dest,labels = (predicates[0],predicates[1]),title = title, square = True)
+				labels = (str(predicates[0].question), str(predicates[1].question))
+				line_graph_gen(L[0],L[1],dest,labels = labels,title = title, square = True)
 				if DEBUG_FLAG:
 					print "Wrote File: " + dest
 		return num_tasks
