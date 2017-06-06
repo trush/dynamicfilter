@@ -82,7 +82,6 @@ SINGLE_PAIR_RUNS = 5000
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 RUN_ITEM_ROUTING = False
-ROUTING_PREDS = [2,3]
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 NUM_SIM = 30 # how many simulations to run?

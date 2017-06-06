@@ -277,7 +277,7 @@ class SimulationTest(TestCase):
 			print "Running: sim_average_cost"
 		f = open(OUTPUT_PATH + RUN_NAME + '_estimated_costs.csv', 'a')
 
-		for p in CONTROLLED_RUN_PREDS:
+		for p in CHOSEN_PREDS:
 			pred_cost = 0.0
 			pred = Predicate.objects.all().get(pk=p+1)
 			f.write(pred.question.question_text + '\n')
@@ -446,8 +446,7 @@ class SimulationTest(TestCase):
 			if RUN_TASKS_COUNT:
 				print "NUM_SIM: " + str(NUM_SIM)
 
-				if (EDDY_SYS == 3):
-					print "CONTROLLED_RUN_PREDS: " + str(CONTROLLED_RUN_PREDS)
+				print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
 
 				print "OUTPUT_SELECTIVITIES: " + str(SELECTIVITY_PREDS)
 				if OUTPUT_SELECTIVITIES:
