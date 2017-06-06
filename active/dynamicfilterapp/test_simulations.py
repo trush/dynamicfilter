@@ -16,6 +16,7 @@ from random import randint, choice
 import sys
 import io
 
+
 class SimulationTest(TestCase):
 	"""
 	Tests eddy algorithm on non-live data.
@@ -114,36 +115,22 @@ class SimulationTest(TestCase):
 
 		return sampleData
 
-	def get_correct_answers(self, filename):
-		"""
-		Read in the correct answers to 10 questions about 20 Items from a
-		csv file and store them in a dictionary where the key is a tuple
-		(item, question) and the value is a boolean.
-		"""
-		# read in correct answer data
-		answers = np.genfromtxt(fname=filename,
-								dtype={'formats': [np.dtype('S100'), np.dtype(bool),
-											np.dtype(bool), np.dtype(bool),
-											np.dtype(bool), np.dtype(bool),
-											np.dtype(bool), np.dtype(bool),
-											np.dtype(bool), np.dtype(bool),
-											np.dtype(bool),],
-										'names': ['Item', 'a0', 'a1', 'a2',
-											'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9']},
-								delimiter=',')
+	def get_correct_answers(self, filename, numQuestions):
+	    #read in answer data
+	    answers = np.genfromtxt(fname = filename, dtype = None, delimiter = ",")
 
-		# create a dictionary of (item, predicate) keys and boolean correct
-		# answer values
-		correctAnswers = {}
+	    # create an empty dictionary that we'll populate with (item, predicate) keys
+	    # and boolean correct answer values
+	    correctAnswers = {}
 
-		# fill in the dictionary with values read in
-		for line in answers:
-			for i in range(10):
-				key = (Item.objects.get(name=line[0]), Predicate.objects.get(pk=i+1))
-				value = line[i+1]
-				correctAnswers[key] = value
+	    for line in answers:
+	        for i in range(numQuestions):
+	            key = (Item.objects.get(name = line[0]),
+	                    Predicate.objects.get(pk = i+1))
+	            value = line[i+1]
+	            correctAnswers[key] = value
 
-		return correctAnswers
+	    return correctAnswers
 
 	###___HELPERS USED FOR SIMULATION___###
 	def simulate_task(self, chosenIP, workerID, dictionary):
@@ -453,7 +440,7 @@ class SimulationTest(TestCase):
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
 		if TEST_ACCURACY:
-			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv')
+			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
 			passedItems = self.get_passed_items(correctAnswers)
 
 		if RUN_TASKS_COUNT:
