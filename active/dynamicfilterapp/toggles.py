@@ -1,7 +1,7 @@
 import datetime as DT
 now = DT.datetime.now()
 
-RUN_NAME = 'toggles' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'accuracyTesting' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 #TODO: integrate this file with existing files to ensure same stuff happens
 
 ITEM_TYPE = "Restaurant"
@@ -66,12 +66,10 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = True
+GEN_GRAPHS = False
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
-
-=======
 
 TESTING_PRED_RESTRICTION = True
 
@@ -84,21 +82,21 @@ RUN_SINGLE_PAIR = False
 SINGLE_PAIR_RUNS = 5000
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-RUN_ITEM_ROUTING = True
+RUN_ITEM_ROUTING = False
 ROUTING_PREDS = [2,3]
-
-TEST_ACCURACY = False
-FILTER_BY_PREDS = [2, 3] # predicates we want to check successful filtering by
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 NUM_SIM = 30 # how many simulations to run?
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-OUTPUT_SELECTIVITIES = False
+TEST_ACCURACY = True
+FILTER_BY_PREDS = [2, 3] # predicates we want to check successful filtering by
+
+OUTPUT_SELECTIVITIES = True
 SELECTIVITY_PREDS = [2, 3] # predicates whose selectivities we want to estimate
                            # if controlled eddy system, must match CONTROLLED_RUN_PREDS
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-OUTPUT_COST = False
+OUTPUT_COST = True
 COST_PREDS = [2, 3] # predicates whose cost we want to estimate
                     # if controlled eddy system, must match CONTROLLED_RUN_PREDS
