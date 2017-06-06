@@ -19,6 +19,7 @@ import io
 
 
 HAS_RUN_ITEM_ROUTING = False
+ROUTING_ARRAY = []
 
 class SimulationTest(TestCase):
 	"""
@@ -176,14 +177,12 @@ class SimulationTest(TestCase):
 		setting in toggles.py)
 		Returns an integer: total number of tasks completed in the sim
 		"""
-		global HAS_RUN_ITEM_ROUTING
+		global HAS_RUN_ITEM_ROUTING, ROUTING_ARRAY
 		num_tasks = 0
 		switch = 0
 
 		#If running Item_routing, setup needed values
-		if (not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING:
-			if DEBUG_FLAG:
-				print "running Item Routing Once!"
+		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
 			predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
 			C, L, seen = [], [], []
 			for i in range(len(predicates)):
@@ -207,7 +206,7 @@ class SimulationTest(TestCase):
 			else:
 				ip_pair = pending_eddy(workerID)
 
-				if RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING):
+				if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
 					if ip_pair.item.item_ID not in seen:
 						seen.append(ip_pair.item.item_ID)
 						for i in range(len(predicates)):
@@ -241,6 +240,8 @@ class SimulationTest(TestCase):
 				line_graph_gen(L[0],L[1],dest,labels = labels,title = title, square = True)
 				if DEBUG_FLAG:
 					print "Wrote File: " + dest
+		if RUN_MULTI_ROUTING:
+			ROUTING_ARRAY.append(C)
 		return num_tasks
 
 
@@ -486,12 +487,11 @@ class SimulationTest(TestCase):
 			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
 			passedItems = self.get_passed_items(correctAnswers)
 
-		if RUN_TASKS_COUNT:
-			if DEBUG_FLAG:
-				print "Running: task_count"
-			f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
-			if GEN_GRAPHS:
-				outputArray = []
+		if RUN_TASKS_COUNT or RUN_MULTI_ROUTING:
+			if RUN_TASKS_COUNT:
+				f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
+				if GEN_GRAPHS:
+					outputArray = []
 			for i in range(NUM_SIM):
 				num_tasks = self.run_sim(sampleData)
 
@@ -500,22 +500,38 @@ class SimulationTest(TestCase):
 					num_incorrect = self.final_item_mismatch(passedItems)
 					print "This is number of incorrect items: ", num_incorrect
 					#TODO write this to a csv file?
-
-				if i == (NUM_SIM - 1) :
-					f.write(str(num_tasks))
-				else:
-					f.write(str(num_tasks) + ',')
+				if RUN_TASKS_COUNT:
+					if i == (NUM_SIM - 1) :
+						f.write(str(num_tasks))
+					else:
+						f.write(str(num_tasks) + ',')
 
 				self.reset_database()
-				if GEN_GRAPHS:
+				if GEN_GRAPHS and RUN_TASKS_COUNT:
 					outputArray.append(num_tasks)
-			f.write('\n')
-			f.close()
-			if DEBUG_FLAG:
-				print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_tasks_count.csv'
-			if GEN_GRAPHS:
-				dest = OUTPUT_PATH + RUN_NAME + '_tasks_count.png'
-				title = RUN_NAME + ' Cost distribution'
-				hist_gen(outputArray, dest, labels = ('Cost','Frequency'), title = title)
+			if RUN_TASKS_COUNT:
+				f.write('\n')
+				f.close()
 				if DEBUG_FLAG:
-					print "Wrote File: " + dest
+					print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_tasks_count.csv'
+				if GEN_GRAPHS:
+					dest = OUTPUT_PATH + RUN_NAME + '_tasks_count.png'
+					title = RUN_NAME + ' Cost distribution'
+					hist_gen(outputArray, dest, labels = ('Cost','Frequency'), title = title)
+					if DEBUG_FLAG:
+						print "Wrote File: " + dest
+			if RUN_MULTI_ROUTING:
+				if GEN_GRAPHS:
+					dest = OUTPUT_PATH + RUN_NAME + '_multi_routing.png'
+					title = RUN_NAME + ' Average Predicate Routing'
+					dest = OUTPUT_PATH + RUN_NAME +'_multi_routing.png'
+					questions = CHOSEN_PREDS
+					arrayData = []
+					for i in range(len(questions)):
+						arrayData.append([])
+					for L in ROUTING_ARRAY:
+						for i in range(len(questions)):
+							arrayData[i].append(L[i])
+					multi_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
+					if DEBUG_FLAG:
+						print "Wrote File: " + OUTPUT_PATH+RUN_NAME+'_multi_routing.png'

@@ -31,8 +31,8 @@ EDDY_SYS = 1
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
-CHOSEN_PREDS = [2, 3] # predicates that will be used when run on real data
-# If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a 
+CHOSEN_PREDS = [2, 3, 4, 5] # predicates that will be used when run on real data
+# If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be
 # passed items in the order they appear in the list.
 
@@ -67,7 +67,7 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = False
+GEN_GRAPHS = True
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -80,21 +80,22 @@ COST_SAMPLES = 1000
 RUN_SINGLE_PAIR = False
 SINGLE_PAIR_RUNS = 5000
 
-################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 RUN_ITEM_ROUTING = False
 
-RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
-NUM_SIM = 30 # how many simulations to run?
+RUN_MULTI_ROUTING = True
+################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
+RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+NUM_SIM = 50 # how many simulations to run?
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-TEST_ACCURACY = True
-FILTER_BY_PREDS = [2, 3] # predicates we want to check successful filtering by
+TEST_ACCURACY = False
+FILTER_BY_PREDS = [2, 3, 4, 5] # predicates we want to check successful filtering by
 
-OUTPUT_SELECTIVITIES = True
-SELECTIVITY_PREDS = [2, 3] # predicates whose selectivities we want to estimate
+OUTPUT_SELECTIVITIES = False
+SELECTIVITY_PREDS = [2, 3, 4, 5] # predicates whose selectivities we want to estimate
                            # if controlled eddy system, must match CONTROLLED_RUN_PREDS
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-OUTPUT_COST = True
-COST_PREDS = [2, 3] # predicates whose cost we want to estimate
+OUTPUT_COST = False
+COST_PREDS = [2, 3, 4, 5] # predicates whose cost we want to estimate
                     # if controlled eddy system, must match CONTROLLED_RUN_PREDS

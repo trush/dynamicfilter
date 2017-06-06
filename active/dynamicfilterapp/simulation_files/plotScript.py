@@ -170,3 +170,9 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', yerr = None)
     # Title the graph
     plt.title(title)
     plt.savefig(dest_resolver(dest))
+def multi_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = ''):
+    avg, std = [],[]
+    for L in dataL:
+        avg.append(np.mean(L))
+        std.append(np.std(L))
+    bar_graph_gen(avg, legend, dest, labels = labels, title = title, yerr = std)
