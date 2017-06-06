@@ -9,12 +9,15 @@ from views_helpers import *
 from .models import *
 from synthesized_data import *
 from toggles import *
+from simulation_files.plotScript import *
 
 # # Python tools
 import numpy as np
 from random import randint, choice
 import sys
 import io
+
+HAS_RUN_ITEM_ROUTING = False
 
 class SimulationTest(TestCase):
 	"""
@@ -49,7 +52,8 @@ class SimulationTest(TestCase):
 			i.save()
 			ID += 1
 
-		if (EDDY_SYS == 3):
+		#TODO TOGGLEABLE for testing reasons
+		if (EDDY_SYS == 3) or (TESTING_PRED_RESTRICTION):
 			predicates = list(Predicate.objects.all()[pred] for pred in CONTROLLED_RUN_PREDS)
 
 		else:
@@ -190,8 +194,19 @@ class SimulationTest(TestCase):
 		setting in toggles.py)
 		Returns an integer: total number of tasks completed in the sim
 		"""
+		global HAS_RUN_ITEM_ROUTING
 		num_tasks = 0
 		switch = 0
+
+		#If running Item_routing, setup needed values
+		if (not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING:
+			if DEBUG_FLAG:
+				print "running Item Routing Once!"
+			predicates = [Predicate.objects.get(pk=pred+1) for pred in ROUTING_PREDS]
+			C, L, seen = [], [], []
+			for i in range(len(predicates)):
+				C.append(0)
+				L.append([0])
 
 		#pick a dummy ip_pair
 		ip_pair = IP_Pair()
@@ -210,6 +225,14 @@ class SimulationTest(TestCase):
 			else:
 				ip_pair = pending_eddy(workerID)
 
+				if RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING):
+					if ip_pair.item.item_ID not in seen:
+						seen.append(ip_pair.item.item_ID)
+						for i in range(len(predicates)):
+							if ip_pair.predicate == predicates[i]:
+								C[i]+=1
+							L[i].append(C[i])
+
 				if REAL_DATA :
 					self.simulate_task(ip_pair, workerID, dictionary)
 				else:
@@ -226,7 +249,15 @@ class SimulationTest(TestCase):
 
 		if OUTPUT_COST:
 			output_cost(RUN_NAME)
-
+		if (not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING:
+			#TODO impliment csv saving
+			HAS_RUN_ITEM_ROUTING = True
+			if GEN_GRAPHS:
+				dest = OUTPUT_PATH+RUN_NAME+'_item_routing.png'
+				title = RUN_NAME + ' Item Routing'
+				line_graph_gen(L[0],L[1],dest,labels = (predicates[0],predicates[1]),title = title, square = True)
+				if DEBUG_FLAG:
+					print "Wrote File: " + dest
 		return num_tasks
 
 
@@ -319,7 +350,8 @@ class SimulationTest(TestCase):
 		"""
 		if DEBUG_FLAG:
 			print "Running: sim_single_pair_cost"
-
+		if GEN_GRAPHS:
+			outputArray = []
 		f = open(OUTPUT_PATH + RUN_NAME + '_single_pair_cost.csv', 'w')
 		#num_runs = 5000
 		for x in range(SINGLE_PAIR_RUNS):
@@ -358,11 +390,18 @@ class SimulationTest(TestCase):
 				f.write(str(item_cost))
 			else:
 				f.write(str(item_cost) + ',')
-
+			if GEN_GRAPHS:
+				outputArray.append(item_cost)
 		f.close()
 
 		if DEBUG_FLAG:
 			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_single_pair_cost.csv'
+		if GEN_GRAPHS:
+			dest = OUTPUT_PATH+RUN_NAME+'_single_pair_cost.png'
+			title = RUN_NAME + " Distribution of Single Pair Cost"
+			hist_gen(outputArray, dest, labels = ('Num Tasks','Frequency'), title = title, smoothness = True)
+			if DEBUG_FLAG:
+				print "Wrote File: " + dest
 
 	def output_data_stats(self, dictionary):
 		"""
@@ -393,7 +432,7 @@ class SimulationTest(TestCase):
 
 
 
-		if DEBUG_FLAG:
+		if DEBUG_FLAG: #TODO Update print section.... re-think print section?
 			print "Debug Flag Set!"
 
 			print "ITEM_TYPE: " + ITEM_TYPE
@@ -451,6 +490,15 @@ class SimulationTest(TestCase):
 			sampleData = {}
 			syn_load_data()
 
+		if RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING) and (not RUN_TASKS_COUNT):
+			if DEBUG_FLAG:
+				print "Running: item Routing"
+			self.run_sim(sampleData)
+			self.reset_database()
+
+
+
+
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
 		if TEST_ACCURACY:
 			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv')
@@ -460,8 +508,9 @@ class SimulationTest(TestCase):
 			if DEBUG_FLAG:
 				print "Running: task_count"
 			f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
+			if GEN_GRAPHS:
+				outputArray = []
 			for i in range(NUM_SIM):
-				#print i
 				num_tasks = self.run_sim(sampleData)
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
@@ -476,7 +525,15 @@ class SimulationTest(TestCase):
 					f.write(str(num_tasks) + ',')
 
 				self.reset_database()
+				if GEN_GRAPHS:
+					outputArray.append(num_tasks)
 			f.write('\n')
 			f.close()
 			if DEBUG_FLAG:
 				print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_tasks_count.csv'
+			if GEN_GRAPHS:
+				dest = OUTPUT_PATH + RUN_NAME + '_tasks_count.png'
+				title = RUN_NAME + ' Cost distribution'
+				hist_gen(outputArray, dest, labels = ('Cost','Frequency'), title = title)
+				if DEBUG_FLAG:
+					print "Wrote File: " + dest
