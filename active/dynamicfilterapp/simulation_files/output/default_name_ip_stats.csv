@@ -1,0 +1,41 @@
+ip_pair, numTrue, numFalse, overallVote
+Great China/Does this restaurant have drinks for those under 21?, 24, 3, True
+Cheese Board Pizza/Does this restaurant have drinks for those under 21?, 22, 4, True
+FIVE/Does this restaurant have drinks for those under 21?, 19, 7, True
+Angeline's Louisiana Kitchen/Does this restaurant have drinks for those under 21?, 24, 5, True
+Urbann Turbann/Does this restaurant have drinks for those under 21?, 25, 3, True
+La Note Restaurant Provencal/Does this restaurant have drinks for those under 21?, 26, 2, True
+Brazil Cafe/Does this restaurant have drinks for those under 21?, 26, 0, True
+Ajanta/Does this restaurant have drinks for those under 21?, 27, 3, True
+Bette's Oceanview Diner/Does this restaurant have drinks for those under 21?, 27, 3, True
+Rivoli/Does this restaurant have drinks for those under 21?, 15, 12, True
+Oliveto Restaurant/Does this restaurant have drinks for those under 21?, 18, 10, True
+Gather/Does this restaurant have drinks for those under 21?, 21, 7, True
+Platano/Does this restaurant have drinks for those under 21?, 22, 6, True
+Vik's Chaat and Market/Does this restaurant have drinks for those under 21?, 28, 2, True
+Eureka!/Does this restaurant have drinks for those under 21?, 23, 4, True
+Chez Panisse/Does this restaurant have drinks for those under 21?, 19, 9, True
+Zachary's Chicago Pizza/Does this restaurant have drinks for those under 21?, 25, 2, True
+Gregoire/Does this restaurant have drinks for those under 21?, 22, 5, True
+Comal/Does this restaurant have drinks for those under 21?, 21, 7, True
+Toss Noodle Bar/Does this restaurant have drinks for those under 21?, 29, 1, True
+Great China/Does this restaurant have more than 20 items on its menu?, 28, 1, True
+Cheese Board Pizza/Does this restaurant have more than 20 items on its menu?, 18, 12, True
+FIVE/Does this restaurant have more than 20 items on its menu?, 25, 1, True
+Angeline's Louisiana Kitchen/Does this restaurant have more than 20 items on its menu?, 30, 0, True
+Urbann Turbann/Does this restaurant have more than 20 items on its menu?, 8, 18, False
+La Note Restaurant Provencal/Does this restaurant have more than 20 items on its menu?, 28, 1, True
+Brazil Cafe/Does this restaurant have more than 20 items on its menu?, 28, 2, True
+Ajanta/Does this restaurant have more than 20 items on its menu?, 25, 5, True
+Bette's Oceanview Diner/Does this restaurant have more than 20 items on its menu?, 27, 3, True
+Rivoli/Does this restaurant have more than 20 items on its menu?, 21, 7, True
+Oliveto Restaurant/Does this restaurant have more than 20 items on its menu?, 27, 3, True
+Gather/Does this restaurant have more than 20 items on its menu?, 29, 0, True
+Platano/Does this restaurant have more than 20 items on its menu?, 29, 1, True
+Vik's Chaat and Market/Does this restaurant have more than 20 items on its menu?, 29, 1, True
+Eureka!/Does this restaurant have more than 20 items on its menu?, 29, 0, True
+Chez Panisse/Does this restaurant have more than 20 items on its menu?, 15, 13, True
+Zachary's Chicago Pizza/Does this restaurant have more than 20 items on its menu?, 19, 11, True
+Gregoire/Does this restaurant have more than 20 items on its menu?, 21, 8, True
+Comal/Does this restaurant have more than 20 items on its menu?, 27, 3, True
+Toss Noodle Bar/Does this restaurant have more than 20 items on its menu?, 19, 4, True

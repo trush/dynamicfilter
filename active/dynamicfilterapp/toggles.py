@@ -66,7 +66,15 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
+GEN_GRAPHS = True
+
 #################### TESTING OPTIONS FOR REAL DATA ############################
+RUN_DATA_STATS = False
+
+=======
+
+TESTING_PRED_RESTRICTION = True
+
 RUN_DATA_STATS = False
 
 RUN_AVERAGE_COST = False
@@ -76,11 +84,14 @@ RUN_SINGLE_PAIR = False
 SINGLE_PAIR_RUNS = 5000
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-TEST_ACCURACY = True
+RUN_ITEM_ROUTING = True
+ROUTING_PREDS = [2,3]
+
+TEST_ACCURACY = False
 FILTER_BY_PREDS = [2, 3] # predicates we want to check successful filtering by
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
-NUM_SIM = 3 # how many simulations to run?
+NUM_SIM = 30 # how many simulations to run?
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_SELECTIVITIES = False
