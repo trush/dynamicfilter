@@ -35,7 +35,7 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=True):
     """
 
     if smoothness:
-        multi_hist_gen([data], [''], dest, labels = labels, title = title)
+        multi_hist_gen([data], [None], dest, labels = labels, title = title)
     else:
         fig = plt.figure()
         ax = fig.add_subplot(111)
