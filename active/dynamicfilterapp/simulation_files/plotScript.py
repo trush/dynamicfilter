@@ -37,6 +37,7 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=True):
     if smoothness:
         multi_hist_gen([data], [None], dest, labels = labels, title = title)
     else:
+        #TODO make this section actually work consistently
         fig = plt.figure()
         ax = fig.add_subplot(111)
         n, bins, patches = ax.hist(data, 1000, normed=1, facecolor='green')
@@ -55,6 +56,8 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
     names of your datasets and a destination name, plots all datasets on one
     plot in differing colors. takes in optional labels and title like before.
     """
+    #TODO Consider axis ranging?
+    #TODO Print out relevant data to a description?
     if len(legendList) < len(dataList):
         raise ValueError('Not enough legends ')
     sns.set(style="white", palette="muted", color_codes=True)
