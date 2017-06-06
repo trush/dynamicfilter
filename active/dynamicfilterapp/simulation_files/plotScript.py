@@ -7,7 +7,7 @@ import pylab
 import sys
 from collections import defaultdict
 import os.path
-from ..toggles import *
+#from ..toggles import *
 SAVE_CONFIG_DATA = False
 
 def dest_resolver(dest):
@@ -153,4 +153,20 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
         mx = max(L+[mx])
     if square:
         plt.axis([-1,mx+2,-1,mx+2])
+    plt.savefig(dest_resolver(dest))
+
+def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', yerr = None):
+    if len(data) != len(legend):
+        raise ValueError('data and legend are different lengths!')
+    fig = plt.figure()
+    pos = np.arange(len(data))
+    plt.bar(pos, data, align='center', alpha = 0.5, yerr = yerr)
+    plt.xticks(pos,legend)
+
+    # Label the axes
+    plt.xlabel(labels[0])
+    plt.ylabel(labels[1])
+
+    # Title the graph
+    plt.title(title)
     plt.savefig(dest_resolver(dest))
