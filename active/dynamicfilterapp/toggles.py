@@ -1,7 +1,7 @@
 import datetime as DT
 now = DT.datetime.now()
 
-RUN_NAME = 'accuracyTesting' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'accuracyGraphsTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 #TODO: integrate this file with existing files to ensure same stuff happens
 
 ITEM_TYPE = "Restaurant"
@@ -16,7 +16,7 @@ DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
 NUM_CERTAIN_VOTES = 5
-UNCERTAINTY_THRESHOLD = 0.2
+UNCERTAINTY_THRESHOLD = 1
 FALSE_THRESHOLD = 0.2
 DECISION_THRESHOLD = 0.5
 CUT_OFF = 21
@@ -31,6 +31,7 @@ EDDY_SYS = 1
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
+
 CHOSEN_PREDS = [2, 3] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a 
 # list of 2 predicates (for now). They will be passed items in the order 
@@ -83,13 +84,13 @@ SINGLE_PAIR_RUNS = 5000
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 RUN_ITEM_ROUTING = False
 
-RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
-NUM_SIM = 30 # how many simulations to run?
+RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+NUM_SIM = 50 # how many simulations to run?
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = True
 
 OUTPUT_SELECTIVITIES = True
 
-## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = True
+
