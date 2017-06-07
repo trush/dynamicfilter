@@ -206,13 +206,16 @@ class SimulationTest(TestCase):
 
 			else:
 				ip_pair = pending_eddy(workerID)
-
+				# If we should be running a routing test
 				if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
+					# if this is a "new" item
 					if ip_pair.item.item_ID not in seen:
 						seen.append(ip_pair.item.item_ID)
+						# increment the count of that item's predicate
 						for i in range(len(predicates)):
 							if ip_pair.predicate == predicates[i]:
 								C[i]+=1
+							# and add this "timestep" to the running list
 							L[i].append(C[i])
 
 				if REAL_DATA :

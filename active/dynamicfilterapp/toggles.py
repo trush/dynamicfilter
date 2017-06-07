@@ -1,7 +1,7 @@
 import datetime as DT
 now = DT.datetime.now()
 
-RUN_NAME = 'barGraphTests' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'ItemRoutingTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 #TODO: integrate this file with existing files to ensure same stuff happens
 
 ITEM_TYPE = "Restaurant"

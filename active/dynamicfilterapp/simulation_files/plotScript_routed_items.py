@@ -7,26 +7,22 @@ import datetime as DT
 import pylab
 import sys
 from collections import defaultdict
-from plotScript import multi_line_graph_gen
+from plotScript import multi_line_graph_gen, generic_csv_read
 
 def main():
-    unique = sys.argv[1]
-    window = sys.argv[2]
+    xL, yL = [],[]
+    for i in range(1,len(sys.argv)):
+        loadedData = generic_csv_read(sys.argv[i])
 
-    qx = np.loadtxt(unique, usecols=(0,), delimiter=',')
-    qy = np.loadtxt(unique, usecols=(1,), delimiter=',')
-
-    wx = np.loadtxt(window, usecols=(0,), delimiter=',')
-    wy = np.loadtxt(window, usecols=(1,), delimiter=',')
+        xL.append(loadedData[1])
+        yL.append(loadedData[2])
+    qs = loadedData[0]
 
 
-    xl = [qx,wx]
-    yl = [qy, wy]
-    leg = ['queue eddy','sliding window']
-    dest = 'graphs/routed_items_cost_switch.png'
-    labels = ('Syn Question 0','Syn Question 1')
-    title = 'Number of Routed First Items (Cost Switch at 200 Tasks)'
-    multi_line_graph_gen(xl, yl, leg, dest, labels = labels, title = title, square = True)
+    dest = 'test.png'
+    labels = (qs[0],qs[1])
+    title = 'Comparative item routing'
+    multi_line_graph_gen(xL, yL, sys.argv[1:], dest, labels = labels, title = title, square = True)
 
 if __name__ == "__main__":
     main()
