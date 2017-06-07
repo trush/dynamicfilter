@@ -31,9 +31,11 @@ EDDY_SYS = 1
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
-CONTROLLED_RUN_PREDS = [0, 2, 9] #predicates used in a controlled simulated run
-# CONTROLLED_RUN_PREDS should be a list of 2 predicates (for now). They will be
-# passed items in the order they appear in the list.
+
+CHOSEN_PREDS = [2, 3] # predicates that will be used when run on real data
+# If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a 
+# list of 2 predicates (for now). They will be passed items in the order 
+# they appear in the list.
 
 # HOTEL PREDICATE INDEX
 # 0 - not selective and not ambiguous
@@ -71,8 +73,6 @@ GEN_GRAPHS = False
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-TESTING_PRED_RESTRICTION = True
-
 RUN_DATA_STATS = False
 
 RUN_AVERAGE_COST = False
@@ -83,20 +83,14 @@ SINGLE_PAIR_RUNS = 5000
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 RUN_ITEM_ROUTING = False
-ROUTING_PREDS = [2,3]
 
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 NUM_SIM = 50 # how many simulations to run?
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = True
-FILTER_BY_PREDS = [0, 2, 9] # predicates we want to check successful filtering by
 
-OUTPUT_SELECTIVITIES = False
-SELECTIVITY_PREDS = [2, 3] # predicates whose selectivities we want to estimate
-                           # if controlled eddy system, must match CONTROLLED_RUN_PREDS
+OUTPUT_SELECTIVITIES = True
 
-## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-OUTPUT_COST = False
-COST_PREDS = [2, 3] # predicates whose cost we want to estimate
-                    # if controlled eddy system, must match CONTROLLED_RUN_PREDS
+OUTPUT_COST = True
+

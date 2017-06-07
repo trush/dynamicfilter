@@ -53,13 +53,8 @@ class SimulationTest(TestCase):
 			i.save()
 			ID += 1
 
-		#TODO TOGGLEABLE for testing reasons
-		if (EDDY_SYS == 3) or (TESTING_PRED_RESTRICTION):
-			predicates = list(Predicate.objects.all()[pred] for pred in CONTROLLED_RUN_PREDS)
-
-		else:
-			predicates = list(Predicate.objects.all())
-		#print str(predicates)
+		# only use the predicates listed in CHOSEN_PREDS
+		predicates = list(Predicate.objects.all()[pred] for pred in CHOSEN_PREDS)
 
 		itemList = Item.objects.all()
 		for p in predicates:
@@ -189,7 +184,7 @@ class SimulationTest(TestCase):
 		if (not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING:
 			if DEBUG_FLAG:
 				print "running Item Routing Once!"
-			predicates = [Predicate.objects.get(pk=pred+1) for pred in ROUTING_PREDS]
+			predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
 			C, L, seen = [], [], []
 			for i in range(len(predicates)):
 				C.append(0)
@@ -256,14 +251,14 @@ class SimulationTest(TestCase):
 		"""
 		passedItems = []
 		# get chosen predicates
-		predicates = [Predicate.objects.get(pk=pred+1) for pred in FILTER_BY_PREDS]
+		predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
 
 		#filter out all items that pass all predicates
 		for item in Item.objects.all():
 			if all(correctAnswers[item,predicate] == True for predicate in predicates):
 				passedItems.append(item)
 		#print "number of passed items: ", len(passedItems)
-		#print "passed items: ", passedItems
+		print "passed items: ", passedItems
 		return passedItems
 
 	def final_item_mismatch(self, passedItems):
@@ -271,7 +266,7 @@ class SimulationTest(TestCase):
 		Returns the number of incorrect items
 		"""
 		sim_passedItems = Item.objects.all().filter(hasFailed=False)
-		#print sim_passedItems
+		print "sim_passedItems", sim_passedItems
 		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
 
 	def sim_average_cost(self, dictionary):
@@ -282,7 +277,7 @@ class SimulationTest(TestCase):
 			print "Running: sim_average_cost"
 		f = open(OUTPUT_PATH + RUN_NAME + '_estimated_costs.csv', 'a')
 
-		for p in CONTROLLED_RUN_PREDS:
+		for p in CHOSEN_PREDS:
 			pred_cost = 0.0
 			pred = Predicate.objects.all().get(pk=p+1)
 			f.write(pred.question.question_text + '\n')
@@ -531,24 +526,14 @@ class SimulationTest(TestCase):
 
 			print "TEST_ACCURACY: " + str(TEST_ACCURACY)
 
-			if TEST_ACCURACY:
-				print "Preds for accuracy test: " + str(FILTER_BY_PREDS)
-
 			print "RUN_TASKS_COUNT: " + str(RUN_TASKS_COUNT)
 
 			if RUN_TASKS_COUNT:
 				print "NUM_SIM: " + str(NUM_SIM)
 
-				if (EDDY_SYS == 3):
-					print "CONTROLLED_RUN_PREDS: " + str(CONTROLLED_RUN_PREDS)
-
-				print "OUTPUT_SELECTIVITIES: " + str(SELECTIVITY_PREDS)
-				if OUTPUT_SELECTIVITIES:
-					print "SELECTIVITY_PREDS: " + str(SELECTIVITY_PREDS)
+				print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
 
 				print "OUTPUT_COST: " + str(OUTPUT_COST)
-				if OUTPUT_COST:
-					print "COST_PREDS: " + str(COST_PREDS)
 
 
 		if REAL_DATA:
