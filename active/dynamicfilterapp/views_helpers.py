@@ -265,7 +265,7 @@ def output_selectivities(run_name):
     Writes out the sample selectivites from a run
     """
     f = open(OUTPUT_PATH + run_name + '_sample_selectivites.csv', 'a')
-    for p in SELECTIVITY_PREDS:
+    for p in CHOSEN_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
         f.write(str(pred.selectivity) + ", " + str(pred.totalTasks) + ", " + str(pred.num_ip_complete) + "; ")
     f.write('\n')
