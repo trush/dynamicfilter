@@ -1,7 +1,9 @@
 import datetime as DT
 now = DT.datetime.now()
 
-RUN_NAME = 'accuracyGraphsTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+
+RUN_NAME = 'ItemRoutingTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+
 #TODO: integrate this file with existing files to ensure same stuff happens
 
 ITEM_TYPE = "Restaurant"
@@ -31,10 +33,9 @@ EDDY_SYS = 1
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
-
 CHOSEN_PREDS = [2, 3] # predicates that will be used when run on real data
-# If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a 
-# list of 2 predicates (for now). They will be passed items in the order 
+# If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
+# list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
 
 # HOTEL PREDICATE INDEX
@@ -68,22 +69,21 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = False
+GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
-RUN_DATA_STATS = False
-
 RUN_DATA_STATS = False
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 1000
 
 RUN_SINGLE_PAIR = False
-SINGLE_PAIR_RUNS = 5000
+SINGLE_PAIR_RUNS = 1000
 
+RUN_ITEM_ROUTING = True # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
+
+RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-RUN_ITEM_ROUTING = False
-
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 NUM_SIM = 50 # how many simulations to run?
 
@@ -93,4 +93,3 @@ TEST_ACCURACY = True
 OUTPUT_SELECTIVITIES = True
 
 OUTPUT_COST = True
-

@@ -11,7 +11,7 @@ def main():
 	filename = sys.argv[1]
 	data = list(np.loadtxt(filename, delimiter=','))
 	dest=filename[:-4]
-	hist_gen(data, dest + '_task_count.png', labels=('Number of Tasks', 'Frequency'), title='Distribution of Cost Normalized')
+	hist_gen(data, dest + '.png', labels=('Number of Tasks', 'Frequency'), title='Distribution of Cost Normalized')
 
 if __name__ == "__main__":
     main()

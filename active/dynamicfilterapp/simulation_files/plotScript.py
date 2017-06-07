@@ -7,8 +7,9 @@ import pylab
 import sys
 from collections import defaultdict
 import os.path
+import csv
 #from ..toggles import *
-SAVE_CONFIG_DATA = False
+SAVE_CONFIG_DATA = False # Expirimental info writing (doesn't work well atm)
 
 def dest_resolver(dest):
     """
@@ -27,6 +28,9 @@ def dest_resolver(dest):
         return dest
 
 def get_config_text():
+    """
+    a probably allready depricated system for getting run info to save into a graph
+    """
     eddy_names = ["Queue", "Random", "Controlled"]
     item_sys_names = ["Random", "Item-started", "item-almost-false"]
     text = "Using Eddy system: " + eddy_names[EDDY_SYS-1]
@@ -39,7 +43,40 @@ def get_config_text():
     text += str(FALSE_THRESHOLD) +";"+str(DECISION_THRESHOLD) +";"+str(CUT_OFF) +"\n"
     return text
 
+def generic_csv_write(filename, data):
+    """
+    given a file name and a list, writes out the data to be easily recalled with
+    generic_csv_read. assumes that data is a list of lists. please do that
+    """
+    toWrite = open(filename, 'wb')
+    writer = csv.writer(toWrite)
+    for row in data:
+        writer.writerow(row)
+    toWrite.close()
 
+
+def generic_csv_read(filename):
+    """
+    Given a file name, returns a list of lists containing all the data from a
+    single row in a list. Properly converts ints assuming that any row beginning
+    with an int contains only ints
+    """
+    retArray = []
+    toRead = open(filename,'r')
+    reader = csv.reader(toRead)
+    for row in reader:
+        if len(row) > 0:
+            try:
+                int(row[0])
+                isInt=True
+            except ValueError:
+                isInt=False
+        if isInt:
+            retArray.append(map(int, row))
+        else:
+            retArray.append(row)
+    toRead.close()
+    return retArray
 
 def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats = False):
     """
@@ -52,6 +89,8 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats
 
     if smoothness:
         text = ''
+
+        # Expirimental section, writes out mean and count for single histograms
         if writeStats:
             avg = int(np.mean(data))
             n = len(data)
@@ -59,6 +98,10 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats
         multi_hist_gen([data], [None], dest, labels = labels, title = title + text)
     else:
         #TODO make this section actually work consistently
+            #NOTE this problem has something to do with the second number passed
+                 #to ax.hist (currently 30) which I think is the number of boxes
+                 #total to make, it should probably scale with (mx) the highest
+                 #cost recorded
         mx = max(data)
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -155,12 +198,18 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
         plt.axis([-1,mx+2,-1,mx+2])
     plt.savefig(dest_resolver(dest))
 
-def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', yerr = None):
+def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = None):
+    """
+    Generate a bargraph from a list of heights and a list of names optional parameters:
+        labels a touple in the format ('x-axis label', 'y-axis label')
+        title, a string title of your graph
+        stderr a list of standard error for adding y-error bars to data
+    """
     if len(data) != len(legend):
         raise ValueError('data and legend are different lengths!')
     fig = plt.figure()
     pos = np.arange(len(data))
-    plt.bar(pos, data, align='center', alpha = 0.5, yerr = yerr)
+    plt.bar(pos, data, align='center', alpha = 0.5, yerr = stderr)
     plt.xticks(pos,legend)
 
     # Label the axes
@@ -170,3 +219,9 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', yerr = None)
     # Title the graph
     plt.title(title)
     plt.savefig(dest_resolver(dest))
+def stats_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = ''):
+    avg, std = [],[]
+    for L in dataL:
+        avg.append(np.mean(L))
+        std.append(np.std(L))
+    bar_graph_gen(avg, legend, dest, labels = labels, title = title, stderr = std)
