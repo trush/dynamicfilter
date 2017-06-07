@@ -16,6 +16,7 @@ import numpy as np
 from random import randint, choice
 import sys
 import io
+import csv
 
 
 HAS_RUN_ITEM_ROUTING = False
@@ -521,10 +522,8 @@ class SimulationTest(TestCase):
 					if DEBUG_FLAG:
 						print "Wrote File: " + dest
 			if RUN_MULTI_ROUTING:
-				if GEN_GRAPHS:
 					dest = OUTPUT_PATH + RUN_NAME + '_multi_routing.png'
 					title = RUN_NAME + ' Average Predicate Routing'
-					dest = OUTPUT_PATH + RUN_NAME +'_multi_routing.png'
 					questions = CHOSEN_PREDS
 					arrayData = []
 					for i in range(len(questions)):
@@ -532,6 +531,15 @@ class SimulationTest(TestCase):
 					for L in ROUTING_ARRAY:
 						for i in range(len(questions)):
 							arrayData[i].append(L[i])
-					multi_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
+					mrsavefile = open(OUTPUT_PATH+RUN_NAME+'_multi_routing.csv','w')
+					mrwriter = csv.writer(mrsavefile)
+					mrwriter.writerow(questions)
+					for row in arrayData:
+						mrwriter.writerow(row)
+					mrsavefile.close()
 					if DEBUG_FLAG:
-						print "Wrote File: " + OUTPUT_PATH+RUN_NAME+'_multi_routing.png'
+						print "Wrote File: "+OUTPUT_PATH+RUN_NAME+'_multi_routing.csv'
+					if GEN_GRAPHS:
+						multi_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
+						if DEBUG_FLAG:
+							print "Wrote File: " + OUTPUT_PATH+RUN_NAME+'_multi_routing.png'

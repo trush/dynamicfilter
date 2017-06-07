@@ -7,6 +7,7 @@ import pylab
 import sys
 from collections import defaultdict
 import os.path
+import csv
 #from ..toggles import *
 SAVE_CONFIG_DATA = False
 
@@ -27,6 +28,9 @@ def dest_resolver(dest):
         return dest
 
 def get_config_text():
+    """
+    a probably allready depricated system for getting run info to save into a graph
+    """
     eddy_names = ["Queue", "Random", "Controlled"]
     item_sys_names = ["Random", "Item-started", "item-almost-false"]
     text = "Using Eddy system: " + eddy_names[EDDY_SYS-1]
@@ -39,7 +43,27 @@ def get_config_text():
     text += str(FALSE_THRESHOLD) +";"+str(DECISION_THRESHOLD) +";"+str(CUT_OFF) +"\n"
     return text
 
-
+def generic_csv_read(filename):
+    """
+    Given a file name, returns a list of lists containing all the data from a
+    single row in a list. Properly converts ints assuming that any row beginning
+    with an int contains only ints
+    """
+    retArray = []
+    toRead = open(filename,'r')
+    reader = csv.reader(toRead)
+    for row in reader:
+        if len(row) > 0:
+            try:
+                int(row[0])
+                isInt=True
+            except ValueError:
+                isInt=False
+        if isInt:
+            retArray.append(map(int, row))
+        else:
+            retArray.append(row)
+    return retArray
 
 def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats = False):
     """
