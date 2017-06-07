@@ -13,7 +13,7 @@ def main():
     filename = sys.argv[1]
     data = list(np.loadtxt(filename, delimiter=','))
     dest = filename[:-4]
-    hist_gen(data, dest + '_single_cost.png', labels=('Cost', 'Frequency'), title='Histogram of Single IP Pair costs', smoothness = False)
+    hist_gen(data, dest + '_single_cost.png', labels=('Cost', 'Frequency'), title='Histogram of Single IP Pair costs', smoothness = True)
 
 if __name__ == "__main__":
     main()
