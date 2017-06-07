@@ -231,16 +231,19 @@ class SimulationTest(TestCase):
 
 		if OUTPUT_COST:
 			output_cost(RUN_NAME)
-		if (not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING:
-			#TODO impliment csv saving
+		if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
 			HAS_RUN_ITEM_ROUTING = True
+			dest = OUTPUT_PATH+RUN_NAME+'_item_routing'
+			title = RUN_NAME + ' Item Routing'
+			labels = (str(predicates[0].question), str(predicates[1].question))
+			dataToWrite = [labels,L[0],L[1]]
+			generic_csv_write(dest+'.csv',dataToWrite)
+			if DEBUG_FLAG:
+				print "Wrote File: "+dest+'.csv'
 			if GEN_GRAPHS:
-				dest = OUTPUT_PATH+RUN_NAME+'_item_routing.png'
-				title = RUN_NAME + ' Item Routing'
-				labels = (str(predicates[0].question), str(predicates[1].question))
-				line_graph_gen(L[0],L[1],dest,labels = labels,title = title, square = True)
+				line_graph_gen(L[0],L[1],dest+'.png',labels = labels,title = title, square = True)
 				if DEBUG_FLAG:
-					print "Wrote File: " + dest
+					print "Wrote File: " + dest+'.png'
 		if RUN_MULTI_ROUTING:
 			ROUTING_ARRAY.append(C)
 		return num_tasks
@@ -474,7 +477,7 @@ class SimulationTest(TestCase):
 			sampleData = {}
 			syn_load_data()
 
-		if RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING) and (not RUN_TASKS_COUNT):
+		if RUN_ITEM_ROUTING and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: item Routing"
 			self.run_sim(sampleData)

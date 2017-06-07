@@ -1,7 +1,7 @@
 import datetime as DT
 now = DT.datetime.now()
 
-RUN_NAME = 'accuracyTesting' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'barGraphTests' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 #TODO: integrate this file with existing files to ensure same stuff happens
 
 ITEM_TYPE = "Restaurant"
@@ -31,7 +31,7 @@ EDDY_SYS = 1
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
-CHOSEN_PREDS = [2, 3, 4, 5] # predicates that will be used when run on real data
+CHOSEN_PREDS = [2, 4] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be
 # passed items in the order they appear in the list.
@@ -67,35 +67,33 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = True
+GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
-RUN_DATA_STATS = False
-
 RUN_DATA_STATS = False
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 1000
 
 RUN_SINGLE_PAIR = False
-SINGLE_PAIR_RUNS = 5000
+SINGLE_PAIR_RUNS = 1000
 
-RUN_ITEM_ROUTING = False
+RUN_ITEM_ROUTING = True # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
-RUN_MULTI_ROUTING = True
+RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 NUM_SIM = 50 # how many simulations to run?
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
-FILTER_BY_PREDS = [2, 3, 4, 5] # predicates we want to check successful filtering by
+FILTER_BY_PREDS = [2, 4] # predicates we want to check successful filtering by
 
 OUTPUT_SELECTIVITIES = False
-SELECTIVITY_PREDS = [2, 3, 4, 5] # predicates whose selectivities we want to estimate
+SELECTIVITY_PREDS = [2, 4] # predicates whose selectivities we want to estimate
                            # if controlled eddy system, must match CONTROLLED_RUN_PREDS
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
-COST_PREDS = [2, 3, 4, 5] # predicates whose cost we want to estimate
+COST_PREDS = [2, 4] # predicates whose cost we want to estimate
                     # if controlled eddy system, must match CONTROLLED_RUN_PREDS

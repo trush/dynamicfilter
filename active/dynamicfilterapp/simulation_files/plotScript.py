@@ -43,6 +43,18 @@ def get_config_text():
     text += str(FALSE_THRESHOLD) +";"+str(DECISION_THRESHOLD) +";"+str(CUT_OFF) +"\n"
     return text
 
+def generic_csv_write(filename, data):
+    """
+    given a file name and a list, writes out the data to be easily recalled with
+    generic_csv_read. assumes that data is a list of lists. please do that
+    """
+    toWrite = open(filename, 'wb')
+    writer = csv.writer(toWrite)
+    for row in data:
+        writer.writerow(row)
+    toWrite.close()
+
+
 def generic_csv_read(filename):
     """
     Given a file name, returns a list of lists containing all the data from a
@@ -63,6 +75,7 @@ def generic_csv_read(filename):
             retArray.append(map(int, row))
         else:
             retArray.append(row)
+    toRead.close()
     return retArray
 
 def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats = False):
@@ -83,6 +96,10 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats
         multi_hist_gen([data], [None], dest, labels = labels, title = title + text)
     else:
         #TODO make this section actually work consistently
+            #NOTE this problem has something to do with the second number passed
+                 #to ax.hist (currently 30) which I think is the number of boxes
+                 #total to make, it should probably scale with (mx) the highest
+                 #cost recorded
         mx = max(data)
         fig = plt.figure()
         ax = fig.add_subplot(111)
