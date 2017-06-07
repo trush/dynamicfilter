@@ -9,7 +9,7 @@ from collections import defaultdict
 import os.path
 import csv
 #from ..toggles import *
-SAVE_CONFIG_DATA = False
+SAVE_CONFIG_DATA = False # Expirimental info writing (doesn't work well atm)
 
 def dest_resolver(dest):
     """
@@ -89,6 +89,8 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats
 
     if smoothness:
         text = ''
+
+        # Expirimental section, writes out mean and count for single histograms
         if writeStats:
             avg = int(np.mean(data))
             n = len(data)
@@ -196,12 +198,18 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
         plt.axis([-1,mx+2,-1,mx+2])
     plt.savefig(dest_resolver(dest))
 
-def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', yerr = None):
+def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = None):
+    """
+    Generate a bargraph from a list of heights and a list of names optional parameters:
+        labels a touple in the format ('x-axis label', 'y-axis label')
+        title, a string title of your graph
+        stderr a list of standard error for adding y-error bars to data
+    """
     if len(data) != len(legend):
         raise ValueError('data and legend are different lengths!')
     fig = plt.figure()
     pos = np.arange(len(data))
-    plt.bar(pos, data, align='center', alpha = 0.5, yerr = yerr)
+    plt.bar(pos, data, align='center', alpha = 0.5, yerr = stderr)
     plt.xticks(pos,legend)
 
     # Label the axes
@@ -211,9 +219,9 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', yerr = None)
     # Title the graph
     plt.title(title)
     plt.savefig(dest_resolver(dest))
-def multi_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = ''):
+def stats_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = ''):
     avg, std = [],[]
     for L in dataL:
         avg.append(np.mean(L))
         std.append(np.std(L))
-    bar_graph_gen(avg, legend, dest, labels = labels, title = title, yerr = std)
+    bar_graph_gen(avg, legend, dest, labels = labels, title = title, stderr = std)

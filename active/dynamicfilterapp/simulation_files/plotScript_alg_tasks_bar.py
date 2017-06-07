@@ -17,7 +17,7 @@ def main():
         alg_list.append(str(sys.argv[i]))
     lbls = ('Number of Tasks', 'Frequency')
     title = 'Comparitive Task Counts'
-    multi_bar_graph_gen(num_tasks_array, alg_list, 'test.png', labels = lbls, title = title)
+    multi_bar_graph_gen(num_tasks_array, alg_list, 'comparitive_task_count_bar.png', labels = lbls, title = title)
 
 if __name__ == "__main__":
     main()

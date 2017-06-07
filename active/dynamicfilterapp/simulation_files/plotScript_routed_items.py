@@ -19,7 +19,7 @@ def main():
     qs = loadedData[0]
 
 
-    dest = 'test.png'
+    dest = 'item_routing_line_graph.png'
     labels = (qs[0],qs[1])
     title = 'Comparative item routing'
     multi_line_graph_gen(xL, yL, sys.argv[1:], dest, labels = labels, title = title, square = True)
