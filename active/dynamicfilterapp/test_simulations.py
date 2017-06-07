@@ -410,6 +410,58 @@ class SimulationTest(TestCase):
 		if DEBUG_FLAG:
 			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_ip_stats.csv'
 
+	def compareAccuracyVsUncertainty(self, uncertainties, data):
+	    #uncertainties is an array of float uncertainty values to try
+	    #data is the loaded in data (i.e. sampleData)
+		qAverages = []
+		qStdDevs = []
+		randAverages = []
+		randStdDevs = []
+		for val in uncertainties:
+			# set up the set of items that SHOULD be passed
+			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+			passedItems = self.get_passed_items(correctAnswers)
+
+			#set the uncertainty threshold to a new value
+			UNCERTAINTY_THRESHOLD = val
+
+			# create arrays that will be populated with counts of incorrect items
+			qIncorrects = []
+			randIncorrects = []
+
+			#execute multiple runs at a given uncertainty level
+			for run in range(NUM_SIM):
+				EDDY_SYS = 1 # queue system
+				print "running sim " + str(run+1) + " queue for uncertainty level " + str(UNCERTAINTY_THRESHOLD)
+				self.run_sim(data)
+				q_incorrect = self.final_item_mismatch(passedItems)
+				# add the number of incorrect items to appropriate array
+				qIncorrects.append(q_incorrect)
+				self.reset_database()
+
+				EDDY_SYS = 2 # random system
+				print "running sim " + str(run+1) + " random for uncertainty level " + str(UNCERTAINTY_THRESHOLD)
+				self.run_sim(data)
+				rand_incorrect = self.final_item_mismatch(passedItems)
+				# add the number of incorrect items to appropriate array
+				randIncorrects.append(rand_incorrect)
+				self.reset_database()
+
+			# store the mean and stddevs of the incorrect counts for this uncertainty level
+			qAverages.append(np.average(qIncorrects))
+			qStdDevs.append(np.std(qIncorrects))
+
+			randAverages.append(np.average(randIncorrects))
+			randStdDevs.append(np.std(randIncorrects))
+
+
+		#graph the results of this
+		multi_line_graph_gen([uncertainties, uncertainties], [qAverages, randAverages],
+		 					["Queue Eddy System", "Random System"], OUTPUT_PATH + "AccVsUncert1.png",
+							 labels = ("Uncertainty Threshold" , "Avg. Number Incorrect Items"),
+							 title = "Number Incorrect Items vs. Uncertainty for Random and Queue Systems",
+							 stderrL = [qStdDevs, randStdDevs])
+
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
 		"""
@@ -484,6 +536,8 @@ class SimulationTest(TestCase):
 			self.run_sim(sampleData)
 			self.reset_database()
 
+		self.compareAccuracyVsUncertainty([0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5], sampleData)
+
 
 
 
@@ -496,16 +550,18 @@ class SimulationTest(TestCase):
 			if DEBUG_FLAG:
 				print "Running: task_count"
 			f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
+			f1 = open(OUTPUT_PATH + RUN_NAME + '_incorrect_count.csv', 'a')
 			if GEN_GRAPHS:
 				outputArray = []
 			for i in range(NUM_SIM):
+				print "running simulation " + str(i)
 				num_tasks = self.run_sim(sampleData)
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				if TEST_ACCURACY:
 					num_incorrect = self.final_item_mismatch(passedItems)
-					print "This is number of incorrect items: ", num_incorrect
-					#TODO write this to a csv file?
+					#print "This is number of incorrect items: ", num_incorrect
+					f1.write(str(num_incorrect) + ",")
 
 				if i == (NUM_SIM - 1) :
 					f.write(str(num_tasks))

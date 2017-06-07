@@ -210,7 +210,7 @@ def updateCounts(workerTask, chosenIP):
 
     #update predicate statistics
     chosenPred.updateSelectivity()
-    #chosenPred.updateCost()
+    chosenPred.updateCost()
 
     # check if the ip_pair is finished and update accordingly
     if chosenIP.status_votes == NUM_CERTAIN_VOTES:
