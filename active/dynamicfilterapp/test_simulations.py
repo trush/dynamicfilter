@@ -16,6 +16,7 @@ import numpy as np
 from random import randint, choice
 import sys
 import io
+import csv
 
 
 HAS_RUN_ITEM_ROUTING = False
@@ -409,8 +410,7 @@ class SimulationTest(TestCase):
 	    #uncertainties is an array of float uncertainty values to try
 	    #data is the loaded in data (i.e. sampleData)
 		print "Running " + str(NUM_SIM) + " simulations on predicates " + str(predicates)
-		FILTER_BY_PREDS = predicates
-		CONTROLLED_RUN_PREDS = predicates
+		CHOSEN_PREDS = predicates
 
 		qIncorrectAverages = []
 		qIncorrectStdDevs = []
@@ -476,8 +476,9 @@ class SimulationTest(TestCase):
 			randNumTasksAverages.append(np.average(randNumTasks))
 			randNumTasksStdDevs.append(np.std(randNumTasks))
 
-			#write these arrays to csv files for safekeeping
 
+
+		#write arrays to csv files for safekeeping
 
 		#graph number of incorrect vs. uncertainty
 		multi_line_graph_gen([uncertainties, uncertainties], [qIncorrectAverages, randIncorrectAverages],
@@ -492,6 +493,13 @@ class SimulationTest(TestCase):
 							labels = ("Uncertainty Threshold", "Avg. Number of Tasks"),
 							title = "Number of Tasks vs. Uncertainty for Predicates " + str(predicates),
 							stderrL = [qNumTasksStdDevs, randIncorrectStdDevs])
+
+	def multiAccVsUncert (self, uncertainties, data, predSet):
+		for preds in setPreds:
+			print "Filter by: " + str(CHOSEN_PREDS) + " and controlled run: " + str(CHOSEN_PREDS)
+			self.compareAccuracyVsUncertainty(uncertainties, data, preds)
+
+
 
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
@@ -557,10 +565,8 @@ class SimulationTest(TestCase):
 			self.run_sim(sampleData)
 			self.reset_database()
 
-		setPreds = [[0,2,9], [4,5,8]]
-		for preds in setPreds:
-			print "Filter by: " + str(FILTER_BY_PREDS) + " and controlled run: " + str(CONTROLLED_RUN_PREDS)
-			self.compareAccuracyVsUncertainty([0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5], sampleData, preds)
+		predSet = [[0, 2, 9], [4, 5, 8]]
+		self.multiAccVsUncert([.1, .15, .2, .25, .3, .35, .4, .45, .5], sampleData, )
 
 
 
