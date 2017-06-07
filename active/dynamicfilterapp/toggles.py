@@ -33,8 +33,8 @@ EDDY_SYS = 1
 PENDING_QUEUE_SIZE = 1
 CHOSEN_PREDS = [2, 3] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a 
-# list of 2 predicates (for now). They will be
-# passed items in the order they appear in the list.
+# list of 2 predicates (for now). They will be passed items in the order 
+# they appear in the list.
 
 # HOTEL PREDICATE INDEX
 # 0 - not selective and not ambiguous
@@ -88,13 +88,8 @@ NUM_SIM = 30 # how many simulations to run?
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = True
-FILTER_BY_PREDS = [2, 3] # predicates we want to check successful filtering by
 
 OUTPUT_SELECTIVITIES = True
-SELECTIVITY_PREDS = [2, 3] # predicates whose selectivities we want to estimate
-                           # if controlled eddy system, must match CONTROLLED_RUN_PREDS
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = True
-COST_PREDS = [2, 3] # predicates whose cost we want to estimate
-                    # if controlled eddy system, must match CONTROLLED_RUN_PREDS

@@ -251,14 +251,14 @@ class SimulationTest(TestCase):
 		"""
 		passedItems = []
 		# get chosen predicates
-		predicates = [Predicate.objects.get(pk=pred+1) for pred in FILTER_BY_PREDS]
+		predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
 
 		#filter out all items that pass all predicates
 		for item in Item.objects.all():
 			if all(correctAnswers[item,predicate] == True for predicate in predicates):
 				passedItems.append(item)
 		#print "number of passed items: ", len(passedItems)
-		#print "passed items: ", passedItems
+		print "passed items: ", passedItems
 		return passedItems
 
 	def final_item_mismatch(self, passedItems):
@@ -266,7 +266,7 @@ class SimulationTest(TestCase):
 		Returns the number of incorrect items
 		"""
 		sim_passedItems = Item.objects.all().filter(hasFailed=False)
-		#print sim_passedItems
+		print "sim_passedItems", sim_passedItems
 		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
 
 	def sim_average_cost(self, dictionary):
@@ -438,9 +438,6 @@ class SimulationTest(TestCase):
 
 			print "TEST_ACCURACY: " + str(TEST_ACCURACY)
 
-			if TEST_ACCURACY:
-				print "Preds for accuracy test: " + str(FILTER_BY_PREDS)
-
 			print "RUN_TASKS_COUNT: " + str(RUN_TASKS_COUNT)
 
 			if RUN_TASKS_COUNT:
@@ -448,13 +445,7 @@ class SimulationTest(TestCase):
 
 				print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
 
-				print "OUTPUT_SELECTIVITIES: " + str(SELECTIVITY_PREDS)
-				if OUTPUT_SELECTIVITIES:
-					print "SELECTIVITY_PREDS: " + str(SELECTIVITY_PREDS)
-
 				print "OUTPUT_COST: " + str(OUTPUT_COST)
-				if OUTPUT_COST:
-					print "COST_PREDS: " + str(COST_PREDS)
 
 
 		if REAL_DATA:
