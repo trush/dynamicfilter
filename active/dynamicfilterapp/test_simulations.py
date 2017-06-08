@@ -17,7 +17,7 @@ from random import randint, choice
 import sys
 import io
 import csv
-
+import time
 
 HAS_RUN_ITEM_ROUTING = False
 ROUTING_ARRAY = []
@@ -163,13 +163,18 @@ class SimulationTest(TestCase):
 
 	def reset_database(self):
 		"""
-		Reset all objects from the test database.
+		Reset all objects from the test database. Returns the time, in seconds
+		that the process took.
 		"""
+		start = time.time()
 		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
 		Task.objects.all().delete()
 		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,
 			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
+		end = time.time()
+		reset_time = end - start
+		return reset_time
 
 
 	def run_sim(self, dictionary):
@@ -178,8 +183,12 @@ class SimulationTest(TestCase):
 		setting in toggles.py)
 		Returns an integer: total number of tasks completed in the sim
 		"""
+		sim_start = time.time()
 		global HAS_RUN_ITEM_ROUTING, ROUTING_ARRAY
 		num_tasks = 0
+		passedItems = []
+		itemsDoneArray = [0]
+		tasksArray = [0]
 		switch = 0
 
 		#If running Item_routing, setup needed values
@@ -215,6 +224,7 @@ class SimulationTest(TestCase):
 								C[i]+=1
 							L[i].append(C[i])
 
+
 				if REAL_DATA :
 					self.simulate_task(ip_pair, workerID, dictionary)
 				else:
@@ -222,10 +232,41 @@ class SimulationTest(TestCase):
 
 				move_window()
 				num_tasks += 1
+				tasksArray.append(num_tasks)
+
+				# get a sense of what items have been ruled out and which ones
+				# are still in the running
+				#numRuledOut = Item.objects.filter(hasFailed = True).count()
+				#print "ruled out: " + str(numRuledOut)
+
+
+				#for the Items that haven't failed, see how many have passed
+				#for el in Item.objects.filter(hasFailed = False):
+					#get the IP pairs that include that item
+					#assocPairs = IP_Pair.objects.filter(item = el, isDone = True)
+					# if number of IP pairs completed for an item is equal to preds,
+					# and it hasn't failed, it's passed
+					#print "number of IP pairs for element " +  str(el) + ": " + str(assocPairs.count())
+					#if (assocPairs.count() == len(CHOSEN_PREDS)):
+						#if el not in passedItems:
+							#passedItems.append(el)
+				#print "passed items: " + str(len(passedItems))
+				#numItemsDone = numRuledOut + len(passedItems)
+				#print "total items done: " + str(numItemsDone)
+
+				#itemsDoneArray.append(numItemsDone)
+
+
 				if num_tasks == 200:
 					switch = 1
 
 		#print num_tasks
+		#print str(itemsDoneArray)
+		#line_graph_gen(tasksArray, itemsDoneArray,
+					#OUTPUT_PATH + RUN_NAME + "itemsDoneVsTasks.png",
+					#labels = ("Number Tasks Completed", "Number Items Completed"),
+					#title = "Number Items Categorized vs. Number Tasks Completed",)
+		# generate graphs using tasksArray and itemsDoneArray
 		if OUTPUT_SELECTIVITIES:
 			output_selectivities(RUN_NAME)
 
@@ -246,7 +287,13 @@ class SimulationTest(TestCase):
 					print "Wrote File: " + dest+'.png'
 		if RUN_MULTI_ROUTING:
 			ROUTING_ARRAY.append(C)
-		return num_tasks
+
+		#write itemsDoneArray to csv file
+		#print num_tasks
+		#print (num_tasks == len(itemsDoneArray))
+		sim_end = time.time()
+		sim_time = sim_end - sim_start
+		return num_tasks, sim_time
 
 
 	###___HELPERS THAT WRITE OUT STATS___###
@@ -263,7 +310,7 @@ class SimulationTest(TestCase):
 			if all(correctAnswers[item,predicate] == True for predicate in predicates):
 				passedItems.append(item)
 		#print "number of passed items: ", len(passedItems)
-		print "passed items: ", passedItems
+		#print "passed items: ", passedItems
 		return passedItems
 
 	def final_item_mismatch(self, passedItems):
@@ -271,7 +318,7 @@ class SimulationTest(TestCase):
 		Returns the number of incorrect items
 		"""
 		sim_passedItems = Item.objects.all().filter(hasFailed=False)
-		print "sim_passedItems", sim_passedItems
+		#print "sim_passedItems", sim_passedItems
 		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
 
 	def sim_average_cost(self, dictionary):
@@ -413,8 +460,11 @@ class SimulationTest(TestCase):
 	def compareAccuracyVsUncertainty(self, uncertainties, data, predicates):
 	    #uncertainties is an array of float uncertainty values to try
 	    #data is the loaded in data (i.e. sampleData)
-		print "Running " + str(NUM_SIM) + " simulations on predicates " + str(predicates)
+		global EDDY_SYS, CHOSEN_PREDS, UNCERTAINTY_THRESHOLD, NUM_SIM
+
+
 		CHOSEN_PREDS = predicates
+		print "Running " + str(NUM_SIM) + " simulations on predicates " + str(CHOSEN_PREDS)
 
 		qIncorrectAverages = []
 		qIncorrectStdDevs = []
@@ -425,6 +475,7 @@ class SimulationTest(TestCase):
 		qNumTasksStdDevs = []
 		randNumTasksAverages = []
 		randNumTasksStdDevs = []
+
 		for val in uncertainties:
 			# set up the set of items that SHOULD be passed
 			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
@@ -445,6 +496,7 @@ class SimulationTest(TestCase):
 				EDDY_SYS = 1 # queue system
 				print "Sim " + str(run+1) + " for mode = queue, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
 				q_num_tasks = self.run_sim(data)
+
 				q_incorrect = self.final_item_mismatch(passedItems)
 
 				# add the number of incorrect items to appropriate array
@@ -455,8 +507,11 @@ class SimulationTest(TestCase):
 
 				self.reset_database()
 
+
 				EDDY_SYS = 2 # random system
 				print "Sim " + str(run+1) + " for mode = random, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
+
+
 				rand_num_tasks = self.run_sim(data)
 				rand_incorrect = self.final_item_mismatch(passedItems)
 
@@ -480,6 +535,19 @@ class SimulationTest(TestCase):
 			randNumTasksAverages.append(np.average(randNumTasks))
 			randNumTasksStdDevs.append(np.std(randNumTasks))
 
+			xL = [uncertainties, uncertainties]
+			yL = [qIncorrectAverages, randIncorrectAverages]
+			yErr = [qIncorrectStdDevs, randIncorrectStdDevs]
+			save1 = [xL, yL, yErr]
+
+			generic_csv_write(OUTPUT_PATH + RUN_NAME + "numIncorrVaryUncert.csv", save1)
+
+			yL = [qNumTasksAverages, randNumTasksAverages]
+			yErr = [qNumTasksStdDevs, randNumTasksStdDevs]
+			save2 = [xL, yL, yErr]
+
+			generic_csv_write(OUTPUT_PATH + RUN_NAME + "numTasksVaryUncert.csv", save2)
+
 
 
 		#write arrays to csv files for safekeeping
@@ -499,7 +567,7 @@ class SimulationTest(TestCase):
 							stderrL = [qNumTasksStdDevs, randIncorrectStdDevs])
 
 	def multiAccVsUncert (self, uncertainties, data, predSet):
-		for preds in setPreds:
+		for preds in predSet:
 			print "Filter by: " + str(CHOSEN_PREDS) + " and controlled run: " + str(CHOSEN_PREDS)
 			self.compareAccuracyVsUncertainty(uncertainties, data, preds)
 
@@ -587,9 +655,12 @@ class SimulationTest(TestCase):
 				if GEN_GRAPHS:
 					outputArray = []
 
+			resetTimes = []
+			simTimes = []
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i)
-				num_tasks = self.run_sim(sampleData)
+				num_tasks, sim_time = self.run_sim(sampleData)
+				simTimes.append(sim_time)
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				if TEST_ACCURACY:
@@ -603,10 +674,26 @@ class SimulationTest(TestCase):
 					else:
 						f.write(str(num_tasks) + ',')
 
+				reset_start = time.time()
 				self.reset_database()
+				reset_end = time.time()
+
+				reset_time = reset_end - reset_start
+				resetTimes.append(reset_time)
 
 				if GEN_GRAPHS and RUN_TASKS_COUNT:
 					outputArray.append(num_tasks)
+
+			# graph the reset time vs. number of resets
+			line_graph_gen(range(0, NUM_SIM), resetTimes,
+							'dynamicfilterapp/simulation_files/output/graphs/' + RUN_NAME + "resetTimes.png",
+							labels = ("Number of reset_database() Run", "Reset Time (seconds)"))
+
+			# graph the sim time vs. the number of sims (for random and queue separately)
+			line_graph_gen(range(0, NUM_SIM), simTimes,
+							"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "simTimes.png",
+							labels = ("Number of simulations run", "Simulation runtime"))
+
 			if RUN_TASKS_COUNT:
 				f.write('\n')
 				f.close()
