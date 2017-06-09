@@ -239,7 +239,8 @@ class SimulationTest(TransactionTestCase):
 		#If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
 			predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
-			routingC, routingL, seenItems = [], [], []
+			routingC, routingL = [], []
+			seenItems = set()
 			for i in range(len(predicates)):
 				routingC.append(0)
 				routingL.append([0])
@@ -274,7 +275,7 @@ class SimulationTest(TransactionTestCase):
 				if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
 					# if this is a "new" item
 					if ip_pair.item.item_ID not in seenItems:
-						seenItems.append(ip_pair.item.item_ID)
+						seenItems.add(ip_pair.item.item_ID)
 						# increment the count of that item's predicate
 						for i in range(len(predicates)):
 							if ip_pair.predicate == predicates[i]:
