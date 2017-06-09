@@ -198,7 +198,7 @@ class SimulationTest(TransactionTestCase):
 			setattr(thismodule, globalVar, listOfValuesToTest[i])
 			counts.append([])
 			for run in range(NUM_SIM):
-				counts[i].append(self.run_sim(dictionary))
+				counts[i].append(self.run_sim(dictionary)[0])
 				self.reset_database()
 				if DEBUG_FLAG:
 					print run
@@ -556,7 +556,7 @@ class SimulationTest(TransactionTestCase):
 			for run in range(NUM_SIM):
 				EDDY_SYS = 1 # queue system
 				print "Sim " + str(run+1) + " for mode = queue, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
-				q_num_tasks = self.run_sim(data)
+				q_num_tasks = self.run_sim(data)[0]
 
 				q_incorrect = self.final_item_mismatch(passedItems)
 
@@ -571,7 +571,7 @@ class SimulationTest(TransactionTestCase):
 				EDDY_SYS = 2 # random system
 				print "Sim " + str(run+1) + " for mode = random, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
 
-				rand_num_tasks = self.run_sim(data)
+				rand_num_tasks = self.run_sim(data)[0]
 				rand_incorrect = self.final_item_mismatch(passedItems)
 
 				# add the number of incorrect items to appropriate array
@@ -771,7 +771,7 @@ class SimulationTest(TransactionTestCase):
 
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i)
-				num_tasks = self.run_sim(sampleData)
+				num_tasks = self.run_sim(sampleData)[0]
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				if TEST_ACCURACY:
