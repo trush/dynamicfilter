@@ -2,7 +2,6 @@
 
 # # Django tools
 from django.db import models
-from django.test import TestCase
 from django.test import TransactionTestCase
 
 # # What we wrote
@@ -20,8 +19,9 @@ import io
 import csv
 import time
 
-HAS_RUN_ITEM_ROUTING = False
-ROUTING_ARRAY = []
+# Global Variables for Item Routing tests
+HAS_RUN_ITEM_ROUTING = False #keeps track of if a routing test has ever run
+ROUTING_ARRAY = [] # keeps a running count of the final first item routs for each run
 
 class SimulationTest(TransactionTestCase):
 	"""
@@ -185,6 +185,37 @@ class SimulationTest(TransactionTestCase):
 		reset_time = end - start
 		return reset_time
 
+	def abstract_sim(self, dictionary, globalVar, listOfValuesToTest):
+		"""
+		Expirimental function that runs many sims with varrying values of globalVar
+		"""
+		thismodule = sys.modules[__name__]
+		storage = getattr(thismodule, globalVar)
+		counts = []
+		for i in range(len(listOfValuesToTest)):
+			if DEBUG_FLAG:
+				print "Running for: " + str(listOfValuesToTest[i])
+			setattr(thismodule, globalVar, listOfValuesToTest[i])
+			counts.append([])
+			for run in range(NUM_SIM):
+				counts[i].append(self.run_sim(dictionary))
+				self.reset_database()
+				if DEBUG_FLAG:
+					print run
+		avgL, stdL = [], []
+		for ls in counts:
+			avgL.append(np.mean(ls))
+			stdL.append(np.std(ls))
+		labels = (str(globalVar),'Task Count')
+		title = str(globalVar) + " variance impact on Task Count"
+		dest = OUTPUT_PATH+RUN_NAME+'_abstract_sim'
+		line_graph_gen(listOfValuesToTest, avgL, dest +'.png',stderr = stdL,labels=labels, title = title)
+		if DEBUG_FLAG:
+			print "Wrote File: " + dest+'.png'
+		setattr(thismodule, globalVar, storage)
+		return
+
+
 
 	def run_sim(self, dictionary):
 		"""
@@ -206,10 +237,10 @@ class SimulationTest(TransactionTestCase):
 		#If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
 			predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
-			C, L, seen = [], [], []
+			routingC, routingL, seenItems = [], [], []
 			for i in range(len(predicates)):
-				C.append(0)
-				L.append([0])
+				routingC.append(0)
+				routingL.append([0])
 
 		#pick a dummy ip_pair
 		ip_pair = IP_Pair()
@@ -232,13 +263,22 @@ class SimulationTest(TransactionTestCase):
 				ip_pair, eddy_time = pending_eddy(workerID)
 				eddyTimes.append(eddy_time)
 
+
+				# If we should be running a routing test
+					# this is true in two cases: 1) we hope to run a single
+					# item_routing test and this is the first time we've run
+					# run_sim or 2) we're runing multiple routing tests, and
+					# so should take this data every time we run.
 				if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
-					if ip_pair.item.item_ID not in seen:
-						seen.append(ip_pair.item.item_ID)
+					# if this is a "new" item
+					if ip_pair.item.item_ID not in seenItems:
+						seenItems.append(ip_pair.item.item_ID)
+						# increment the count of that item's predicate
 						for i in range(len(predicates)):
 							if ip_pair.predicate == predicates[i]:
-								C[i]+=1
-							L[i].append(C[i])
+								routingC[i]+=1
+							# and add this "timestep" to the running list
+							routingL[i].append(routingC[i])
 
 				if REAL_DATA :
 					taskTime = self.simulate_task(ip_pair, workerID, dictionary)
@@ -287,25 +327,28 @@ class SimulationTest(TransactionTestCase):
 
 		if OUTPUT_COST:
 			output_cost(RUN_NAME)
+
+		# if this is the first time running a routing test
 		if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
 			HAS_RUN_ITEM_ROUTING = True
+
+			#setup vars to save a csv + graph
 			dest = OUTPUT_PATH+RUN_NAME+'_item_routing'
 			title = RUN_NAME + ' Item Routing'
 			labels = (str(predicates[0].question), str(predicates[1].question))
 			dataToWrite = [labels,L[0],L[1]]
-			generic_csv_write(dest+'.csv',dataToWrite)
+			generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
 			if DEBUG_FLAG:
 				print "Wrote File: "+dest+'.csv'
 			if GEN_GRAPHS:
-				line_graph_gen(L[0],L[1],dest+'.png',labels = labels,title = title, square = True)
+				line_graph_gen(L[0],L[1],dest+'.png',labels = labels,title = title, square = True) # saves a routing line graph
 				if DEBUG_FLAG:
 					print "Wrote File: " + dest+'.png'
-		if RUN_MULTI_ROUTING:
-			ROUTING_ARRAY.append(C)
 
-		#write itemsDoneArray to csv file
-		#print num_tasks
-		#print (num_tasks == len(itemsDoneArray))
+		# if we're multi routing
+		if RUN_MULTI_ROUTING:
+			ROUTING_ARRAY.append(C) #add the new counts to our running list of counts
+  
 		sim_end = time.time()
 		sim_time = sim_end - sim_start
 		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes
@@ -325,7 +368,7 @@ class SimulationTest(TransactionTestCase):
 			if all(correctAnswers[item,predicate] == True for predicate in predicates):
 				passedItems.append(item)
 		#print "number of passed items: ", len(passedItems)
-		#print "passed items: ", passedItems
+		print "passed items: ", passedItems
 		return passedItems
 
 	def final_item_mismatch(self, passedItems):
@@ -334,6 +377,7 @@ class SimulationTest(TransactionTestCase):
 		"""
 		sim_passedItems = Item.objects.all().filter(hasFailed=False)
 		#print "sim_passedItems", sim_passedItems
+    
 		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
 
 	def sim_average_cost(self, dictionary):
@@ -522,10 +566,8 @@ class SimulationTest(TransactionTestCase):
 
 				self.reset_database()
 
-
 				EDDY_SYS = 2 # random system
 				print "Sim " + str(run+1) + " for mode = random, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
-
 
 				rand_num_tasks = self.run_sim(data)
 				rand_incorrect = self.final_item_mismatch(passedItems)
@@ -562,10 +604,6 @@ class SimulationTest(TransactionTestCase):
 			save2 = [xL, yL, yErr]
 
 			generic_csv_write(OUTPUT_PATH + RUN_NAME + "numTasksVaryUncert.csv", save2)
-
-
-
-		#write arrays to csv files for safekeeping
 
 		#graph number of incorrect vs. uncertainty
 		multi_line_graph_gen([uncertainties, uncertainties], [qIncorrectAverages, randIncorrectAverages],
@@ -644,13 +682,17 @@ class SimulationTest(TransactionTestCase):
 
 
 
+
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
 		"""
 		Runs a simulation of real data and prints out the number of tasks
 		ran to complete the filter
 		"""
+		global NUM_CERTAIN_VOTES
 		print "Simulation is being tested"
+
+
 
 
 
@@ -717,9 +759,13 @@ class SimulationTest(TransactionTestCase):
 			if RUN_TASKS_COUNT:
 				#print "Running: task_count"
 				f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
-				#f1 = open(OUTPUT_PATH + RUN_NAME + '_incorrect_count.csv', 'a')
+				f1 = open(OUTPUT_PATH + RUN_NAME + '_incorrect_count.csv', 'a')
+        
 				if GEN_GRAPHS:
 					outputArray = []
+
+				runTasksArray = []
+
 
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i)
@@ -728,29 +774,21 @@ class SimulationTest(TransactionTestCase):
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				if TEST_ACCURACY:
 					num_incorrect = self.final_item_mismatch(passedItems)
-					print "This is number of incorrect items: ", num_incorrect
-					#TODO write this to a csv file?
 
-				if RUN_TASKS_COUNT:
-					if i == (NUM_SIM - 1) :
-						f.write(str(num_tasks))
-					else:
-						f.write(str(num_tasks) + ',')
-
+					#print "This is number of incorrect items: ", num_incorrect
+					
 				self.reset_database()
-
-				if GEN_GRAPHS and RUN_TASKS_COUNT:
-					outputArray.append(num_tasks)
+      
+				runTasksArray.append(num_tasks)
 
 			if RUN_TASKS_COUNT:
-				f.write('\n')
-				f.close()
+				generic_csv_write(OUTPUT_PATH+RUN_NAME+'_tasks_count.csv',[runTasksArray])
 				if DEBUG_FLAG:
 					print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_tasks_count.csv'
 				if GEN_GRAPHS:
 					dest = OUTPUT_PATH + RUN_NAME + '_tasks_count.png'
 					title = RUN_NAME + ' Cost distribution'
-					hist_gen(outputArray, dest, labels = ('Cost','Frequency'), title = title)
+					hist_gen(runTasksArray, dest, labels = ('Cost','Frequency'), title = title)
 					if DEBUG_FLAG:
 						print "Wrote File: " + dest
 			if RUN_MULTI_ROUTING:
@@ -778,3 +816,7 @@ class SimulationTest(TransactionTestCase):
 
 		if TIME_SIMS:
 			self.timeRun(sampleData)
+
+		if RUN_ABSTRACT_SIM:
+			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
+

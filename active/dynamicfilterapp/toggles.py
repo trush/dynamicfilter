@@ -2,9 +2,7 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'Solved100' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-
-#TODO: integrate this file with existing files to ensure same stuff happens
+RUN_NAME = 'Default' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Restaurant"
 #We have 5 questions for hotels right now, 10 for restaurants
@@ -17,7 +15,7 @@ IP_PAIR_DATA_FILE = 'real_data1.csv'
 DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-NUM_CERTAIN_VOTES = 5
+NUM_CERTAIN_VOTES = 10
 UNCERTAINTY_THRESHOLD = 0.2
 FALSE_THRESHOLD = 0.2
 DECISION_THRESHOLD = 0.5
@@ -74,6 +72,10 @@ GEN_GRAPHS = False # if true, any tests run will generate their respective graph
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
+
+RUN_ABSTRACT_SIM = True
+ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
+ABSTRACT_VALUES = [0.01,0.05,0.1,0.2,0.3,0.4,0.5]
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 1000
