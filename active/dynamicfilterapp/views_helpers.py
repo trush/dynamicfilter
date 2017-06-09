@@ -75,7 +75,7 @@ def pending_eddy(ID):
     #controlled_system:
     elif (EDDY_SYS == 3):
         #this config will run pred[0] first ALWAYS and then pred[1]
-        chosenPred = Predicate.objects.get(pk=1+CONTROLLED_RUN_PREDS[0])
+        chosenPred = Predicate.objects.get(pk=1+CHOSEN_PREDS[0])
         tempSet = incompleteIP.filter(predicate=chosenPred)
         if len(tempSet) != 0:
             incompleteIP = tempSet
