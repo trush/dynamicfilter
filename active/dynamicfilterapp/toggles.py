@@ -1,11 +1,9 @@
 import datetime as DT
 now = DT.datetime.now()
 
-<<<<<<< HEAD
-RUN_NAME = 'accuracyGraphsTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-=======
-RUN_NAME = 'barGraphTests' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
->>>>>>> f5b24a59017860b8295b29bd83103851c5bf91a8
+
+RUN_NAME = 'Solved100' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+
 #TODO: integrate this file with existing files to ensure same stuff happens
 
 ITEM_TYPE = "Restaurant"
@@ -20,7 +18,7 @@ DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
 NUM_CERTAIN_VOTES = 5
-UNCERTAINTY_THRESHOLD = 1
+UNCERTAINTY_THRESHOLD = 0.2
 FALSE_THRESHOLD = 0.2
 DECISION_THRESHOLD = 0.5
 CUT_OFF = 21
@@ -72,7 +70,7 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -83,18 +81,21 @@ COST_SAMPLES = 1000
 RUN_SINGLE_PAIR = False
 SINGLE_PAIR_RUNS = 1000
 
-RUN_ITEM_ROUTING = True # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
+RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
 RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
-NUM_SIM = 50 # how many simulations to run?
+NUM_SIM = 100 # how many simulations to run?
+
+TIME_SIMS = True
+
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 
-TEST_ACCURACY = True
+TEST_ACCURACY = False
 
-OUTPUT_SELECTIVITIES = True
+OUTPUT_SELECTIVITIES = False
 
-OUTPUT_COST = True
+OUTPUT_COST = False

@@ -3,6 +3,7 @@
 # # Django tools
 from django.db import models
 from django.test import TestCase
+from django.test import TransactionTestCase
 
 # # What we wrote
 from views_helpers import *
@@ -22,7 +23,7 @@ import time
 HAS_RUN_ITEM_ROUTING = False
 ROUTING_ARRAY = []
 
-class SimulationTest(TestCase):
+class SimulationTest(TransactionTestCase):
 	"""
 	Tests eddy algorithm on non-live data.
 	"""
@@ -138,22 +139,30 @@ class SimulationTest(TestCase):
 		"""
 		Simulates the vote of a worker on a ip_pair from real data
 		"""
+		start = time.time()
 		# simulated worker votes
 		value = choice(dictionary[chosenIP])
 
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
 		t.save()
 		updateCounts(t, chosenIP)
+		end = time.time()
+		runTime = end - start
+		return runTime
 
 	def syn_simulate_task(self, chosenIP, workerID, switch):
 		"""
 		synthesize a task
 		"""
+		start = time.time()
 		value = syn_answer(chosenIP, switch)
 
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
 		t.save()
 		updateCounts(t, chosenIP)
+		end = time.time()
+		runTime = end - start
+		return runTime
 
 	def pick_worker(self):
 		"""
@@ -190,6 +199,9 @@ class SimulationTest(TestCase):
 		itemsDoneArray = [0]
 		tasksArray = [0]
 		switch = 0
+		eddyTimes = []
+		taskTimes = []
+		workerDoneTimes = []
 
 		#If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
@@ -206,15 +218,19 @@ class SimulationTest(TestCase):
 
 			# only increment if worker is actually doing a task
 			workerID = self.pick_worker()
+			workerDone, workerDoneTime = worker_done(workerID)
+
 			if not IP_Pair.objects.filter(isDone=False):
 				ip_pair = None
 
-			elif worker_done(workerID):
+			elif (workerDone):
 				if DEBUG_FLAG:
 					print "worker has no tasks to do"
 
+
 			else:
-				ip_pair = pending_eddy(workerID)
+				ip_pair, eddy_time = pending_eddy(workerID)
+				eddyTimes.append(eddy_time)
 
 				if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
 					if ip_pair.item.item_ID not in seen:
@@ -224,14 +240,14 @@ class SimulationTest(TestCase):
 								C[i]+=1
 							L[i].append(C[i])
 
-
 				if REAL_DATA :
-					self.simulate_task(ip_pair, workerID, dictionary)
+					taskTime = self.simulate_task(ip_pair, workerID, dictionary)
 				else:
-					self.syn_simulate_task(ip_pair, workerID, switch)
+					taskTime = self.syn_simulate_task(ip_pair, workerID, switch)
 
 				move_window()
 				num_tasks += 1
+				taskTimes.append(taskTime)
 				tasksArray.append(num_tasks)
 
 				# get a sense of what items have been ruled out and which ones
@@ -255,8 +271,6 @@ class SimulationTest(TestCase):
 				#print "total items done: " + str(numItemsDone)
 
 				#itemsDoneArray.append(numItemsDone)
-
-
 				if num_tasks == 200:
 					switch = 1
 
@@ -267,6 +281,7 @@ class SimulationTest(TestCase):
 					#labels = ("Number Tasks Completed", "Number Items Completed"),
 					#title = "Number Items Categorized vs. Number Tasks Completed",)
 		# generate graphs using tasksArray and itemsDoneArray
+			workerDoneTimes.append(workerDoneTime)
 		if OUTPUT_SELECTIVITIES:
 			output_selectivities(RUN_NAME)
 
@@ -293,7 +308,7 @@ class SimulationTest(TestCase):
 		#print (num_tasks == len(itemsDoneArray))
 		sim_end = time.time()
 		sim_time = sim_end - sim_start
-		return num_tasks, sim_time
+		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes
 
 
 	###___HELPERS THAT WRITE OUT STATS___###
@@ -571,6 +586,62 @@ class SimulationTest(TestCase):
 			print "Filter by: " + str(CHOSEN_PREDS) + " and controlled run: " + str(CHOSEN_PREDS)
 			self.compareAccuracyVsUncertainty(uncertainties, data, preds)
 
+	def timeRun(self, data):
+		resetTimes = []
+		simTimes = []
+		eddyTimes = []
+		taskTimes = []
+		workerDoneTimes = []
+		for i in range(NUM_SIM):
+			print "Timing simulation " + str(i+1)
+			num_tasks, sim_time, eddy_times, task_times, worker_done_t = self.run_sim(sampleData)
+
+			simTimes.append(sim_time)
+			eddyTimes.append(np.sum(eddy_times))
+			taskTimes.append(np.sum(task_times))
+			workerDoneTimes.append(np.sum(worker_done_t))
+
+			reset_time = self.reset_database()
+			resetTimes.append(reset_time)
+
+
+		# graph the reset time vs. number of resets
+		line_graph_gen(range(0, NUM_SIM), resetTimes,
+						'dynamicfilterapp/simulation_files/output/graphs/' + RUN_NAME + "resetTimes.png",
+						labels = ("Number of reset_database() Run", "Reset Time (seconds)"))
+
+		# graph the sim time vs. the number of sims (for random and queue separately)
+		line_graph_gen(range(0, NUM_SIM), simTimes,
+						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "simTimes.png",
+						labels = ("Number of simulations run", "Simulation runtime"))
+
+		line_graph_gen(range(0, NUM_SIM), eddyTimes,
+						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "eddyTimes.png",
+						labels = ("Number of simulations run", "Total pending_eddy() runtime per sim"))
+
+		line_graph_gen(range(0, NUM_SIM), taskTimes,
+						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "taskTimes.png",
+						labels = ("Number of simulations run", "Total simulate_task() runtime per sim"))
+
+		line_graph_gen(range(0, NUM_SIM), workerDoneTimes,
+						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "workerDoneTimes.png",
+						labels = ("Number of simulations run", "Total worker_done() runtime per sim"))
+
+
+		xL = [range(0, NUM_SIM), range(0, NUM_SIM), range(0, NUM_SIM), range(0, NUM_SIM)]
+		yL = [simTimes, eddyTimes, taskTimes, workerDoneTimes]
+
+		#write the y values to a csv file
+		with open("dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "timeGraphYvals.csv", "wb") as f:
+			writer = csv.writer(f)
+			writer.writerows(yL)
+
+		legends = ["run_sim()", "pending_eddy()", "simulate_task()", "worker_done()"]
+		multi_line_graph_gen(xL, yL, legends,
+							'dynamicfilterapp/simulation_files/output/graphs/' + RUN_NAME + "funcTimes.png",
+							labels = ("Number simulations run", "Duration of function call (seconds)"),
+							title = "Cum. Duration function calls vs. Number Simulations Run" + RUN_NAME)
+
 
 
 	###___MAIN TEST FUNCTION___###
@@ -637,11 +708,6 @@ class SimulationTest(TestCase):
 			self.run_sim(sampleData)
 			self.reset_database()
 
-		#predSet = [[0, 2, 9], [4, 5, 8]]
-		#self.multiAccVsUncert([.1, .15, .2, .25, .3, .35, .4, .45, .5], sampleData, predSet)
-
-
-
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
 		if TEST_ACCURACY:
 			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
@@ -655,12 +721,9 @@ class SimulationTest(TestCase):
 				if GEN_GRAPHS:
 					outputArray = []
 
-			resetTimes = []
-			simTimes = []
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i)
-				num_tasks, sim_time = self.run_sim(sampleData)
-				simTimes.append(sim_time)
+				num_tasks = self.run_sim(sampleData)
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				if TEST_ACCURACY:
@@ -674,25 +737,10 @@ class SimulationTest(TestCase):
 					else:
 						f.write(str(num_tasks) + ',')
 
-				reset_start = time.time()
 				self.reset_database()
-				reset_end = time.time()
-
-				reset_time = reset_end - reset_start
-				resetTimes.append(reset_time)
 
 				if GEN_GRAPHS and RUN_TASKS_COUNT:
 					outputArray.append(num_tasks)
-
-			# graph the reset time vs. number of resets
-			line_graph_gen(range(0, NUM_SIM), resetTimes,
-							'dynamicfilterapp/simulation_files/output/graphs/' + RUN_NAME + "resetTimes.png",
-							labels = ("Number of reset_database() Run", "Reset Time (seconds)"))
-
-			# graph the sim time vs. the number of sims (for random and queue separately)
-			line_graph_gen(range(0, NUM_SIM), simTimes,
-							"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "simTimes.png",
-							labels = ("Number of simulations run", "Simulation runtime"))
 
 			if RUN_TASKS_COUNT:
 				f.write('\n')
@@ -727,3 +775,6 @@ class SimulationTest(TestCase):
 						multi_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
 						if DEBUG_FLAG:
 							print "Wrote File: " + OUTPUT_PATH+RUN_NAME+'_multi_routing.png'
+
+		if TIME_SIMS:
+			self.timeRun(sampleData)
