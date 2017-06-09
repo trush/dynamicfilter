@@ -58,7 +58,7 @@ def pending_eddy(ID):
     #random_system:
     elif (EDDY_SYS == 2):
         startedIPs = incompleteIP.filter(isStarted=True)
-        if len(startedIPs) != 0:
+        if startedIPs.count() != 0: #not sure if count() or len() is more efficient here
             incompleteIP = startedIPs
         chosenIP = choice(incompleteIP)
         chosenIP.isStarted = True

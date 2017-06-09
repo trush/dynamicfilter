@@ -42,7 +42,7 @@ class WorkerID(models.Model):
     Restricts worker ID to positive integers. Used in IDForm in forms.py.
     (may want to change this to a string for future use)
     """
-    workerID = models.IntegerField(validators=[validate_positive], unique=True)
+    workerID = models.IntegerField(validators=[validate_positive], unique=True, db_index=True)
 
 @python_2_unicode_compatible
 class Predicate(models.Model):
@@ -98,7 +98,7 @@ class IP_Pair(models.Model):
     # a marker for the status of the IP
     status_votes = models.IntegerField(default=0)
 
-    inQueue = models.BooleanField(default=False)
+    inQueue = models.BooleanField(default=False, db_index=True)
 
     # for random algorithm
     isStarted = models.BooleanField(default=False)

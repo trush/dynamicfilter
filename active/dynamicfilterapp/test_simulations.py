@@ -109,7 +109,7 @@ class SimulationTest(TestCase):
 
 				# Some tasks won't have matching RestaurantPredicates, since we
 				# may not be using all the possible predicates
-				if len(predKey) > 0:
+				if predKey.count() > 0:
 					if answer > 0:
 						sampleData[predKey[0]].append(True)
 					elif answer < 0:
@@ -198,7 +198,7 @@ class SimulationTest(TestCase):
 
 			# only increment if worker is actually doing a task
 			workerID = self.pick_worker()
-			if not IP_Pair.objects.filter(isDone=False):
+			if not IP_Pair.objects.filter(isDone=False).exists():
 				ip_pair = None
 
 			elif worker_done(workerID):
@@ -342,7 +342,7 @@ class SimulationTest(TestCase):
 				pred_cost += item_cost
 				f.write(ip.item.name + ': ' + str(item_cost) + " ")
 
-			pred_cost = float(pred_cost)/len(IP_Pair.objects.filter(predicate=pred))
+			pred_cost = float(pred_cost)/IP_Pair.objects.filter(predicate=pred).count()
 			f.write('\npredicate average cost: ' + str(pred_cost) + '\n \n')
 		f.close()
 		if DEBUG_FLAG:
@@ -418,7 +418,7 @@ class SimulationTest(TestCase):
 		for ip in IP_Pair.objects.all():
 			#print len(dictionary[ip])
 			numTrue = sum(1 for vote in dictionary[ip] if vote)
-			numFalse = len(dictionary[ip]) - numTrue
+			numFalse = dictionary[ip].count() - numTrue
 			overallVote = (numTrue > numFalse)
 			f.write(str(ip) + ', ' + str(numTrue) + ', ' + str(numFalse)
 				+ ', ' + str(overallVote) + '\n')
