@@ -48,7 +48,7 @@ def generic_csv_write(filename, data):
     given a file name and a list, writes out the data to be easily recalled with
     generic_csv_read. assumes that data is a list of lists. please do that
     """
-    toWrite = open(filename, 'wb')
+    toWrite = open(filename, 'w')
     writer = csv.writer(toWrite)
     for row in data:
         writer.writerow(row)
