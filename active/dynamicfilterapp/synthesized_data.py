@@ -8,7 +8,7 @@ import math
 import random
 
 NUM_QUESTIONS = 2
-NUM_ITEMS = 100
+NUM_ITEMS = 20
 
 # not really selectivity: selectivity is more selectivity_list[i]*cost_prob_list[i]
 # this is just the probabiility of leaning towards false
