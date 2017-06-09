@@ -74,7 +74,7 @@ GEN_GRAPHS = True # if true, any tests run will generate their respective graphs
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-RUN_ABSTRACT_SIM = True
+RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [0.01,0.05,0.1,0.2,0.3,0.4,0.5]
 
