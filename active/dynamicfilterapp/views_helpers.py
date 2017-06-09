@@ -12,12 +12,14 @@ import csv
 import sys
 import math
 import random
+import time
 
 #_____________EDDY ALGORITHMS____________#
 def worker_done(ID):
     """
     Returns true if worker has no tasks to do. False otherwise.
     """
+    start = time.time()
     completedTasks = Task.objects.filter(workerID=ID)
     completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
     incompleteIP = IP_Pair.objects.filter(isDone=False).exclude(id__in=completedIP)
@@ -29,14 +31,20 @@ def worker_done(ID):
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
 
     if not incompleteIP:
-        return True
+        end = time.time()
+        worker_done_time = end - start
+        return True, worker_done_time
+
     else:
-        return False
+        end = time.time()
+        worker_done_time = end - start
+        return False, worker_done_time
 
 def pending_eddy(ID):
     """
     This function chooses which system to use for choosing the next ip_pair
     """
+    start = time.time()
     # if all IP_Pairs are done
     unfinishedList = IP_Pair.objects.filter(isDone=False)
     if not unfinishedList:
@@ -73,7 +81,9 @@ def pending_eddy(ID):
             incompleteIP = tempSet
         chosenIP = choice(incompleteIP)
 
-    return chosenIP
+    end = time.time()
+    runTime = end - start
+    return chosenIP, runTime
 
 def move_window():
     """
