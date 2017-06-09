@@ -209,7 +209,9 @@ class SimulationTest(TransactionTestCase):
 		labels = (str(globalVar),'Task Count')
 		title = str(globalVar) + " variance impact on Task Count"
 		dest = OUTPUT_PATH+RUN_NAME+'_abstract_sim'
-		line_graph_gen(listOfValuesToTest, avgL, dest +'.png',stderr = stdL,labels=labels, title = title)
+		if GEN_GRAPHS:
+			line_graph_gen(listOfValuesToTest, avgL, dest +'.png',stderr = stdL,labels=labels, title = title)
+			multi_hist_gen(avgL, dest +'.png',labels=labels, title = title)
 		if DEBUG_FLAG:
 			print "Wrote File: " + dest+'.png'
 		setattr(thismodule, globalVar, storage)
@@ -348,7 +350,7 @@ class SimulationTest(TransactionTestCase):
 		# if we're multi routing
 		if RUN_MULTI_ROUTING:
 			ROUTING_ARRAY.append(C) #add the new counts to our running list of counts
-  
+
 		sim_end = time.time()
 		sim_time = sim_end - sim_start
 		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes
@@ -377,7 +379,7 @@ class SimulationTest(TransactionTestCase):
 		"""
 		sim_passedItems = Item.objects.all().filter(hasFailed=False)
 		#print "sim_passedItems", sim_passedItems
-    
+
 		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
 
 	def sim_average_cost(self, dictionary):
@@ -760,7 +762,7 @@ class SimulationTest(TransactionTestCase):
 				#print "Running: task_count"
 				f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
 				f1 = open(OUTPUT_PATH + RUN_NAME + '_incorrect_count.csv', 'a')
-        
+
 				if GEN_GRAPHS:
 					outputArray = []
 
@@ -776,9 +778,9 @@ class SimulationTest(TransactionTestCase):
 					num_incorrect = self.final_item_mismatch(passedItems)
 
 					#print "This is number of incorrect items: ", num_incorrect
-					
+
 				self.reset_database()
-      
+
 				runTasksArray.append(num_tasks)
 
 			if RUN_TASKS_COUNT:
@@ -819,4 +821,3 @@ class SimulationTest(TransactionTestCase):
 
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
-
