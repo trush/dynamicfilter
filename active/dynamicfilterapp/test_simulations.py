@@ -211,7 +211,7 @@ class SimulationTest(TransactionTestCase):
 		dest = OUTPUT_PATH+RUN_NAME+'_abstract_sim'
 		if GEN_GRAPHS:
 			line_graph_gen(listOfValuesToTest, avgL, dest +'.png',stderr = stdL,labels=labels, title = title)
-			multi_hist_gen(avgL, dest +'.png',labels=labels, title = title)
+			multi_hist_gen(avgL, listOfValuesToTest, dest +'.png',labels=labels, title = title)
 		if DEBUG_FLAG:
 			print "Wrote File: " + dest+'.png'
 		setattr(thismodule, globalVar, storage)
