@@ -2,7 +2,7 @@
 
 # # Django tools
 from django.db import models
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 # # What we wrote
 from views_helpers import *
@@ -23,7 +23,7 @@ import csv
 HAS_RUN_ITEM_ROUTING = False #keeps track of if a routing test has ever run
 ROUTING_ARRAY = [] # keeps a running count of the final first item routs for each run
 
-class SimulationTest(TestCase):
+class SimulationTest(TransactionTestCase):
 	"""
 	Tests eddy algorithm on non-live data.
 	"""
