@@ -1,3 +1,23 @@
 *.DS_Store
 *.swp
 *.pyc
+*.csv
+*.png
+
+!Hotel_correct_answers.csv
+!Hotel_items.csv
+!Hotel_questions.csv
+!List of Predicate Selectivites.txt
+!hotel_addresses.csv
+!hotel_cleaned_data.csv
+!hotel_ip_stats.csv
+!hotels_task_file.csv
+!List_of_Predicate_Selectivities.csv
+!Restaurant_correct_answers.csv
+!Restaurant_items.csv
+!Restaurant_questions.csv
+!real_data1.csv
+!outputAnchor.csv
+!graphsAnchor.csv
+
+!*/
