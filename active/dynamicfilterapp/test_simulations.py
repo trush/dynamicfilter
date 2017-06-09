@@ -2,7 +2,7 @@
 
 # # Django tools
 from django.db import models
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 # # What we wrote
 from views_helpers import *
@@ -23,7 +23,7 @@ import csv
 HAS_RUN_ITEM_ROUTING = False #keeps track of if a routing test has ever run
 ROUTING_ARRAY = [] # keeps a running count of the final first item routs for each run
 
-class SimulationTest(TestCase):
+class SimulationTest(TransactionTestCase):
 	"""
 	Tests eddy algorithm on non-live data.
 	"""
@@ -171,6 +171,37 @@ class SimulationTest(TestCase):
 		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,
 			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
+
+	def abstract_sim(self, dictionary, globalVar, listOfValuesToTest):
+		"""
+		Expirimental function that runs many sims with varrying values of globalVar
+		"""
+		thismodule = sys.modules[__name__]
+		storage = getattr(thismodule, globalVar)
+		counts = []
+		for i in range(len(listOfValuesToTest)):
+			if DEBUG_FLAG:
+				print "Running for: " + str(listOfValuesToTest[i])
+			setattr(thismodule, globalVar, listOfValuesToTest[i])
+			counts.append([])
+			for run in range(NUM_SIM):
+				counts[i].append(self.run_sim(dictionary))
+				self.reset_database()
+				if DEBUG_FLAG:
+					print run
+		avgL, stdL = [], []
+		for ls in counts:
+			avgL.append(np.mean(ls))
+			stdL.append(np.std(ls))
+		labels = (str(globalVar),'Task Count')
+		title = str(globalVar) + " variance impact on Task Count"
+		dest = OUTPUT_PATH+RUN_NAME+'_abstract_sim'
+		line_graph_gen(listOfValuesToTest, avgL, dest +'.png',stderr = stdL,labels=labels, title = title)
+		if DEBUG_FLAG:
+			print "Wrote File: " + dest+'.png'
+		setattr(thismodule, globalVar, storage)
+		return
+
 
 
 	def run_sim(self, dictionary):
@@ -520,7 +551,10 @@ class SimulationTest(TestCase):
 		Runs a simulation of real data and prints out the number of tasks
 		ran to complete the filter
 		"""
+		global NUM_CERTAIN_VOTES
 		print "Simulation is being tested"
+
+
 
 
 
@@ -592,9 +626,8 @@ class SimulationTest(TestCase):
 
 		if RUN_TASKS_COUNT or RUN_MULTI_ROUTING:
 			if RUN_TASKS_COUNT:
-				f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
-				if GEN_GRAPHS:
-					outputArray = []
+				#f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
+				runTasksArray = []
 
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i)
@@ -604,23 +637,21 @@ class SimulationTest(TestCase):
 				if TEST_ACCURACY:
 					num_incorrect = self.final_item_mismatch(passedItems)
 
-				if i == (NUM_SIM - 1) :
-					f.write(str(num_tasks))
-				else:
-					f.write(str(num_tasks) + ',')
+				#if i == (NUM_SIM - 1) :
+				#	f.write(str(num_tasks))
+				#else:
+				#	f.write(str(num_tasks) + ',')
 
 				self.reset_database()
-				if GEN_GRAPHS and RUN_TASKS_COUNT:
-					outputArray.append(num_tasks)
+				runTasksArray.append(num_tasks)
 			if RUN_TASKS_COUNT:
-				f.write('\n')
-				f.close()
+				generic_csv_write(OUTPUT_PATH+RUN_NAME+'_tasks_count.csv',[runTasksArray])
 				if DEBUG_FLAG:
 					print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_tasks_count.csv'
 				if GEN_GRAPHS:
 					dest = OUTPUT_PATH + RUN_NAME + '_tasks_count.png'
 					title = RUN_NAME + ' Cost distribution'
-					hist_gen(outputArray, dest, labels = ('Cost','Frequency'), title = title)
+					hist_gen(runTasksArray, dest, labels = ('Cost','Frequency'), title = title)
 					if DEBUG_FLAG:
 						print "Wrote File: " + dest
 			if RUN_MULTI_ROUTING:
@@ -645,3 +676,6 @@ class SimulationTest(TestCase):
 						multi_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
 						if DEBUG_FLAG:
 							print "Wrote File: " + OUTPUT_PATH+RUN_NAME+'_multi_routing.png'
+
+		if RUN_ABSTRACT_SIM:
+			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
