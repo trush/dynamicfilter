@@ -370,7 +370,7 @@ class SimulationTest(TransactionTestCase):
 			if all(correctAnswers[item,predicate] == True for predicate in predicates):
 				passedItems.append(item)
 		#print "number of passed items: ", len(passedItems)
-		print "passed items: ", passedItems
+		print "# correct passed items: ", len(passedItems)
 		return passedItems
 
 	def final_item_mismatch(self, passedItems):
@@ -378,7 +378,7 @@ class SimulationTest(TransactionTestCase):
 		Returns the number of incorrect items
 		"""
 		sim_passedItems = Item.objects.all().filter(hasFailed=False)
-		#print "sim_passedItems", sim_passedItems
+		print "# sim_passedItems: ", len(sim_passedItems)
 
 		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
 
@@ -556,7 +556,7 @@ class SimulationTest(TransactionTestCase):
 			for run in range(NUM_SIM):
 				EDDY_SYS = 1 # queue system
 				print "Sim " + str(run+1) + " for mode = queue, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
-				q_num_tasks = self.run_sim(data)
+				q_num_tasks = self.run_sim(data)[0]
 
 				q_incorrect = self.final_item_mismatch(passedItems)
 
@@ -571,7 +571,7 @@ class SimulationTest(TransactionTestCase):
 				EDDY_SYS = 2 # random system
 				print "Sim " + str(run+1) + " for mode = random, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
 
-				rand_num_tasks = self.run_sim(data)
+				rand_num_tasks = self.run_sim(data)[0]
 				rand_incorrect = self.final_item_mismatch(passedItems)
 
 				# add the number of incorrect items to appropriate array
@@ -821,3 +821,5 @@ class SimulationTest(TransactionTestCase):
 
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
+
+		self.multiAccVsUncert(ABSTRACT_VALUES, sampleData, [[2, 9], [5, 8]])
