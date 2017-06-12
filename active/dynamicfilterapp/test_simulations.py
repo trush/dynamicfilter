@@ -339,18 +339,18 @@ class SimulationTest(TransactionTestCase):
 			dest = OUTPUT_PATH+RUN_NAME+'_item_routing'
 			title = RUN_NAME + ' Item Routing'
 			labels = (str(predicates[0].question), str(predicates[1].question))
-			dataToWrite = [labels,L[0],L[1]]
+			dataToWrite = [labels,routingL[0],routingL[1]]
 			generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
 			if DEBUG_FLAG:
 				print "Wrote File: "+dest+'.csv'
 			if GEN_GRAPHS:
-				line_graph_gen(L[0],L[1],dest+'.png',labels = labels,title = title, square = True) # saves a routing line graph
+				line_graph_gen(routingL[0],routingL[1],dest+'.png',labels = labels,title = title, square = True) # saves a routing line graph
 				if DEBUG_FLAG:
 					print "Wrote File: " + dest+'.png'
 
 		# if we're multi routing
 		if RUN_MULTI_ROUTING:
-			ROUTING_ARRAY.append(C) #add the new counts to our running list of counts
+			ROUTING_ARRAY.append(routingC) #add the new counts to our running list of counts
 
 		sim_end = time.time()
 		sim_time = sim_end - sim_start
@@ -801,9 +801,9 @@ class SimulationTest(TransactionTestCase):
 					arrayData = []
 					for i in range(len(questions)):
 						arrayData.append([])
-					for L in ROUTING_ARRAY:
+					for routingL in ROUTING_ARRAY:
 						for i in range(len(questions)):
-							arrayData[i].append(L[i])
+							arrayData[i].append(routingL[i])
 					mrsavefile = open(OUTPUT_PATH+RUN_NAME+'_multi_routing.csv','w')
 					mrwriter = csv.writer(mrsavefile)
 					mrwriter.writerow(questions)
@@ -813,7 +813,7 @@ class SimulationTest(TransactionTestCase):
 					if DEBUG_FLAG:
 						print "Wrote File: "+OUTPUT_PATH+RUN_NAME+'_multi_routing.csv'
 					if GEN_GRAPHS:
-						multi_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
+						stats_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
 						if DEBUG_FLAG:
 							print "Wrote File: " + OUTPUT_PATH+RUN_NAME+'_multi_routing.png'
 
