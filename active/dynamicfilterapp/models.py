@@ -58,6 +58,10 @@ class Predicate(models.Model):
     num_pending = models.IntegerField(default=0)
 
     queue_is_full = models.BooleanField(default=False)
+    
+    #variables for epsilon-greedy MAB
+    value = modles.FloatField(default=0.0)
+    count = models.IntegerField(default=0)
 
     # fields to keep track of selectivity
     selectivity = models.FloatField(default=0.1)

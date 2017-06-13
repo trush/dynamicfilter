@@ -103,6 +103,21 @@ def move_window():
     else:
         pass
 
+#______EPSILON-GREEDY MAB______#
+
+def select_arm():
+    predicates = Predicate.objects.all()
+    if random.random() > EPSILON:
+       return max(predicates)
+    else:
+        return random predicate
+
+def update(chosenPred, reward):
+    chosenPred.count++
+    new_val = ((n-1)/float(chosenPred.count))*chosenPred.value + (1/float(chosenPred.count)) * reward
+    self.values[chosen_arm] = new_val
+    return
+
 #____________LOTTERY SYSTEMS____________#
 def chooseItem(ipSet):
     """
@@ -189,6 +204,9 @@ def lotteryPendingQueue(ipSet):
         chosenIP.predicate.num_pending += 1
         chosenIP.inQueue = True
         chosenIP.item.inQueue = True
+        print chosenIP.predicate
+        print chosenIP.item
+        print "queue size " + str(chosenIP.predicate.num_pending)
         chosenIP.item.save()
 
     # if the queue is full, update the predicate
