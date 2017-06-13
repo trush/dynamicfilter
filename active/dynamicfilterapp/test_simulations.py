@@ -28,6 +28,8 @@ class SimulationTest(TransactionTestCase):
 	Tests eddy algorithm on non-live data.
 	"""
 
+	distribution_type = 0
+
 	###___HELPERS THAT LOAD IN DATA___###
 	def load_data(self):
 		"""
@@ -168,7 +170,19 @@ class SimulationTest(TransactionTestCase):
 		"""
 		Pick a random worker identified by a string
 		"""
-		return str(randint(1,NUM_WORKERS))
+		## uniform distribution
+		if self.distribution_type == 0:
+			return str(randint(1,NUM_WORKERS))
+
+		## geometric
+		if self.distribution_type == 1:
+			scale = 3.0
+			val = NUM_WORKERS
+			while val >= NUM_WORKERS or val == 0:
+				val = int(np.random.geometric(0.2))
+			return str(val)
+
+
 
 	def reset_database(self):
 		"""
@@ -259,7 +273,7 @@ class SimulationTest(TransactionTestCase):
 
 			elif (workerDone):
 				noTasks += 1
-				if DEBUG_FLAG:
+				#if DEBUG_FLAG:
 					#print "worker has no tasks to do"
 
 
