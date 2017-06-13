@@ -15,7 +15,7 @@ IP_PAIR_DATA_FILE = 'real_data1.csv'
 DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-NUM_CERTAIN_VOTES = 10
+NUM_CERTAIN_VOTES = 5
 UNCERTAINTY_THRESHOLD = 0.2
 FALSE_THRESHOLD = 0.2
 DECISION_THRESHOLD = 0.5
@@ -23,16 +23,16 @@ CUT_OFF = 21
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
-NUM_WORKERS = 101
+NUM_WORKERS = 21
 EDDY_SYS = 1
 # EDDY SYS KEY:
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
-PENDING_QUEUE_SIZE = 1
+PENDING_QUEUE_SIZE = 4
 
-CHOSEN_PREDS = [2, 3] # predicates that will be used when run on real data
+CHOSEN_PREDS = [2, 4] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -68,12 +68,12 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-RUN_ABSTRACT_SIM = True
+RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [0.01,0.05,0.1,0.2,0.3,0.4,0.5]
 
@@ -88,13 +88,17 @@ RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D grap
 RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 100 # how many simulations to run?
+NUM_SIM = 50 # how many simulations to run?
 
-TIME_SIMS = True
+TIME_SIMS = False
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
+
+RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
+
+NO_TASKS_COUNT = True # keeps track of the number of times the next worker has no possible task
 
 TEST_ACCURACY = False
 

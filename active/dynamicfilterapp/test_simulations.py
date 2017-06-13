@@ -235,6 +235,7 @@ class SimulationTest(TransactionTestCase):
 		eddyTimes = []
 		taskTimes = []
 		workerDoneTimes = []
+		noTasks = 0
 
 		#If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
@@ -244,7 +245,6 @@ class SimulationTest(TransactionTestCase):
 			for i in range(len(predicates)):
 				routingC.append(0)
 				routingL.append([0])
-
 		#pick a dummy ip_pair
 		ip_pair = IP_Pair()
 
@@ -258,8 +258,9 @@ class SimulationTest(TransactionTestCase):
 				ip_pair = None
 
 			elif (workerDone):
+				noTasks += 1
 				if DEBUG_FLAG:
-					print "worker has no tasks to do"
+					#print "worker has no tasks to do"
 
 
 			else:
@@ -351,10 +352,9 @@ class SimulationTest(TransactionTestCase):
 		# if we're multi routing
 		if RUN_MULTI_ROUTING:
 			ROUTING_ARRAY.append(routingC) #add the new counts to our running list of counts
-
 		sim_end = time.time()
 		sim_time = sim_end - sim_start
-		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes
+		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes, noTasks
 
 
 	###___HELPERS THAT WRITE OUT STATS___###
@@ -758,7 +758,7 @@ class SimulationTest(TransactionTestCase):
 			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
 			passedItems = self.get_passed_items(correctAnswers)
 
-		if RUN_TASKS_COUNT or RUN_MULTI_ROUTING:
+		if RUN_TASKS_COUNT or RUN_MULTI_ROUTING or RUN_CONSENSUS_COUNT:
 			if RUN_TASKS_COUNT:
 				#print "Running: task_count"
 				f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
@@ -767,17 +767,40 @@ class SimulationTest(TransactionTestCase):
 				if GEN_GRAPHS:
 					outputArray = []
 
-				runTasksArray = []
+			runTasksArray = []
+			goodArray, badArray = [], []
+			noTasksArray = []
 
 
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i)
-				num_tasks = self.run_sim(sampleData)[0]
+				retValues = self.run_sim(sampleData)
+				num_tasks = retValues[0]
+				if NO_TASKS_COUNT:
+					noTasksArray.append(retValues[5])
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				if TEST_ACCURACY:
 					num_incorrect = self.final_item_mismatch(passedItems)
-
+				if RUN_CONSENSUS_COUNT:
+					if TEST_ACCURACY:
+						donePairs = IP_Pair.objects.filter(Q(num_no__gt=0)|Q(num_yes__gt=0))
+						goodPairs, badPairs = [], []
+						for pair in donePairs:
+							if (pair.num_yes-pair.num_no)>0:
+								val = True
+							else:
+								val = False
+							if (correctAnswers[(pair.item,pair.predicate)]) == val:
+								goodPairs.append(pair)
+								goodArray.append(pair.num_no+pair.num_yes)
+							else:
+								badPairs.append(pair)
+								badArray.append(pair.num_no+pair.num_yes)
+					else:
+						reals = IP_Pair.objects.filter(Q(num_no__gt=0)|Q(num_yes__gt=0))
+						for pair in reals:
+							goodArray.append(pair.num_no + pair.num_yes)
 					#print "This is number of incorrect items: ", num_incorrect
 
 				self.reset_database()
@@ -816,6 +839,38 @@ class SimulationTest(TransactionTestCase):
 						stats_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
 						if DEBUG_FLAG:
 							print "Wrote File: " + OUTPUT_PATH+RUN_NAME+'_multi_routing.png'
+			if RUN_CONSENSUS_COUNT:
+				dest = OUTPUT_PATH + RUN_NAME+'_consensus_count'
+				if len(badArray) == 0:
+					generic_csv_write(dest+'.csv',[goodArray])
+					print goodArray
+				else:
+					generic_csv_write(dest+'.csv',[goodArray,badArray])
+					print goodArray,badArray
+				if DEBUG_FLAG:
+					print "Wrote File: " + dest + '.csv'
+				if GEN_GRAPHS:
+					title = 'Normalized Distribution of Tasks before Consensus'
+					labels = ('Number of Tasks', 'Frequency')
+					if len(badArray) == 0:
+						hist_gen(goodArray, dest+'.png',labels=labels,title=title)
+					else:
+						leg = ('Correctly Evaluated IP pairs','Incorrectly Evaluated IP pairs')
+						multi_hist_gen([goodArray,badArray],leg,dest+'.png',labels=labels,title=title)
+			if NO_TASKS_COUNT:
+				if sum(noTasksArray) != 0:
+					dest = OUTPUT_PATH+RUN_NAME+'_no_tasks'
+					generic_csv_write(dest+'.csv',[noTasksArray])
+					if DEBUG_FLAG:
+						print "Wrote File: " + dest + '.csv'
+					if GEN_GRAPHS:
+						title = 'Distribution of `No Tasks`'
+						labels = ('# of Times Chosen worker had nothing to do','Frequency')
+						hist_gen(noTasksArray,dest+'.png',labels=labels,title=title)
+						if DEBUG_FLAG:
+							print "Wrote File: "+dest+'.png'
+				elif DEBUG_FLAG:
+					print "No workers went without tasks, ignoring test results"
 
 		if TIME_SIMS:
 			self.timeRun(sampleData)
