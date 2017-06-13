@@ -2,7 +2,7 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'Default' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'RestaurantsAccVsUncert100Sims' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Restaurant"
 #We have 5 questions for hotels right now, 10 for restaurants
@@ -15,7 +15,7 @@ IP_PAIR_DATA_FILE = 'real_data1.csv'
 DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-NUM_CERTAIN_VOTES = 10
+NUM_CERTAIN_VOTES = 5
 UNCERTAINTY_THRESHOLD = 0.2
 FALSE_THRESHOLD = 0.2
 DECISION_THRESHOLD = 0.5
@@ -32,7 +32,7 @@ EDDY_SYS = 1
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [2, 3] # predicates that will be used when run on real data
+CHOSEN_PREDS = [2, 9] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -73,9 +73,9 @@ GEN_GRAPHS = False # if true, any tests run will generate their respective graph
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-RUN_ABSTRACT_SIM = True
+RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
-ABSTRACT_VALUES = [0.01,0.05,0.1,0.2,0.3,0.4,0.5]
+ABSTRACT_VALUES = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 1000
@@ -90,9 +90,9 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 NUM_SIM = 100 # how many simulations to run?
 
-TIME_SIMS = True
+TIME_SIMS = False
 
-RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 

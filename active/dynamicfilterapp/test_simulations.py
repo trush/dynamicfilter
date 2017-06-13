@@ -357,30 +357,61 @@ class SimulationTest(TransactionTestCase):
 
 
 	###___HELPERS THAT WRITE OUT STATS___###
+	# def get_passed_items(self, correctAnswers):
+	# 	"""
+	# 	Returns a list of items that should be filtered through the given predicates
+	# 	"""
+	# 	passedItems = []
+	# 	# get chosen predicates
+	# 	predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
+	#
+	# 	#filter out all items that pass all predicates
+	# 	for item in Item.objects.all():
+	# 		if all(correctAnswers[item,predicate] == True for predicate in predicates):
+	# 			passedItems.append(item)
+	# 	#print "number of passed items: ", len(passedItems)
+	# 	print "# correct passed items: ", len(passedItems)
+	# 	return passedItems
+
 	def get_passed_items(self, correctAnswers):
-		"""
-		Returns a list of items that should be filtered through the given predicates
-		"""
-		passedItems = []
-		# get chosen predicates
+		#go through correct answers dictionary and set the "should pass" parameter to true for
+		#appropriate items (or collect ID's of those that should pass?)
 		predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
 
-		#filter out all items that pass all predicates
 		for item in Item.objects.all():
-			if all(correctAnswers[item,predicate] == True for predicate in predicates):
-				passedItems.append(item)
-		#print "number of passed items: ", len(passedItems)
-		print "# correct passed items: ", len(passedItems)
-		return passedItems
+			if all (correctAnswers[item, predicate] == True for predicate in predicates):
+				item.shouldPass = True
+				item.save()
+		return Item.objects.filter(shouldPass = True)
 
-	def final_item_mismatch(self, passedItems):
-		"""
-		Returns the number of incorrect items
-		"""
-		sim_passedItems = Item.objects.all().filter(hasFailed=False)
-		print "# sim_passedItems: ", len(sim_passedItems)
+		#go through set that did pass and exclude those that should pass -- tells you # incorrect positives
+		#go through set that should pass and exlude those that did pass -- tells you # incorrect negatives
 
-		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
+	# def final_item_mismatch(self, passedItems):
+	# 	"""
+	# 	Returns the number of incorrect items
+	# 	"""
+	# 	sim_passedItems = Item.objects.all().filter(hasFailed=False)
+	# 	print "# sim_passedItems: ", len(sim_passedItems)
+	# 	print "Sim Passed items: ", str(sim_passedItems)
+	# 	print type(sim_passedItems)
+	#
+	# 	return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
+
+	def total_correct(self, shouldPass):
+		"""
+		Returns number of incorrect items
+		"""
+		# number of incorrect negatives
+		incorr_neg = Item.objects.filter(hasFailed = True, shouldPass = True).count()
+
+		# number of incorrect positives
+		incorr_pos = Item.objects.filter(hasFailed = False, shouldPass = False).count()
+
+		total = Item.objects.all().count()
+
+		return total - incorr_neg - incorr_pos
+
 
 	def sim_average_cost(self, dictionary):
 		"""
@@ -518,19 +549,21 @@ class SimulationTest(TransactionTestCase):
 		if DEBUG_FLAG:
 			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_ip_stats.csv'
 
-	def compareAccuracyVsUncertainty(self, uncertainties, data, predicates):
+	def compareAccuracyVsUncertainty(self, uncertainties, data):
 	    #uncertainties is an array of float uncertainty values to try
 	    #data is the loaded in data (i.e. sampleData)
-		global EDDY_SYS, CHOSEN_PREDS, UNCERTAINTY_THRESHOLD, NUM_SIM
+		global EDDY_SYS, UNCERTAINTY_THRESHOLD, NUM_SIM
 
 
-		CHOSEN_PREDS = predicates
 		print "Running " + str(NUM_SIM) + " simulations on predicates " + str(CHOSEN_PREDS)
 
-		qIncorrectAverages = []
-		qIncorrectStdDevs = []
-		randIncorrectAverages = []
-		randIncorrectStdDevs = []
+		#qCorrectAverages = []
+		#qCorrectStdDevs = []
+		#randCorrectAverages = []
+		#randCorrectStdDevs = []
+
+		qCorrectMTVs = []
+		randCorrectMTVs = []
 
 		qNumTasksAverages = []
 		qNumTasksStdDevs = []
@@ -540,14 +573,14 @@ class SimulationTest(TransactionTestCase):
 		for val in uncertainties:
 			# set up the set of items that SHOULD be passed
 			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
-			passedItems = self.get_passed_items(correctAnswers)
+			shouldPass = self.get_passed_items(correctAnswers)
 
 			#set the uncertainty threshold to a new value
 			UNCERTAINTY_THRESHOLD = val
 
 			# create arrays that will be populated with counts of incorrect items
-			qIncorrects = []
-			randIncorrects = []
+			qCorrects = []
+			randCorrects = []
 
 			qNumTasks = []
 			randNumTasks = []
@@ -558,10 +591,10 @@ class SimulationTest(TransactionTestCase):
 				print "Sim " + str(run+1) + " for mode = queue, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
 				q_num_tasks = self.run_sim(data)[0]
 
-				q_incorrect = self.final_item_mismatch(passedItems)
+				q_correct = self.total_correct(shouldPass)
 
 				# add the number of incorrect items to appropriate array
-				qIncorrects.append(q_incorrect)
+				qCorrects.append(q_correct)
 
 				#add number of tasks to appropriate array
 				qNumTasks.append(q_num_tasks)
@@ -572,10 +605,10 @@ class SimulationTest(TransactionTestCase):
 				print "Sim " + str(run+1) + " for mode = random, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
 
 				rand_num_tasks = self.run_sim(data)[0]
-				rand_incorrect = self.final_item_mismatch(passedItems)
+				rand_correct = self.total_correct(shouldPass)
 
 				# add the number of incorrect items to appropriate array
-				randIncorrects.append(rand_incorrect)
+				randCorrects.append(rand_correct)
 
 				#add the number of tasks to appropriate array
 				randNumTasks.append(rand_num_tasks)
@@ -583,10 +616,14 @@ class SimulationTest(TransactionTestCase):
 				self.reset_database()
 
 			# store the mean and stddevs of the incorrect counts for this uncertainty level
-			qIncorrectAverages.append(np.average(qIncorrects))
-			qIncorrectStdDevs.append(np.std(qIncorrects))
-			randIncorrectAverages.append(np.average(randIncorrects))
-			randIncorrectStdDevs.append(np.std(randIncorrects))
+			#qCorrectAverages.append(np.average(qIncorrects))
+			#qCorrectStdDevs.append(np.std(qIncorrects))
+			#randCorrectAverages.append(np.average(randIncorrects))
+			#randCorrectStdDevs.append(np.std(randIncorrects))
+
+			#compute mean-to-variance ratios
+			qCorrectMTVs.append(np.average(qCorrects)/np.var(qCorrects))
+			randCorrectMTVs.append(np.average(randCorrects)/np.var(randCorrects))
 
 			# store the mean and stddev of number of tasks for this uncertainty level
 			qNumTasksAverages.append(np.average(qNumTasks))
@@ -594,37 +631,47 @@ class SimulationTest(TransactionTestCase):
 			randNumTasksAverages.append(np.average(randNumTasks))
 			randNumTasksStdDevs.append(np.std(randNumTasks))
 
-			xL = [uncertainties, uncertainties]
-			yL = [qIncorrectAverages, randIncorrectAverages]
-			yErr = [qIncorrectStdDevs, randIncorrectStdDevs]
-			save1 = [xL, yL, yErr]
+			#xL = [uncertainties, uncertainties]
+			#yL = [qCorrectAverages, randCorrectAverages]
+			#yErr = [qCorrectStdDevs, randCorrectStdDevs]
+			#save1 = [xL, yL, yErr]
 
-			generic_csv_write(OUTPUT_PATH + RUN_NAME + "numIncorrVaryUncert.csv", save1)
+		xL = [uncertainties, uncertainties]
+		yL = [qCorrectMTVs, randCorrectMTVs]
+		save1 = [xL, yL]
 
-			yL = [qNumTasksAverages, randNumTasksAverages]
-			yErr = [qNumTasksStdDevs, randNumTasksStdDevs]
-			save2 = [xL, yL, yErr]
+		generic_csv_write(OUTPUT_PATH + RUN_NAME + "numCorrVaryUncert.csv", save1)
 
-			generic_csv_write(OUTPUT_PATH + RUN_NAME + "numTasksVaryUncert.csv", save2)
+		# multi_line_graph_gen(xL, yL, ["Queue Eddy System", "Random System"],
+		#  					OUTPUT_PATH + "graphs/" + RUN_NAME + "_CorrectVsUncert" + str(CHOSEN_PREDS) + ".png",
+		# 					labels = ("Uncertainty Threshold" , "Mean-to-Variance Ratio Number Correct Items"),
+		# 					title = "Correct Items vs. Uncertainty for Predicates " + str(CHOSEN_PREDS))
 
-		#graph number of incorrect vs. uncertainty
-		multi_line_graph_gen([uncertainties, uncertainties], [qIncorrectAverages, randIncorrectAverages],
-		 					["Queue Eddy System", "Random System"], OUTPUT_PATH + RUN_NAME + "_IncorrectVsUncert" + str(predicates) + ".png",
-							 labels = ("Uncertainty Threshold" , "Avg. Number Incorrect Items"),
-							 title = "Number Incorrect Items vs. Uncertainty for Predicates " + str(predicates),
-							 stderrL = [qIncorrectStdDevs, randIncorrectStdDevs])
+		yL = [qNumTasksAverages, randNumTasksAverages]
+		yErr = [qNumTasksStdDevs, randNumTasksStdDevs]
+		save2 = [xL, yL, yErr]
+
+		generic_csv_write(OUTPUT_PATH + RUN_NAME + "numTasksVaryUncert.csv", save2)
+
+		# graph number of incorrect vs. uncertainty
+		# multi_line_graph_gen([uncertainties, uncertainties], [qCorrectAverages, randCorrectAverages],
+		#  					["Queue Eddy System", "Random System"], OUTPUT_PATH + "graphs/" + RUN_NAME + "_CorrectVsUncert" + str(CHOSEN_PREDS) + ".png",
+		# 					 labels = ("Uncertainty Threshold" , "Mean-to-Variance Ratio Number Correct Items"),
+		# 					 title = "Correct Items vs. Uncertainty for Predicates " + str(CHOSEN_PREDS),
+		# 					 stderrL = [qCorrectStdDevs, randCorrectStdDevs])
+
 
 		#graph number of tasks vs. uncertainty
-		multi_line_graph_gen([uncertainties, uncertainties], [qNumTasksAverages, randNumTasksAverages],
-							["Queue Eddy System", "Random System"], OUTPUT_PATH + RUN_NAME + "_TasksVsUncert" + str(predicates) + ".png",
-							labels = ("Uncertainty Threshold", "Avg. Number of Tasks"),
-							title = "Number of Tasks vs. Uncertainty for Predicates " + str(predicates),
-							stderrL = [qNumTasksStdDevs, randIncorrectStdDevs])
+		# multi_line_graph_gen([uncertainties, uncertainties], [qNumTasksAverages, randNumTasksAverages],
+		# 					["Queue Eddy System", "Random System"], OUTPUT_PATH + "graphs/" + RUN_NAME + "_TasksVsUncert" + str(CHOSEN_PREDS) + ".png",
+		# 					labels = ("Uncertainty Threshold", "Avg. Number of Tasks"),
+		# 					title = "Number of Tasks vs. Uncertainty for Predicates " + str(CHOSEN_PREDS),
+		# 					stderrL = [qNumTasksStdDevs, randNumTasksStdDevs])
 
-	def multiAccVsUncert (self, uncertainties, data, predSet):
+	def multiAccVsUncert (self, uncertainties, predSet):
 		for preds in predSet:
 			print "Filter by: " + str(CHOSEN_PREDS) + " and controlled run: " + str(CHOSEN_PREDS)
-			self.compareAccuracyVsUncertainty(uncertainties, data, preds)
+			self.compareAccuracyVsUncertainty(uncertainties, preds)
 
 	def timeRun(self, data):
 		resetTimes = []
@@ -822,4 +869,4 @@ class SimulationTest(TransactionTestCase):
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
 
-		self.multiAccVsUncert(ABSTRACT_VALUES, sampleData, [[2, 9], [5, 8]])
+		self.compareAccuracyVsUncertainty(ABSTRACT_VALUES, sampleData)

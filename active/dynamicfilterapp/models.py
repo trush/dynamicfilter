@@ -5,7 +5,7 @@ import subprocess
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
 
-@python_2_unicode_compatible 
+@python_2_unicode_compatible
 class Item(models.Model):
     """
     General model representing an item in the database
@@ -14,9 +14,10 @@ class Item(models.Model):
     name = models.CharField(max_length=100)
     item_type = models.CharField(max_length=50)
     address = models.CharField(max_length=200, default='')
-    
+
     # set to True if one of the predicates has been evaluated to False
     hasFailed = models.BooleanField(db_index=True, default=False)
+    shouldPass = models.BooleanField(db_index = True, default=False)
 
     # attributes for item specific systems
     isStarted = models.BooleanField(default=False)
@@ -24,10 +25,12 @@ class Item(models.Model):
 
     inQueue = models.BooleanField(default=False)
 
+
+
     def __str__(self):
         return str(self.name)
 
-@python_2_unicode_compatible 
+@python_2_unicode_compatible
 class Question(models.Model):
     """
     Model for questions in the database
@@ -47,7 +50,7 @@ class WorkerID(models.Model):
 @python_2_unicode_compatible
 class Predicate(models.Model):
     """
-    Model representing one predicate 
+    Model representing one predicate
     """
     predicate_ID = models.IntegerField(default=None)
     question = models.ForeignKey(Question)
@@ -84,7 +87,7 @@ class Predicate(models.Model):
 @python_2_unicode_compatible
 class IP_Pair(models.Model):
     """
-    Model representing an item-predicate pair. 
+    Model representing an item-predicate pair.
     """
     item = models.ForeignKey(Item)
     predicate = models.ForeignKey(Predicate)
@@ -125,4 +128,3 @@ class Task(models.Model):
 
     def __str__(self):
         return "Task from worker " + str(self.workerID.workerID)
-    
