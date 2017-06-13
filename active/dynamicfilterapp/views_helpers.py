@@ -108,9 +108,11 @@ def move_window():
 def select_arm():
     predicates = Predicate.objects.all()
     if random.random() > EPSILON:
-       return max(predicates)
+         valueList = np.array([(pred.value) for pred in predicates])
+       maxVal = max(valueList)
+       return predicate associated with maxVal
     else:
-        return random predicate
+        return random.choose(predicates)
 
 def update(chosenPred, reward):
     chosenPred.count++
