@@ -2,7 +2,7 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'RestaurantsAccVsUncert100Sims' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'RestaurantsAccVsUncert50Unambig' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Restaurant"
 #We have 5 questions for hotels right now, 10 for restaurants
@@ -32,7 +32,7 @@ EDDY_SYS = 1
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [2, 9] # predicates that will be used when run on real data
+CHOSEN_PREDS = [4, 8] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -88,7 +88,7 @@ RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D grap
 RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 100 # how many simulations to run?
+NUM_SIM = 50 # how many simulations to run?
 
 TIME_SIMS = False
 

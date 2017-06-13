@@ -384,34 +384,16 @@ class SimulationTest(TransactionTestCase):
 				item.save()
 		return Item.objects.filter(shouldPass = True)
 
-		#go through set that did pass and exclude those that should pass -- tells you # incorrect positives
-		#go through set that should pass and exlude those that did pass -- tells you # incorrect negatives
-
-	# def final_item_mismatch(self, passedItems):
-	# 	"""
-	# 	Returns the number of incorrect items
-	# 	"""
-	# 	sim_passedItems = Item.objects.all().filter(hasFailed=False)
-	# 	print "# sim_passedItems: ", len(sim_passedItems)
-	# 	print "Sim Passed items: ", str(sim_passedItems)
-	# 	print type(sim_passedItems)
-	#
-	# 	return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
-
-	def total_correct(self, shouldPass):
+	def final_item_mismatch(self, passedItems):
 		"""
-		Returns number of incorrect items
+		Returns the number of incorrect items
 		"""
-		# number of incorrect negatives
-		incorr_neg = Item.objects.filter(hasFailed = True, shouldPass = True).count()
+		sim_passedItems = Item.objects.all().filter(hasFailed=False)
+		#print "# sim_passedItems: ", len(sim_passedItems)
+		#print "Sim Passed items: ", str(sim_passedItems)
+		#print type(sim_passedItems)
 
-		# number of incorrect positives
-		incorr_pos = Item.objects.filter(hasFailed = False, shouldPass = False).count()
-
-		total = Item.objects.all().count()
-
-		return total - incorr_neg - incorr_pos
-
+		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
 
 	def sim_average_cost(self, dictionary):
 		"""
@@ -549,6 +531,54 @@ class SimulationTest(TransactionTestCase):
 		if DEBUG_FLAG:
 			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_ip_stats.csv'
 
+	def runSimTrackAcc(self, uncertainty, data, passedItems):
+		global UNCERTAINTY_THRESHOLD
+
+		UNCERTAINTY_THRESHOLD = uncertainty
+		listIncorr = []
+		listTasks = []
+
+		for run in range(NUM_SIM):
+			print "Sim " + str(run+1) + " for uncertainty = " + str(UNCERTAINTY_THRESHOLD)
+			num_tasks = self.run_sim(data)[0]
+			incorrect = self.final_item_mismatch(passedItems)
+
+			listTasks.append(num_tasks)
+			listIncorr.append(incorrect)
+
+			self.reset_database()
+
+		return listTasks, listIncorr
+
+
+	def compareAccVsUncert(self, uncertainties, data):
+		global UNCERTAINTY_THRESHOLD, NUM_SIM
+
+		print "Running " + str(NUM_SIM) + " simulations on predicates " + str(CHOSEN_PREDS)
+
+		numTasksAvgs = []
+		numTasksStdDevs = []
+
+		incorrectAvgs = []
+		incorrectStdDevs = []
+
+		# set up the set of items that SHOULD be passed
+		correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+		shouldPass = self.get_passed_items(correctAnswers)
+
+		for val in uncertainties:
+			num_tasks, incorrects = self.runSimTrackAcc(val, data, shouldPass)
+
+			numTasksAvgs.append(np.average(num_tasks))
+			numTasksStdDevs.append(np.std(num_tasks))
+
+			incorrectAvgs.append(np.average(incorrects))
+			incorrectStdDevs.append(np.std(incorrects))
+
+		save1 = [uncertainties, uncertainties, numTasksAvgs, numTasksStdDevs, incorrectAvgs, incorrectStdDevs]
+
+		generic_csv_write(OUTPUT_PATH + RUN_NAME + "dataOut.csv", save1)
+
 	def compareAccuracyVsUncertainty(self, uncertainties, data):
 	    #uncertainties is an array of float uncertainty values to try
 	    #data is the loaded in data (i.e. sampleData)
@@ -557,24 +587,21 @@ class SimulationTest(TransactionTestCase):
 
 		print "Running " + str(NUM_SIM) + " simulations on predicates " + str(CHOSEN_PREDS)
 
-		#qCorrectAverages = []
-		#qCorrectStdDevs = []
-		#randCorrectAverages = []
-		#randCorrectStdDevs = []
-
-		qCorrectMTVs = []
-		randCorrectMTVs = []
+		qIncorrectAverages = []
+		qCorrectStdDevs = []
+		randIncorrectAverages = []
+		randIncorrectStdDevs = []
 
 		qNumTasksAverages = []
 		qNumTasksStdDevs = []
 		randNumTasksAverages = []
 		randNumTasksStdDevs = []
 
-		for val in uncertainties:
-			# set up the set of items that SHOULD be passed
-			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
-			shouldPass = self.get_passed_items(correctAnswers)
+		# set up the set of items that SHOULD be passed
+		correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+		shouldPass = self.get_passed_items(correctAnswers)
 
+		for val in uncertainties:
 			#set the uncertainty threshold to a new value
 			UNCERTAINTY_THRESHOLD = val
 
@@ -616,10 +643,10 @@ class SimulationTest(TransactionTestCase):
 				self.reset_database()
 
 			# store the mean and stddevs of the incorrect counts for this uncertainty level
-			#qCorrectAverages.append(np.average(qIncorrects))
-			#qCorrectStdDevs.append(np.std(qIncorrects))
-			#randCorrectAverages.append(np.average(randIncorrects))
-			#randCorrectStdDevs.append(np.std(randIncorrects))
+			qCorrectAverages.append(np.average(qCorrects))
+			qCorrectStdDevs.append(np.std(qIncorrects))
+			randCorrectAverages.append(np.average(randIncorrects))
+			randCorrectStdDevs.append(np.std(randIncorrects))
 
 			#compute mean-to-variance ratios
 			qCorrectMTVs.append(np.average(qCorrects)/np.var(qCorrects))
@@ -631,14 +658,14 @@ class SimulationTest(TransactionTestCase):
 			randNumTasksAverages.append(np.average(randNumTasks))
 			randNumTasksStdDevs.append(np.std(randNumTasks))
 
-			#xL = [uncertainties, uncertainties]
-			#yL = [qCorrectAverages, randCorrectAverages]
-			#yErr = [qCorrectStdDevs, randCorrectStdDevs]
-			#save1 = [xL, yL, yErr]
+			xL = [uncertainties, uncertainties]
+			yL = [qCorrectAverages, randCorrectAverages]
+			yErr = [qCorrectStdDevs, randCorrectStdDevs]
+			save1 = [uncertainties, uncertainties, qCorrectAverages, randCorrectAverages, qCorrectStdDevs, randCorrectStdDevs]
 
-		xL = [uncertainties, uncertainties]
-		yL = [qCorrectMTVs, randCorrectMTVs]
-		save1 = [xL, yL]
+		#xL = [uncertainties, uncertainties]
+		#yL = [qCorrectMTVs, randCorrectMTVs]
+		#save1 = [xL, yL]
 
 		generic_csv_write(OUTPUT_PATH + RUN_NAME + "numCorrVaryUncert.csv", save1)
 
@@ -649,7 +676,7 @@ class SimulationTest(TransactionTestCase):
 
 		yL = [qNumTasksAverages, randNumTasksAverages]
 		yErr = [qNumTasksStdDevs, randNumTasksStdDevs]
-		save2 = [xL, yL, yErr]
+		save2 = [uncertainties, uncertainties, qNumTasksAverages, randNumTasksAverages, qNumTasksStdDevs, randNumTasksStdDevs]
 
 		generic_csv_write(OUTPUT_PATH + RUN_NAME + "numTasksVaryUncert.csv", save2)
 
@@ -869,4 +896,4 @@ class SimulationTest(TransactionTestCase):
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
 
-		self.compareAccuracyVsUncertainty(ABSTRACT_VALUES, sampleData)
+		self.compareAccVsUncert(ABSTRACT_VALUES, sampleData)
