@@ -217,6 +217,7 @@ def updateCounts(workerTask, chosenIP):
         chosenIP.value -= 1
         chosenIP.num_no +=1
         chosenPred.totalNo += 1
+    #TODO update stats about amount of worker time spent on a given IP pair?
 
     #update predicate statistics
     chosenPred.updateSelectivity()

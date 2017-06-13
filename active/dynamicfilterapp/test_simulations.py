@@ -10,6 +10,7 @@ from .models import *
 from synthesized_data import *
 from toggles import *
 from simulation_files.plotScript import *
+from responseTimeDistribution import *
 
 # # Python tools
 import numpy as np
@@ -67,6 +68,9 @@ class SimulationTest(TransactionTestCase):
 
 		# make a dictionary of all the ip_pairs and their values
 		sampleData = self.get_sample_answer_dict(INPUT_PATH + IP_PAIR_DATA_FILE)
+
+		# TODO make a dictionary/array/arrays of worker response times for T and F
+
 		return sampleData
 
 	def get_sample_answer_dict(self, filename):
@@ -143,11 +147,14 @@ class SimulationTest(TransactionTestCase):
 		# simulated worker votes
 		value = choice(dictionary[chosenIP])
 
+		#TODO use the value of "answer" to establish which distribution/set to take from for workerTime
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
 		t.save()
 		updateCounts(t, chosenIP)
 		end = time.time()
 		runTime = end - start
+		#TODO have a simulated task also return its amount of worker time
+		#TODO fix time simulation so that it uses the right data output from this func
 		return runTime
 
 	def syn_simulate_task(self, chosenIP, workerID, switch):

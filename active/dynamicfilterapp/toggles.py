@@ -1,6 +1,6 @@
 import datetime as DT
 now = DT.datetime.now()
-
+from responseTimeDistribution import *
 
 RUN_NAME = 'RestaurantsAccVsUncert100Sims' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
@@ -11,6 +11,8 @@ NUM_QUEST = 10 #used for accuracy testing
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 IP_PAIR_DATA_FILE = 'real_data1.csv'
+#TODO true times and false times function call
+TRUE_TIMES, FALSE_TIMES = importResponseTimes(OUTPUT_PATH + IP_PAIR_DATA_FILE)
 
 DEBUG_FLAG = True # useful print statements turned on
 
