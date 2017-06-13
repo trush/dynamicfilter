@@ -14,6 +14,7 @@ from simulation_files.plotScript import *
 # # Python tools
 import numpy as np
 from random import randint, choice
+import math
 import sys
 import io
 import csv
@@ -28,7 +29,7 @@ class SimulationTest(TransactionTestCase):
 	Tests eddy algorithm on non-live data.
 	"""
 
-	distribution_type = 0
+	distribution_type = 1
 
 	###___HELPERS THAT LOAD IN DATA___###
 	def load_data(self):
@@ -176,10 +177,13 @@ class SimulationTest(TransactionTestCase):
 
 		## geometric
 		if self.distribution_type == 1:
-			scale = 3.0
-			val = NUM_WORKERS
-			while val >= NUM_WORKERS or val == 0:
-				val = int(np.random.geometric(0.2))
+			# mean of distribution should be (1/3) of way through data
+			goalMean = float(np.math.floor(NUM_WORKERS/4))
+			prob = (1/goalMean)
+			val = NUM_WORKERS + 1
+			while val > NUM_WORKERS or val == 0:
+				val = np.random.geometric(prob)
+			#print val
 			return str(val)
 
 
