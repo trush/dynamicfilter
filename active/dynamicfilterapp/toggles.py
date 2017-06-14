@@ -2,14 +2,14 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'RestaurantsAccVsUncert50Unambig' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'RestaurantsAccVsUncert50Ambig' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Restaurant"
 #We have 5 questions for hotels right now, 10 for restaurants
 NUM_QUEST = 10 #used for accuracy testing
 
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
-OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
+OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/certainVotesTest'
 IP_PAIR_DATA_FILE = 'real_data1.csv'
 
 DEBUG_FLAG = True # useful print statements turned on
@@ -68,7 +68,7 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
