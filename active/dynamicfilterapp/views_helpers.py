@@ -80,6 +80,14 @@ def pending_eddy(ID):
         if len(tempSet) != 0:
             incompleteIP = tempSet
         chosenIP = choice(incompleteIP)
+	
+	#MAB_system
+	elif (EDDY_SYS==4):
+		startedIPS = incompleteIP.filter(isStarted=True)
+		if len(startedIPs) != 0:
+			incompleteIP = startedIPs
+		predicates = [ip.predicate for ip in incompleteIP]
+		
 
     end = time.time()
     runTime = end - start
@@ -108,16 +116,17 @@ def move_window():
 def select_arm():
     predicates = Predicate.objects.all()
     if random.random() > EPSILON:
-         valueList = np.array([(pred.value) for pred in predicates])
-       maxVal = max(valueList)
-       return predicate associated with maxVal
+    	valueList = np.array([(pred.value) for pred in predicates])
+    	maxVal = max(valueList)
+    	newPredlist = predicates.filter(predicate__value=maxVal)
+		return random.choose(newPredlist)
     else:
-        return random.choose(predicates)
+		return random.choose(predicates)
 
 def update(chosenPred, reward):
     chosenPred.count++
     new_val = ((n-1)/float(chosenPred.count))*chosenPred.value + (1/float(chosenPred.count)) * reward
-    self.values[chosen_arm] = new_val
+    chosenPred.value = new_val
     return
 
 #____________LOTTERY SYSTEMS____________#
