@@ -23,6 +23,8 @@ import time
 # Global Variables for Item Routing tests
 HAS_RUN_ITEM_ROUTING = False #keeps track of if a routing test has ever run
 ROUTING_ARRAY = [] # keeps a running count of the final first item routs for each run
+SAMPLING_ARRAY = []
+
 
 class SimulationTest(TransactionTestCase):
 	"""
@@ -171,19 +173,43 @@ class SimulationTest(TransactionTestCase):
 		"""
 		Pick a random worker identified by a string
 		"""
+		global SAMPLING_ARRAY
+		Replacment = True
+
 		## uniform distribution
 		if self.distribution_type == 0:
 			return str(randint(1,NUM_WORKERS))
 
 		## geometric
-		if self.distribution_type == 1:
-			# mean of distribution should be (1/3) of way through data
-			goalMean = float(np.math.floor(NUM_WORKERS/4))
+		elif self.distribution_type == 1:
+			# mean of distribution should be 58.3/315 of the way through the worker IDs
+			goalMean = NUM_WORKERS*(58.3/315.0)
 			prob = (1/goalMean)
-			val = NUM_WORKERS + 1
-			while val > NUM_WORKERS or val == 0:
-				val = np.random.geometric(prob)
-			#print val
+			if Replacment:
+				val = 0
+				while val > NUM_WORKERS or val == 0:
+					val = np.random.geometric(prob)
+				return str(val)
+			else:
+				#if there's no data in the array
+				if len(SAMPLING_ARRAY) == 0:
+					for i in range(6000):
+						val = 0
+						while val > NUM_WORKERS or val == 0:
+							val = np.random.geometric(prob)
+						SAMPLING_ARRAY.append(val)
+				val = random.choice(SAMPLING_ARRAY)
+				SAMPLING_ARRAY.remove(val)
+				return str(val)
+
+
+		## Real distribution
+		elif self.distribution_type == 2:
+			if len(SAMPLING_ARRAY) == 0:
+				SAMPLING_ARRAY = generic_csv_read(INPUT_PATH+REAL_DISTRIBUTION_FILE)[0]
+			val = random.choice(SAMPLING_ARRAY)
+			if not Replacment:
+				SAMPLING_ARRAY.remove(val)
 			return str(val)
 
 
@@ -193,7 +219,9 @@ class SimulationTest(TransactionTestCase):
 		Reset all objects from the test database. Returns the time, in seconds
 		that the process took.
 		"""
+		global SAMPLING_ARRAY
 		start = time.time()
+		SAMPLING_ARRAY = []
 		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
 		Task.objects.all().delete()
 		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,

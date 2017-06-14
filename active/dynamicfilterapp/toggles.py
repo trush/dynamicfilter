@@ -2,7 +2,7 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'Default' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'BestSynth' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Restaurant"
 #We have 5 questions for hotels right now, 10 for restaurants
@@ -11,6 +11,7 @@ NUM_QUEST = 10 #used for accuracy testing
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 IP_PAIR_DATA_FILE = 'real_data1.csv'
+REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
 DEBUG_FLAG = True # useful print statements turned on
 
@@ -23,16 +24,16 @@ CUT_OFF = 21
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
-NUM_WORKERS = 21
+NUM_WORKERS = 50
 EDDY_SYS = 1
 # EDDY SYS KEY:
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
-PENDING_QUEUE_SIZE = 4
+PENDING_QUEUE_SIZE = 3
 
-CHOSEN_PREDS = [2, 4] # predicates that will be used when run on real data
+CHOSEN_PREDS = [2,9] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -88,7 +89,7 @@ RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D grap
 RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 50 # how many simulations to run?
+NUM_SIM = 30 # how many simulations to run?
 
 TIME_SIMS = False
 

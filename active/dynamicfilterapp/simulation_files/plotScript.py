@@ -130,7 +130,7 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
     sns.despine(left=True)
     # the histogram of the data
     for i in range(len(dataList)):
-    	sns.distplot(dataList[i], hist=False, kde_kws={"shade": False}, ax=ax, label=legendList[i])
+    	sns.distplot(dataList[i], hist=True, kde_kws={"shade": False}, ax=ax, label=legendList[i])
     ax.set_xlabel(labels[0])
     ax.set_ylabel(labels[1])
     ax.set_title(title)
