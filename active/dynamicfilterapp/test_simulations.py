@@ -646,8 +646,10 @@ class SimulationTest(TransactionTestCase):
 
 		for num in voteSet:
 
+			print "thread 1 votes currently: " + str(NUM_CERTAIN_VOTES)
 			NUM_CERTAIN_VOTES = num
-			RUN_NAME = "Accuracy" + str(num) + "Votes"
+			print "thread 1 votes changed to: " + str(NUM_CERTAIN_VOTES)
+			RUN_NAME = "Accuracy" + str(num) + "Votes" + str(now.date())+ "_" + str(now.time())[:-7]
 
 			#run simulations and collect accuracy data
 			tasks_avg, tasks_std, incorr_avg, incorr_std = self.compareAccVsUncert(uncertainties, data)
@@ -658,31 +660,39 @@ class SimulationTest(TransactionTestCase):
 			incorrList.append(incorr_avg)
 			incorrStdList.append(incorr_std)
 
+		outputs = [tasksList, taskStdList, incorrList, incorrStdList]
+		print "thread 1 saved outputs"
+		#write values to csv file
+		with open(OUTPUT_PATH + RUN_NAME + "accVotes" + str(voteSet) + ".csv", "wb") as f:
+			writer = csv.writer(f)
+			writer.writerows(outputs)
+
+		print "thread 1 wrote csv"
+
 		if GEN_GRAPHS:
 			xL = []
 			legendList = []
-			for num in VoteSet:
+			for num in voteSet:
 				xL.append(uncertainties)
 				legendList.append(str(num))
 
+			print "starting graph 1"
+			RUN_NAME = "AccuracyVotes" + str(now.date())+ "_" + str(now.time())[:-7]
 			#graph the number of tasks for different min vote counts
-			multi_line_graph_gen(xL, tasksList, legendList, OUTPUT_PATH + "tasksVaryVotes.png",
+			multi_line_graph_gen(xL, tasksList, legendList, OUTPUT_PATH + RUN_NAME + "tasksVaryVotes.png",
 			labels = ("Uncertainty Threshold", "Avg. Number Tasks Per Sim"),
 			title = "Average Number Tasks Per Sim Vs. Uncertainty, Varying Min. # Votes",
 			stderrL = taskStdList)
 
+			print "made graph 1"
+
+			print "starting graph 2"
 			#graph the number of incorrect items for different min vote counts
-			multi_line_graph_gen(xL, incorrList, legendList, OUTPUT_PATH + "incorrVaryVotes.png",
+			multi_line_graph_gen(xL, incorrList, legendList, OUTPUT_PATH + RUN_NAME + "incorrVaryVotes.png",
 			labels = ("Uncertainty Threshold", "Avg. Incorrect Items Per Sim"),
-			title = "Average Number Tasks Per Sim Vs. Uncertainty, Varying Min. # Votes",
+			title = "Average Number Incorrect Items Per Sim Vs. Uncertainty, Varying Min. # Votes",
 			stderrL = incorrStdList)
-		
-
-
-
-
-
-
+			print "made graph 2"
 
 
 	###___MAIN TEST FUNCTION___###
@@ -693,10 +703,6 @@ class SimulationTest(TransactionTestCase):
 		"""
 		global NUM_CERTAIN_VOTES
 		print "Simulation is being tested"
-
-
-
-
 
 		if DEBUG_FLAG: #TODO Update print section.... re-think print section?
 			print "Debug Flag Set!"
@@ -822,22 +828,449 @@ class SimulationTest(TransactionTestCase):
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
 
-		NUM_CERTAIN_VOTES = 6
-		RUN_NAME = "Accuracy6Votes"
-		self.compareAccVsUncert(ABSTRACT_VALUES, sampleData)
+		self.accuracyChangeVotes([.1, .2, .3, .4, .5], sampleData, [5, 6, 7, 8, 9, 10])
 
-		RUN_NAME = "Accuracy7Votes"
-		NUM_CERTAIN_VOTES = 7
-		self.compareAccVsUncert(ABSTRACT_VALUES, sampleData)
-
-		RUN_NAME = "Accuracy8Votes"
-		NUM_CERTAIN_VOTES = 8
-		self.compareAccVsUncert(ABSTRACT_VALUES, sampleData)
-
-		RUN_NAME = "Accuracy9Votes"
-		NUM_CERTAIN_VOTES = 9
-		self.compareAccVsUncert(ABSTRACT_VALUES, sampleData)
-
-		RUN_NAME = "Accuracy10Votes"
-		NUM_CERTAIN_VOTES = 10
-		self.compareAccVsUncert(ABSTRACT_VALUES, sampleData)
+# class SimulationTest2(TransactionTestCase):
+#
+# 	###___HELPERS THAT LOAD IN DATA___###
+# 	def load_data(self):
+# 		"""
+# 		Loads in the real data from files. Returns the dictionary of
+# 		non-live worker data
+# 		"""
+# 		# read in the questions
+# 		ID = 0
+# 		f = open(INPUT_PATH + ITEM_TYPE + '_questions.csv', 'r')
+# 		for line in f:
+# 			line = line.rstrip('\n')
+# 			q = Question(question_ID=ID, question_text=line)
+# 			q.save()
+# 			pred = Predicate(predicate_ID=ID, question=q)
+# 			pred.save()
+# 			ID += 1
+# 		f.close()
+#
+# 		# read in the items
+# 		ID = 0
+# 		with open(INPUT_PATH + ITEM_TYPE + '_items.csv', 'r') as f:
+# 			itemData = f.read()
+# 		items = itemData.split('\n')
+# 		for item in items:
+# 			i = Item(item_ID=ID, name=item, item_type=ITEM_TYPE)
+# 			i.save()
+# 			ID += 1
+#
+# 		# only use the predicates listed in CHOSEN_PREDS
+# 		predicates = list(Predicate.objects.all()[pred] for pred in CHOSEN_PREDS)
+#
+# 		itemList = Item.objects.all()
+# 		for p in predicates:
+# 			for i in itemList:
+# 				ip_pair = IP_Pair(item=i, predicate=p)
+# 				ip_pair.save()
+#
+# 		# make a dictionary of all the ip_pairs and their values
+# 		sampleData = self.get_sample_answer_dict(INPUT_PATH + IP_PAIR_DATA_FILE)
+# 		return sampleData
+#
+# 	def get_sample_answer_dict(self, filename):
+# 		"""
+# 		Reads in a file of pre-gathered Mechanical Turk HITs and makes a
+# 		dictionary where the key is a IP_Pair and the value is a
+# 		list of all the HITs answers for that IP_Pair. This list is the set
+# 		that our simulations can sample answers from. At present, the csv file
+# 		downloaded from Mechanical Turk must be copied and then edited to only
+# 		include the four columns of data that we use here.
+# 		"""
+# 		# read in worker data from cleaned file
+# 		data = np.genfromtxt(fname=filename,
+# 							dtype={'formats': [np.dtype(int), np.dtype('S100'),
+# 										np.dtype('S200'), np.dtype(int)],
+# 									'names': ['WorkTimeInSeconds', 'Input.Hotel',
+# 										'Input.Question', 'Answer.Q1AnswerPart1']},
+# 							delimiter=',',
+# 							usecols=range(4),
+# 							skip_header=1)
+#
+# 		# Get a list of all the tasks in the file, represented as tuples of
+# 		# (item, question, answer)
+# 		tasks = [(item, question, answer) for (workTimeInSeconds, item, question, answer) in data]
+#
+# 		# create the dictionary and populate it with empty lists
+# 		sampleData = {}
+# 		for p in IP_Pair.objects.all():
+# 			sampleData[p] = []
+#
+# 		# Add every task's answer into the appropriate list in the dictionary
+# 		for (item, question, answer) in tasks:
+#
+# 			# answer==0 means worker answered "I don't know"
+# 			if answer != 0:
+#
+# 				# get the RestaurantPredicates matching this task (will be a
+# 				# QuerySet of length 1 or 0)
+# 				predKey = IP_Pair.objects.filter(predicate__question__question_text=question).filter(item__name=item)
+#
+# 				# Some tasks won't have matching RestaurantPredicates, since we
+# 				# may not be using all the possible predicates
+# 				if len(predKey) > 0:
+# 					if answer > 0:
+# 						sampleData[predKey[0]].append(True)
+# 					elif answer < 0:
+# 						sampleData[predKey[0]].append(False)
+#
+# 		return sampleData
+#
+# 	def get_correct_answers(self, filename, numQuestions):
+# 	    #read in answer data
+# 	    answers = np.genfromtxt(fname = filename, dtype = None, delimiter = ",")
+#
+# 	    # create an empty dictionary that we'll populate with (item, predicate) keys
+# 	    # and boolean correct answer values
+# 	    correctAnswers = {}
+#
+# 	    for line in answers:
+# 	        for i in range(numQuestions):
+# 	            key = (Item.objects.get(name = line[0]),
+# 	                    Predicate.objects.get(pk = i+1))
+# 	            value = line[i+1]
+# 	            correctAnswers[key] = value
+#
+# 	    return correctAnswers
+#
+# 	###___HELPERS USED FOR SIMULATION___###
+# 	def simulate_task(self, chosenIP, workerID, dictionary):
+# 		"""
+# 		Simulates the vote of a worker on a ip_pair from real data
+# 		"""
+# 		start = time.time()
+# 		# simulated worker votes
+# 		value = choice(dictionary[chosenIP])
+#
+# 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
+# 		t.save()
+# 		updateCounts(t, chosenIP)
+# 		end = time.time()
+# 		runTime = end - start
+# 		return runTime
+#
+# 	def syn_simulate_task(self, chosenIP, workerID, switch):
+# 		"""
+# 		synthesize a task
+# 		"""
+# 		start = time.time()
+# 		value = syn_answer(chosenIP, switch)
+#
+# 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
+# 		t.save()
+# 		updateCounts(t, chosenIP)
+# 		end = time.time()
+# 		runTime = end - start
+# 		return runTime
+#
+# 	def pick_worker(self):
+# 		"""
+# 		Pick a random worker identified by a string
+# 		"""
+# 		return str(randint(1,NUM_WORKERS))
+#
+# 	def reset_database(self):
+# 		"""
+# 		Reset all objects from the test database. Returns the time, in seconds
+# 		that the process took.
+# 		"""
+# 		start = time.time()
+# 		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
+# 		Task.objects.all().delete()
+# 		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,
+# 			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
+# 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
+# 		end = time.time()
+# 		reset_time = end - start
+# 		return reset_time
+#
+# 	def run_sim(self, dictionary):
+# 		"""
+# 		Runs a single simulation (either using real or synthetic data depending on
+# 		setting in toggles.py)
+# 		Returns an integer: total number of tasks completed in the sim
+# 		"""
+# 		sim_start = time.time()
+# 		global HAS_RUN_ITEM_ROUTING, ROUTING_ARRAY
+# 		num_tasks = 0
+# 		passedItems = []
+# 		itemsDoneArray = [0]
+# 		tasksArray = [0]
+# 		switch = 0
+# 		eddyTimes = []
+# 		taskTimes = []
+# 		workerDoneTimes = []
+#
+# 		#If running Item_routing, setup needed values
+# 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
+# 			predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
+# 			routingC, routingL, seenItems = [], [], []
+# 			for i in range(len(predicates)):
+# 				routingC.append(0)
+# 				routingL.append([0])
+#
+# 		#pick a dummy ip_pair
+# 		ip_pair = IP_Pair()
+#
+# 		while(ip_pair != None):
+#
+# 			# only increment if worker is actually doing a task
+# 			workerID = self.pick_worker()
+# 			workerDone, workerDoneTime = worker_done(workerID)
+#
+# 			if not IP_Pair.objects.filter(isDone=False):
+# 				ip_pair = None
+#
+# 			elif (workerDone):
+# 				if DEBUG_FLAG:
+# 					print "worker has no tasks to do"
+#
+#
+# 			else:
+# 				ip_pair, eddy_time = pending_eddy(workerID)
+# 				eddyTimes.append(eddy_time)
+#
+#
+# 				# If we should be running a routing test
+# 					# this is true in two cases: 1) we hope to run a single
+# 					# item_routing test and this is the first time we've run
+# 					# run_sim or 2) we're runing multiple routing tests, and
+# 					# so should take this data every time we run.
+# 				if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
+# 					# if this is a "new" item
+# 					if ip_pair.item.item_ID not in seenItems:
+# 						seenItems.append(ip_pair.item.item_ID)
+# 						# increment the count of that item's predicate
+# 						for i in range(len(predicates)):
+# 							if ip_pair.predicate == predicates[i]:
+# 								routingC[i]+=1
+# 							# and add this "timestep" to the running list
+# 							routingL[i].append(routingC[i])
+#
+# 				if REAL_DATA :
+# 					taskTime = self.simulate_task(ip_pair, workerID, dictionary)
+# 				else:
+# 					taskTime = self.syn_simulate_task(ip_pair, workerID, switch)
+#
+# 				move_window()
+# 				num_tasks += 1
+# 				taskTimes.append(taskTime)
+# 				tasksArray.append(num_tasks)
+#
+# 				# get a sense of what items have been ruled out and which ones
+# 				# are still in the running
+# 				#numRuledOut = Item.objects.filter(hasFailed = True).count()
+# 				#print "ruled out: " + str(numRuledOut)
+#
+#
+# 				#for the Items that haven't failed, see how many have passed
+# 				#for el in Item.objects.filter(hasFailed = False):
+# 					#get the IP pairs that include that item
+# 					#assocPairs = IP_Pair.objects.filter(item = el, isDone = True)
+# 					# if number of IP pairs completed for an item is equal to preds,
+# 					# and it hasn't failed, it's passed
+# 					#print "number of IP pairs for element " +  str(el) + ": " + str(assocPairs.count())
+# 					#if (assocPairs.count() == len(CHOSEN_PREDS)):
+# 						#if el not in passedItems:
+# 							#passedItems.append(el)
+# 				#print "passed items: " + str(len(passedItems))
+# 				#numItemsDone = numRuledOut + len(passedItems)
+# 				#print "total items done: " + str(numItemsDone)
+#
+# 				#itemsDoneArray.append(numItemsDone)
+# 				if num_tasks == 200:
+# 					switch = 1
+#
+# 		#print num_tasks
+# 		#print str(itemsDoneArray)
+# 		#line_graph_gen(tasksArray, itemsDoneArray,
+# 					#OUTPUT_PATH + RUN_NAME + "itemsDoneVsTasks.png",
+# 					#labels = ("Number Tasks Completed", "Number Items Completed"),
+# 					#title = "Number Items Categorized vs. Number Tasks Completed",)
+# 		# generate graphs using tasksArray and itemsDoneArray
+# 			workerDoneTimes.append(workerDoneTime)
+# 		if OUTPUT_SELECTIVITIES:
+# 			output_selectivities(RUN_NAME)
+#
+# 		if OUTPUT_COST:
+# 			output_cost(RUN_NAME)
+#
+# 		# if this is the first time running a routing test
+# 		if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
+# 			HAS_RUN_ITEM_ROUTING = True
+#
+# 			#setup vars to save a csv + graph
+# 			dest = OUTPUT_PATH+RUN_NAME+'_item_routing'
+# 			title = RUN_NAME + ' Item Routing'
+# 			labels = (str(predicates[0].question), str(predicates[1].question))
+# 			dataToWrite = [labels,L[0],L[1]]
+# 			generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
+# 			if DEBUG_FLAG:
+# 				print "Wrote File: "+dest+'.csv'
+# 			if GEN_GRAPHS:
+# 				line_graph_gen(L[0],L[1],dest+'.png',labels = labels,title = title, square = True) # saves a routing line graph
+# 				if DEBUG_FLAG:
+# 					print "Wrote File: " + dest+'.png'
+#
+# 		# if we're multi routing
+# 		if RUN_MULTI_ROUTING:
+# 			ROUTING_ARRAY.append(C) #add the new counts to our running list of counts
+#
+# 		sim_end = time.time()
+# 		sim_time = sim_end - sim_start
+# 		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes
+#
+# 	def get_passed_items(self, correctAnswers):
+# 		#go through correct answers dictionary and set the "should pass" parameter to true for
+# 		#appropriate items (or collect ID's of those that should pass?)
+# 		predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
+#
+# 		for item in Item.objects.all():
+# 			if all (correctAnswers[item, predicate] == True for predicate in predicates):
+# 				item.shouldPass = True
+# 				item.save()
+# 		return Item.objects.filter(shouldPass = True)
+#
+# 	def final_item_mismatch(self, passedItems):
+# 		"""
+# 		Returns the number of incorrect items
+# 		"""
+# 		sim_passedItems = Item.objects.all().filter(hasFailed=False)
+# 		#print "# sim_passedItems: ", len(sim_passedItems)
+# 		#print "Sim Passed items: ", str(sim_passedItems)
+# 		#print type(sim_passedItems)
+#
+# 		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
+#
+# 	def runSimTrackAcc(self, uncertainty, data, passedItems):
+# 		global UNCERTAINTY_THRESHOLD
+#
+# 		UNCERTAINTY_THRESHOLD = uncertainty
+# 		listIncorr = []
+# 		listTasks = []
+#
+# 		for run in range(NUM_SIM):
+# 			print "Sim " + str(run+1) + " for uncertainty = " + str(UNCERTAINTY_THRESHOLD)
+# 			num_tasks = self.run_sim(data)[0]
+# 			incorrect = self.final_item_mismatch(passedItems)
+#
+# 			listTasks.append(num_tasks)
+# 			listIncorr.append(incorrect)
+#
+# 			self.reset_database()
+#
+# 		return listTasks, listIncorr
+#
+# 	def compareAccVsUncert(self, uncertainties, data):
+# 		global UNCERTAINTY_THRESHOLD, NUM_SIM
+#
+# 		print "Running " + str(NUM_SIM) + " simulations on predicates " + str(CHOSEN_PREDS)
+#
+# 		numTasksAvgs = []
+# 		numTasksStdDevs = []
+#
+# 		incorrectAvgs = []
+# 		incorrectStdDevs = []
+#
+# 		# set up the set of items that SHOULD be passed
+# 		correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+# 		shouldPass = self.get_passed_items(correctAnswers)
+#
+# 		for val in uncertainties:
+# 			num_tasks, incorrects = self.runSimTrackAcc(val, data, shouldPass)
+#
+# 			numTasksAvgs.append(np.average(num_tasks))
+# 			numTasksStdDevs.append(np.std(num_tasks))
+#
+# 			incorrectAvgs.append(np.average(incorrects))
+# 			incorrectStdDevs.append(np.std(incorrects))
+#
+# 		save1 = [uncertainties, uncertainties, numTasksAvgs, numTasksStdDevs, incorrectAvgs, incorrectStdDevs]
+#
+# 		generic_csv_write(OUTPUT_PATH + RUN_NAME + "accuracyOut.csv", save1)
+#
+# 		return numTasksAvgs, numTasksStdDevs, incorrectAvgs, incorrectStdDevs
+#
+# 	def accuracyChangeVotes(self, uncertainties, data, voteSet):
+# 		global NUM_CERTAIN_VOTES, RUN_NAME
+#
+# 		tasksList = []
+# 		taskStdList = []
+# 		incorrList = []
+# 		incorrStdList = []
+#
+# 		for num in voteSet:
+#
+# 			print "thread 2 votes currently: " + str(NUM_CERTAIN_VOTES)
+# 			NUM_CERTAIN_VOTES = num
+# 			print "thread 2 votes changed to: " + str(NUM_CERTAIN_VOTES)
+# 			RUN_NAME = "Accuracy" + str(num) + "Votes"
+#
+# 			#run simulations and collect accuracy data
+# 			tasks_avg, tasks_std, incorr_avg, incorr_std = self.compareAccVsUncert(uncertainties, data)
+#
+# 			#add outputs to lists for multi line graph generation
+# 			tasksList.append(tasks_avg)
+# 			taskStdList.append(tasks_std)
+# 			incorrList.append(incorr_avg)
+# 			incorrStdList.append(incorr_std)
+#
+#
+# 		outputs = [tasksList, taskStdList, incorrList, incorrStdList]
+# 		print "saved outputs thread 2"
+# 		#write values to csv file
+# 		with open(OUTPUT_PATH + RUN_NAME + "accVotes" + str(voteSet) + ".csv", "wb") as f:
+# 			writer = csv.writer(f)
+# 			writer.writerows(outputs)
+# 		print "thread 2 wrote csv"
+#
+# 		if GEN_GRAPHS:
+# 			xL = []
+# 			legendList = []
+# 			for num in voteSet:
+# 				xL.append(uncertainties)
+# 				legendList.append(str(num))
+# 			print "thread 2 starting graph 1"
+# 			#graph the number of tasks for different min vote counts
+# 			multi_line_graph_gen(xL, tasksList, legendList, OUTPUT_PATH + RUN_NAME + "tasksVaryVotes.png",
+# 			labels = ("Uncertainty Threshold", "Avg. Number Tasks Per Sim"),
+# 			title = "Average Number Tasks Per Sim Vs. Uncertainty, Varying Min. # Votes",
+# 			stderrL = taskStdList)
+#
+# 			print "thread 2 made graph 1"
+#
+# 			print "thread 2 starting graph 2"
+# 			#graph the number of incorrect items for different min vote counts
+# 			multi_line_graph_gen(xL, incorrList, legendList, OUTPUT_PATH + RUN_NAME + "incorrVaryVotes.png",
+# 			labels = ("Uncertainty Threshold", "Avg. Incorrect Items Per Sim"),
+# 			title = "Average Number Incorrect Items Per Sim Vs. Uncertainty, Varying Min. # Votes",
+# 			stderrL = incorrStdList)
+#
+# 			print "thread 2 made graph 2"
+#
+# ######TESTING MAIN########
+#
+# 	def test_simulation(self):
+# 		print "Simulation is being tested"
+#
+# 		if REAL_DATA:
+# 			sampleData = self.load_data()
+# 			# if RUN_DATA_STATS:
+# 			# 	self.output_data_stats(sampleData)
+# 			# 	self.reset_database()
+# 			# if RUN_AVERAGE_COST:
+# 			# 	self.sim_average_cost(sampleData)
+# 			# 	self.reset_database()
+# 			# if RUN_SINGLE_PAIR:
+# 			# 	self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker()))
+# 			# 	self.reset_database()
+# 		else:
+# 			sampleData = {}
+# 			syn_load_data()
+#
+# 		self.accuracyChangeVotes([.05, .1], sampleData, [5, 6, 7])
