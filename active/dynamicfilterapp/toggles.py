@@ -2,16 +2,14 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'ModularTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-
-#TODO: integrate this file with existing files to ensure same stuff happens
+RUN_NAME = 'Queue_TicketCounts_Preds45' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Restaurant"
 #We have 5 questions for hotels right now, 10 for restaurants
 NUM_QUEST = 10 #used for accuracy testing
 
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
-OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
+OUTPUT_PATH = 'dynamicfilterapp/simulation_files/'
 IP_PAIR_DATA_FILE = 'real_data1.csv'
 
 DEBUG_FLAG = True # useful print statements turned on
@@ -33,7 +31,8 @@ EDDY_SYS = 1
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
-CHOSEN_PREDS = [2, 3] # predicates that will be used when run on real data
+
+CHOSEN_PREDS = [4,5] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -69,7 +68,7 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -77,6 +76,8 @@ RUN_DATA_STATS = False
 RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [0.01,0.05,0.1,0.2,0.3,0.4,0.5]
+
+COUNT_TICKETS = True
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 1000
@@ -87,11 +88,16 @@ SINGLE_PAIR_RUNS = 1000
 RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
 RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
+
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 NUM_SIM = 100 # how many simulations to run?
 
+TIME_SIMS = False
+
+RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
+
 TEST_ACCURACY = False
 
 OUTPUT_SELECTIVITIES = False

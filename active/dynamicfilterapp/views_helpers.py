@@ -12,12 +12,14 @@ import csv
 import sys
 import math
 import random
+import time
 
 #_____________EDDY ALGORITHMS____________#
 def worker_done(ID):
     """
     Returns true if worker has no tasks to do. False otherwise.
     """
+    start = time.time()
     completedTasks = Task.objects.filter(workerID=ID)
     completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
     incompleteIP = IP_Pair.objects.filter(isDone=False).exclude(id__in=completedIP)
@@ -29,14 +31,20 @@ def worker_done(ID):
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
 
     if not incompleteIP:
-        return True
+        end = time.time()
+        worker_done_time = end - start
+        return True, worker_done_time
+
     else:
-        return False
+        end = time.time()
+        worker_done_time = end - start
+        return False, worker_done_time
 
 def pending_eddy(ID):
     """
     This function chooses which system to use for choosing the next ip_pair
     """
+    start = time.time()
     # if all IP_Pairs are done
     unfinishedList = IP_Pair.objects.filter(isDone=False)
     if not unfinishedList:
@@ -67,12 +75,18 @@ def pending_eddy(ID):
     #controlled_system:
     elif (EDDY_SYS == 3):
         #this config will run pred[0] first ALWAYS and then pred[1]
-        chosenPred = Predicate.objects.get(pk=1+CONTROLLED_RUN_PREDS[0])
+        chosenPred = Predicate.objects.get(pk=1+CHOSEN_PREDS[0])
         tempSet = incompleteIP.filter(predicate=chosenPred)
         if len(tempSet) != 0:
             incompleteIP = tempSet
         chosenIP = choice(incompleteIP)
 
+    #system that uses ticketing and finishes an IP pair once started
+    elif (EDDY_SYS ==4):
+        chosenIP = useLottery(incompleteIP)
+
+    end = time.time()
+    runTime = end - start
     return chosenIP
 
 def move_window():
@@ -186,6 +200,40 @@ def lotteryPendingQueue(ipSet):
         chosenIP.predicate.queue_is_full = True
 
     chosenIP.predicate.save()
+    return chosenIP
+
+def useLottery(ipSet):
+    """
+    Runs lottery based on pending queues
+    """
+    # make list of possible predicates and remove duplicates
+    predicates = [ip.predicate for ip in ipSet]
+    #print str(predicates) + "before seen are removed"
+    seen = set()
+    seen_add = seen.add
+    predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
+    #print str(predicates) + "after seen are removed"
+
+    #choose the predicate
+    weightList = np.array([pred.num_tickets for pred in predicates])
+    totalTickets = np.sum(weightList)
+    probList = np.true_divide(weightList, totalTickets)
+    chosenPred = np.random.choice(predicates, p=probList)
+
+    #choose the item and then ip
+    chosenPredSet = ipSet.filter(predicate=chosenPred)
+    item = chooseItem(chosenPredSet)
+    chosenIP = ipSet.get(predicate=chosenPred, item=item)
+
+    #TODO: (see method above) why save item and predicate but not the IP?
+    chosenIP.predicate.num_tickets += 1
+    chosenIP.predicate.save()
+
+    #TODO remove after testing
+    # for predNum in CHOSEN_PREDS:
+    #     predicate = Predicate.objects.get(pk=predNum+1)
+    #     print "pred " + str(predNum) + "'s tickets: " + str(predicate.num_tickets)
+
     return chosenIP
 
 #____________STAT UPDATES____________#

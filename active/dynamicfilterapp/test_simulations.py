@@ -17,7 +17,7 @@ from random import randint, choice
 import sys
 import io
 import csv
-
+import time
 
 # Global Variables for Item Routing tests
 HAS_RUN_ITEM_ROUTING = False #keeps track of if a routing test has ever run
@@ -139,22 +139,30 @@ class SimulationTest(TransactionTestCase):
 		"""
 		Simulates the vote of a worker on a ip_pair from real data
 		"""
+		start = time.time()
 		# simulated worker votes
 		value = choice(dictionary[chosenIP])
 
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
 		t.save()
 		updateCounts(t, chosenIP)
+		end = time.time()
+		runTime = end - start
+		return runTime
 
 	def syn_simulate_task(self, chosenIP, workerID, switch):
 		"""
 		synthesize a task
 		"""
+		start = time.time()
 		value = syn_answer(chosenIP, switch)
 
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
 		t.save()
 		updateCounts(t, chosenIP)
+		end = time.time()
+		runTime = end - start
+		return runTime
 
 	def pick_worker(self):
 		"""
@@ -164,13 +172,18 @@ class SimulationTest(TransactionTestCase):
 
 	def reset_database(self):
 		"""
-		Reset all objects from the test database.
+		Reset all objects from the test database. Returns the time, in seconds
+		that the process took.
 		"""
+		start = time.time()
 		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
 		Task.objects.all().delete()
 		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,
 			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
-		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
+		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False, isStarted=False)
+		end = time.time()
+		reset_time = end - start
+		return reset_time
 
 	def abstract_sim(self, dictionary, globalVar, listOfValuesToTest):
 		"""
@@ -185,7 +198,7 @@ class SimulationTest(TransactionTestCase):
 			setattr(thismodule, globalVar, listOfValuesToTest[i])
 			counts.append([])
 			for run in range(NUM_SIM):
-				counts[i].append(self.run_sim(dictionary))
+				counts[i].append(self.run_sim(dictionary)[0])
 				self.reset_database()
 				if DEBUG_FLAG:
 					print run
@@ -196,7 +209,9 @@ class SimulationTest(TransactionTestCase):
 		labels = (str(globalVar),'Task Count')
 		title = str(globalVar) + " variance impact on Task Count"
 		dest = OUTPUT_PATH+RUN_NAME+'_abstract_sim'
-		line_graph_gen(listOfValuesToTest, avgL, dest +'.png',stderr = stdL,labels=labels, title = title)
+		if GEN_GRAPHS:
+			line_graph_gen(listOfValuesToTest, avgL, dest +'.png',stderr = stdL,labels=labels, title = title)
+			multi_hist_gen(counts, listOfValuesToTest, dest +'.png',labels=labels, title = title)
 		if DEBUG_FLAG:
 			print "Wrote File: " + dest+'.png'
 		setattr(thismodule, globalVar, storage)
@@ -210,14 +225,27 @@ class SimulationTest(TransactionTestCase):
 		setting in toggles.py)
 		Returns an integer: total number of tasks completed in the sim
 		"""
-		global HAS_RUN_ITEM_ROUTING, ROUTING_ARRAY #global vars for item routing tests
+		sim_start = time.time()
+		global HAS_RUN_ITEM_ROUTING, ROUTING_ARRAY
 		num_tasks = 0
+		passedItems = []
+		itemsDoneArray = [0]
+		tasksArray = [0]
 		switch = 0
+		eddyTimes = []
+		taskTimes = []
+		workerDoneTimes = []
+		ticketNums = []
+
+		for pred in range(len(CHOSEN_PREDS)):
+			ticketNums.append([])
+		
 
 		#If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
 			predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
-			routingC, routingL, seenItems = [], [], []
+			routingC, routingL = [], []
+			seenItems = set()
 			for i in range(len(predicates)):
 				routingC.append(0)
 				routingL.append([0])
@@ -229,16 +257,26 @@ class SimulationTest(TransactionTestCase):
 
 			# only increment if worker is actually doing a task
 			workerID = self.pick_worker()
+			workerDone, workerDoneTime = worker_done(workerID)
 			if not IP_Pair.objects.filter(isDone=False).exists():
 				ip_pair = None
 
-			elif worker_done(workerID):
+			elif (workerDone):
 				if DEBUG_FLAG:
 					print "worker has no tasks to do"
 
 			else:
-				ip_pair = pending_eddy(workerID)
-
+				if (EDDY_SYS == 4):
+					try:
+						#test to see if ip_pair is the dummy or not
+						ipExists = IP_Pair.objects.get(pk=ip_pair.pk)
+						if(ip_pair.isDone == True):
+							ip_pair = pending_eddy(workerID)
+					except:
+						ip_pair = pending_eddy(workerID)
+						#print "here"
+				else:
+					ip_pair = pending_eddy(workerID)
 
 				# If we should be running a routing test
 					# this is true in two cases: 1) we hope to run a single
@@ -248,7 +286,7 @@ class SimulationTest(TransactionTestCase):
 				if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
 					# if this is a "new" item
 					if ip_pair.item.item_ID not in seenItems:
-						seenItems.append(ip_pair.item.item_ID)
+						seenItems.add(ip_pair.item.item_ID)
 						# increment the count of that item's predicate
 						for i in range(len(predicates)):
 							if ip_pair.predicate == predicates[i]:
@@ -257,21 +295,65 @@ class SimulationTest(TransactionTestCase):
 							routingL[i].append(routingC[i])
 
 				if REAL_DATA :
-					self.simulate_task(ip_pair, workerID, dictionary)
+					taskTime = self.simulate_task(ip_pair, workerID, dictionary)
 				else:
-					self.syn_simulate_task(ip_pair, workerID, switch)
+					taskTime = self.syn_simulate_task(ip_pair, workerID, switch)
+
 
 				move_window()
 				num_tasks += 1
+				taskTimes.append(taskTime)
+				tasksArray.append(num_tasks)
+
+				if COUNT_TICKETS:
+					for predNum in range(len(CHOSEN_PREDS)):
+						predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
+						ticketNums[predNum].append(predicate.num_tickets)
+				# get a sense of what items have been ruled out and which ones
+				# are still in the running
+				#numRuledOut = Item.objects.filter(hasFailed = True).count()
+				#print "ruled out: " + str(numRuledOut)
+
+
+				#for the Items that haven't failed, see how many have passed
+				#for el in Item.objects.filter(hasFailed = False):
+					#get the IP pairs that include that item
+					#assocPairs = IP_Pair.objects.filter(item = el, isDone = True)
+					# if number of IP pairs completed for an item is equal to preds,
+					# and it hasn't failed, it's passed
+					#print "number of IP pairs for element " +  str(el) + ": " + str(assocPairs.count())
+					#if (assocPairs.count() == len(CHOSEN_PREDS)):
+						#if el not in passedItems:
+							#passedItems.append(el)
+				#print "passed items: " + str(len(passedItems))
+				#numItemsDone = numRuledOut + len(passedItems)
+				#print "total items done: " + str(numItemsDone)
+
+				#itemsDoneArray.append(numItemsDone)
 				if num_tasks == 200:
 					switch = 1
 
 		#print num_tasks
+		#print str(itemsDoneArray)
+		#line_graph_gen(tasksArray, itemsDoneArray,
+					#OUTPUT_PATH + RUN_NAME + "itemsDoneVsTasks.png",
+					#labels = ("Number Tasks Completed", "Number Items Completed"),
+					#title = "Number Items Categorized vs. Number Tasks Completed",)
+		# generate graphs using tasksArray and itemsDoneArray
+			workerDoneTimes.append(workerDoneTime)
 		if OUTPUT_SELECTIVITIES:
 			output_selectivities(RUN_NAME)
 
 		if OUTPUT_COST:
 			output_cost(RUN_NAME)
+
+		if COUNT_TICKETS:
+			ticketCountsLegend = []
+			for predNum in range(len(CHOSEN_PREDS)):
+				ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+			multi_line_graph_gen([range(num_tasks)]*len(CHOSEN_PREDS), ticketNums, ticketCountsLegend,
+								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "ticketCounts.png",
+								labels = ("Number of simulations run", "Ticket counts"))
 
 		# if this is the first time running a routing test
 		if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
@@ -293,7 +375,10 @@ class SimulationTest(TransactionTestCase):
 		# if we're multi routing
 		if RUN_MULTI_ROUTING:
 			ROUTING_ARRAY.append(C) #add the new counts to our running list of counts
-		return num_tasks
+
+		sim_end = time.time()
+		sim_time = sim_end - sim_start
+		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes
 
 
 	###___HELPERS THAT WRITE OUT STATS___###
@@ -318,7 +403,8 @@ class SimulationTest(TransactionTestCase):
 		Returns the number of incorrect items
 		"""
 		sim_passedItems = Item.objects.all().filter(hasFailed=False)
-		print "sim_passedItems", sim_passedItems
+		#print "sim_passedItems", sim_passedItems
+
 		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
 
 	def sim_average_cost(self, dictionary):
@@ -460,9 +546,11 @@ class SimulationTest(TransactionTestCase):
 	def compareAccuracyVsUncertainty(self, uncertainties, data, predicates):
 	    #uncertainties is an array of float uncertainty values to try
 	    #data is the loaded in data (i.e. sampleData)
-		print "Running " + str(NUM_SIM) + " simulations on predicates " + str(predicates)
-		FILTER_BY_PREDS = predicates
-		CONTROLLED_RUN_PREDS = predicates
+		global EDDY_SYS, CHOSEN_PREDS, UNCERTAINTY_THRESHOLD, NUM_SIM
+
+
+		CHOSEN_PREDS = predicates
+		print "Running " + str(NUM_SIM) + " simulations on predicates " + str(CHOSEN_PREDS)
 
 		qIncorrectAverages = []
 		qIncorrectStdDevs = []
@@ -473,6 +561,7 @@ class SimulationTest(TransactionTestCase):
 		qNumTasksStdDevs = []
 		randNumTasksAverages = []
 		randNumTasksStdDevs = []
+
 		for val in uncertainties:
 			# set up the set of items that SHOULD be passed
 			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
@@ -492,7 +581,8 @@ class SimulationTest(TransactionTestCase):
 			for run in range(NUM_SIM):
 				EDDY_SYS = 1 # queue system
 				print "Sim " + str(run+1) + " for mode = queue, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
-				q_num_tasks = self.run_sim(data)
+				q_num_tasks = self.run_sim(data)[0]
+
 				q_incorrect = self.final_item_mismatch(passedItems)
 
 				# add the number of incorrect items to appropriate array
@@ -505,7 +595,8 @@ class SimulationTest(TransactionTestCase):
 
 				EDDY_SYS = 2 # random system
 				print "Sim " + str(run+1) + " for mode = random, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
-				rand_num_tasks = self.run_sim(data)
+
+				rand_num_tasks = self.run_sim(data)[0]
 				rand_incorrect = self.final_item_mismatch(passedItems)
 
 				# add the number of incorrect items to appropriate array
@@ -528,8 +619,18 @@ class SimulationTest(TransactionTestCase):
 			randNumTasksAverages.append(np.average(randNumTasks))
 			randNumTasksStdDevs.append(np.std(randNumTasks))
 
-			#write these arrays to csv files for safekeeping
+			xL = [uncertainties, uncertainties]
+			yL = [qIncorrectAverages, randIncorrectAverages]
+			yErr = [qIncorrectStdDevs, randIncorrectStdDevs]
+			save1 = [xL, yL, yErr]
 
+			generic_csv_write(OUTPUT_PATH + RUN_NAME + "numIncorrVaryUncert.csv", save1)
+
+			yL = [qNumTasksAverages, randNumTasksAverages]
+			yErr = [qNumTasksStdDevs, randNumTasksStdDevs]
+			save2 = [xL, yL, yErr]
+
+			generic_csv_write(OUTPUT_PATH + RUN_NAME + "numTasksVaryUncert.csv", save2)
 
 		#graph number of incorrect vs. uncertainty
 		multi_line_graph_gen([uncertainties, uncertainties], [qIncorrectAverages, randIncorrectAverages],
@@ -544,6 +645,70 @@ class SimulationTest(TransactionTestCase):
 							labels = ("Uncertainty Threshold", "Avg. Number of Tasks"),
 							title = "Number of Tasks vs. Uncertainty for Predicates " + str(predicates),
 							stderrL = [qNumTasksStdDevs, randIncorrectStdDevs])
+
+	def multiAccVsUncert (self, uncertainties, data, predSet):
+		for preds in predSet:
+			print "Filter by: " + str(CHOSEN_PREDS) + " and controlled run: " + str(CHOSEN_PREDS)
+			self.compareAccuracyVsUncertainty(uncertainties, data, preds)
+
+	def timeRun(self, data):
+		resetTimes = []
+		simTimes = []
+		eddyTimes = []
+		taskTimes = []
+		workerDoneTimes = []
+		for i in range(NUM_SIM):
+			print "Timing simulation " + str(i+1)
+			num_tasks, sim_time, eddy_times, task_times, worker_done_t = self.run_sim(sampleData)
+
+			simTimes.append(sim_time)
+			eddyTimes.append(np.sum(eddy_times))
+			taskTimes.append(np.sum(task_times))
+			workerDoneTimes.append(np.sum(worker_done_t))
+
+			reset_time = self.reset_database()
+			resetTimes.append(reset_time)
+
+
+		# graph the reset time vs. number of resets
+		line_graph_gen(range(0, NUM_SIM), resetTimes,
+						'dynamicfilterapp/simulation_files/output/graphs/' + RUN_NAME + "resetTimes.png",
+						labels = ("Number of reset_database() Run", "Reset Time (seconds)"))
+
+		# graph the sim time vs. the number of sims (for random and queue separately)
+		line_graph_gen(range(0, NUM_SIM), simTimes,
+						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "simTimes.png",
+						labels = ("Number of simulations run", "Simulation runtime"))
+
+		line_graph_gen(range(0, NUM_SIM), eddyTimes,
+						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "eddyTimes.png",
+						labels = ("Number of simulations run", "Total pending_eddy() runtime per sim"))
+
+		line_graph_gen(range(0, NUM_SIM), taskTimes,
+						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "taskTimes.png",
+						labels = ("Number of simulations run", "Total simulate_task() runtime per sim"))
+
+		line_graph_gen(range(0, NUM_SIM), workerDoneTimes,
+						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "workerDoneTimes.png",
+						labels = ("Number of simulations run", "Total worker_done() runtime per sim"))
+
+
+		xL = [range(0, NUM_SIM), range(0, NUM_SIM), range(0, NUM_SIM), range(0, NUM_SIM)]
+		yL = [simTimes, eddyTimes, taskTimes, workerDoneTimes]
+
+		#write the y values to a csv file
+		with open("dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "timeGraphYvals.csv", "wb") as f:
+			writer = csv.writer(f)
+			writer.writerows(yL)
+
+		legends = ["run_sim()", "pending_eddy()", "simulate_task()", "worker_done()"]
+		multi_line_graph_gen(xL, yL, legends,
+							'dynamicfilterapp/simulation_files/output/graphs/' + RUN_NAME + "funcTimes.png",
+							labels = ("Number simulations run", "Duration of function call (seconds)"),
+							title = "Cum. Duration function calls vs. Number Simulations Run" + RUN_NAME)
+
+
+
 
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
@@ -612,12 +777,11 @@ class SimulationTest(TransactionTestCase):
 			self.run_sim(sampleData)
 			self.reset_database()
 
-		#setPreds = [[0,2,9], [4,5,8]]
-		#for preds in setPreds:
-		#	print "Filter by: " + str(FILTER_BY_PREDS) + " and controlled run: " + str(CONTROLLED_RUN_PREDS)
-		#	self.compareAccuracyVsUncertainty([0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5], sampleData, preds)
-
-
+		if COUNT_TICKETS and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
+			if DEBUG_FLAG:
+				print "Running: ticket counting"
+			self.run_sim(sampleData)
+			self.reset_database()
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
 		if TEST_ACCURACY:
@@ -626,24 +790,37 @@ class SimulationTest(TransactionTestCase):
 
 		if RUN_TASKS_COUNT or RUN_MULTI_ROUTING:
 			if RUN_TASKS_COUNT:
-				#f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
+				#print "Running: task_count"
+				f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
+				f1 = open(OUTPUT_PATH + RUN_NAME + '_incorrect_count.csv', 'a')
+
+				if GEN_GRAPHS:
+					outputArray = []
+
 				runTasksArray = []
+
+			#TODO ticket counting
+			# if COUNT_TICKETS:
+			# 	ticketNumArray = []
+			# 	for predNum in range(len(CHOSEN_PREDS)):
+			# 		ticketNumArray.append([])
 
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i)
-				num_tasks = self.run_sim(sampleData)
+				runSimResults = self.run_sim(sampleData)
+				num_tasks = runSimResults[0]
+
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				if TEST_ACCURACY:
 					num_incorrect = self.final_item_mismatch(passedItems)
 
-				#if i == (NUM_SIM - 1) :
-				#	f.write(str(num_tasks))
-				#else:
-				#	f.write(str(num_tasks) + ',')
+					#print "This is number of incorrect items: ", num_incorrect
 
 				self.reset_database()
+
 				runTasksArray.append(num_tasks)
+
 			if RUN_TASKS_COUNT:
 				generic_csv_write(OUTPUT_PATH+RUN_NAME+'_tasks_count.csv',[runTasksArray])
 				if DEBUG_FLAG:
@@ -654,6 +831,12 @@ class SimulationTest(TransactionTestCase):
 					hist_gen(runTasksArray, dest, labels = ('Cost','Frequency'), title = title)
 					if DEBUG_FLAG:
 						print "Wrote File: " + dest
+			#TODO ticket counting
+			# if COUNT_TICKETS:
+			# 	#generic_csv_write(OUTPUT_PATH+RUN_NAME+'_ticket_count.csv',[runTasksArray])
+			# 	multi_line_graph_gen(range(0, NUM_SIM)*len(CHOSEN_PREDS), ticketNumArray,
+			# 					"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "ticketCounts.png",
+			# 					labels = ("Number of simulations run", "Ticket counts"))
 			if RUN_MULTI_ROUTING:
 					dest = OUTPUT_PATH + RUN_NAME + '_multi_routing.png'
 					title = RUN_NAME + ' Average Predicate Routing'
@@ -676,6 +859,9 @@ class SimulationTest(TransactionTestCase):
 						multi_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
 						if DEBUG_FLAG:
 							print "Wrote File: " + OUTPUT_PATH+RUN_NAME+'_multi_routing.png'
+
+		if TIME_SIMS:
+			self.timeRun(sampleData)
 
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
