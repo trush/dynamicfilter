@@ -174,11 +174,15 @@ class SimulationTest(TransactionTestCase):
 		runTime = end - start
 		return runTime
 
-	def pick_worker(self):
+	def pick_worker(self, busyWorkers):
 		"""
 		Pick a random worker identified by a string
 		"""
-		return str(randint(1,NUM_WORKERS))
+		choice = busyWorkers[0]
+		while choice in busyWorkers:
+			choice = str(randint(1,NUM_WORKERS))
+
+		return choice
 
 	def reset_database(self):
 		"""
@@ -247,6 +251,15 @@ class SimulationTest(TransactionTestCase):
 		workerDoneTimes = []
 		totalWorkTime = 0
 
+		# array of workers who are busy
+		b_workers = []
+
+		# array of tasks currently in process
+		active_tasks = []
+
+		#time counter
+		time_clock = 0
+
 		#If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
 			predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
@@ -260,8 +273,16 @@ class SimulationTest(TransactionTestCase):
 
 		while(ip_pair != None):
 
+			# check if any tasks need to be distributed at this time
+			for task in active_tasks:
+				if (task.endTime == time_clock):
+					# task has finished, remove from active array
+					active_tasks.remove(task)
+					# remove worker from set of busy workers
+					b_workers.remove(task.workerID)
+
 			# only increment if worker is actually doing a task
-			workerID = self.pick_worker()
+			workerID = self.pick_worker(b_workers)
 			workerDone, workerDoneTime = worker_done(workerID)
 
 			if not IP_Pair.objects.filter(isDone=False):
@@ -799,7 +820,7 @@ class SimulationTest(TransactionTestCase):
 				self.sim_average_cost(sampleData)
 				self.reset_database()
 			if RUN_SINGLE_PAIR:
-				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker()))
+				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0])))
 				self.reset_database()
 		else:
 			sampleData = {}

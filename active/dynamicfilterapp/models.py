@@ -123,6 +123,10 @@ class Task(models.Model):
     answer = models.NullBooleanField(default=None)
     workerID = models.CharField(db_index=True, max_length=15)
 
+    #used for simulating task completion having DURATION
+    startTime = models.IntegerField(default=0)
+    endTime = models.IntegerField(default=0)
+
     # a text field for workers to give feedback on the task
     feedback = models.CharField(max_length=500, blank=True)
 
