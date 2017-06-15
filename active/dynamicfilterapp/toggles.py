@@ -2,7 +2,7 @@ import datetime as DT
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'RestaurantsAccVsUncert100Sims' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'WorkTimes' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Restaurant"
 #We have 5 questions for hotels right now, 10 for restaurants
@@ -12,7 +12,7 @@ INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 IP_PAIR_DATA_FILE = 'real_data1.csv'
 #TODO true times and false times function call
-TRUE_TIMES, FALSE_TIMES = importResponseTimes(OUTPUT_PATH + IP_PAIR_DATA_FILE)
+TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 
 DEBUG_FLAG = True # useful print statements turned on
 
@@ -34,7 +34,7 @@ EDDY_SYS = 1
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [2, 9] # predicates that will be used when run on real data
+CHOSEN_PREDS = [2, 3] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -70,7 +70,7 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -90,11 +90,11 @@ RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D grap
 RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 100 # how many simulations to run?
+NUM_SIM = 50 # how many simulations to run?
 
 TIME_SIMS = False
 
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 

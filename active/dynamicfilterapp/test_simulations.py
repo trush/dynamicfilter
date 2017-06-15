@@ -69,8 +69,6 @@ class SimulationTest(TransactionTestCase):
 		# make a dictionary of all the ip_pairs and their values
 		sampleData = self.get_sample_answer_dict(INPUT_PATH + IP_PAIR_DATA_FILE)
 
-		# TODO make a dictionary/array/arrays of worker response times for T and F
-
 		return sampleData
 
 	def get_sample_answer_dict(self, filename):
@@ -147,15 +145,20 @@ class SimulationTest(TransactionTestCase):
 		# simulated worker votes
 		value = choice(dictionary[chosenIP])
 
-		#TODO use the value of "answer" to establish which distribution/set to take from for workerTime
+		if value :
+			#worker said true, take from true distribution
+			work_time = choice(TRUE_TIMES)
+		else:
+			#worker said false, take from false distribution
+			work_time = choice(FALSE_TIMES)
+
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
 		t.save()
 		updateCounts(t, chosenIP)
 		end = time.time()
 		runTime = end - start
-		#TODO have a simulated task also return its amount of worker time
 		#TODO fix time simulation so that it uses the right data output from this func
-		return runTime
+		return runTime, work_time
 
 	def syn_simulate_task(self, chosenIP, workerID, switch):
 		"""
@@ -242,6 +245,7 @@ class SimulationTest(TransactionTestCase):
 		eddyTimes = []
 		taskTimes = []
 		workerDoneTimes = []
+		totalWorkTime = 0
 
 		#If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
@@ -290,7 +294,8 @@ class SimulationTest(TransactionTestCase):
 							routingL[i].append(routingC[i])
 
 				if REAL_DATA :
-					taskTime = self.simulate_task(ip_pair, workerID, dictionary)
+					taskTime, workTime = self.simulate_task(ip_pair, workerID, dictionary)
+					totalWorkTime += workTime
 				else:
 					taskTime = self.syn_simulate_task(ip_pair, workerID, switch)
 
@@ -360,7 +365,7 @@ class SimulationTest(TransactionTestCase):
 
 		sim_end = time.time()
 		sim_time = sim_end - sim_start
-		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes
+		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes, totalWorkTime
 
 
 	###___HELPERS THAT WRITE OUT STATS___###
@@ -822,10 +827,12 @@ class SimulationTest(TransactionTestCase):
 
 				runTasksArray = []
 
-
+			workTimeArray = []
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i)
-				num_tasks = self.run_sim(sampleData)
+				num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes, totalWorkTime = self.run_sim(sampleData)
+				workTimeArray.append(totalWorkTime)
+
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				if TEST_ACCURACY:
@@ -836,6 +843,17 @@ class SimulationTest(TransactionTestCase):
 				self.reset_database()
 
 				runTasksArray.append(num_tasks)
+
+			#write cumulative worker time to csv file
+			with open(OUTPUT_PATH + RUN_NAME + "workTimes.csv", "wb") as f:
+				writer = csv.writer(f)
+				writer.writerow(workTimeArray)
+
+			if GEN_GRAPHS:
+				hist_gen(workTimeArray, OUTPUT_PATH + RUN_NAME + "workTimes.png",
+				labels = ("Cumulative Work Time", "Frequency"),
+				title = "Distribution of Cumulative Work Time",
+				writeStats = True)
 
 			if RUN_TASKS_COUNT:
 				generic_csv_write(OUTPUT_PATH+RUN_NAME+'_tasks_count.csv',[runTasksArray])
@@ -875,5 +893,3 @@ class SimulationTest(TransactionTestCase):
 
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
-
-		self.compareAccuracyVsUncertainty(ABSTRACT_VALUES, sampleData)
