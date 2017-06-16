@@ -2,9 +2,9 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'Queue_TicketCounts_Preds45' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'Hotel_Queue_TicketCounts_Preds23' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
-ITEM_TYPE = "Restaurant"
+ITEM_TYPE = "Hotel"
 #We have 5 questions for hotels right now, 10 for restaurants
 NUM_QUEST = 10 #used for accuracy testing
 
@@ -32,7 +32,7 @@ EDDY_SYS = 1
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [4,5] # predicates that will be used when run on real data
+CHOSEN_PREDS = [2,3] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
