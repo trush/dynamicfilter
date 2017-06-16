@@ -66,7 +66,7 @@ LIFETIME = 10
 ###################### CONFIGURING TESTING ##################################
 #############################################################################
 
-REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
+REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
 GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
