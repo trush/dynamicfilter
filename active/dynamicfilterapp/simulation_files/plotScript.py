@@ -78,7 +78,7 @@ def generic_csv_read(filename):
     toRead.close()
     return retArray
 
-def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats = False):
+def hist_gen(data, dest, labels = ('',''), title='', smoothness=False, writeStats = False):
     """
     Automagically generates a Histogram for you from a given list of data and a
     destination name (ending in .png). Can additionally be passed many arguments
@@ -86,37 +86,10 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats
         title, a string title of your graph
         smoothness, defaults true, set False to get a blocky version instead
     """
-
-    if smoothness:
-        text = ''
-
-        # Expirimental section, writes out mean and count for single histograms
-        if writeStats:
-            avg = int(np.mean(data))
-            n = len(data)
-            text = ' $\mu=$' + str(avg) + ' $n=$'+str(n)
+    multi_hist_gen([data], [None], dest, labels = labels, title = title + text,smoothness=smoothness)
 
 
-        multi_hist_gen([data], [None], dest, labels = labels, title = title + text)
-    else:
-        #TODO make this section actually work consistently
-            #NOTE this problem has something to do with the second number passed
-                 #to ax.hist (currently 30) which I think is the number of boxes
-                 #total to make, it should probably scale with (mx) the highest
-                 #cost recorded
-        mx = max(data)
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        n, bins, patches = ax.hist(data, 30 , normed=1, facecolor='g')
-        ax.set_xlim(0, mx+5)
-        ax.set_ylim(0, 0.3)
-    	ax.set_xlabel(labels[0])
-    	ax.set_ylabel(labels[1])
-    	ax.set_title(title)
-    	ax.grid(True)
-        plt.savefig(dest_resolver(dest))
-
-def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
+def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothness=False):
     """
     Very similar to hist_gen, however takes a list of datasets and a list of
     names of your datasets and a destination name, plots all datasets on one
@@ -132,7 +105,7 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
     sns.despine(left=True)
     # the histogram of the data
     for i in range(len(dataList)):
-    	sns.distplot(dataList[i], hist=True, kde_kws={"shade": False}, ax=ax, label=legendList[i])
+    	sns.distplot(dataList[i], hist=(not smoothness), kde_kws={"shade": False}, ax=ax, label=legendList[i])
     ax.set_xlabel(labels[0])
     ax.set_ylabel(labels[1])
     ax.set_title(title)
