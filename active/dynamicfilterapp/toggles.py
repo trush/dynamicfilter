@@ -87,6 +87,8 @@ RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D grap
 
 RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
+RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
+
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 NUM_SIM = 50 # how many simulations to run?
 
