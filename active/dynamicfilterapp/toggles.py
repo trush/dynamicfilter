@@ -24,7 +24,7 @@ CUT_OFF = 21
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
 NUM_WORKERS = 101
-EDDY_SYS = 1
+EDDY_SYS = 4
 # EDDY SYS KEY:
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
 # 2 - random system
