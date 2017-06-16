@@ -144,6 +144,7 @@ class SimulationTest(TransactionTestCase):
 		"""
 		start = time.time()
 		# simulated worker votes
+		#print chosenIP
 		value = choice(dictionary[chosenIP])
 
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
@@ -261,7 +262,71 @@ class SimulationTest(TransactionTestCase):
 		setattr(thismodule, globalVar, storage)
 		return
 
+	def optimal_sim(self, dictionary):
+		"""
+		Runs a simulation using get_correct_answers to get the real answers for each IP pair
+		and runs through each IP_Pair that returns false before moving on to those that
+		return true. Goes through IP pairs in order of increasing ambiguity
+			To make that work please sort preds in CHOSEN_PREDS in that order
+				e.g. [4,2] instead of [2,4] (for restaurants)
+		"""
+		# get correct answers from file
+		answers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+		# select only the chosen predicates
+		predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
+		idD={}
+		sortedFalseIPs=[]
+		# sort predicates in order of CHOSEN_PREDS; setup lists
+		for i in range(len(predicates)):
+			idD[predicates[i]] = i
+			sortedFalseIPs.append([])
 
+		# for each item, finds the IP pais it has with chosen preds.
+		for item in Item.objects.all():
+			for pred in predicates:
+				# if the IP pair's correct answers is false
+				if not answers[item,pred]:
+					#place it into the right place in the lists
+					index = idD[pred]
+					sortedFalseIPs[index].append((item,pred))
+
+		num_tasks = 0
+		# Do the false ones manually
+		# for each IP pair (in the right order)
+		for ls in sortedFalseIPs:
+			for key in ls:
+				ip_pair = IP_Pair.objects.get(item=key[0],predicate=key[1])
+				# do tasks until pair is done
+				while not ip_pair.isDone:
+					workerID = self.pick_worker()
+					self.simulate_task(ip_pair, workerID, dictionary)
+					num_tasks += 1
+
+		# find the set of IP pairs still not eliminated
+		stillToDo = IP_Pair.objects.filter(isDone=False)
+		# if that list is empty, return now
+		if not stillToDo:
+			return num_tasks
+
+		# else do the rest of the pairs randomly (all tasks per pair at once)
+		ip_pair = choice(stillToDo)
+		while(ip_pair != None):
+
+			# only increment if worker is actually doing a task
+			workerID = self.pick_worker()
+			#workerDone = worker_done(workerID)[0]
+
+			if not IP_Pair.objects.filter(isDone=False):
+				ip_pair = None
+				return num_tasks
+
+			elif ip_pair.isDone:
+				ip_pair = choice(IP_Pair.objects.filter(isDone=False))
+
+			self.simulate_task(ip_pair, workerID, dictionary)
+			num_tasks += 1
+
+		return num_tasks
 
 	def run_sim(self, dictionary):
 		"""
@@ -303,8 +368,8 @@ class SimulationTest(TransactionTestCase):
 
 			elif (workerDone):
 				noTasks += 1
-				#if DEBUG_FLAG:
-					#print "worker has no tasks to do"
+				if DEBUG_FLAG:
+					print "worker has no tasks to do"
 
 
 			else:
@@ -802,11 +867,27 @@ class SimulationTest(TransactionTestCase):
 			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
 			passedItems = self.get_passed_items(correctAnswers)
 
+
+		if RUN_OPTIMAL_SIM:
+			countingArr=[]
+			self.reset_database()
+			for i in range(NUM_SIM):
+				print "running optimal_sim " +str(i)
+				num_tasks = self.optimal_sim(sampleData)
+				countingArr.append(num_tasks)
+				self.reset_database()
+			dest = OUTPUT_PATH+RUN_NAME+'_optimal_tasks'
+			generic_csv_write(dest+'.csv',[countingArr])
+			if DEBUG_FLAG:
+				print "Wrote File: " + dest+'.csv'
+
+
+
 		if RUN_TASKS_COUNT or RUN_MULTI_ROUTING or RUN_CONSENSUS_COUNT:
 			if RUN_TASKS_COUNT:
 				#print "Running: task_count"
-				f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
-				f1 = open(OUTPUT_PATH + RUN_NAME + '_incorrect_count.csv', 'a')
+				#f = open(OUTPUT_PATH + RUN_NAME + '_tasks_count.csv', 'a')
+				#f1 = open(OUTPUT_PATH + RUN_NAME + '_incorrect_count.csv', 'a')
 
 				if GEN_GRAPHS:
 					outputArray = []
