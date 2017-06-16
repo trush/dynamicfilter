@@ -8,7 +8,7 @@ ITEM_TYPE = "Hotel"
 #We have 5 questions for hotels right now, 10 for restaurants
 NUM_QUEST = 10 #used for accuracy testing
 
-INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
+INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/'
 IP_PAIR_DATA_FILE = 'real_data1.csv'
 
