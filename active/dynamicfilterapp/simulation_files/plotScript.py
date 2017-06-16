@@ -86,7 +86,7 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=False, writeStat
         title, a string title of your graph
         smoothness, defaults true, set False to get a blocky version instead
     """
-    multi_hist_gen([data], [None], dest, labels = labels, title = title + text,smoothness=smoothness)
+    multi_hist_gen([data], [None], dest, labels = labels, title = title,smoothness=smoothness)
 
 
 def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothness=False):
