@@ -7,8 +7,8 @@ import sys
 import math
 import random
 
-NUM_QUESTIONS = 2
-NUM_ITEMS = 20
+NUM_QUESTIONS = 3
+NUM_ITEMS = 40
 
 # not really selectivity: selectivity is more selectivity_list[i]*cost_prob_list[i]
 # this is just the probabiility of leaning towards false
@@ -38,7 +38,9 @@ def syn_answer(chosenIP, switch):
 	"""
 	make up a fake answer based on global variables
 	"""
+	print "switch: " + str(switch)
 	ID = chosenIP.predicate.predicate_ID + switch
+	print "predID: " + str(chosenIP.predicate.predicate_ID)
 	# decide if the answer is going to lean towards true or false
 	# lean towards true
 	if decision(selectivity_list[ID]):

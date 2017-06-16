@@ -2,7 +2,7 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'Hotel_Queue_Preds23' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'Hotel_IPBatching_Preds23' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
 #We have 5 questions for hotels right now, 10 for restaurants
@@ -24,7 +24,7 @@ CUT_OFF = 21
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
 NUM_WORKERS = 101
-EDDY_SYS = 1
+EDDY_SYS = 4
 # EDDY SYS KEY:
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
 # 2 - random system
@@ -90,7 +90,7 @@ RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D grap
 RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 50 # how many simulations to run?
+NUM_SIM = 10 # how many simulations to run?
 
 TIME_SIMS = False
 
