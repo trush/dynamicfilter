@@ -26,13 +26,15 @@ CUT_OFF = 21
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
 NUM_WORKERS = 101
+MAX_TASKS = 4
+BUFFER_TIME = 0
 EDDY_SYS = 1
 # EDDY SYS KEY:
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
-PENDING_QUEUE_SIZE = 1
+PENDING_QUEUE_SIZE = 2
 
 CHOSEN_PREDS = [2, 3] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
@@ -70,7 +72,7 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -90,7 +92,7 @@ RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D grap
 RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 50 # how many simulations to run?
+NUM_SIM = 1 # how many simulations to run?
 
 TIME_SIMS = False
 

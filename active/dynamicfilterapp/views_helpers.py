@@ -33,6 +33,9 @@ def worker_done(ID):
     if not incompleteIP:
         end = time.time()
         worker_done_time = end - start
+        print "Worker " + str(ID) + " completed IP pairs: " + str(completedIP)
+        print "The not-done IP pairs are: " + str(IP_Pair.objects.filter(isDone=False))
+        print "The set incompleteIP that a task could come from is: " + str(incompleteIP)
         return True, worker_done_time
 
     else:
@@ -61,6 +64,9 @@ def pending_eddy(ID):
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
+        print "Incomplete IP pairs to choose from: " + str(incompleteIP.count())
+        if not incompleteIP.exists():
+            print "#######################  SET OF ELIGIBLE IP PAIRS EMPTY ##############"
         chosenIP = lotteryPendingQueue(incompleteIP)
 
     #random_system:
@@ -102,6 +108,11 @@ def move_window():
             p.save()
     else:
         pass
+
+def give_task(active_tasks, workerID):
+    ip_pair, eddy_time = pending_eddy(workerID)
+    # TODO keep track of the number of tasks issued for an IP pair
+    return ip_pair, eddy_time
 
 #____________LOTTERY SYSTEMS____________#
 def chooseItem(ipSet):

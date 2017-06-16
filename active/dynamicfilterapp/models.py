@@ -131,4 +131,4 @@ class Task(models.Model):
     feedback = models.CharField(max_length=500, blank=True)
 
     def __str__(self):
-        return "Task from worker " + str(self.workerID.workerID)
+        return "Task from worker " + str(self.workerID) + " for IP Pair " + str(self.ip_pair)
