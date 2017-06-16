@@ -32,7 +32,7 @@ EDDY_SYS = 4
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [4,5] # predicates that will be used when run on real data
+CHOSEN_PREDS = [3,4] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
