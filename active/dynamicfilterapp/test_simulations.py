@@ -160,7 +160,7 @@ class SimulationTest(TransactionTestCase):
 		#updateCounts(t, chosenIP)
 		end = time.time()
 		runTime = end - start
-		print str(t) + "will end at t = " + str(end_task)
+		print str(t) + "will expire at t = " + str(end_task)
 		return t, runTime
 
 	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch):
@@ -307,72 +307,49 @@ class SimulationTest(TransactionTestCase):
 		ip_pair = IP_Pair()
 
 		#while(ip_pair != None):
+		#while ip_pair = None
+		#while time_clock < 9000:
 		while (IP_Pair.objects.filter(isDone=False).exists() or active_tasks) :
 			if (time_clock % 100 == 0):
-				print "time: " + str(time_clock)
-		# TODO: rethink the conditional for this while loop: while set of IP pairs
-		# not done is not empty?
+				print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ t =  " + str(time_clock) + " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+				print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+				for task in active_tasks:
+					print str(task) + " will expire at t = " + str(task.endTime)
 
+			if len(active_tasks) == 0:
+				print "active tasks is empty"
 			# check if any tasks need to be distributed at this time
 			for task in active_tasks:
-				if len(active_tasks) == 0:
-					print "active tasks is empty"
 				#print "checking task" + str(task)
-				if (task.endTime == time_clock):
-					print "task has expired"
+				if (task.endTime <= time_clock):
 					# update Counts based on that completed task
 					updateCounts(task, task.ip_pair)
-					print "counts updated for expired " + str(task)
+					print "Task expired, counts updated for " + str(task)
 					# task has finished, remove from active array
 					active_tasks.remove(task)
 					print str(task) + " removed from active array"
 					# remove worker from set of busy workers
 					b_workers.remove(task.workerID)
-					print "worker " + str(task.workerID) + "removed from busy array"
+					print "worker " + str(task.workerID) + " removed from busy array"
 					print "number of active tasks is: " +  str(len(active_tasks))
-					print "Active Tasks: " + str(active_tasks)
+					#print "Active Tasks: " + str(active_tasks)
+					print "number of tasks completed is: " + str(num_tasks)
+					num_tasks += 1
 
-			# issue tasks - don't specify how many//save that for
-			# alg functionality
-
-			# TODO code below should happen inside of another function,
-			#self.issueTasks(time_clock, len(active_tasks), dictionary)
-			#note Issuetasks should return NONE for ip_pair if we're done with tasks to do
-			# should return NOT none if there are still ip_pairs to be completed
-			# issuetasks
-			# only increment if worker is actually doing a task
-
-			# issue task should handle picking the worker, assigning the task
-			# that is appropriate, and then collecting info about the task/tasks assigned
+			# while there are IP pairs that still haven't been evaluated
 			if IP_Pair.objects.filter(isDone=False).exists():
-				while (len(active_tasks) < MAX_TASKS):
+				#print "there are still incomplete IP pairs"
+				# if there are still tasks that can be filled in
+				while (len(active_tasks) != MAX_TASKS):
 					# add a new task to the set of those in process
 					task, worker, eddy_t, task_t = self.issueTask(active_tasks, b_workers, time_clock, dictionary)
 					active_tasks.append(task)
+					print "task added: " + str(task)
 					b_workers.append(worker)
 					eddyTimes.append(eddy_t)
 					taskTimes.append(task_t)
 					print "number of active tasks is: " +  str(len(active_tasks))
-					print "Active Tasks: " + str(active_tasks)
-					num_tasks += 1
-					print "number of tasks completed is: " + str(num_tasks)
-
-
-			# workerID = self.pick_worker(b_workers)
-			# workerDone, workerDoneTime = worker_done(workerID)
-			#
-			# if not IP_Pair.objects.filter(isDone=False):
-			# 	ip_pair = None
-			#
-			# elif (workerDone):
-			# 	if DEBUG_FLAG:
-			# 		print "worker has no tasks to do"
-			#
-			#
-			# else:
-			# 	ip_pair, eddy_time = pending_eddy(workerID)
-			# 	eddyTimes.append(eddy_time)
-
+					#print "Active Tasks: " + str(active_tasks)
 
 				# If we should be running a routing test
 					# this is true in two cases: 1) we hope to run a single
@@ -389,24 +366,8 @@ class SimulationTest(TransactionTestCase):
 				# 				routingC[i]+=1
 				# 			# and add this "timestep" to the running list
 				# 			routingL[i].append(routingC[i])
-
-				# if REAL_DATA :
-				# 	taskTime, workTime = self.simulate_task(ip_pair, workerID, dictionary)
-				# 	totalWorkTime += workTime
-				# else:
-				# 	taskTime = self.syn_simulate_task(ip_pair, workerID, switch)
-
 			move_window()
 
-				#taskTimes.append(taskTime)
-					#tasksArray.append(num_tasks)
-
-				# get a sense of what items have been ruled out and which ones
-				# are still in the running
-				#numRuledOut = Item.objects.filter(hasFailed = True).count()
-				#print "ruled out: " + str(numRuledOut)
-
-				#itemsDoneArray.append(numItemsDone)
 			if num_tasks == 200:
 				switch = 1
 
@@ -419,6 +380,8 @@ class SimulationTest(TransactionTestCase):
 		# generate graphs using tasksArray and itemsDoneArray
 			#workerDoneTimes.append(workerDoneTime)
 			time_clock += 1
+
+
 		if OUTPUT_SELECTIVITIES:
 			output_selectivities(RUN_NAME)
 
@@ -976,3 +939,8 @@ class SimulationTest(TransactionTestCase):
 
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
+
+		outputFile = open("terminalOutDebugging.out", 'w')
+		sys.stdout = outputFile
+		self.run_sim(sampleData)
+		outputFile.close()
