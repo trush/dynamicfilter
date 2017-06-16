@@ -260,7 +260,7 @@ class SimulationTest(TransactionTestCase):
 			elif (workerDone):
 				noTasks += 1
 				if DEBUG_FLAG:
-					#print "worker has no tasks to do"
+					print "worker has no tasks to do"
 
 
 			else:
