@@ -23,15 +23,13 @@ import time
 # Global Variables for Item Routing tests
 HAS_RUN_ITEM_ROUTING = False #keeps track of if a routing test has ever run
 ROUTING_ARRAY = [] # keeps a running count of the final first item routs for each run
-SAMPLING_ARRAY = []
+SAMPLING_ARRAY = []# contains synth or real worker task distribution data
 
 
 class SimulationTest(TransactionTestCase):
 	"""
 	Tests eddy algorithm on non-live data.
 	"""
-
-	distribution_type = 1
 
 	###___HELPERS THAT LOAD IN DATA___###
 	def load_data(self):
@@ -177,11 +175,11 @@ class SimulationTest(TransactionTestCase):
 		Replacment = True
 
 		## uniform distribution
-		if self.distribution_type == 0:
+		if DISTRIBUTION_TYPE == 0:
 			return str(randint(1,NUM_WORKERS))
 
 		## geometric
-		elif self.distribution_type == 1:
+		elif DISTRIBUTION_TYPE == 1:
 			# mean of distribution should be 58.3/315 of the way through the worker IDs
 			goalMean = NUM_WORKERS*(58.3/315.0)
 			prob = (1/goalMean)
@@ -204,7 +202,7 @@ class SimulationTest(TransactionTestCase):
 
 
 		## Real distribution
-		elif self.distribution_type == 2:
+		elif DISTRIBUTION_TYPE == 2:
 			if len(SAMPLING_ARRAY) == 0:
 				SAMPLING_ARRAY = generic_csv_read(INPUT_PATH+REAL_DISTRIBUTION_FILE)[0]
 			val = random.choice(SAMPLING_ARRAY)

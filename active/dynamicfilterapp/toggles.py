@@ -106,3 +106,8 @@ TEST_ACCURACY = False
 OUTPUT_SELECTIVITIES = False
 
 OUTPUT_COST = False
+
+DISTRIBUTION_TYPE = 1 # tells pick_worker how to choose workers.
+# 0  -  Uniform Distribution; (all worker equally likely)
+# 1  -  Geometric Distribution; (synthetic graph which fits out data well)
+# 2  -  Real Distribution (samples directly from the real data)
