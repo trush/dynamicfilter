@@ -23,25 +23,25 @@ def worker_done(ID):
     start = time.time()
     completedTasks = Task.objects.filter(workerID=ID)
     completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
-    print "!!!!! completedTasks.values('ip_pair'): " + str(completedTasks.values('ip_pair'))
+    #print "!!!!! completedTasks.values('ip_pair'): " + str(completedTasks.values('ip_pair'))
     incompleteIP = IP_Pair.objects.filter(isDone=False).exclude(id__in=completedIP)
-    print "incompleteIP excluding worker-completed tasks: " + str(list(incompleteIP.values_list('id', flat = True)))
+    #print "incompleteIP excluding worker-completed tasks: " + str(list(incompleteIP.values_list('id', flat = True)))
     #print "worker_done() incompleteIP: "+ str(incompleteIP)
 
     if (EDDY_SYS == 1):
     #if queue_pending_system:
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
-        print "incompleteIP excluding out of full q: " + str(list(incompleteIP.exclude(id__in=outOfFullQueue).values_list('id', flat = True)))
+        #print "incompleteIP excluding out of full q: " + str(list(incompleteIP.exclude(id__in=outOfFullQueue).values_list('id', flat = True)))
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-        print "incompleteIP excluding nonUnique: " + str(list(incompleteIP.exclude(id__in=nonUnique).values_list('id', flat = True)))
+        #print "incompleteIP excluding nonUnique: " + str(list(incompleteIP.exclude(id__in=nonUnique).values_list('id', flat = True)))
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
 
     if not incompleteIP:
         end = time.time()
         worker_done_time = end - start
-        print "Worker " + str(ID) + " completed IP pairs: " + str(completedIP)
-        print "The not-done IP pair IDs are: " + str(list(IP_Pair.objects.filter(isDone=False).values_list('id', flat = True)))
-        print "The not-done IP pairs are: " + str(IP_Pair.objects.filter(isDone=False))
+        #print "Worker " + str(ID) + " completed IP pairs: " + str(completedIP)
+        #print "The not-done IP pair IDs are: " + str(list(IP_Pair.objects.filter(isDone=False).values_list('id', flat = True)))
+        #print "The not-done IP pairs are: " + str(IP_Pair.objects.filter(isDone=False))
         #print "The set incompleteIP that a task could come from is: " + str(incompleteIP)
         return True, worker_done_time
 
@@ -70,10 +70,14 @@ def pending_eddy(ID):
         # filter out the ips that are not in the queue of full predicates
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
+        #inProcess = incompleteIP.filter(tasks_out__gte=5 )
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
-        print "Incomplete IP pairs to choose from: " + str(list(incompleteIP.values_list('id', flat=True)))
-        if not incompleteIP.exists():
-            print "#######################  SET OF ELIGIBLE IP PAIRS EMPTY ##############"
+        #.exclude(id__in=inProcess)
+        # print "Incomplete IP pairs to choose from: " + str(list(incompleteIP.values_list('id', flat=True)))
+        #if not incompleteIP.exists():
+            #print "#######################  SET OF ELIGIBLE IP PAIRS EMPTY ##############"
+            #chosenIP = None
+
         chosenIP = lotteryPendingQueue(incompleteIP)
 
     #random_system:
@@ -118,7 +122,10 @@ def move_window():
 
 def give_task(active_tasks, workerID):
     ip_pair, eddy_time = pending_eddy(workerID)
-    ip_pair.inQueue = True
+    if ip_pair is not None:
+        ip_pair.inQueue = True
+        ip_pair.tasks_out += 1
+        ip_pair.save()
     # TODO keep track of the number of tasks issued for an IP pair
     return ip_pair, eddy_time
 
@@ -276,6 +283,7 @@ def updateCounts(workerTask, chosenIP):
             IP_Pair.objects.filter(item__hasFailed=True).update(isDone=True)
         else:
             chosenIP.status_votes -= 2
+            #chosenIP.tasks_out -= 2
 
     # POSSIBLE IMPLEMENTAION OF ALMOST_FALSE
     elif ((ITEM_SYS == 2) and (chosenIP.value < 0)):

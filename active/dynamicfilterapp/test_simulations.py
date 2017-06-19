@@ -142,6 +142,8 @@ class SimulationTest(TransactionTestCase):
 		Simulates the vote of a worker on a ip_pair from real data
 		"""
 		start = time.time()
+		#if chosenIP is not None:
+
 		# simulated worker votes
 		value = choice(dictionary[chosenIP])
 
@@ -157,10 +159,13 @@ class SimulationTest(TransactionTestCase):
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
 				startTime=start_task, endTime=end_task)
 		t.save()
+		print str(t) + "will expire at t = " + str(end_task)
+
+		#e#lse:
+			#t = None
 		#updateCounts(t, chosenIP)
 		end = time.time()
 		runTime = end - start
-		print str(t) + "will expire at t = " + str(end_task)
 		return t, runTime
 
 	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch):
@@ -168,20 +173,23 @@ class SimulationTest(TransactionTestCase):
 		synthesize a task
 		"""
 		start = time.time()
-		value = syn_answer(chosenIP, switch)
+		if chosenIP is not None:
+			value = syn_answer(chosenIP, switch)
 
-		if value :
-			#worker said true, take from true distribution
-			work_time = choice(TRUE_TIMES)
+			if value :
+				#worker said true, take from true distribution
+				work_time = choice(TRUE_TIMES)
+			else:
+				#worker said false, take from false distribution
+				work_time = choice(FALSE_TIMES)
+
+			start_task = time_clock + BUFFER_TIME
+			end_task = start + work_time
+			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+					startTime=start_task, endTime=end_task)
+			t.save()
 		else:
-			#worker said false, take from false distribution
-			work_time = choice(FALSE_TIMES)
-
-		start_task = time_clock + BUFFER_TIME
-		end_task = start + work_time
-		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
-				startTime=start_task, endTime=end_task)
-		t.save()
+			t = None
 		#updateCounts(t, chosenIP)
 		end = time.time()
 		runTime = end - start
@@ -194,7 +202,7 @@ class SimulationTest(TransactionTestCase):
 		choice = busyWorkers[0]
 		while choice in busyWorkers:
 			choice = str(randint(1,NUM_WORKERS))
-		print "picked worker " + choice
+		#print "picked worker " + choice
 		return choice
 
 	def reset_database(self):
@@ -249,19 +257,32 @@ class SimulationTest(TransactionTestCase):
 		# select an available worker who is eligible to do a task in our pool
 		print "issuing a task"
 		workerDone = True
-		while workerDone:
+		a_num = NUM_WORKERS - len(b_workers)
+		triedWorkers = set()
+		while (workerDone and (len(triedWorkers) != a_num)):
+
 			workerID = self.pick_worker(b_workers)
+			triedWorkers.add(workerID)
 			workerDone, workerDoneTime = worker_done(workerID)
-			if (DEBUG_FLAG and workerDone) :
-				print "worker" + str(workerID) +  "has no tasks to do"
+			#if (DEBUG_FLAG and workerDone) :
+				#print "worker" + str(workerID) +  "has no tasks to do"
+			if workerDone:
+				workerID = None
 
-		# select a task to assign to this person
-		ip_pair, eddy_time = give_task(active_tasks, workerID)
+		if workerID is not None:
+			# select a task to assign to this person
+			ip_pair, eddy_time = give_task(active_tasks, workerID)
 
-		if REAL_DATA:
-			task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
+			if REAL_DATA:
+				task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
+			else:
+				task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
 		else:
-			task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
+			task = None
+			workerID = None
+			eddy_time = None
+			task_time = None
+
 		return task, workerID, eddy_time, task_time
 
 		#return the task the eddy times
@@ -277,6 +298,7 @@ class SimulationTest(TransactionTestCase):
 		sim_start = time.time()
 		global HAS_RUN_ITEM_ROUTING, ROUTING_ARRAY
 		num_tasks = 0
+		no_tasks_to_give = 0
 		passedItems = []
 		itemsDoneArray = [0]
 		#tasksArray = [0]
@@ -303,52 +325,56 @@ class SimulationTest(TransactionTestCase):
 		# 		routingC.append(0)
 		# 		routingL.append([0])
 
-		#pick a dummy ip_pair
-		ip_pair = IP_Pair()
-
-		#while(ip_pair != None):
-		#while ip_pair = None
-		#while time_clock < 9000:
 		while (IP_Pair.objects.filter(isDone=False).exists() or active_tasks) :
-			if (time_clock % 100 == 0):
-				print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ t =  " + str(time_clock) + " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-				print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+			print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ t =  " + str(time_clock) + " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+			print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+			if (time_clock % 10 == 0):
 				for task in active_tasks:
 					print str(task) + " will expire at t = " + str(task.endTime)
 
 			if len(active_tasks) == 0:
 				print "active tasks is empty"
+			#activeIPs = []
 			# check if any tasks need to be distributed at this time
+			endTimes = []
 			for task in active_tasks:
+				#activeIPs.append(task.ip_pair)
 				#print "checking task" + str(task)
+				endTimes.append(task.endTime)
 				if (task.endTime <= time_clock):
 					# update Counts based on that completed task
 					updateCounts(task, task.ip_pair)
-					print "Task expired, counts updated for " + str(task)
+					#print "Task expired, counts updated for " + str(task)
 					# task has finished, remove from active array
 					active_tasks.remove(task)
-					print str(task) + " removed from active array"
+					#print str(task) + " removed from active array"
 					# remove worker from set of busy workers
 					b_workers.remove(task.workerID)
-					print "worker " + str(task.workerID) + " removed from busy array"
-					print "number of active tasks is: " +  str(len(active_tasks))
-					#print "Active Tasks: " + str(active_tasks)
-					print "number of tasks completed is: " + str(num_tasks)
 					num_tasks += 1
+					print "worker " + str(task.workerID) + " and " + str(task) + " removed from active, counts updated."
+					print "number of active tasks is: " +  str(len(active_tasks))
+					print "number of tasks completed is: " + str(num_tasks)
 
-			# while there are IP pairs that still haven't been evaluated
 			if IP_Pair.objects.filter(isDone=False).exists():
-				#print "there are still incomplete IP pairs"
-				# if there are still tasks that can be filled in
+				incompletes = IP_Pair.objects.filter(isDone=False).count()
+				print "There are still " + str(incompletes) + " incomplete IP pairs"
+				# if there is still room to load in tasks
 				while (len(active_tasks) != MAX_TASKS):
 					# add a new task to the set of those in process
 					task, worker, eddy_t, task_t = self.issueTask(active_tasks, b_workers, time_clock, dictionary)
-					active_tasks.append(task)
-					print "task added: " + str(task)
-					b_workers.append(worker)
-					eddyTimes.append(eddy_t)
-					taskTimes.append(task_t)
-					print "number of active tasks is: " +  str(len(active_tasks))
+					if task is not None:
+						active_tasks.append(task)
+						print "task added: " + str(task)
+						b_workers.append(worker)
+						eddyTimes.append(eddy_t)
+						taskTimes.append(task_t)
+						print "number of active tasks is: " +  str(len(active_tasks))
+					else:
+						#fast-forward in time if we couldn't give anyone a task
+						no_tasks_to_give += 1
+						if endTimes:
+							time_clock = min(endTimes) - 1
+						break
 					#print "Active Tasks: " + str(active_tasks)
 
 				# If we should be running a routing test
@@ -940,7 +966,8 @@ class SimulationTest(TransactionTestCase):
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
 
-		outputFile = open("terminalOutDebugging.out", 'w')
-		sys.stdout = outputFile
-		self.run_sim(sampleData)
-		outputFile.close()
+		#outputFile = open("terminalOutDebugging.out", 'w')
+		#sys.stdout = outputFile
+		result = self.run_sim(sampleData)
+		print "Simulated time: " + str(result[5]) + ", number of tasks completed: " + str(result[0])
+		#outputFile.close()

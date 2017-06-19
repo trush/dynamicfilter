@@ -92,6 +92,8 @@ class IP_Pair(models.Model):
     item = models.ForeignKey(Item)
     predicate = models.ForeignKey(Predicate)
 
+    # tasks issued
+    tasks_out = models.IntegerField(default=0)
     # running cumulation of votes
     value = models.FloatField(default=0.0)
     num_no = models.IntegerField(default=0)

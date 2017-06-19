@@ -25,9 +25,9 @@ CUT_OFF = 21
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
-NUM_WORKERS = 101
-MAX_TASKS = 4
-BUFFER_TIME = 0
+NUM_WORKERS = 301
+MAX_TASKS = 10
+BUFFER_TIME = 5
 EDDY_SYS = 1
 # EDDY SYS KEY:
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
