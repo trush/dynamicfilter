@@ -2,7 +2,7 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'Hotel_Queue_Preds13' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'Hotel_IPBatching_Preds01' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
 #We have 5 questions for hotels right now, 10 for restaurants
@@ -24,7 +24,7 @@ CUT_OFF = 21
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
 NUM_WORKERS = 101
-EDDY_SYS = 1
+EDDY_SYS = 4
 # EDDY SYS KEY:
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
 # 2 - random system
@@ -32,7 +32,7 @@ EDDY_SYS = 1
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [1,3] # predicates that will be used when run on real data
+CHOSEN_PREDS = [0,1] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
