@@ -340,131 +340,6 @@ class SimulationTest(TransactionTestCase):
 
 	def run_sim(self, dictionary):
 		"""
-		Runs a single simulation (either using real or synthetic data depending on
-		setting in toggles.py)
-		Returns an tuple:
-		(# tasks completed in run, runtime of run_sim(), runtime of pending_eddy(),
-		runtime of simulate_task(), runtime of worker_done(), simulated time elapsed)
-		Note: simulated time elapsed = 0 if SIMULATE_TIME is False.
-		"""
-		if SIMULATE_TIME:
-			return self.time_run_sim(dictionary)
-		else:
-			sim_start = time.time()
-			global HAS_RUN_ITEM_ROUTING, ROUTING_ARRAY
-			num_tasks = 0
-			passedItems = []
-			itemsDoneArray = [0]
-			tasksArray = [0]
-			switch = 0
-			eddyTimes = []
-			taskTimes = []
-			workerDoneTimes = []
-			noTasks = 0
-
-			#If running Item_routing, setup needed values
-			if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
-				predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
-				routingC, routingL = [], []
-				seenItems = set()
-				for i in range(len(predicates)):
-					routingC.append(0)
-					routingL.append([0])
-			#pick a dummy ip_pair
-			ip_pair = IP_Pair()
-
-			while(ip_pair != None):
-
-				# only increment if worker is actually doing a task
-				workerID = self.pick_worker([0]) # array needed to make pick_worker run
-				workerDone, workerDoneTime = worker_done(workerID)
-
-				if not IP_Pair.objects.filter(isDone=False):
-					ip_pair = None
-
-				elif (workerDone):
-					noTasks += 1
-					if DEBUG_FLAG:
-						print "worker has no tasks to do"
-
-				else:
-					ip_pair, eddy_time = pending_eddy(workerID)
-					eddyTimes.append(eddy_time)
-
-
-					# If we should be running a routing test
-						# this is true in two cases: 1) we hope to run a single
-						# item_routing test and this is the first time we've run
-						# run_sim or 2) we're runing multiple routing tests, and
-						# so should take this data every time we run.
-					if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
-						# if this is a "new" item
-						if ip_pair.item.item_ID not in seenItems:
-							seenItems.add(ip_pair.item.item_ID)
-							# increment the count of that item's predicate
-							for i in range(len(predicates)):
-								if ip_pair.predicate == predicates[i]:
-									routingC[i]+=1
-								# and add this "timestep" to the running list
-								routingL[i].append(routingC[i])
-
-					if REAL_DATA :
-						taskTime = self.simulate_task(ip_pair, workerID, 0, dictionary)
-					else:
-						taskTime = self.syn_simulate_task(ip_pair, workerID, 0, switch)
-
-					move_window()
-					num_tasks += 1
-					taskTimes.append(taskTime)
-					tasksArray.append(num_tasks)
-
-					if num_tasks == 200:
-						switch = 1
-
-				workerDoneTimes.append(workerDoneTime)
-			if OUTPUT_SELECTIVITIES:
-				output_selectivities(RUN_NAME)
-
-			if OUTPUT_COST:
-				output_cost(RUN_NAME)
-
-			if TRACK_IP_PAIRS_DONE:
-				dest = OUTPUT_PATH + RUN_NAME + "ip_done_vs_tasks"
-				dataToWrite = [range(0, num_tasks+1), itemsDoneArray]
-				generic_csv_write(dest+".csv", dataToWrite) # saves a csv
-				if DEBUG_FLAG:
-					print "Wrote File: " + dest + ".csv"
-				if GEN_GRAPHS:
-					line_graph_gen([dataToWrite[0], dataToWrite[1]], dest + ".png",
-								labels = ("Number Tasks Completed", "Number IP Pairs Completed"),
-								title = "Number Items Categorized vs. Number Tasks Completed")
-
-			# if this is the first time running a routing test
-			if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
-				HAS_RUN_ITEM_ROUTING = True
-
-				#setup vars to save a csv + graph
-				dest = OUTPUT_PATH+RUN_NAME+'_item_routing'
-				title = RUN_NAME + ' Item Routing'
-				labels = (str(predicates[0].question), str(predicates[1].question))
-				dataToWrite = [labels,routingL[0],routingL[1]]
-				generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
-				if DEBUG_FLAG:
-					print "Wrote File: "+dest+'.csv'
-				if GEN_GRAPHS:
-					line_graph_gen(routingL[0],routingL[1],dest+'.png',labels = labels,title = title, square = True) # saves a routing line graph
-					if DEBUG_FLAG:
-						print "Wrote File: " + dest+'.png'
-
-			# if we're multi routing
-			if RUN_MULTI_ROUTING:
-				ROUTING_ARRAY.append(routingC) #add the new counts to our running list of counts
-			sim_end = time.time()
-			sim_time = sim_end - sim_start
-			return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes, noTasks
-
-	def time_run_sim(self, dictionary):
-		"""
 		Runs a single simulation and increments a counter to simulate time. Tasks
 		have durations and run concurrently.
 		"""
@@ -481,6 +356,7 @@ class SimulationTest(TransactionTestCase):
 		taskTimes = []
 		workerDoneTimes = []
 		totalWorkTime = 0
+		tasksArray = []
 
 		# array of workers who are busy
 		b_workers = [0]
@@ -574,12 +450,12 @@ class SimulationTest(TransactionTestCase):
 						if TRACK_NO_TASKS:
 							total_worker_no_tasks += worker_no_tasks
 
-			move_window()
+				move_window()
 
-			if num_tasks == 200:
-				switch = 1
+				if num_tasks == 200:
+					switch = 1
 
-			time_clock += 1
+				time_clock += 1
 
 		else:
 			while(ip_pair != None):
@@ -600,36 +476,36 @@ class SimulationTest(TransactionTestCase):
 					ip_pair, eddy_time = pending_eddy(workerID)
 					eddyTimes.append(eddy_time)
 
-				# If we should be running a routing test
-				# this is true in two cases: 1) we hope to run a single
-				# item_routing test and this is the first time we've run
-				# run_sim or 2) we're runing multiple routing tests, and
-				# so should take this data every time we run.
-				if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
-					# if this is a "new" item
-					if ip_pair.item.item_ID not in seenItems:
-						seenItems.add(ip_pair.item.item_ID)
-						# increment the count of that item's predicate
-						for i in range(len(predicates)):
-							if ip_pair.predicate == predicates[i]:
-								routingC[i]+=1
-							# and add this "timestep" to the running list
-							routingL[i].append(routingC[i])
+					# If we should be running a routing test
+					# this is true in two cases: 1) we hope to run a single
+					# item_routing test and this is the first time we've run
+					# run_sim or 2) we're runing multiple routing tests, and
+					# so should take this data every time we run.
+					if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
+						# if this is a "new" item
+						if ip_pair.item.item_ID not in seenItems:
+							seenItems.add(ip_pair.item.item_ID)
+							# increment the count of that item's predicate
+							for i in range(len(predicates)):
+								if ip_pair.predicate == predicates[i]:
+									routingC[i]+=1
+								# and add this "timestep" to the running list
+								routingL[i].append(routingC[i])
 
-				if REAL_DATA :
-					taskTime = self.simulate_task(ip_pair, workerID, 0, dictionary)
-				else:
-					taskTime = self.syn_simulate_task(ip_pair, workerID, 0, switch)
+					if REAL_DATA :
+						taskTime = self.simulate_task(ip_pair, workerID, 0, dictionary)
+					else:
+						taskTime = self.syn_simulate_task(ip_pair, workerID, 0, switch)
 
-				move_window()
-				num_tasks += 1
-				taskTimes.append(taskTime)
-				tasksArray.append(num_tasks)
+					move_window()
+					num_tasks += 1
+					taskTimes.append(taskTime)
+					tasksArray.append(num_tasks)
 
-				if num_tasks == 200:
-					switch = 1
+					if num_tasks == 200:
+						switch = 1
 
-			workerDoneTimes.append(workerDoneTime
+				workerDoneTimes.append(workerDoneTime)
 
 		if TRACK_IP_PAIRS_DONE:
 			dest = OUTPUT_PATH + RUN_NAME + "ip_done_vs_tasks"
@@ -641,6 +517,7 @@ class SimulationTest(TransactionTestCase):
 				line_graph_gen([dataToWrite[0], dataToWrite[1]], dest + ".png",
 							labels = ("Number Tasks Completed", "Number IP Pairs Completed"),
 							title = "Number Items Categorized vs. Number Tasks Completed")
+
 		if TRACK_NO_TASKS:
 			dest = OUTPUT_PATH + RUN_NAME + "noTasks.csv"
 			with open(dest, 'w') as f:
