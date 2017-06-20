@@ -2,15 +2,15 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'SynData_Queue_.9.6.68.87_50runs_2Q_100I' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'Restaurant_Queue_Preds23_50runs' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
-ITEM_TYPE = "Hotel"
+ITEM_TYPE = "Restaurant"
 #We have 5 questions for hotels right now, 10 for restaurants
 NUM_QUEST = 10 #used for accuracy testing
 
-INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
+INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/'
-IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
+IP_PAIR_DATA_FILE = 'real_data1.csv'
 
 DEBUG_FLAG = True # useful print statements turned on
 
@@ -32,7 +32,7 @@ EDDY_SYS = 1
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [3,4] # predicates that will be used when run on real data
+CHOSEN_PREDS = [2,3] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -66,7 +66,7 @@ LIFETIME = 10
 ###################### CONFIGURING TESTING ##################################
 #############################################################################
 
-REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
+REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
 GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
@@ -76,10 +76,10 @@ NUM_ITEMS = 100
 
 # not really selectivity: selectivity is more selectivity_list[i]*cost_prob_list[i]
 # this is just the probabiility of leaning towards false
-selectivity_list = [0.9, 0.6, 0.9]
+selectivity_list = [0.9, 0.6]
 # keep probabilities above .5 for this simulation to make sense.
 # the closer to 0.5, the more ambiguous the predicate is
-cost_prob_list = [0.68, 0.87, 0.9]
+cost_prob_list = [0.68, 0.87]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
