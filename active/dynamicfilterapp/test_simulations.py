@@ -237,8 +237,13 @@ class SimulationTest(TransactionTestCase):
 		workerDoneTimes = []
 		ticketNums = []
 
-		for pred in range(len(CHOSEN_PREDS)):
-			ticketNums.append([])
+		#Setting up arrays to count tickets for ticketing counting graphs
+		if REAL_DATA:
+			for predNum in range(len(CHOSEN_PREDS)):
+				ticketNums.append([])
+		else:
+			for count in range(NUM_QUESTIONS):
+				ticketNums.append([])
 		
 
 		#If running Item_routing, setup needed values
@@ -306,9 +311,14 @@ class SimulationTest(TransactionTestCase):
 				tasksArray.append(num_tasks)
 
 				if COUNT_TICKETS:
-					for predNum in range(len(CHOSEN_PREDS)):
-						predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
-						ticketNums[predNum].append(predicate.num_tickets)
+					if REAL_DATA:
+						for predNum in range(len(CHOSEN_PREDS)):
+							predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
+							ticketNums[predNum].append(predicate.num_tickets)
+					else:
+						for count in range(NUM_QUESTIONS):
+							predicate = Predicate.objects.get(pk=count+1)
+							ticketNums[count].append(predicate.num_tickets)
 				# get a sense of what items have been ruled out and which ones
 				# are still in the running
 				#numRuledOut = Item.objects.filter(hasFailed = True).count()

@@ -2,7 +2,7 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'Hotel_IPBatching_Preds13' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'SynData_IPBatching' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
 #We have 5 questions for hotels right now, 10 for restaurants
@@ -32,7 +32,7 @@ EDDY_SYS = 4
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [1,3] # predicates that will be used when run on real data
+CHOSEN_PREDS = [3,4] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -66,9 +66,20 @@ LIFETIME = 10
 ###################### CONFIGURING TESTING ##################################
 #############################################################################
 
-REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
+REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
 
 GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
+
+#################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
+NUM_QUESTIONS = 2
+NUM_ITEMS = 100
+
+# not really selectivity: selectivity is more selectivity_list[i]*cost_prob_list[i]
+# this is just the probabiility of leaning towards false
+selectivity_list = [0.9, 0.6, 0.9]
+# keep probabilities above .5 for this simulation to make sense.
+# the closer to 0.5, the more ambiguous the predicate is
+cost_prob_list = [0.68, 0.87, 0.9]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -77,7 +88,7 @@ RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [0.01,0.05,0.1,0.2,0.3,0.4,0.5]
 
-COUNT_TICKETS = False
+COUNT_TICKETS = True
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 1000
@@ -94,7 +105,7 @@ NUM_SIM = 50 # how many simulations to run?
 
 TIME_SIMS = False
 
-RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 

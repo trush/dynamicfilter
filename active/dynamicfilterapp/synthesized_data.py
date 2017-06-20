@@ -1,21 +1,12 @@
 from models import *
 import numpy as np
 from random import randint, choice
+from toggles import * #TODO necessary?
 
 import csv
 import sys
 import math
 import random
-
-NUM_QUESTIONS = 3
-NUM_ITEMS = 40
-
-# not really selectivity: selectivity is more selectivity_list[i]*cost_prob_list[i]
-# this is just the probabiility of leaning towards false
-selectivity_list = [0.9, 0.9, 0.9]
-# keep probabilities above .5 for this simulation to make sense.
-# the closer to 0.5, the more ambiguous the predicate is
-cost_prob_list = [0.9, 0.6, 0.9]
 
 def syn_load_data():
 	"""
@@ -38,9 +29,11 @@ def syn_answer(chosenIP, switch):
 	"""
 	make up a fake answer based on global variables
 	"""
-	print "switch: " + str(switch)
-	ID = chosenIP.predicate.predicate_ID + switch
-	print "predID: " + str(chosenIP.predicate.predicate_ID)
+	#TODO get rid of after testing
+	#print "switch: " + str(switch)
+	#ID = chosenIP.predicate.predicate_ID + switch
+	ID = chosenIP.predicate.predicate_ID
+	#print "predID: " + str(chosenIP.predicate.predicate_ID)
 	# decide if the answer is going to lean towards true or false
 	# lean towards true
 	if decision(selectivity_list[ID]):
