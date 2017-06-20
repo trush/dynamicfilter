@@ -24,10 +24,12 @@ def worker_done(ID):
     completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
     incompleteIP = IP_Pair.objects.filter(isDone=False).exclude(id__in=completedIP)
 
+    # if queue_pending_system:
     if (EDDY_SYS == 1):
-    #if queue_pending_system:
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
+        #print "incompleteIP excluding out of full q: " + str(list(incompleteIP.exclude(id__in=outOfFullQueue).values_list('id', flat = True)))
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
+        #print "incompleteIP excluding nonUnique: " + str(list(incompleteIP.exclude(id__in=nonUnique).values_list('id', flat = True)))
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
 
     if not incompleteIP:
@@ -103,6 +105,15 @@ def move_window():
     else:
         pass
 
+def give_task(active_tasks, workerID):
+    ip_pair, eddy_time = pending_eddy(workerID)
+    if ip_pair is not None:
+        ip_pair.inQueue = True
+        ip_pair.tasks_out += 1
+        ip_pair.save()
+    # TODO keep track of the number of tasks issued for an IP pair
+    return ip_pair, eddy_time
+
 #____________LOTTERY SYSTEMS____________#
 def chooseItem(ipSet):
     """
@@ -157,7 +168,6 @@ def lotteryPendingTickets(ipSet):
     chosenIP.predicate.num_pending += 1
     chosenIP.predicate.save()
 
-    #print chosenIP
     return chosenIP
 
 def lotteryPendingQueue(ipSet):
@@ -217,6 +227,7 @@ def updateCounts(workerTask, chosenIP):
         chosenIP.value -= 1
         chosenIP.num_no +=1
         chosenPred.totalNo += 1
+    #TODO update stats about amount of worker time spent on a given IP pair?
 
     #update predicate statistics
     chosenPred.updateSelectivity()
