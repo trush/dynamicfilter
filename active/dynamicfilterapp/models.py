@@ -25,8 +25,6 @@ class Item(models.Model):
 
     inQueue = models.BooleanField(default=False)
 
-
-
     def __str__(self):
         return str(self.name)
 
@@ -92,6 +90,8 @@ class IP_Pair(models.Model):
     item = models.ForeignKey(Item)
     predicate = models.ForeignKey(Predicate)
 
+    # tasks issued
+    tasks_out = models.IntegerField(default=0)
     # running cumulation of votes
     value = models.FloatField(default=0.0)
     num_no = models.IntegerField(default=0)
@@ -123,8 +123,12 @@ class Task(models.Model):
     answer = models.NullBooleanField(default=None)
     workerID = models.CharField(db_index=True, max_length=15)
 
+    #used for simulating task completion having DURATION
+    startTime = models.IntegerField(default=0)
+    endTime = models.IntegerField(default=0)
+
     # a text field for workers to give feedback on the task
     feedback = models.CharField(max_length=500, blank=True)
 
     def __str__(self):
-        return "Task from worker " + str(self.workerID.workerID)
+        return "Task from worker " + str(self.workerID) + " for IP Pair " + str(self.ip_pair)

@@ -25,7 +25,8 @@ def dest_resolver(dest):
         return dest
 
 
-def hist_gen(data, dest, labels = ('',''), title='', smoothness=True):
+
+def hist_gen(data, dest, labels = ('',''), title='', smoothness=False, writeStats = False):
     """
     Automagically generates a Histogram for you from a given list of data and a
     destination name (ending in .png). Can additionally be passed many arguments
@@ -33,24 +34,9 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=True):
         title, a string title of your graph
         smoothness, defaults true, set False to get a blocky version instead
     """
+    multi_hist_gen([data], [None], dest, labels = labels, title = title,smoothness=smoothness)
 
-    if smoothness:
-        multi_hist_gen([data], [None], dest, labels = labels, title = title)
-    else:
-        #TODO make this section actually work consistently
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        n, bins, patches = ax.hist(data, 1000, normed=1, facecolor='green')
-        bincenters = 0.5*(bins[1:]+bins[:-1])
-        ax.set_xlim(0, 100)
-        ax.set_ylim(0, 0.3)
-    	ax.set_xlabel(labels[0])
-    	ax.set_ylabel(labels[1])
-    	ax.set_title(title)
-    	ax.grid(True)
-        plt.savefig(dest_resolver(dest))
-
-def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
+def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothness=False):
     """
     Very similar to hist_gen, however takes a list of datasets and a list of
     names of your datasets and a destination name, plots all datasets on one
@@ -66,15 +52,21 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
     sns.despine(left=True)
     # the histogram of the data
     for i in range(len(dataList)):
-    	sns.distplot(dataList[i], hist=False, kde_kws={"shade": False}, ax=ax, label=legendList[i])
+    	sns.distplot(dataList[i], hist=(not smoothness), kde_kws={"shade": False}, ax=ax, label=legendList[i])
     ax.set_xlabel(labels[0])
     ax.set_ylabel(labels[1])
     ax.set_title(title)
     #ax.set_xlim(100, 320)
     ax.grid(True)
+
+    if SAVE_CONFIG_DATA:
+        ax.set_position((.1, .3, .8, .6)) # made room for 6 whole lines
+        text = get_config_text()
+        fig.text(0.02,0.02,text)
+
     plt.savefig(dest_resolver(dest))
 
-def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr = [], square = False):
+def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr = [], square = False, scatter=False):
     """
     Generate a linegraph from a set of x and y points, optional parameters:
         labels a touple in the format ('x-axis label', 'y-axis label')
@@ -84,9 +76,9 @@ def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr 
     std = []
     if len(stderr) != 0:
         std = [stderr]
-    multi_line_graph_gen([xpoints],[ypoints], [''], dest, labels=labels, title = title, stderrL = std, square = square)
+    multi_line_graph_gen([xpoints],[ypoints], [''], dest, labels=labels, title = title, stderrL = std, square = square, scatter=scatter)
 
-def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '', stderrL = [], square = False):
+def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '', stderrL = [], square = False, scatter=False):
     """
     plot multiple linegraphs on one graph. takes in lists of lists of x and y
     values for each graph, a list of strings for naming each linegraph and an
@@ -109,6 +101,8 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
         if len(stderrL) != 0:
             std = stderrL[i]
             ax.errorbar(x,y,yerr=std, label=legendList[i])
+        elif scatter:
+            ax.scatter(x, y, label=legendList[i])
         else:
             ax.plot(x, y, label=legendList[i])
 
@@ -128,3 +122,28 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     if square:
         plt.axis([-1,mx,-1,mx])
     plt.savefig(dest_resolver(dest))
+    
+def stats_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = ''):
+    avg, std = [],[]
+    for L in dataL:
+        avg.append(np.mean(L))
+        std.append(np.std(L))
+    bar_graph_gen(avg, legend, dest, labels = labels, title = title, stderr = std)
+
+def kcluster(data,k,iterations = 300):
+    mL,pL = [],[]
+    diff = len(data)/(k)
+    for i in range(k):
+        mL.append(data[i*diff])
+        pL.append([])
+    for i in range(iterations):
+        for point in data:
+            dL = []
+            for mean in mL:
+                dL.append(abs(point-mean))
+            closest = min(dL)
+            index = dL.index(closest)
+            pL[index].append(point)
+        for i in range(len(mL)):
+            mL[i] = np.mean(pL[i])
+    return pL
