@@ -2,7 +2,7 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'SynData_IPBatching' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'SynData_Queue_.9.6.68.87_50runs_2Q_100I' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
 #We have 5 questions for hotels right now, 10 for restaurants
@@ -88,7 +88,7 @@ RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [0.01,0.05,0.1,0.2,0.3,0.4,0.5]
 
-COUNT_TICKETS = True
+COUNT_TICKETS = False
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 1000
@@ -105,7 +105,7 @@ NUM_SIM = 50 # how many simulations to run?
 
 TIME_SIMS = False
 
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 
