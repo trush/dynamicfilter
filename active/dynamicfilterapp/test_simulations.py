@@ -150,12 +150,12 @@ class SimulationTest(TransactionTestCase):
 		runTime = end - start
 		return runTime
 
-	def syn_simulate_task(self, chosenIP, workerID):
+	def syn_simulate_task(self, chosenIP, workerID, switch):
 		"""
 		synthesize a task
 		"""
 		start = time.time()
-		value = syn_answer(chosenIP)
+		value = syn_answer(chosenIP, switch)
 
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
 		t.save()
@@ -231,19 +231,19 @@ class SimulationTest(TransactionTestCase):
 		passedItems = []
 		itemsDoneArray = [0]
 		tasksArray = [0]
+		switch = 0
 		eddyTimes = []
 		taskTimes = []
 		workerDoneTimes = []
 		ticketNums = []
 
-		#Setting up arrays to count tickets
-		if COUNT_TICKETS:
-			if REAL_DATA:
-				for predNum in range(len(CHOSEN_PREDS)):
-					ticketNums.append([])
-			else:
-				for count in range(NUM_QUESTIONS):
-					ticketNums.append([])
+		#Setting up arrays to count tickets for ticketing counting graphs
+		if REAL_DATA:
+			for predNum in range(len(CHOSEN_PREDS)):
+				ticketNums.append([])
+		else:
+			for count in range(NUM_QUESTIONS):
+				ticketNums.append([])
 		
 
 		#If running Item_routing, setup needed values
@@ -302,7 +302,7 @@ class SimulationTest(TransactionTestCase):
 				if REAL_DATA :
 					taskTime = self.simulate_task(ip_pair, workerID, dictionary)
 				else:
-					taskTime = self.syn_simulate_task(ip_pair, workerID)
+					taskTime = self.syn_simulate_task(ip_pair, workerID, switch)
 
 
 				move_window()
@@ -340,6 +340,8 @@ class SimulationTest(TransactionTestCase):
 				#print "total items done: " + str(numItemsDone)
 
 				#itemsDoneArray.append(numItemsDone)
+				if num_tasks == 200:
+					switch = 1
 
 		#print num_tasks
 		#print str(itemsDoneArray)
