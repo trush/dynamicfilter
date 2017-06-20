@@ -146,24 +146,30 @@ class SimulationTest(TransactionTestCase):
 
 		# simulated worker votes
 		value = choice(dictionary[chosenIP])
+		if SIMULATE_TIME:
+			if value :
+				#worker said true, take from true distribution
+				work_time = choice(TRUE_TIMES)
+			else:
+				#worker said false, take from false distribution
+				work_time = choice(FALSE_TIMES)
 
-		if value :
-			#worker said true, take from true distribution
-			work_time = choice(TRUE_TIMES)
+			start_task = time_clock + BUFFER_TIME
+			end_task = start_task + work_time
 		else:
-			#worker said false, take from false distribution
-			work_time = choice(FALSE_TIMES)
+			start_task = 0
+			end_task = 0
 
-		start_task = time_clock + BUFFER_TIME
-		end_task = start_task + work_time
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
 				startTime=start_task, endTime=end_task)
 		t.save()
-		print str(t) + "will expire at t = " + str(end_task)
 
-		#e#lse:
-			#t = None
-		#updateCounts(t, chosenIP)
+		if not SIMULATE_TIME:
+			updateCounts(t, chosenIP)
+
+		if DEBUG_FLAG and SIMULATE_TIME:
+			print str(t) + " will expire at t = " + str(end_task)
+
 		end = time.time()
 		runTime = end - start
 		return t, runTime
@@ -173,24 +179,29 @@ class SimulationTest(TransactionTestCase):
 		synthesize a task
 		"""
 		start = time.time()
-		if chosenIP is not None:
-			value = syn_answer(chosenIP, switch)
-
-			if value :
-				#worker said true, take from true distribution
-				work_time = choice(TRUE_TIMES)
-			else:
-				#worker said false, take from false distribution
-				work_time = choice(FALSE_TIMES)
-
-			start_task = time_clock + BUFFER_TIME
-			end_task = start + work_time
-			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
-					startTime=start_task, endTime=end_task)
-			t.save()
-		else:
+		if chosenIP is None:
 			t = None
-		#updateCounts(t, chosenIP)
+		else:
+			value = syn_answer(chosenIP, switch)
+			if SIMULATE_TIME:
+				if value :
+					#worker said true, take from true distribution
+					work_time = choice(TRUE_TIMES)
+				else:
+					#worker said false, take from false distribution
+					work_time = choice(FALSE_TIMES)
+
+				start_task = time_clock + BUFFER_TIME
+				end_task = start + work_time
+			else:
+				start_task = 0
+				end_task = 0
+
+		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+				startTime=start_task, endTime=end_task)
+		t.save()
+		if not SIMULATE_TIME:
+			updateCounts(t, chosenIP)
 		end = time.time()
 		runTime = end - start
 		return t, runTime
@@ -199,10 +210,44 @@ class SimulationTest(TransactionTestCase):
 		"""
 		Pick a random worker identified by a string
 		"""
+		global SAMPLING_ARRAY
+		Replacement  = True
 		choice = busyWorkers[0]
 		while choice in busyWorkers:
-			choice = str(randint(1,NUM_WORKERS))
-		#print "picked worker " + choice
+			## uniform distribution
+			if DISTRIBUTION_TYPE == 0:
+				choice = str(randint(1,NUM_WORKERS))
+			## geometric
+			elif DISTRIBUTION_TYPE == 1:
+					# mean of distribution should be 58.3/315 of the way through the worker IDs
+					goalMean = NUM_WORKERS*(58.3/315.0)
+					prob = (1/goalMean)
+					if Replacement:
+						val = 0
+						while val > NUM_WORKERS or val == 0:
+							val = np.random.geometric(prob)
+						return str(val)
+					else:
+						#if there's no data in the array
+						if len(SAMPLING_ARRAY) == 0:
+							for i in range(6000):
+								val = 0
+								while val > NUM_WORKERS or val == 0:
+									val = np.random.geometric(prob)
+								SAMPLING_ARRAY.append(val)
+						val = random.choice(SAMPLING_ARRAY)
+						SAMPLING_ARRAY.remove(val)
+						choice = str(val)
+
+			## Real distribution
+			elif DISTRIBUTION_TYPE == 2:
+				if len(SAMPLING_ARRAY) == 0:
+					SAMPLING_ARRAY = generic_csv_read(INPUT_PATH+REAL_DISTRIBUTION_FILE)[0]
+				val = random.choice(SAMPLING_ARRAY)
+				if not Replacment:
+					SAMPLING_ARRAY.remove(val)
+				choice = str(val)
+
 		return choice
 
 	def reset_database(self):
@@ -233,7 +278,7 @@ class SimulationTest(TransactionTestCase):
 			setattr(thismodule, globalVar, listOfValuesToTest[i])
 			counts.append([])
 			for run in range(NUM_SIM):
-				counts[i].append(self.run_sim(dictionary))
+				counts[i].append(self.run_sim(dictionary)[0])
 				self.reset_database()
 				if DEBUG_FLAG:
 					print run
@@ -253,9 +298,15 @@ class SimulationTest(TransactionTestCase):
 		return
 
 	def issueTask(self, active_tasks, b_workers, time_clock, dictionary):
+		"""
+		Used in simulations with time. Given the status of active tasks and
+		busy workers, selects and simulates a task to be added to the tasks array.
+		Returns None only if NONE of the available workers can do any of the available
+		tasks (i.e. they've already completed all available IP pairs)
+		"""
 
 		# select an available worker who is eligible to do a task in our pool
-		print "issuing a task"
+		worker_no_tasks = 0
 		workerDone = True
 		a_num = NUM_WORKERS - len(b_workers)
 		triedWorkers = set()
@@ -264,10 +315,10 @@ class SimulationTest(TransactionTestCase):
 			workerID = self.pick_worker(b_workers)
 			triedWorkers.add(workerID)
 			workerDone, workerDoneTime = worker_done(workerID)
-			#if (DEBUG_FLAG and workerDone) :
-				#print "worker" + str(workerID) +  "has no tasks to do"
+
 			if workerDone:
 				workerID = None
+				worker_no_tasks += 1
 
 		if workerID is not None:
 			# select a task to assign to this person
@@ -283,25 +334,37 @@ class SimulationTest(TransactionTestCase):
 			eddy_time = None
 			task_time = None
 
-		return task, workerID, eddy_time, task_time
+		return task, workerID, eddy_time, task_time, worker_no_tasks
 
 		#return the task the eddy times
-
-
 
 	def run_sim(self, dictionary):
 		"""
 		Runs a single simulation (either using real or synthetic data depending on
 		setting in toggles.py)
-		Returns an integer: total number of tasks completed in the sim
+		Returns an tuple:
+		(# tasks completed in run, runtime of run_sim(), runtime of pending_eddy(),
+		runtime of simulate_task(), runtime of worker_done(), simulated time elapsed)
+		Note: simulated time elapsed = 0 if SIMULATE_TIME is False.
+		"""
+		if SIMULATE_TIME:
+			return self.time_run_sim(dictionary)
+		else:
+			pass
+
+	def time_run_sim(self, dictionary):
+		"""
+		Runs a single simulation and increments a counter to simulate time. Tasks
+		have durations and run concurrently.
 		"""
 		sim_start = time.time()
 		global HAS_RUN_ITEM_ROUTING, ROUTING_ARRAY
+
 		num_tasks = 0
 		no_tasks_to_give = 0
+		total_worker_no_tasks = 0
 		passedItems = []
 		itemsDoneArray = [0]
-		#tasksArray = [0]
 		switch = 0
 		eddyTimes = []
 		taskTimes = []
@@ -317,96 +380,114 @@ class SimulationTest(TransactionTestCase):
 		#time counter
 		time_clock = 0
 
-		#If running Item_routing, setup needed values
-		# if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
-		# 	predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
-		# 	routingC, routingL, seenItems = [], [], []
-		# 	for i in range(len(predicates)):
-		# 		routingC.append(0)
-		# 		routingL.append([0])
+		# If running Item_routing, setup needed values
+		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
+			predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
+			routingC, routingL, seenItems = [], [], set()
+			for i in range(len(predicates)):
+				routingC.append(0)
+				routingL.append([0])
 
 		while (IP_Pair.objects.filter(isDone=False).exists() or active_tasks) :
-			print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ t =  " + str(time_clock) + " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-			print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-			if (time_clock % 10 == 0):
-				for task in active_tasks:
-					print str(task) + " will expire at t = " + str(task.endTime)
+			if DEBUG_FLAG:
+				if (time_clock % 10 == 0):
+					print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ t =  " + str(time_clock) + " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+					print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+					for task in active_tasks:
+						print str(task) + " will expire at t = " + str(task.endTime)
+					print "There are still " + str(IP_Pair.objects.filter(isDone=False).count()) +  " incomplete IP pairs"
+				if len(active_tasks) == 0:
+					print "active tasks is empty"
 
-			if len(active_tasks) == 0:
-				print "active tasks is empty"
-			#activeIPs = []
-			# check if any tasks need to be distributed at this time
 			endTimes = []
+			# check if any tasks have reached completion, update bookkeeping
 			for task in active_tasks:
-				#activeIPs.append(task.ip_pair)
-				#print "checking task" + str(task)
 				endTimes.append(task.endTime)
 				if (task.endTime <= time_clock):
-					# update Counts based on that completed task
 					updateCounts(task, task.ip_pair)
-					#print "Task expired, counts updated for " + str(task)
-					# task has finished, remove from active array
 					active_tasks.remove(task)
-					#print str(task) + " removed from active array"
-					# remove worker from set of busy workers
 					b_workers.remove(task.workerID)
 					num_tasks += 1
-					print "worker " + str(task.workerID) + " and " + str(task) + " removed from active, counts updated."
-					print "number of active tasks is: " +  str(len(active_tasks))
-					print "number of tasks completed is: " + str(num_tasks)
 
+					if TRACK_IP_PAIRS_DONE:
+						itemsDoneArray.append(IP_Pair.objects.filter(isDone=True).count())
+
+
+					if DEBUG_FLAG:
+						print "worker " + str(task.workerID) + " and " + str(task) + " removed from active, counts updated."
+						print "number of active tasks is: " +  str(len(active_tasks))
+						print "number of tasks completed is: " + str(num_tasks)
+
+			# fill the active task array with new tasks as long as some IPs need eval
 			if IP_Pair.objects.filter(isDone=False).exists():
-				incompletes = IP_Pair.objects.filter(isDone=False).count()
-				print "There are still " + str(incompletes) + " incomplete IP pairs"
-				# if there is still room to load in tasks
+
 				while (len(active_tasks) != MAX_TASKS):
-					# add a new task to the set of those in process
-					task, worker, eddy_t, task_t = self.issueTask(active_tasks, b_workers, time_clock, dictionary)
+					task, worker, eddy_t, task_t, worker_no_tasks = self.issueTask(active_tasks, b_workers, time_clock, dictionary)
 					if task is not None:
 						active_tasks.append(task)
-						print "task added: " + str(task)
 						b_workers.append(worker)
 						eddyTimes.append(eddy_t)
 						taskTimes.append(task_t)
-						print "number of active tasks is: " +  str(len(active_tasks))
+						if DEBUG_FLAG:
+							print "task added: " + str(task)
+							print "number of active tasks is: " +  str(len(active_tasks))
+
+						# ITEM ROUTING DATA COLLECTION
+						# If we should be running a routing test
+						# this is true in two cases: 1) we hope to run a single
+						# item_routing test and this is the first time we've run
+						# run_sim or 2) we're runing multiple routing tests, and
+						# so should take this data every time we run.
+						if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
+							# if this is a "new" item
+							if task.ip_pair.item.item_ID not in seenItems:
+								seenItems.add(task.ip_pair.item.item_ID)
+								# increment the count of that item's predicate
+								for i in range(len(predicates)):
+									if task.ip_pair.predicate == predicates[i]:
+										routingC[i]+=1
+									# and add this "timestep" to the running list
+									routingL[i].append(routingC[i])
+
 					else:
-						#fast-forward in time if we couldn't give anyone a task
+						# we couldn't give ANYONE a task; fast-forward to next task expiry
 						no_tasks_to_give += 1
 						if endTimes:
 							time_clock = min(endTimes) - 1
 						break
-					#print "Active Tasks: " + str(active_tasks)
 
-				# If we should be running a routing test
-					# this is true in two cases: 1) we hope to run a single
-					# item_routing test and this is the first time we've run
-					# run_sim or 2) we're runing multiple routing tests, and
-					# so should take this data every time we run.
-				# if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
-				# 	# if this is a "new" item
-				# 	if ip_pair.item.item_ID not in seenItems:
-				# 		seenItems.append(ip_pair.item.item_ID)
-				# 		# increment the count of that item's predicate
-				# 		for i in range(len(predicates)):
-				# 			if ip_pair.predicate == predicates[i]:
-				# 				routingC[i]+=1
-				# 			# and add this "timestep" to the running list
-				# 			routingL[i].append(routingC[i])
+					if TRACK_NO_TASKS:
+						total_worker_no_tasks += worker_no_tasks
+
 			move_window()
 
 			if num_tasks == 200:
 				switch = 1
 
-		#print num_tasks
-		#print str(itemsDoneArray)
-		#line_graph_gen(tasksArray, itemsDoneArray,
-					#OUTPUT_PATH + RUN_NAME + "itemsDoneVsTasks.png",
-					#labels = ("Number Tasks Completed", "Number Items Completed"),
-					#title = "Number Items Categorized vs. Number Tasks Completed",)
-		# generate graphs using tasksArray and itemsDoneArray
-			#workerDoneTimes.append(workerDoneTime)
 			time_clock += 1
 
+		if TRACK_IP_PAIRS_DONE:
+			dest = OUTPUT_PATH + RUN_NAME + "ip_done_vs_tasks"
+			dataToWrite = [range(0, num_tasks+1), itemsDoneArray]
+			generic_csv_write(dest+".csv", dataToWrite) # saves a csv
+			if DEBUG_FLAG:
+				print "Wrote File: " + dest + ".csv"
+			if GEN_GRAPHS:
+				line_graph_gen([dataToWrite[0], dataToWrite[1]], dest + ".png",
+							labels = ("Number Tasks Completed", "Number IP Pairs Completed"),
+							title = "Number Items Categorized vs. Number Tasks Completed")
+		if TRACK_NO_TASKS:
+			dest = OUTPUT_PATH + RUN_NAME + "noTasks.csv"
+			with open(dest, 'w') as f:
+				f.write(str(no_tasks_to_give) + ",")
+			if DEBUG_FLAG:
+				print "Wrote file: " + dest
+
+			dest = OUTPUT_PATH + RUN_NAME + "workerHasNoTasks.csv"
+			with open(dest, 'w') as f1:
+				f1.write(str(total_worker_no_tasks) + ',')
+			if DEBUG_FLAG:
+				print "Wrote file: " + dest
 
 		if OUTPUT_SELECTIVITIES:
 			output_selectivities(RUN_NAME)
@@ -415,25 +496,25 @@ class SimulationTest(TransactionTestCase):
 			output_cost(RUN_NAME)
 
 		# if this is the first time running a routing test
-		# if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
-		# 	HAS_RUN_ITEM_ROUTING = True
-		#
-		# 	#setup vars to save a csv + graph
-		# 	dest = OUTPUT_PATH+RUN_NAME+'_item_routing'
-		# 	title = RUN_NAME + ' Item Routing'
-		# 	labels = (str(predicates[0].question), str(predicates[1].question))
-		# 	dataToWrite = [labels,L[0],L[1]]
-		# 	generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
-		# 	if DEBUG_FLAG:
-		# 		print "Wrote File: "+dest+'.csv'
-		# 	if GEN_GRAPHS:
-		# 		line_graph_gen(L[0],L[1],dest+'.png',labels = labels,title = title, square = True) # saves a routing line graph
-		# 		if DEBUG_FLAG:
-		# 			print "Wrote File: " + dest+'.png'
-		#
-		# # if we're multi routing
-		# if RUN_MULTI_ROUTING:
-		# 	ROUTING_ARRAY.append(C) #add the new counts to our running list of counts
+		if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
+			HAS_RUN_ITEM_ROUTING = True
+
+			# setup vars to save a csv + graph
+			dest = OUTPUT_PATH+RUN_NAME+'_item_routing'
+			title = RUN_NAME + ' Item Routing'
+			labels = (str(predicates[0].question), str(predicates[1].question))
+			dataToWrite = [labels,routingL[0],routingL[1]]
+			generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
+			if DEBUG_FLAG:
+				print "Wrote File: "+dest+'.csv'
+			if GEN_GRAPHS:
+				line_graph_gen(routingL[0],routingL[1],dest+'.png',labels = labels,title = title, square = True) # saves a routing line graph
+				if DEBUG_FLAG:
+					print "Wrote File: " + dest+'.png'
+
+		# if we're multi routing
+		if RUN_MULTI_ROUTING:
+			ROUTING_ARRAY.append(routingC) #add the new counts to our running list of counts
 
 		sim_end = time.time()
 		sim_time = sim_end - sim_start
@@ -441,22 +522,6 @@ class SimulationTest(TransactionTestCase):
 
 
 	###___HELPERS THAT WRITE OUT STATS___###
-	# def get_passed_items(self, correctAnswers):
-	# 	"""
-	# 	Returns a list of items that should be filtered through the given predicates
-	# 	"""
-	# 	passedItems = []
-	# 	# get chosen predicates
-	# 	predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
-	#
-	# 	#filter out all items that pass all predicates
-	# 	for item in Item.objects.all():
-	# 		if all(correctAnswers[item,predicate] == True for predicate in predicates):
-	# 			passedItems.append(item)
-	# 	#print "number of passed items: ", len(passedItems)
-	# 	print "# correct passed items: ", len(passedItems)
-	# 	return passedItems
-
 	def get_passed_items(self, correctAnswers):
 		#go through correct answers dictionary and set the "should pass" parameter to true for
 		#appropriate items (or collect ID's of those that should pass?)
@@ -468,34 +533,13 @@ class SimulationTest(TransactionTestCase):
 				item.save()
 		return Item.objects.filter(shouldPass = True)
 
-		#go through set that did pass and exclude those that should pass -- tells you # incorrect positives
-		#go through set that should pass and exlude those that did pass -- tells you # incorrect negatives
-
-	# def final_item_mismatch(self, passedItems):
-	# 	"""
-	# 	Returns the number of incorrect items
-	# 	"""
-	# 	sim_passedItems = Item.objects.all().filter(hasFailed=False)
-	# 	print "# sim_passedItems: ", len(sim_passedItems)
-	# 	print "Sim Passed items: ", str(sim_passedItems)
-	# 	print type(sim_passedItems)
-	#
-	# 	return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
-
-	def total_correct(self, shouldPass):
+	def final_item_mismatch(self, passedItems):
 		"""
-		Returns number of incorrect items
+		Returns the number of incorrect items
 		"""
-		# number of incorrect negatives
-		incorr_neg = Item.objects.filter(hasFailed = True, shouldPass = True).count()
+		sim_passedItems = Item.objects.all().filter(hasFailed=False)
 
-		# number of incorrect positives
-		incorr_pos = Item.objects.filter(hasFailed = False, shouldPass = False).count()
-
-		total = Item.objects.all().count()
-
-		return total - incorr_neg - incorr_pos
-
+		return len(list(set(passedItems).symmetric_difference(set(sim_passedItems))))
 
 	def sim_average_cost(self, dictionary):
 		"""
@@ -765,7 +809,7 @@ class SimulationTest(TransactionTestCase):
 		workerDoneTimes = []
 		for i in range(NUM_SIM):
 			print "Timing simulation " + str(i+1)
-			num_tasks, sim_time, eddy_times, task_times, worker_done_t = self.run_sim(sampleData)
+			num_tasks, sim_time, eddy_times, task_times, worker_done_t, time_clock = self.run_sim(data)
 
 			simTimes.append(sim_time)
 			eddyTimes.append(np.sum(eddy_times))
@@ -825,10 +869,6 @@ class SimulationTest(TransactionTestCase):
 		global NUM_CERTAIN_VOTES
 		print "Simulation is being tested"
 
-
-
-
-
 		if DEBUG_FLAG: #TODO Update print section.... re-think print section?
 			print "Debug Flag Set!"
 
@@ -838,7 +878,6 @@ class SimulationTest(TransactionTestCase):
 			print "INPUT_PATH: " + INPUT_PATH
 			print "OUTPUT_PATH: " + OUTPUT_PATH
 			print "RUN_NAME: " + RUN_NAME
-
 
 			print "RUN_DATA_STATS: " + str(RUN_DATA_STATS)
 
@@ -899,12 +938,12 @@ class SimulationTest(TransactionTestCase):
 
 				runTasksArray = []
 
-			workTimeArray = []
 			for i in range(NUM_SIM):
-				print "running simulation " + str(i)
-				num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes, totalWorkTime = self.run_sim(sampleData)
-				workTimeArray.append(totalWorkTime)
+				print "running simulation " + str(i+1)
+				num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes, time_clock = self.run_sim(sampleData)
 
+				if RUN_TASKS_COUNT:
+					runTasksArray.append(num_tasks)
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				if TEST_ACCURACY:
@@ -913,19 +952,6 @@ class SimulationTest(TransactionTestCase):
 					#print "This is number of incorrect items: ", num_incorrect
 
 				self.reset_database()
-
-				runTasksArray.append(num_tasks)
-
-			#write cumulative worker time to csv file
-			with open(OUTPUT_PATH + RUN_NAME + "workTimes.csv", "wb") as f:
-				writer = csv.writer(f)
-				writer.writerow(workTimeArray)
-
-			if GEN_GRAPHS:
-				hist_gen(workTimeArray, OUTPUT_PATH + RUN_NAME + "workTimes.png",
-				labels = ("Cumulative Work Time", "Frequency"),
-				title = "Distribution of Cumulative Work Time",
-				writeStats = True)
 
 			if RUN_TASKS_COUNT:
 				generic_csv_write(OUTPUT_PATH+RUN_NAME+'_tasks_count.csv',[runTasksArray])
@@ -956,7 +982,7 @@ class SimulationTest(TransactionTestCase):
 					if DEBUG_FLAG:
 						print "Wrote File: "+OUTPUT_PATH+RUN_NAME+'_multi_routing.csv'
 					if GEN_GRAPHS:
-						multi_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
+						stats_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
 						if DEBUG_FLAG:
 							print "Wrote File: " + OUTPUT_PATH+RUN_NAME+'_multi_routing.png'
 
@@ -965,9 +991,3 @@ class SimulationTest(TransactionTestCase):
 
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
-
-		#outputFile = open("terminalOutDebugging.out", 'w')
-		#sys.stdout = outputFile
-		result = self.run_sim(sampleData)
-		print "Simulated time: " + str(result[5]) + ", number of tasks completed: " + str(result[0])
-		#outputFile.close()

@@ -2,16 +2,15 @@ import datetime as DT
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'WorkTimes' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'AA_CHECK_OUTPUTS' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Restaurant"
 #We have 5 questions for hotels right now, 10 for restaurants
-NUM_QUEST = 10 #used for accuracy testing
+NUM_QUEST = 5 #used for accuracy testing
 
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 IP_PAIR_DATA_FILE = 'real_data1.csv'
-#TODO true times and false times function call
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 
 DEBUG_FLAG = True # useful print statements turned on
@@ -26,6 +25,7 @@ CUT_OFF = 21
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
 NUM_WORKERS = 301
+DISTRIBUTION_TYPE = 0
 MAX_TASKS = 10
 BUFFER_TIME = 5
 EDDY_SYS = 1
@@ -60,7 +60,7 @@ ITEM_SYS = 0
 # 1 - item-started system
 # 2 - item-almost-false system
 
-SLIDING_WINDOW = False # right now, only works in controlled run mode
+SLIDING_WINDOW = True
 LIFETIME = 10
 
 #############################################################################
@@ -72,31 +72,37 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
 RUN_ABSTRACT_SIM = False
-ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
-ABSTRACT_VALUES = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
+ABSTRACT_VARIABLE = "NUM_WORKERS"
+ABSTRACT_VALUES = [301, 302]
 
 RUN_AVERAGE_COST = False
-COST_SAMPLES = 1000
+COST_SAMPLES = 100
 
 RUN_SINGLE_PAIR = False
-SINGLE_PAIR_RUNS = 1000
+SINGLE_PAIR_RUNS = 50
 
 RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
-RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
+RUN_MULTI_ROUTING = True # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 1 # how many simulations to run?
+NUM_SIM = 2 # how many simulations to run?
 
-TIME_SIMS = False
+TIME_SIMS = False # track the computer runtime of simulations
+
+SIMULATE_TIME = True # simulate time passing/concurrency
 
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+
+TRACK_IP_PAIRS_DONE = False
+
+TRACK_NO_TASKS = True
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 

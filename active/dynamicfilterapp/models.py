@@ -25,8 +25,6 @@ class Item(models.Model):
 
     inQueue = models.BooleanField(default=False)
 
-
-
     def __str__(self):
         return str(self.name)
 
