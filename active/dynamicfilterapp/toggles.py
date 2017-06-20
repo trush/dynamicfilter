@@ -2,12 +2,10 @@ import datetime as DT
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-
 RUN_NAME = 'AA_CHECK_OUTPUTS' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-
 ITEM_TYPE = "Restaurant"
 #We have 5 questions for hotels right now, 10 for restaurants
-NUM_QUEST = 10 #used for accuracy testing
+NUM_QUEST = 5 #used for accuracy testing
 
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
@@ -78,13 +76,16 @@ REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file
 
 GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
+
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
+
 
 RUN_ABSTRACT_SIM = False
 
 ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [.1, .2, .3]
+
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 100
@@ -114,11 +115,17 @@ TRACK_IP_PAIRS_DONE = False
 TRACK_NO_TASKS = True # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
+TEST_ACCURACY = True
+FILTER_BY_PREDS = [2, 3] # predicates we want to check successful filtering by
+
+
+OUTPUT_SELECTIVITIES = True
 
 RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
 
 TEST_ACCURACY = True
 
-OUTPUT_SELECTIVITIES = False
-
-OUTPUT_COST = False
+## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
+OUTPUT_COST = True
+COST_PREDS = [2, 3] # predicates whose cost we want to estimate
+                    # if controlled eddy system, must match CONTROLLED_RUN_PREDS

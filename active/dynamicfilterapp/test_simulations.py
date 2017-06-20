@@ -790,130 +790,68 @@ class SimulationTest(TransactionTestCase):
 		if DEBUG_FLAG:
 			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_ip_stats.csv'
 
-	def compareAccuracyVsUncertainty(self, uncertainties, data):
-	    #uncertainties is an array of float uncertainty values to try
-	    #data is the loaded in data (i.e. sampleData)
-		global EDDY_SYS, UNCERTAINTY_THRESHOLD, NUM_SIM
+	def runSimTrackAcc(self, uncertainty, data, passedItems):
+		global UNCERTAINTY_THRESHOLD
 
+		UNCERTAINTY_THRESHOLD = uncertainty
+		listIncorr = []
+		listTasks = []
+
+		for run in range(NUM_SIM):
+			print "Sim " + str(run+1) + " for uncertainty = " + str(UNCERTAINTY_THRESHOLD)
+			num_tasks = self.run_sim(data)[0]
+			incorrect = self.final_item_mismatch(passedItems)
+
+			listTasks.append(num_tasks)
+			listIncorr.append(incorrect)
+			self.reset_database()
+
+			EDDY_SYS = 2 # random system
+			print "Sim " + str(run+1) + " for mode = random, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
+
+			rand_num_tasks = self.run_sim(data)[0]
+
+			rand_incorrect = self.final_item_mismatch(passedItems)
+
+			# add the number of incorrect items to appropriate array
+			randCorrects.append(rand_correct)
+
+			#add the number of tasks to appropriate array
+			randNumTasks.append(rand_num_tasks)
+
+			self.reset_database()
+
+		return listTasks, listIncorr
+
+	def compareAccVsUncert(self, uncertainties, data):
+		global UNCERTAINTY_THRESHOLD, NUM_SIM
 
 		print "Running " + str(NUM_SIM) + " simulations on predicates " + str(CHOSEN_PREDS)
 
-		#qCorrectAverages = []
-		#qCorrectStdDevs = []
-		#randCorrectAverages = []
-		#randCorrectStdDevs = []
+		numTasksAvgs = []
+		numTasksStdDevs = []
 
-		qCorrectMTVs = []
-		randCorrectMTVs = []
+		incorrectAvgs = []
+		incorrectStdDevs = []
 
-		qNumTasksAverages = []
-		qNumTasksStdDevs = []
-		randNumTasksAverages = []
-		randNumTasksStdDevs = []
+		# set up the set of items that SHOULD be passed
+		correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+		shouldPass = self.get_passed_items(correctAnswers)
 
 		for val in uncertainties:
-			# set up the set of items that SHOULD be passed
-			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
-			shouldPass = self.get_passed_items(correctAnswers)
+			num_tasks, incorrects = self.runSimTrackAcc(val, data, shouldPass)
 
-			#set the uncertainty threshold to a new value
-			UNCERTAINTY_THRESHOLD = val
+			numTasksAvgs.append(np.average(num_tasks))
+			numTasksStdDevs.append(np.std(num_tasks))
 
-			# create arrays that will be populated with counts of incorrect items
-			qCorrects = []
-			randCorrects = []
+			incorrectAvgs.append(np.average(incorrects))
+			incorrectStdDevs.append(np.std(incorrects))
 
-			qNumTasks = []
-			randNumTasks = []
+		save1 = [uncertainties, uncertainties, numTasksAvgs, numTasksStdDevs, incorrectAvgs, incorrectStdDevs]
 
-			#execute multiple runs at a given uncertainty level
-			for run in range(NUM_SIM):
-				EDDY_SYS = 1 # queue system
-				print "Sim " + str(run+1) + " for mode = queue, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
-				q_num_tasks = self.run_sim(data)[0]
+		generic_csv_write(OUTPUT_PATH + RUN_NAME + "accuracyOut.csv", save1)
 
-				q_correct = self.total_correct(shouldPass)
-
-				# add the number of incorrect items to appropriate array
-				qCorrects.append(q_correct)
-
-				#add number of tasks to appropriate array
-				qNumTasks.append(q_num_tasks)
-
-				self.reset_database()
-
-				EDDY_SYS = 2 # random system
-				print "Sim " + str(run+1) + " for mode = random, uncertainty = " + str(UNCERTAINTY_THRESHOLD)
-
-				rand_num_tasks = self.run_sim(data)[0]
-
-				rand_incorrect = self.final_item_mismatch(passedItems)
-
-				# add the number of incorrect items to appropriate array
-				randCorrects.append(rand_correct)
-
-				#add the number of tasks to appropriate array
-				randNumTasks.append(rand_num_tasks)
-
-				self.reset_database()
-
-			# store the mean and stddevs of the incorrect counts for this uncertainty level
-			#qCorrectAverages.append(np.average(qIncorrects))
-			#qCorrectStdDevs.append(np.std(qIncorrects))
-			#randCorrectAverages.append(np.average(randIncorrects))
-			#randCorrectStdDevs.append(np.std(randIncorrects))
-
-			#compute mean-to-variance ratios
-			qCorrectMTVs.append(np.average(qCorrects)/np.var(qCorrects))
-			randCorrectMTVs.append(np.average(randCorrects)/np.var(randCorrects))
-
-			# store the mean and stddev of number of tasks for this uncertainty level
-			qNumTasksAverages.append(np.average(qNumTasks))
-			qNumTasksStdDevs.append(np.std(qNumTasks))
-			randNumTasksAverages.append(np.average(randNumTasks))
-			randNumTasksStdDevs.append(np.std(randNumTasks))
-
-			#xL = [uncertainties, uncertainties]
-			#yL = [qCorrectAverages, randCorrectAverages]
-			#yErr = [qCorrectStdDevs, randCorrectStdDevs]
-			#save1 = [xL, yL, yErr]
-
-		xL = [uncertainties, uncertainties]
-		yL = [qCorrectMTVs, randCorrectMTVs]
-		save1 = [xL, yL]
-
-		generic_csv_write(OUTPUT_PATH + RUN_NAME + "numCorrVaryUncert.csv", save1)
-
-		# multi_line_graph_gen(xL, yL, ["Queue Eddy System", "Random System"],
-		#  					OUTPUT_PATH + "graphs/" + RUN_NAME + "_CorrectVsUncert" + str(CHOSEN_PREDS) + ".png",
-		# 					labels = ("Uncertainty Threshold" , "Mean-to-Variance Ratio Number Correct Items"),
-		# 					title = "Correct Items vs. Uncertainty for Predicates " + str(CHOSEN_PREDS))
-
-		yL = [qNumTasksAverages, randNumTasksAverages]
-		yErr = [qNumTasksStdDevs, randNumTasksStdDevs]
-		save2 = [xL, yL, yErr]
-
-		generic_csv_write(OUTPUT_PATH + RUN_NAME + "numTasksVaryUncert.csv", save2)
-
-		# graph number of incorrect vs. uncertainty
-		# multi_line_graph_gen([uncertainties, uncertainties], [qCorrectAverages, randCorrectAverages],
-		#  					["Queue Eddy System", "Random System"], OUTPUT_PATH + "graphs/" + RUN_NAME + "_CorrectVsUncert" + str(CHOSEN_PREDS) + ".png",
-		# 					 labels = ("Uncertainty Threshold" , "Mean-to-Variance Ratio Number Correct Items"),
-		# 					 title = "Correct Items vs. Uncertainty for Predicates " + str(CHOSEN_PREDS),
-		# 					 stderrL = [qCorrectStdDevs, randCorrectStdDevs])
-
-
-		#graph number of tasks vs. uncertainty
-		# multi_line_graph_gen([uncertainties, uncertainties], [qNumTasksAverages, randNumTasksAverages],
-		# 					["Queue Eddy System", "Random System"], OUTPUT_PATH + "graphs/" + RUN_NAME + "_TasksVsUncert" + str(CHOSEN_PREDS) + ".png",
-		# 					labels = ("Uncertainty Threshold", "Avg. Number of Tasks"),
-		# 					title = "Number of Tasks vs. Uncertainty for Predicates " + str(CHOSEN_PREDS),
-		# 					stderrL = [qNumTasksStdDevs, randNumTasksStdDevs])
-
-	def multiAccVsUncert (self, uncertainties, predSet):
-		for preds in predSet:
-			print "Filter by: " + str(CHOSEN_PREDS) + " and controlled run: " + str(CHOSEN_PREDS)
-			self.compareAccuracyVsUncertainty(uncertainties, preds)
+		return numTasksAvgs, numTasksStdDevs, incorrectAvgs, incorrectStdDevs
 
 	def timeRun(self, data):
 		resetTimes = []
@@ -971,7 +909,63 @@ class SimulationTest(TransactionTestCase):
 							labels = ("Number simulations run", "Duration of function call (seconds)"),
 							title = "Cum. Duration function calls vs. Number Simulations Run" + RUN_NAME)
 
+	def accuracyChangeVotes(self, uncertainties, data, voteSet):
+		global NUM_CERTAIN_VOTES, RUN_NAME
 
+		tasksList = []
+		taskStdList = []
+		incorrList = []
+		incorrStdList = []
+
+		for num in voteSet:
+
+			print "thread 1 votes currently: " + str(NUM_CERTAIN_VOTES)
+			NUM_CERTAIN_VOTES = num
+			print "thread 1 votes changed to: " + str(NUM_CERTAIN_VOTES)
+			RUN_NAME = "Accuracy" + str(num) + "Votes" + str(now.date())+ "_" + str(now.time())[:-7]
+
+			#run simulations and collect accuracy data
+			tasks_avg, tasks_std, incorr_avg, incorr_std = self.compareAccVsUncert(uncertainties, data)
+
+			#add outputs to lists for multi line graph generation
+			tasksList.append(tasks_avg)
+			taskStdList.append(tasks_std)
+			incorrList.append(incorr_avg)
+			incorrStdList.append(incorr_std)
+
+		outputs = [tasksList, taskStdList, incorrList, incorrStdList]
+		print "thread 1 saved outputs"
+		#write values to csv file
+		with open(OUTPUT_PATH + RUN_NAME + "accVotes" + str(voteSet) + ".csv", "wb") as f:
+			writer = csv.writer(f)
+			writer.writerows(outputs)
+
+		print "thread 1 wrote csv"
+
+		if GEN_GRAPHS:
+			xL = []
+			legendList = []
+			for num in voteSet:
+				xL.append(uncertainties)
+				legendList.append(str(num))
+
+			print "starting graph 1"
+			RUN_NAME = "AccuracyVotes" + str(now.date())+ "_" + str(now.time())[:-7]
+			#graph the number of tasks for different min vote counts
+			multi_line_graph_gen(xL, tasksList, legendList, OUTPUT_PATH + RUN_NAME + "tasksVaryVotes.png",
+			labels = ("Uncertainty Threshold", "Avg. Number Tasks Per Sim"),
+			title = "Average Number Tasks Per Sim Vs. Uncertainty, Varying Min. # Votes",
+			stderrL = taskStdList)
+
+			print "made graph 1"
+
+			print "starting graph 2"
+			#graph the number of incorrect items for different min vote counts
+			multi_line_graph_gen(xL, incorrList, legendList, OUTPUT_PATH + RUN_NAME + "incorrVaryVotes.png",
+			labels = ("Uncertainty Threshold", "Avg. Incorrect Items Per Sim"),
+			title = "Average Number Incorrect Items Per Sim Vs. Uncertainty, Varying Min. # Votes",
+			stderrL = incorrStdList)
+			print "made graph 2"
 
 
 	###___MAIN TEST FUNCTION___###
