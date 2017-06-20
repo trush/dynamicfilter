@@ -98,7 +98,7 @@ TIME_SIMS = False # track the computer runtime of simulations
 
 SIMULATE_TIME = True # simulate time passing/concurrency
 
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
