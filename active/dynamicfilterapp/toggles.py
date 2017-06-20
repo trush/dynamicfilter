@@ -1,15 +1,15 @@
 import datetime as DT
 now = DT.datetime.now()
 
+RUN_NAME = 'HotelAccuracyTests' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+#TODO: integrate this file with existing files to ensure same stuff happens
 
-RUN_NAME = 'RestaurantsAccVsUncert50Ambig' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-
-ITEM_TYPE = "Restaurant"
+ITEM_TYPE = "Hotel"
 #We have 5 questions for hotels right now, 10 for restaurants
-NUM_QUEST = 10 #used for accuracy testing
+NUM_QUEST = 5 #used for accuracy testing
 
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
-OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/certainVotesTest'
+OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 IP_PAIR_DATA_FILE = 'real_data1.csv'
 
 DEBUG_FLAG = True # useful print statements turned on
@@ -31,11 +31,9 @@ EDDY_SYS = 1
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
-
-CHOSEN_PREDS = [4, 8] # predicates that will be used when run on real data
-# If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
-# list of 2 predicates (for now). They will be passed items in the order
-# they appear in the list.
+CONTROLLED_RUN_PREDS = [2, 3] #predicates used in a controlled simulated run
+# CONTROLLED_RUN_PREDS should be a list of 2 predicates (for now). They will be
+# passed items in the order they appear in the list.
 
 # HOTEL PREDICATE INDEX
 # 0 - not selective and not ambiguous
@@ -68,36 +66,37 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-RUN_ABSTRACT_SIM = False
-ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
-ABSTRACT_VALUES = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
+TESTING_PRED_RESTRICTION = True
+
+RUN_DATA_STATS = False
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 1000
 
 RUN_SINGLE_PAIR = False
-SINGLE_PAIR_RUNS = 1000
-
-RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
-
-RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
+SINGLE_PAIR_RUNS = 5000
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 50 # how many simulations to run?
+RUN_ITEM_ROUTING = False
+ROUTING_PREDS = [2,3]
 
-TIME_SIMS = False
-
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
+NUM_SIM = 30 # how many simulations to run?
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
+TEST_ACCURACY = True
+FILTER_BY_PREDS = [2, 3] # predicates we want to check successful filtering by
 
-TEST_ACCURACY = False
+OUTPUT_SELECTIVITIES = True
+SELECTIVITY_PREDS = [2, 3] # predicates whose selectivities we want to estimate
+                           # if controlled eddy system, must match CONTROLLED_RUN_PREDS
 
-OUTPUT_SELECTIVITIES = False
-
-OUTPUT_COST = False
+## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
+OUTPUT_COST = True
+COST_PREDS = [2, 3] # predicates whose cost we want to estimate
+                    # if controlled eddy system, must match CONTROLLED_RUN_PREDS
