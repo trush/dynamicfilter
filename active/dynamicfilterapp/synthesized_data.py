@@ -25,7 +25,7 @@ def syn_load_data():
 		for i in itemList:
 			ip_pair = IP_Pair.objects.create(item=i, predicate=p)
 
-def syn_answer(chosenIP, switch):
+def syn_answer(chosenIP):
 	"""
 	make up a fake answer based on global variables
 	"""
