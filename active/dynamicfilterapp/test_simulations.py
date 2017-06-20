@@ -215,8 +215,7 @@ class SimulationTest(TransactionTestCase):
 		Pick a random worker identified by a string
 		"""
 		global SAMPLING_ARRAY
-
-    Replacement  = True
+		Replacement = True
 		choice = busyWorkers[0]
 		while choice in busyWorkers:
 			## uniform distribution
@@ -475,7 +474,7 @@ class SimulationTest(TransactionTestCase):
 
 						if TRACK_IP_PAIRS_DONE:
 							itemsDoneArray.append(IP_Pair.objects.filter(isDone=True).count())
-              
+
 						if DEBUG_FLAG:
 							print "worker " + str(task.workerID) + " and " + str(task) + " removed from active, counts updated."
 							print "number of active tasks is: " +  str(len(active_tasks))
@@ -1075,6 +1074,7 @@ class SimulationTest(TransactionTestCase):
 				print "running simulation " + str(i+1)
 				retValues = self.run_sim(sampleData)
 				num_tasks = retValues[0]
+				runTasksArray.append(num_tasks)
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				if TEST_ACCURACY:
@@ -1152,7 +1152,7 @@ class SimulationTest(TransactionTestCase):
 					else:
 						leg = ('Correctly Evaluated IP pairs','Incorrectly Evaluated IP pairs')
 						multi_hist_gen([goodArray,badArray],leg,dest+'.png',labels=labels,title=title)
-			if NO_TASKS_COUNT:
+			if TRACK_NO_TASKS:
 				if sum(noTasksArray) != 0:
 					dest = OUTPUT_PATH+RUN_NAME+'_no_tasks'
 					generic_csv_write(dest+'.csv',[noTasksArray])

@@ -103,7 +103,7 @@ NUM_SIM = 2 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = True # simulate time passing/concurrency
+SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 10 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 
@@ -111,15 +111,13 @@ RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_NO_TASKS = True
+TRACK_NO_TASKS = True # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 
 RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
 
-NO_TASKS_COUNT = True # keeps track of the number of times the next worker has no possible task
-
-TEST_ACCURACY = False
+TEST_ACCURACY = True
 
 OUTPUT_SELECTIVITIES = False
 
