@@ -7,7 +7,8 @@ import pylab
 import sys
 from collections import defaultdict
 import os.path
-
+import csv
+#from ..toggles import *
 def dest_resolver(dest):
     """
     given a filename (ending in .png) returns a version which wont overide data
@@ -24,7 +25,40 @@ def dest_resolver(dest):
     else:
         return dest
 
+def generic_csv_write(filename, data):
+    """
+    given a file name and a list, writes out the data to be easily recalled with
+    generic_csv_read. assumes that data is a list of lists. please do that
+    """
+    toWrite = open(filename, 'w')
+    writer = csv.writer(toWrite)
+    for row in data:
+        writer.writerow(row)
+    toWrite.close()
 
+
+def generic_csv_read(filename):
+    """
+    Given a file name, returns a list of lists containing all the data from a
+    single row in a list. Properly converts ints assuming that any row beginning
+    with an int contains only ints
+    """
+    retArray = []
+    toRead = open(filename,'r')
+    reader = csv.reader(toRead)
+    for row in reader:
+        if len(row) > 0:
+            try:
+                int(row[0])
+                isInt=True
+            except ValueError:
+                isInt=False
+        if isInt:
+            retArray.append(map(int, row))
+        else:
+            retArray.append(row)
+    toRead.close()
+    return retArray
 
 def hist_gen(data, dest, labels = ('',''), title='', smoothness=False, writeStats = False):
     """
@@ -58,12 +92,6 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothne
     ax.set_title(title)
     #ax.set_xlim(100, 320)
     ax.grid(True)
-
-    if SAVE_CONFIG_DATA:
-        ax.set_position((.1, .3, .8, .6)) # made room for 6 whole lines
-        text = get_config_text()
-        fig.text(0.02,0.02,text)
-
     plt.savefig(dest_resolver(dest))
 
 def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr = [], square = False, scatter=False):
@@ -118,32 +146,36 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     # save
     mx = 0
     for L in xL+yL:
-        mx = max(L)
+        mx = max(L+[mx])
     if square:
-        plt.axis([-1,mx,-1,mx])
+        plt.axis([-1,mx+2,-1,mx+2])
     plt.savefig(dest_resolver(dest))
-    
+
+def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = None):
+    """
+    Generate a bargraph from a list of heights and a list of names optional parameters:
+        labels a touple in the format ('x-axis label', 'y-axis label')
+        title, a string title of your graph
+        stderr a list of standard error for adding y-error bars to data
+    """
+    if len(data) != len(legend):
+        raise ValueError('data and legend are different lengths!')
+    fig = plt.figure()
+    pos = np.arange(len(data))
+    plt.bar(pos, data, align='center', alpha = 0.5, yerr = stderr)
+    plt.xticks(pos,legend)
+
+    # Label the axes
+    plt.xlabel(labels[0])
+    plt.ylabel(labels[1])
+
+    # Title the graph
+    plt.title(title)
+    plt.savefig(dest_resolver(dest))
+
 def stats_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = ''):
     avg, std = [],[]
     for L in dataL:
         avg.append(np.mean(L))
         std.append(np.std(L))
     bar_graph_gen(avg, legend, dest, labels = labels, title = title, stderr = std)
-
-def kcluster(data,k,iterations = 300):
-    mL,pL = [],[]
-    diff = len(data)/(k)
-    for i in range(k):
-        mL.append(data[i*diff])
-        pL.append([])
-    for i in range(iterations):
-        for point in data:
-            dL = []
-            for mean in mL:
-                dL.append(abs(point-mean))
-            closest = min(dL)
-            index = dL.index(closest)
-            pL[index].append(point)
-        for i in range(len(mL)):
-            mL[i] = np.mean(pL[i])
-    return pL
