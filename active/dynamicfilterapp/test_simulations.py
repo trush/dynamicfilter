@@ -467,7 +467,8 @@ class SimulationTest(TransactionTestCase):
 				for task in active_tasks:
 					endTimes.append(task.endTime)
 					if (task.endTime <= time_clock):
-						updateCounts(task, task.ip_pair)
+						if task.ip_pair.isDone == False:
+							updateCounts(task, task.ip_pair)
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
 						num_tasks += 1
