@@ -35,7 +35,7 @@ class ClusterkD():
             self.pL[index].append(point)
         for i in range(self.k):
             if not self.pL[i]:
-                print "badThings!"
+                raise ValueError("This error should like never happen. If it did... sorry")
             self.mL[i] = self.centroid(self.pL[i])
             numpy.mean(self.pL[i])
 
@@ -60,7 +60,6 @@ class ClusterkD():
             while val in self.mL:
                 val = choice(self.data)
             self.mL.append(val)
-            print val
 
     def dataInit(self,data):
         """
@@ -87,6 +86,7 @@ class ClusterkD():
         Saves the current clustering information to a csv
         """
         generic_csv_write(filename,self.pL)
+        return filename
 
     def load(self,filename='clusteringSave.csv'):
         """
@@ -95,7 +95,7 @@ class ClusterkD():
         raw = generic_csv_read(filename)
         data=[]
         pl=[]
-        for ls in self.pL:
+        for ls in raw:
             l=[]
             for point in ls:
                 if type(point) in (tuple,list):
@@ -108,6 +108,8 @@ class ClusterkD():
             pl.append(l)
         self.data = data
         self.pL = pl
+        for ls in pl:
+            self.mL.append(self.centroid(ls))
         self.kstep()
 
 
