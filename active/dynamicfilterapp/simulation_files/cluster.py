@@ -1,7 +1,7 @@
 import math
 import numpy
 from random import choice
-from plotScript import multi_hist_gen, multi_line_graph_gen
+from plotScript import multi_hist_gen, multi_line_graph_gen, generic_csv_read, generic_csv_write
 
 class ClusterkD():
     """
@@ -81,6 +81,35 @@ class ClusterkD():
 
     def graph(self):
         raise ValueError("You never supplied a custom graphing method")
+
+    def save(self,filename='clusteringSave.csv'):
+        """
+        Saves the current clustering information to a csv
+        """
+        generic_csv_write(filename,self.pL)
+
+    def load(self,filename='clusteringSave.csv'):
+        """
+        Should properly load the saved cluster
+        """
+        raw = generic_csv_read(filename)
+        data=[]
+        pl=[]
+        for ls in self.pL:
+            l=[]
+            for point in ls:
+                if type(point) in (tuple,list):
+                    t = tuple(float(i) for i in point)
+                    l.append(t)
+                    data.append(t)
+                else:
+                    l.append(float(point))
+                    data.append(float(point))
+            pl.append(l)
+        self.data = data
+        self.pL = pl
+        self.kstep()
+
 
     def __init__(self,data=None,k=3):
         self.k = k
