@@ -93,7 +93,8 @@ class Cluster1D(ClusterkD):
         return abs(point - mean)
 
     def graph(self):
-        multi_hist_gen(self.pL,['1','2','3'],'graphgen.png')
+        leg = [len(l) for l in self.pL]
+        multi_hist_gen(self.pL,leg,'clustering1dGraphGen.png')
 
     def centroid(self,pointsList):
         return numpy.mean(pointsList)
@@ -116,7 +117,7 @@ class Cluster2D(ClusterkD):
                 y.append(point[1])
             xL.append(x)
             yL.append(y)
-        multi_line_graph_gen(xL,yL,leg,'test.png',scatter=True)
+        multi_line_graph_gen(xL,yL,leg,'clustering2dGraphGen.png',scatter=True)
 
     def centroid(self,pointsList):
         x,y=[],[]
