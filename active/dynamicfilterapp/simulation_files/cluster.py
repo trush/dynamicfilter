@@ -107,15 +107,16 @@ class Cluster2D(ClusterkD):
         return math.sqrt(xd*xd+yd*yd)
 
     def graph(self):
-        xL,yL=[],[]
+        xL,yL,leg=[],[],[]
         for l in self.pL:
+            leg.append(len(l))
             x,y=[],[]
             for point in l:
                 x.append(point[0])
                 y.append(point[1])
             xL.append(x)
             yL.append(y)
-        multi_line_graph_gen(xL,yL,['1','2','3'],'test.png',scatter=True)
+        multi_line_graph_gen(xL,yL,leg,'test.png',scatter=True)
 
     def centroid(self,pointsList):
         x,y=[],[]
