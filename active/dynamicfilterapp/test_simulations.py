@@ -340,8 +340,11 @@ class SimulationTest(TransactionTestCase):
 				#print "total items done: " + str(numItemsDone)
 
 				#itemsDoneArray.append(numItemsDone)
-				if num_tasks == 200:
-					switch = 1
+
+				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
+				#so we need index 0 of the tuple to get the time at which the switch should occur
+				if switch < len(switch_list) and switch_list[switch][0] == num_tasks:
+					switch += 1
 
 		#print num_tasks
 		#print str(itemsDoneArray)

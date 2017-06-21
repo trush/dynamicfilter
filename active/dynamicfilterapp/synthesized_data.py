@@ -32,16 +32,20 @@ def syn_answer(chosenIP, switch):
 	#TODO get rid of after testing
 	#print "switch: " + str(switch)
 	#ID = chosenIP.predicate.predicate_ID + switch
+
+	timeStepInfo = switch_list[switch]
 	ID = chosenIP.predicate.predicate_ID
+	#add 1 because index 0 of timeStepInfo is the timestep. After that are the pred tuples
+	predInfo = timeStepInfo[ID+1]
 	#print "predID: " + str(chosenIP.predicate.predicate_ID)
 	# decide if the answer is going to lean towards true or false
 	# lean towards true
-	if decision(selectivity_list[ID]):
+	if decision(predInfo[0]): #index 0 is selectivity
 		# decide if the answer is going to be true or false
-		value = decision(1 - cost_prob_list[ID])
+		value = decision(1 - predInfo[1]) #index 1 is ambiguity
 	# lean towards false
 	else:
-		value = decision(cost_prob_list[ID])
+		value = decision(predInfo[1]) #index 1 is ambiguity
 
 	return value
 
