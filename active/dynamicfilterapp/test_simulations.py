@@ -652,7 +652,7 @@ class SimulationTest(TransactionTestCase):
 				ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
 			multi_line_graph_gen([range(time_proxy)]*xMultiplier, ticketNums, ticketCountsLegend,
 								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "ticketCounts.png",
-								labels = ("Number of simulations run", "Ticket counts"))
+								labels = ("time_proxy_steps", "Ticket counts"))
 
 		# if this is the first time running a routing test
 		if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
