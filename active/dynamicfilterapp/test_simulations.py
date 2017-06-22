@@ -592,13 +592,13 @@ class SimulationTest(TransactionTestCase):
 
 		if TRACK_NO_TASKS:
 			dest = OUTPUT_PATH + RUN_NAME + "noTasks.csv"
-			with open(dest, 'w') as f:
+			with open(dest, 'a') as f:
 				f.write(str(no_tasks_to_give) + ",")
 			if DEBUG_FLAG:
 				print "Wrote file: " + dest
 
 			dest = OUTPUT_PATH + RUN_NAME + "workerHasNoTasks.csv"
-			with open(dest, 'w') as f1:
+			with open(dest, 'a') as f1:
 				f1.write(str(total_worker_no_tasks) + ',')
 			if DEBUG_FLAG:
 				print "Wrote file: " + dest
