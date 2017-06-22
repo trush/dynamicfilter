@@ -438,6 +438,14 @@ class SimulationTest(TransactionTestCase):
 		#time counter
 		time_clock = 0
 
+		if COUNT_TICKETS:
+			if REAL_DATA:
+				for predNum in range(len(CHOSEN_PREDS)):
+					ticketNums.append([])
+			else:
+				for count in range(NUM_QUESTIONS):
+					ticketNums.append([])
+
 
 		# If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
@@ -528,6 +536,16 @@ class SimulationTest(TransactionTestCase):
 
 				time_clock += 1
 
+				if COUNT_TICKETS:
+					if REAL_DATA:
+						for predNum in range(len(CHOSEN_PREDS)):
+							predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
+							ticketNums[predNum].append(predicate.num_tickets)
+					else:
+						for count in range(NUM_QUESTIONS):
+							predicate = Predicate.objects.get(pk=count+1)
+							ticketNums[count].append(predicate.num_tickets)
+
 		else:
 			while(ip_pair != None):
 
@@ -577,6 +595,16 @@ class SimulationTest(TransactionTestCase):
 					if num_tasks == 200:
 						switch = 1
 
+					if COUNT_TICKETS:
+						if REAL_DATA:
+							for predNum in range(len(CHOSEN_PREDS)):
+								predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
+								ticketNums[predNum].append(predicate.num_tickets)
+						else:
+							for count in range(NUM_QUESTIONS):
+								predicate = Predicate.objects.get(pk=count+1)
+								ticketNums[count].append(predicate.num_tickets)
+
 				workerDoneTimes.append(workerDoneTime)
 
 		if TRACK_IP_PAIRS_DONE:
@@ -608,6 +636,22 @@ class SimulationTest(TransactionTestCase):
 
 		if OUTPUT_COST:
 			output_cost(RUN_NAME)
+
+		if COUNT_TICKETS:
+			if SIMULATE_TIME:
+				time_proxy = time_clock
+			else:
+				time_proxy = num_tasks
+			ticketCountsLegend = []
+			if REAL_DATA:
+				xMultiplier = len(CHOSEN_PREDS)
+			else:
+				xMultiplier = NUM_QUESTIONS
+			for predNum in range(len(CHOSEN_PREDS)):
+				ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+			multi_line_graph_gen([range(time_proxy)]*xMultiplier, ticketNums, ticketCountsLegend,
+								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "ticketCounts.png",
+								labels = ("Number of simulations run", "Ticket counts"))
 
 		# if this is the first time running a routing test
 		if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
@@ -1028,6 +1072,12 @@ class SimulationTest(TransactionTestCase):
 		if RUN_ITEM_ROUTING and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: item Routing"
+			self.run_sim(sampleData)
+			self.reset_database()
+
+		if COUNT_TICKETS and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
+			if DEBUG_FLAG:
+				print "Running: ticket counting"
 			self.run_sim(sampleData)
 			self.reset_database()
 

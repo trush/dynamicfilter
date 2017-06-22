@@ -86,6 +86,8 @@ RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [.1, .2, .3]
 
+#produces ticket count graph for 1 simulation
+COUNT_TICKETS = True
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 100
@@ -108,7 +110,7 @@ SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 10 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 
-RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
