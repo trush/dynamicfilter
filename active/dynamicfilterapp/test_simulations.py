@@ -204,6 +204,7 @@ class SimulationTest(TransactionTestCase):
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
 				startTime=start_task, endTime=end_task)
 		t.save()
+
 		if not SIMULATE_TIME:
 			updateCounts(t, chosenIP)
 		end = time.time()
@@ -480,6 +481,8 @@ class SimulationTest(TransactionTestCase):
 							updateCounts(task, task.ip_pair)
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
+						task.ip_pair.tasks_out -= 1
+						task.ip_pair.save()
 						num_tasks += 1
 
 						if TRACK_IP_PAIRS_DONE:

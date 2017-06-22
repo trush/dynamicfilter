@@ -38,7 +38,7 @@ EDDY_SYS = 1
 
 PENDING_QUEUE_SIZE = 3
 
-CHOSEN_PREDS = [2,9] # predicates that will be used when run on real data
+CHOSEN_PREDS = [4,5] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -62,7 +62,7 @@ ITEM_SYS = 0
 # 1 - item-started system
 # 2 - item-almost-false system
 
-SLIDING_WINDOW = True
+SLIDING_WINDOW = False
 LIFETIME = 10
 
 #############################################################################
@@ -74,7 +74,7 @@ LIFETIME = 10
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
@@ -87,7 +87,7 @@ ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [.1, .2, .3]
 
 #produces ticket count graph for 1 simulation
-COUNT_TICKETS = True
+COUNT_TICKETS = False
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 100
@@ -102,19 +102,20 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 2 # how many simulations to run?
+NUM_SIM = 1 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = False # simulate time passing/concurrency
+SIMULATE_TIME = True # simulate time passing/concurrency
 MAX_TASKS = 10 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
+MAX_TASKS_OUT = 5
 
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_NO_TASKS = True # keeps track of the number of times the next worker has no possible task
+TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False

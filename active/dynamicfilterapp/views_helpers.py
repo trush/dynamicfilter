@@ -62,7 +62,8 @@ def pending_eddy(ID):
         # filter out the ips that are not in the queue of full predicates
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-        incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
+        allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
+        incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
         chosenIP = lotteryPendingQueue(incompleteIP)
 
     #random_system:
@@ -111,7 +112,7 @@ def give_task(active_tasks, workerID):
         ip_pair.inQueue = True
         ip_pair.tasks_out += 1
         ip_pair.save()
-    # TODO keep track of the number of tasks issued for an IP pair
+
     return ip_pair, eddy_time
 
 #____________LOTTERY SYSTEMS____________#
