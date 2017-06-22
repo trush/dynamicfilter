@@ -425,6 +425,7 @@ class SimulationTest(TransactionTestCase):
 		eddyTimes = []
 		taskTimes = []
 		workerDoneTimes = []
+		ticketNums = []
 
 		totalWorkTime = 0
 		tasksArray = []
