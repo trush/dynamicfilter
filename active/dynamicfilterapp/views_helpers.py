@@ -202,7 +202,7 @@ def lotteryPendingQueue(ipSet):
         chosenIP.item.save()
 
     # if the queue is full, update the predicate
-    if chosenIP.predicate.num_pending >= PENDING_QUEUE_SIZE:
+    if chosenIP.predicate.num_pending >= chosenIP.predicate.queue_length:
         chosenIP.predicate.queue_is_full = True
 
     chosenIP.predicate.save()

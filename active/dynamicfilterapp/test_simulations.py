@@ -265,7 +265,7 @@ class SimulationTest(TransactionTestCase):
 		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
 		Task.objects.all().delete()
 		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,
-			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
+			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False,queue_length=PENDING_QUEUE_SIZE)
 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
 		end = time.time()
 		reset_time = end - start
@@ -1114,7 +1114,6 @@ class SimulationTest(TransactionTestCase):
 
 			runTasksArray = []
 			goodArray, badArray = [], []
-			noTasksArray = []
 
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i+1)
@@ -1198,20 +1197,6 @@ class SimulationTest(TransactionTestCase):
 					else:
 						leg = ('Correctly Evaluated IP pairs','Incorrectly Evaluated IP pairs')
 						multi_hist_gen([goodArray,badArray],leg,dest+'.png',labels=labels,title=title)
-			if TRACK_NO_TASKS:
-				if sum(noTasksArray) != 0:
-					dest = OUTPUT_PATH+RUN_NAME+'_no_tasks'
-					generic_csv_write(dest+'.csv',[noTasksArray])
-					if DEBUG_FLAG:
-						print "Wrote File: " + dest + '.csv'
-					if GEN_GRAPHS:
-						title = 'Distribution of `No Tasks`'
-						labels = ('# of Times Chosen worker had nothing to do','Frequency')
-						hist_gen(noTasksArray,dest+'.png',labels=labels,title=title)
-						if DEBUG_FLAG:
-							print "Wrote File: "+dest+'.png'
-				elif DEBUG_FLAG:
-					print "No workers went without tasks, ignoring test results"
 
 		if TIME_SIMS:
 			self.timeRun(sampleData)
