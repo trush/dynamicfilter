@@ -171,9 +171,6 @@ class SimulationTest(TransactionTestCase):
 		if not SIMULATE_TIME:
 			updateCounts(t, chosenIP)
 
-		if DEBUG_FLAG and SIMULATE_TIME:
-			print str(t) + " will expire at t = " + str(end_task)
-
 		end = time.time()
 		runTime = end - start
 		return t, runTime
@@ -483,6 +480,8 @@ class SimulationTest(TransactionTestCase):
 						b_workers.remove(task.workerID)
 						task.ip_pair.tasks_out -= 1
 						task.ip_pair.save()
+						if DEBUG_FLAG:
+							print str(task.ip_pair.tasks_out)
 						num_tasks += 1
 
 						if TRACK_IP_PAIRS_DONE:
@@ -505,6 +504,8 @@ class SimulationTest(TransactionTestCase):
 							taskTimes.append(task_t)
 							if DEBUG_FLAG:
 								print "task added: " + str(task)
+								print str(task) + " will expire at t = " + str(task.endTime)
+								print "The tasks's IP pair has " + str(task.ip_pair.tasks_out) + " tasks out"
 								print "number of active tasks is: " +  str(len(active_tasks))
 
 							# ITEM ROUTING DATA COLLECTION
