@@ -75,7 +75,7 @@ NUM_QUESTIONS = 2
 NUM_ITEMS = 100
 
 # SIN tuple is of the form (SIN, amp, freq, )
-switch_list = [(0, (0.9, 0.68), (0.6, 0.87)), (100, ((SIN, ), 0.68), (0.6, 0.87))]
+switch_list = [(0, (0.9, 0.68), (0.6, 0.87)), (100, (, 0.68), (0.6, 0.87))]
 
 #TODO decide most elegant way to do this
 # not really selectivity: selectivity is more selectivity_list[i]*cost_prob_list[i]
