@@ -16,7 +16,7 @@ def dest_resolver(dest):
     given a filename (ending in .png) returns a version which wont overide data
     """
     if dest[-4:] != '.png':
-        raise ValueError('Invalid File Extention')
+        raise ValueError('Invalid File Extension')
     if os.path.isfile(dest):
         num = 1
         name = dest [:-4] + str(num) + dest[-4:]
@@ -146,7 +146,7 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
 def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr = [], square = False):
     """
     Generate a linegraph from a set of x and y points, optional parameters:
-        labels a touple in the format ('x-axis label', 'y-axis label')
+        labels a tuple in the format ('x-axis label', 'y-axis label')
         title, a string title of your graph
         stderr a list of standard error for adding y-error bars to data
     """

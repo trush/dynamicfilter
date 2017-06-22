@@ -92,6 +92,15 @@ def pending_eddy(ID):
 		#print "value: " + str(chosenPred.value) + ", count: " + str(chosenPred.count)
 		predIPs = incompleteIP.filter(predicate=chosenPred)
 		chosenIP = choice(predIPs)
+	
+	elif(EDDY_SYS == 5):
+		startedIPs = incompleteIP.filter(isStarted=True)
+		if len(startedIPs) != 0:
+			incompleteIP = startedIPs
+		predicates = [ip.predicate for ip in incompleteIP]
+		chosenPred = annealingSelectArm(predicates)
+		predIPs = incompleteIP.filter(predicate=chosenPred)
+		chosenIP = choice(predIPs)
 
 	end = time.time()
 	runTime = end - start
@@ -119,14 +128,19 @@ def move_window():
 
 def selectArm(predList):
 	rNum = random.random()
+	valueList = np.array([(pred.value) for pred in predList])
+	maxVal = max(valueList)
+	#if epsilon is high, chances of exploring are higher
 	if rNum > EPSILON:
-		valueList = np.array([(pred.value) for pred in predList])
-		maxVal = max(valueList)
-		newPredlist = [pred for pred in predList if pred.value == maxVal]
-		return random.choice(newPredlist)
+		maxPredlist = [pred for pred in predList if pred.value == maxVal]
+		return random.choice(maxPredlist)
 	
 	else:
-		return random.choice(predList)
+		newPredlist = [pred for pred in predList if pred.value != maxVal]
+		if len(newPredlist)!= 0:
+			return random.choice(newPredlist)
+		else:
+			return random.choice(predList)
 
 def updatePred(chosenPred, reward):
 	chosenPred.count += 1
@@ -134,6 +148,27 @@ def updatePred(chosenPred, reward):
 	chosenPred.value = new_val
 	chosenPred.save()
 	return
+#________ANNEALING-EPSILON-GREEDY MAB______#
+
+def annealingSelectArm(predList):
+	countList = np.array([(pred.count) for pred in predList])
+	countSum = sum(countList)
+	epsilon = 1 / math.log(countSum + 0.0000001)
+	rNum = random.random()
+	valueList = np.array([(pred.value) for pred in predList])
+	maxVal = max(valueList)
+	
+	if rNum > epsilon:
+		maxPredlist = [pred for pred in predList if pred.value == maxVal]
+		return random.choice(maxPredlist)
+	
+	else:
+		newPredlist = [pred for pred in predList if pred.value != maxVal]
+		if len(newPredlist)!= 0:
+			return random.choice(newPredlist)
+		else:
+			return random.choice(predList)
+
 
 #____________LOTTERY SYSTEMS____________#
 def chooseItem(ipSet):
@@ -285,7 +320,7 @@ def updateCounts(workerTask, chosenIP):
 				chosenIP.item.inQueue = False
 				chosenIP.item.save()
 
-			if (EDDY_SYS == 4):
+			if (EDDY_SYS == 4 or EDDY_SYS == 5):
 				if chosenIP.isFalse():
 					updatePred(chosenIP.predicate, REWARD)
 

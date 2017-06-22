@@ -217,8 +217,6 @@ class SimulationTest(TransactionTestCase):
 		setattr(thismodule, globalVar, storage)
 		return
 
-
-
 	def run_sim(self, dictionary):
 		"""
 		Runs a single simulation (either using real or synthetic data depending on
@@ -236,6 +234,7 @@ class SimulationTest(TransactionTestCase):
 		taskTimes = []
 		workerDoneTimes = []
 		noTasks = 0
+		scores = []
 
 		#If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
@@ -247,6 +246,9 @@ class SimulationTest(TransactionTestCase):
 				routingL.append([0])
 		#pick a dummy ip_pair
 		ip_pair = IP_Pair()
+
+		for pred in range(len(CHOSEN_PREDS)):
+			scores.append([])
 
 		while(ip_pair != None):
 
@@ -294,6 +296,11 @@ class SimulationTest(TransactionTestCase):
 				taskTimes.append(taskTime)
 				tasksArray.append(num_tasks)
 
+				if PRED_SCORE_COUNT:
+					for pred in range(len(CHOSEN_PREDS)):
+							predicate = Predicate.objects.get(pk=CHOSEN_PREDS[pred]+1)
+							scores[pred].append(predicate.value)
+
 				# get a sense of what items have been ruled out and which ones
 				# are still in the running
 				#numRuledOut = Item.objects.filter(hasFailed = True).count()
@@ -331,7 +338,14 @@ class SimulationTest(TransactionTestCase):
 
 		if OUTPUT_COST:
 			output_cost(RUN_NAME)
-
+		
+		if PRED_SCORE_COUNT:
+			predScoreLegend = []
+			for pred in range(len(CHOSEN_PREDS)):
+				predScoreLegend.append("Pred " + str(CHOSEN_PREDS[pred]))
+			multi_line_graph_gen([range(num_tasks)]*len(CHOSEN_PREDS), scores, predScoreLegend,
+								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "predScore.png",
+								labels = ("Number of simulations run", "score"))
 		# if this is the first time running a routing test
 		if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
 			HAS_RUN_ITEM_ROUTING = True
@@ -752,6 +766,13 @@ class SimulationTest(TransactionTestCase):
 				print "Running: item Routing"
 			self.run_sim(sampleData)
 			self.reset_database()
+		
+		if PRED_SCORE_COUNT and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
+			if DEBUG_FLAG:
+				print "Running: Pred Score count"
+			self.run_sim(sampleData)
+			self.reset_database()
+
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
 		if TEST_ACCURACY:
