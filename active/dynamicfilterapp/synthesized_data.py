@@ -1,21 +1,12 @@
 from models import *
 import numpy as np
 from random import randint, choice
+from toggles import * #TODO necessary?
 
 import csv
 import sys
 import math
 import random
-
-NUM_QUESTIONS = 2
-NUM_ITEMS = 100
-
-# not really selectivity: selectivity is more selectivity_list[i]*cost_prob_list[i]
-# this is just the probabiility of leaning towards false
-selectivity_list = [0.9, 0.9, 0.9]
-# keep probabilities above .5 for this simulation to make sense.
-# the closer to 0.5, the more ambiguous the predicate is
-cost_prob_list = [0.9, 0.6, 0.9]
 
 def syn_load_data():
 	"""
@@ -38,15 +29,20 @@ def syn_answer(chosenIP, switch):
 	"""
 	make up a fake answer based on global variables
 	"""
-	ID = chosenIP.predicate.predicate_ID + switch
+
+	timeStepInfo = switch_list[switch]
+	ID = chosenIP.predicate.predicate_ID
+	#add 1 because index 0 of timeStepInfo is the timestep. After that are the pred tuples
+	predInfo = timeStepInfo[ID+1]
+	#print "predID: " + str(chosenIP.predicate.predicate_ID)
 	# decide if the answer is going to lean towards true or false
 	# lean towards true
-	if decision(selectivity_list[ID]):
+	if decision(predInfo[0]): #index 0 is selectivity
 		# decide if the answer is going to be true or false
-		value = decision(1 - cost_prob_list[ID])
+		value = decision(1 - predInfo[1]) #index 1 is ambiguity
 	# lean towards false
 	else:
-		value = decision(cost_prob_list[ID])
+		value = decision(predInfo[1]) #index 1 is ambiguity
 
 	return value
 

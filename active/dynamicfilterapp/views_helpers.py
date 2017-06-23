@@ -104,7 +104,7 @@ def pending_eddy(ID):
 
 	end = time.time()
 	runTime = end - start
-	return chosenIP, runTime
+	return chosenIP
 
 def move_window():
 	"""
@@ -265,6 +265,35 @@ def lotteryPendingQueue(ipSet):
 
 	chosenIP.predicate.save()
 	return chosenIP
+
+def useLottery(ipSet):
+    """
+    Runs lottery based on pending queues
+    """
+    # make list of possible predicates and remove duplicates
+    predicates = [ip.predicate for ip in ipSet]
+    #print str(predicates) + "before seen are removed"
+    seen = set()
+    seen_add = seen.add
+    predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
+    #print str(predicates) + "after seen are removed"
+
+    #choose the predicate
+    weightList = np.array([pred.num_tickets for pred in predicates])
+    totalTickets = np.sum(weightList)
+    probList = np.true_divide(weightList, totalTickets)
+    chosenPred = np.random.choice(predicates, p=probList)
+
+    #choose the item and then ip
+    chosenPredSet = ipSet.filter(predicate=chosenPred)
+    item = chooseItem(chosenPredSet)
+    chosenIP = ipSet.get(predicate=chosenPred, item=item)
+
+    #TODO: (see method above) why save item and predicate but not the IP?
+    chosenIP.predicate.num_tickets += 1
+    chosenIP.predicate.save()
+
+    return chosenIP
 
 #____________STAT UPDATES____________#
 def updateCounts(workerTask, chosenIP):

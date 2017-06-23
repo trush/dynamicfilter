@@ -109,7 +109,7 @@ class SimulationTest(TransactionTestCase):
 
 				# Some tasks won't have matching RestaurantPredicates, since we
 				# may not be using all the possible predicates
-				if len(predKey) > 0:
+				if predKey.count() > 0:
 					if answer > 0:
 						sampleData[predKey[0]].append(True)
 					elif answer < 0:
@@ -180,7 +180,7 @@ class SimulationTest(TransactionTestCase):
 		Task.objects.all().delete()
 		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,
 			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
-		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
+		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False, isStarted=False)
 		end = time.time()
 		reset_time = end - start
 		return reset_time
@@ -235,6 +235,16 @@ class SimulationTest(TransactionTestCase):
 		workerDoneTimes = []
 		noTasks = 0
 		scores = []
+		ticketNums = []
+
+		#Setting up arrays to count tickets for ticketing counting graphs
+		if REAL_DATA:
+			for predNum in range(len(CHOSEN_PREDS)):
+				ticketNums.append([])
+		else:
+			for count in range(NUM_QUESTIONS):
+				ticketNums.append([])
+		
 
 		#If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
@@ -255,8 +265,7 @@ class SimulationTest(TransactionTestCase):
 			# only increment if worker is actually doing a task
 			workerID = self.pick_worker()
 			workerDone, workerDoneTime = worker_done(workerID)
-
-			if not IP_Pair.objects.filter(isDone=False):
+			if not IP_Pair.objects.filter(isDone=False).exists():
 				ip_pair = None
 
 			elif (workerDone):
@@ -264,11 +273,18 @@ class SimulationTest(TransactionTestCase):
 				if DEBUG_FLAG:
 					print "worker has no tasks to do "
 
-
 			else:
-				ip_pair, eddy_time = pending_eddy(workerID)
-				eddyTimes.append(eddy_time)
-
+				if (EDDY_SYS == 4):
+					try:
+						#test to see if ip_pair is the dummy or not
+						ipExists = IP_Pair.objects.get(pk=ip_pair.pk)
+						if(ip_pair.isDone == True):
+							ip_pair = pending_eddy(workerID)
+					except:
+						ip_pair = pending_eddy(workerID)
+						#print "here"
+				else:
+					ip_pair = pending_eddy(workerID)
 
 				# If we should be running a routing test
 					# this is true in two cases: 1) we hope to run a single
@@ -291,16 +307,31 @@ class SimulationTest(TransactionTestCase):
 				else:
 					taskTime = self.syn_simulate_task(ip_pair, workerID, switch)
 
+
 				move_window()
 				num_tasks += 1
 				taskTimes.append(taskTime)
 				tasksArray.append(num_tasks)
 
 				if PRED_SCORE_COUNT:
-					for pred in range(len(CHOSEN_PREDS)):
+					if REAL_DATA:
+						for pred in range(len(CHOSEN_PREDS)):
 							predicate = Predicate.objects.get(pk=CHOSEN_PREDS[pred]+1)
 							scores[pred].append(predicate.value)
+					else:
+						for count in range(NUM_QUESTIONS):
+							predicate = Predicate.objects.get(pk=count+1)
+							scores[count].append(predicate.value)
 
+				if COUNT_TICKETS:
+					if REAL_DATA:
+						for predNum in range(len(CHOSEN_PREDS)):
+							predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
+							ticketNums[predNum].append(predicate.num_tickets)
+					else:
+						for count in range(NUM_QUESTIONS):
+							predicate = Predicate.objects.get(pk=count+1)
+							ticketNums[count].append(predicate.num_tickets)
 				# get a sense of what items have been ruled out and which ones
 				# are still in the running
 				#numRuledOut = Item.objects.filter(hasFailed = True).count()
@@ -322,8 +353,11 @@ class SimulationTest(TransactionTestCase):
 				#print "total items done: " + str(numItemsDone)
 
 				#itemsDoneArray.append(numItemsDone)
-				if num_tasks == 200:
-					switch = 1
+
+				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
+				#so we need index 0 of the tuple to get the time at which the switch should occur
+				if switch < len(switch_list) and switch_list[switch][0] == num_tasks:
+					switch += 1
 
 		#print num_tasks
 		#print str(itemsDoneArray)
@@ -346,6 +380,15 @@ class SimulationTest(TransactionTestCase):
 			multi_line_graph_gen([range(num_tasks)]*len(CHOSEN_PREDS), scores, predScoreLegend,
 								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "predScore.png",
 								labels = ("Number of simulations run", "score"))
+
+		if COUNT_TICKETS:
+			ticketCountsLegend = []
+			for predNum in range(len(CHOSEN_PREDS)):
+				ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+			multi_line_graph_gen([range(num_tasks)]*len(CHOSEN_PREDS), ticketNums, ticketCountsLegend,
+								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "ticketCounts.png",
+								labels = ("Number of simulations run", "Ticket counts"))
+
 		# if this is the first time running a routing test
 		if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
 			HAS_RUN_ITEM_ROUTING = True
@@ -449,7 +492,7 @@ class SimulationTest(TransactionTestCase):
 				pred_cost += item_cost
 				f.write(ip.item.name + ': ' + str(item_cost) + " ")
 
-			pred_cost = float(pred_cost)/len(IP_Pair.objects.filter(predicate=pred))
+			pred_cost = float(pred_cost)/IP_Pair.objects.filter(predicate=pred).count()
 			f.write('\npredicate average cost: ' + str(pred_cost) + '\n \n')
 		f.close()
 		if DEBUG_FLAG:
@@ -525,7 +568,7 @@ class SimulationTest(TransactionTestCase):
 		for ip in IP_Pair.objects.all():
 			#print len(dictionary[ip])
 			numTrue = sum(1 for vote in dictionary[ip] if vote)
-			numFalse = len(dictionary[ip]) - numTrue
+			numFalse = dictionary[ip].count() - numTrue
 			overallVote = (numTrue > numFalse)
 			f.write(str(ip) + ', ' + str(numTrue) + ', ' + str(numFalse)
 				+ ', ' + str(overallVote) + '\n')
@@ -774,6 +817,12 @@ class SimulationTest(TransactionTestCase):
 			self.reset_database()
 
 
+		if COUNT_TICKETS and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
+			if DEBUG_FLAG:
+				print "Running: ticket counting"
+			self.run_sim(sampleData)
+			self.reset_database()
+
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
 		if TEST_ACCURACY:
 			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
@@ -791,7 +840,6 @@ class SimulationTest(TransactionTestCase):
 			runTasksArray = []
 			goodArray, badArray = [], []
 			noTasksArray = []
-
 
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i)
@@ -838,6 +886,7 @@ class SimulationTest(TransactionTestCase):
 					hist_gen(runTasksArray, dest, labels = ('Cost','Frequency'), title = title)
 					if DEBUG_FLAG:
 						print "Wrote File: " + dest
+						
 			if RUN_MULTI_ROUTING:
 					dest = OUTPUT_PATH + RUN_NAME + '_multi_routing.png'
 					title = RUN_NAME + ' Average Predicate Routing'

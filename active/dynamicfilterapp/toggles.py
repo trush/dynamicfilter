@@ -2,15 +2,15 @@ import datetime as DT
 now = DT.datetime.now()
 
 
-RUN_NAME = 'Default' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'SynDataNEW_Queue_.9.6.68.87_50runs_2Q_100I' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
-ITEM_TYPE = "Restaurant"
+ITEM_TYPE = "Hotel"
 #We have 5 questions for hotels right now, 10 for restaurants
-NUM_QUEST = 10 #used for accuracy testing
+NUM_QUEST = 5 #used for accuracy testing
 
-INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
-OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-IP_PAIR_DATA_FILE = 'real_data1.csv'
+INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
+OUTPUT_PATH = 'dynamicfilterapp/simulation_files/'
+IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 
 DEBUG_FLAG = True # useful print statements turned on
 
@@ -34,7 +34,7 @@ EDDY_SYS = 5
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [2,3,9] # predicates that will be used when run on real data
+CHOSEN_PREDS = [3,4] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -68,16 +68,29 @@ LIFETIME = 10
 ###################### CONFIGURING TESTING ##################################
 #############################################################################
 
-REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
+REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
 
 GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+
+#################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
+NUM_QUESTIONS = 2
+NUM_ITEMS = 100
+
+# SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
+# selectvity of the previous timestep
+#switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
+ #(time,(selectivity,ambiguity), (...))
+switch_list = [(0, (0.8, 0.2), (0.2, 0.8)), (200, (0.2, 0.8), (0.8, 0.2)), (500, (0.8, 0.2), (0.2, 0.8))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-RUN_ABSTRACT_SIM = False
+RUN_ABSTRACT_SIM = True
 ABSTRACT_VARIABLE = "EDDY_SYS"
 ABSTRACT_VALUES = [1,4,5]
+
+#produces ticket count graph for 1 simulation
+COUNT_TICKETS = False
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 1000
@@ -94,7 +107,7 @@ EPSILON = 0.7
 REWARD = 1.4
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 10 # how many simulations to run?
+NUM_SIM = 35 # how many simulations to run?
 
 TIME_SIMS = False
 
@@ -112,4 +125,4 @@ OUTPUT_SELECTIVITIES = False
 
 OUTPUT_COST = False
 
-PRED_SCORE_COUNT = False
+PRED_SCORE_COUNT = True
