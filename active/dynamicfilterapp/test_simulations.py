@@ -296,10 +296,16 @@ class SimulationTest(TransactionTestCase):
 		title = str(globalVar) + " variance impact on Task Count"
 		dest = OUTPUT_PATH+RUN_NAME+'_abstract_sim'
 		if GEN_GRAPHS:
-			line_graph_gen(listOfValuesToTest, avgL, dest +'.png',stderr = stdL,labels=labels, title = title)
-			multi_hist_gen(counts, listOfValuesToTest, dest +'.png',labels=labels, title = title)
-		if DEBUG_FLAG:
-			print "Wrote File: " + dest+'.png'
+			line_graph_gen(listOfValuesToTest, avgL, dest +'line.png',stderr = stdL,labels=labels, title = title)
+			if DEBUG_FLAG:
+				print "Wrote File: " + dest+'line.png'
+			if len(counts[0])>1:
+				multi_hist_gen(counts, listOfValuesToTest, dest +'hist.png',labels=labels, title = title)
+				if DEBUG_FLAG:
+					print "Wrote File: " + dest+'hist.png'
+			elif DEBUG_FLAG:
+				print "only ran one sim, ignoring hist_gen"
+
 		setattr(thismodule, globalVar, storage)
 		return
 
@@ -481,7 +487,7 @@ class SimulationTest(TransactionTestCase):
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
 						num_tasks += 1
-						
+
 						if ADAPTIVE_QUEUE:
 							pred = task.ip_pair.predicate
 							tickets = pred.num_tickets
@@ -831,11 +837,14 @@ class SimulationTest(TransactionTestCase):
 		if DEBUG_FLAG:
 			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_single_pair_cost.csv'
 		if GEN_GRAPHS:
-			dest = OUTPUT_PATH+RUN_NAME+'_single_pair_cost.png'
-			title = RUN_NAME + " Distribution of Single Pair Cost"
-			hist_gen(outputArray, dest, labels = ('Num Tasks','Frequency'), title = title, smoothness = True)
-			if DEBUG_FLAG:
-				print "Wrote File: " + dest
+			if len(outputArray) > 1:
+				dest = OUTPUT_PATH+RUN_NAME+'_single_pair_cost.png'
+				title = RUN_NAME + " Distribution of Single Pair Cost"
+				hist_gen(outputArray, dest, labels = ('Num Tasks','Frequency'), title = title, smoothness = True)
+				if DEBUG_FLAG:
+					print "Wrote File: " + dest
+			elif DEBUG_FLAG:
+				print "only ran 1 sim, not running hist_gen"
 
 	def output_data_stats(self, dictionary):
 		"""
@@ -1172,11 +1181,14 @@ class SimulationTest(TransactionTestCase):
 				if DEBUG_FLAG:
 					print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_tasks_count.csv'
 				if GEN_GRAPHS:
-					dest = OUTPUT_PATH + RUN_NAME + '_tasks_count.png'
-					title = RUN_NAME + ' Cost distribution'
-					hist_gen(runTasksArray, dest, labels = ('Cost','Frequency'), title = title)
-					if DEBUG_FLAG:
-						print "Wrote File: " + dest
+					if len(runTasksArray)>1:
+						dest = OUTPUT_PATH + RUN_NAME + '_tasks_count.png'
+						title = RUN_NAME + ' Cost distribution'
+						hist_gen(runTasksArray, dest, labels = ('Cost','Frequency'), title = title)
+						if DEBUG_FLAG:
+							print "Wrote File: " + dest
+					elif DEBUG_FLAG:
+						print "only ran one sim, not running hist_gen"
 			if RUN_MULTI_ROUTING:
 					dest = OUTPUT_PATH + RUN_NAME + '_multi_routing.png'
 					title = RUN_NAME + ' Average Predicate Routing'
@@ -1201,22 +1213,25 @@ class SimulationTest(TransactionTestCase):
 							print "Wrote File: " + OUTPUT_PATH+RUN_NAME+'_multi_routing.png'
 			if RUN_CONSENSUS_COUNT:
 				dest = OUTPUT_PATH + RUN_NAME+'_consensus_count'
-				if len(badArray) == 0:
-					generic_csv_write(dest+'.csv',[goodArray])
-					print goodArray
-				else:
-					generic_csv_write(dest+'.csv',[goodArray,badArray])
-					print goodArray,badArray
-				if DEBUG_FLAG:
-					print "Wrote File: " + dest + '.csv'
-				if GEN_GRAPHS:
-					title = 'Normalized Distribution of Tasks before Consensus'
-					labels = ('Number of Tasks', 'Frequency')
+				if len(goodArray)>1:
 					if len(badArray) == 0:
-						hist_gen(goodArray, dest+'.png',labels=labels,title=title)
+						generic_csv_write(dest+'.csv',[goodArray])
+						print goodArray
 					else:
-						leg = ('Correctly Evaluated IP pairs','Incorrectly Evaluated IP pairs')
-						multi_hist_gen([goodArray,badArray],leg,dest+'.png',labels=labels,title=title)
+						generic_csv_write(dest+'.csv',[goodArray,badArray])
+						print goodArray,badArray
+					if DEBUG_FLAG:
+						print "Wrote File: " + dest + '.csv'
+					if GEN_GRAPHS:
+						title = 'Normalized Distribution of Tasks before Consensus'
+						labels = ('Number of Tasks', 'Frequency')
+						if len(badArray) == 0:
+							hist_gen(goodArray, dest+'.png',labels=labels,title=title)
+						else:
+							leg = ('Correctly Evaluated IP pairs','Incorrectly Evaluated IP pairs')
+							multi_hist_gen([goodArray,badArray],leg,dest+'.png',labels=labels,title=title)
+				elif DEBUG_FLAG:
+					print "only ran one sim, ignoring results"
 
 		if TIME_SIMS:
 			self.timeRun(sampleData)
