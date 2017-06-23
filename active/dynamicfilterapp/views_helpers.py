@@ -113,6 +113,32 @@ def give_task(active_tasks, workerID):
         ip_pair.save()
     # TODO keep track of the number of tasks issued for an IP pair
     return ip_pair, eddy_time
+    
+def inc_queue_length(pred):
+    """
+    increase the queue_length value of the given predicate by one
+    also takes care of fullness
+    """
+    pred.queue_length = F('queue_length') + 1
+    pred.queue_is_full = False
+    pred.save()
+    return pred.queue_length
+
+def dec_queue_length(pred):
+    """
+    decreases the queue_length value of the given predicate by one
+    raises an error if the pred was full when called
+    """
+    if (pred.queue_is_full):
+        raise ValueError("Tried to decrement the queue_length of a predicate with a full queue")
+    old = pred.queue_length
+    if old == 1:
+        raise ValueError("Tried to decrement queue_length to zero")
+    pred.queue_length = old-1
+    if pred.num_pending >= (old - 1):
+        pred.queue_is_full = True
+    pred.save()
+    return old-1
 
 #____________LOTTERY SYSTEMS____________#
 def chooseItem(ipSet):
