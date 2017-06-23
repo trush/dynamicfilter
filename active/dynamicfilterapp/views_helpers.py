@@ -229,11 +229,6 @@ def useLottery(ipSet):
     chosenIP.predicate.num_tickets += 1
     chosenIP.predicate.save()
 
-    #TODO remove after testing
-    # for predNum in CHOSEN_PREDS:
-    #     predicate = Predicate.objects.get(pk=predNum+1)
-    #     print "pred " + str(predNum) + "'s tickets: " + str(predicate.num_tickets)
-
     return chosenIP
 
 #____________STAT UPDATES____________#

@@ -29,9 +29,6 @@ def syn_answer(chosenIP, switch):
 	"""
 	make up a fake answer based on global variables
 	"""
-	#TODO get rid of after testing
-	#print "switch: " + str(switch)
-	#ID = chosenIP.predicate.predicate_ID + switch
 
 	timeStepInfo = switch_list[switch]
 	ID = chosenIP.predicate.predicate_ID

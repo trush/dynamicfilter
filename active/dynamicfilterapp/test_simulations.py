@@ -812,12 +812,6 @@ class SimulationTest(TransactionTestCase):
 
 				runTasksArray = []
 
-			#TODO ticket counting
-			# if COUNT_TICKETS:
-			# 	ticketNumArray = []
-			# 	for predNum in range(len(CHOSEN_PREDS)):
-			# 		ticketNumArray.append([])
-
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i)
 				runSimResults = self.run_sim(sampleData)
@@ -844,12 +838,7 @@ class SimulationTest(TransactionTestCase):
 					hist_gen(runTasksArray, dest, labels = ('Cost','Frequency'), title = title)
 					if DEBUG_FLAG:
 						print "Wrote File: " + dest
-			#TODO ticket counting
-			# if COUNT_TICKETS:
-			# 	#generic_csv_write(OUTPUT_PATH+RUN_NAME+'_ticket_count.csv',[runTasksArray])
-			# 	multi_line_graph_gen(range(0, NUM_SIM)*len(CHOSEN_PREDS), ticketNumArray,
-			# 					"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "ticketCounts.png",
-			# 					labels = ("Number of simulations run", "Ticket counts"))
+						
 			if RUN_MULTI_ROUTING:
 					dest = OUTPUT_PATH + RUN_NAME + '_multi_routing.png'
 					title = RUN_NAME + ' Average Predicate Routing'
