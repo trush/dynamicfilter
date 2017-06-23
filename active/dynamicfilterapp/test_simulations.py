@@ -462,10 +462,13 @@ class SimulationTest(TransactionTestCase):
 				if DEBUG_FLAG:
 					if (time_clock % 10 == 0):
 						print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ t =  " + str(time_clock) + " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-						print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+						print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
 						for task in active_tasks:
 							print str(task) + " will expire at t = " + str(task.endTime)
 						print "There are still " + str(IP_Pair.objects.filter(isDone=False).count()) +  " incomplete IP pairs"
+						for i in IP_Pair.objects.filter(tasks_out__gt=0):
+							print str(i) + " has " + str(i.tasks_out) + " tasks out"
+						print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
 					if len(active_tasks) == 0:
 						print "active tasks is empty"
 
@@ -481,7 +484,7 @@ class SimulationTest(TransactionTestCase):
 						task.ip_pair.tasks_out -= 1
 						task.ip_pair.save()
 						if DEBUG_FLAG:
-							print str(task.ip_pair.tasks_out)
+							print str(task.ip_pair) +  " has " + str(task.ip_pair.tasks_out) + " tasks out"
 						num_tasks += 1
 
 						if TRACK_IP_PAIRS_DONE:
@@ -504,7 +507,7 @@ class SimulationTest(TransactionTestCase):
 							taskTimes.append(task_t)
 							if DEBUG_FLAG:
 								print "task added: " + str(task)
-								print str(task) + " will expire at t = " + str(task.endTime)
+								print "It will expire at t = " + str(task.endTime)
 								print "The tasks's IP pair has " + str(task.ip_pair.tasks_out) + " tasks out"
 								print "number of active tasks is: " +  str(len(active_tasks))
 

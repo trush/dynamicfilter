@@ -109,7 +109,7 @@ TIME_SIMS = False # track the computer runtime of simulations
 SIMULATE_TIME = True # simulate time passing/concurrency
 MAX_TASKS = 10 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
-MAX_TASKS_OUT = 5
+MAX_TASKS_OUT = 7
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
