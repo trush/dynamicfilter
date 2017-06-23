@@ -262,7 +262,7 @@ class SimulationTest(TransactionTestCase):
 			elif (workerDone):
 				noTasks += 1
 				if DEBUG_FLAG:
-					print "worker has no tasks to do"
+					print "worker has no tasks to do "
 
 
 			else:
@@ -649,7 +649,7 @@ class SimulationTest(TransactionTestCase):
 		workerDoneTimes = []
 		for i in range(NUM_SIM):
 			print "Timing simulation " + str(i+1)
-			num_tasks, sim_time, eddy_times, task_times, worker_done_t = self.run_sim(sampleData)
+			num_tasks, sim_time, eddy_times, task_times, worker_done_t = self.run_sim(data)
 
 			simTimes.append(sim_time)
 			eddyTimes.append(np.sum(eddy_times))
