@@ -118,7 +118,6 @@ TRACK_NO_TASKS = True # keeps track of the number of times the next worker has n
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
-FILTER_BY_PREDS = [2, 3] # predicates we want to check successful filtering by
 
 
 OUTPUT_SELECTIVITIES = False
@@ -129,5 +128,3 @@ TEST_ACCURACY = False
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
-COST_PREDS = [2, 3] # predicates whose cost we want to estimate
-                    # if controlled eddy system, must match CONTROLLED_RUN_PREDS
