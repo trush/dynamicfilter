@@ -2,7 +2,7 @@ import datetime as DT
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'AA_CHECK_OUTPUTS' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'StaticQ1' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 ITEM_TYPE = "Restaurant"
 #We have 5 questions for hotels right now, 10 for restaurants
 NUM_QUEST = 10 #used for accuracy testing
@@ -25,7 +25,7 @@ CUT_OFF = 21
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
 NUM_WORKERS = 301
-DISTRIBUTION_TYPE = 1 # tells pick_worker how to choose workers.
+DISTRIBUTION_TYPE = 0 # tells pick_worker how to choose workers.
 # 0  -  Uniform Distribution; (all worker equally likely)
 # 1  -  Geometric Distribution; (synthetic graph which fits out data well)
 # 2  -  Real Distribution (samples directly from the real data)
@@ -36,7 +36,7 @@ EDDY_SYS = 1
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
-PENDING_QUEUE_SIZE = 3
+PENDING_QUEUE_SIZE = 1
 
 CHOSEN_PREDS = [2,9] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
@@ -62,8 +62,14 @@ ITEM_SYS = 0
 # 1 - item-started system
 # 2 - item-almost-false system
 
-SLIDING_WINDOW = True
+SLIDING_WINDOW = False
 LIFETIME = 10
+
+ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE_MODE = 0
+# 0 - only increase ql if reached that number of tickets
+# 1 - increase like (0) but also decreases if a pred drops below the limit
+QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,qlength)]
 
 #############################################################################
 #############################################################################
@@ -87,7 +93,7 @@ ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [.1, .2, .3]
 
 #produces ticket count graph for 1 simulation
-COUNT_TICKETS = True
+COUNT_TICKETS = False
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 100
@@ -102,19 +108,19 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 2 # how many simulations to run?
+NUM_SIM = 50 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = False # simulate time passing/concurrency
+SIMULATE_TIME = True # simulate time passing/concurrency
 MAX_TASKS = 10 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_NO_TASKS = True # keeps track of the number of times the next worker has no possible task
+TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False

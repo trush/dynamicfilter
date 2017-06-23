@@ -481,6 +481,26 @@ class SimulationTest(TransactionTestCase):
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
 						num_tasks += 1
+						
+						if ADAPTIVE_QUEUE:
+							pred = task.ip_pair.predicate
+							tickets = pred.num_tickets
+							qlength = pred.queue_length
+							if ADAPTIVE_QUEUE_MODE == 0:
+								for pair in QUEUE_LENGTH_ARRAY:
+									if tickets>pair[0] and qlength<pair[1]:
+										inc_queue_length(pred)
+										pred.refresh_from_db()
+										break
+							if ADAPTIVE_QUEUE_MODE == 1:
+								for pair in QUEUE_LENGTH_ARRAY:
+									if tickets>pair[0] and qlength<pair[1]:
+										inc_queue_length(pred)
+										break
+									elif tickets<= pair[0] and qlength>=pair[1]:
+										dec_queue_length(pred)
+										pred.refresh_from_db()
+										break
 
 						if TRACK_IP_PAIRS_DONE:
 							itemsDoneArray.append(IP_Pair.objects.filter(isDone=True).count())
