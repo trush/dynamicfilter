@@ -109,9 +109,12 @@ def move_window():
 def give_task(active_tasks, workerID):
     ip_pair, eddy_time = pending_eddy(workerID)
     if ip_pair is not None:
-        ip_pair.inQueue = True
-        ip_pair.tasks_out += 1
-        ip_pair.save()
+        IP_Pair.objects.filter(pk=ip_pair.pk).update(inQueue=True, tasks_out=F("tasks_out") + 1)
+        # ip_pair.update(inQueue=True)
+        # ip_pair.update(tasks_out=F("tasks_out") + 1)
+        # ip_pair.inQueue = True
+        # ip_pair.tasks_out += 1
+        # ip_pair.save()
 
     return ip_pair, eddy_time
 

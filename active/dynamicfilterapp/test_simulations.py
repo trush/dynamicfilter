@@ -3,6 +3,7 @@
 # # Django tools
 from django.db import models
 from django.test import TransactionTestCase
+from django.db.models import F
 
 # # What we wrote
 from views_helpers import *
@@ -461,13 +462,13 @@ class SimulationTest(TransactionTestCase):
 			while (IP_Pair.objects.filter(isDone=False).exists() or active_tasks) :
 				if DEBUG_FLAG:
 					if (time_clock % 10 == 0):
-						print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ t =  " + str(time_clock) + " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+						print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ t =  " + str(time_clock) + " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
 						print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
 						for task in active_tasks:
 							print str(task) + " will expire at t = " + str(task.endTime)
 						print "There are still " + str(IP_Pair.objects.filter(isDone=False).count()) +  " incomplete IP pairs"
-						for i in IP_Pair.objects.filter(tasks_out__gt=0):
-							print str(i) + " has " + str(i.tasks_out) + " tasks out"
+						for i in IP_Pair.objects.all():
+							print str(i) + "with id" + str(i.pk) +  " has " + str(i.tasks_out) + " tasks out"
 						print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
 					if len(active_tasks) == 0:
 						print "active tasks is empty"
@@ -476,15 +477,22 @@ class SimulationTest(TransactionTestCase):
 				# check if any tasks have reached completion, update bookkeeping
 				for task in active_tasks:
 					endTimes.append(task.endTime)
+					print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " previously had " + str(task.ip_pair.tasks_out) + "tasks out"
 					if (task.endTime <= time_clock):
 						if task.ip_pair.isDone == False:
 							updateCounts(task, task.ip_pair)
+							print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " had " + str(task.ip_pair.tasks_out) + "tasks out after updateCounts"
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
-						task.ip_pair.tasks_out -= 1
-						task.ip_pair.save()
-						if DEBUG_FLAG:
-							print str(task.ip_pair) +  " has " + str(task.ip_pair.tasks_out) + " tasks out"
+						print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " had " + str(task.ip_pair.tasks_out) + "tasks out after removing from active array"
+						# tasksOut -= 1
+						IP_Pair.objects.filter(pk=task.ip_pair.pk).update(tasks_out=F("tasks_out") - 1)
+						# task.ip_pair.update(tasks_out=F("tasks_out") - 1)
+						# IP_Pair.objects.filter(pk__in=task.ip_pair.pk).update(tasks_out=tasksOut)
+						# task.ip_pair.tasks_out -= 1
+						print "********" + str(task.ip_pair) + "had tasks_out decremented by 1"
+						print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " has " + str(task.ip_pair.tasks_out) + "tasks out after decrementing by one"
+						# task.ip_pair.save()
 						num_tasks += 1
 
 						if TRACK_IP_PAIRS_DONE:
@@ -492,6 +500,7 @@ class SimulationTest(TransactionTestCase):
 
 						if DEBUG_FLAG:
 							print "worker " + str(task.workerID) + " and " + str(task) + " removed from active, counts updated."
+							print str(task.ip_pair) + " with id " + str(task.ip_pair.pk) + " now has " + str(task.ip_pair.tasks_out) + " tasks out"
 							print "number of active tasks is: " +  str(len(active_tasks))
 							print "number of tasks completed is: " + str(num_tasks)
 
@@ -509,6 +518,7 @@ class SimulationTest(TransactionTestCase):
 								print "task added: " + str(task)
 								print "It will expire at t = " + str(task.endTime)
 								print "The tasks's IP pair has " + str(task.ip_pair.tasks_out) + " tasks out"
+								print "accessing a different way, the task's ip pair has " + str(IP_Pair.objects.filter(pk=task.ip_pair.pk).values("tasks_out")) + " tasks out"
 								print "number of active tasks is: " +  str(len(active_tasks))
 
 							# ITEM ROUTING DATA COLLECTION
@@ -1027,6 +1037,10 @@ class SimulationTest(TransactionTestCase):
 		Runs a simulation of real data and prints out the number of tasks
 		ran to complete the filter
 		"""
+		# dest = "dynamicfilterapp/simulation_files/output/aa_terminal_out7.txt"
+		# with open(dest, 'w') as terminalOut:
+			# sys.stdout = terminalOut
+
 		global NUM_CERTAIN_VOTES
 		print "Simulation is being tested"
 
