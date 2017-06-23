@@ -74,16 +74,10 @@ GEN_GRAPHS = False # if true, any tests run will generate their respective graph
 NUM_QUESTIONS = 2
 NUM_ITEMS = 100
 
-# SIN tuple is of the form (SIN, amp, freq, )
-switch_list = [(0, (0.9, 0.68), (0.6, 0.87)), (100, (, 0.68), (0.6, 0.87))]
-
-#TODO decide most elegant way to do this
-# not really selectivity: selectivity is more selectivity_list[i]*cost_prob_list[i]
-# this is just the probabiility of leaning towards false
-#selectivity_list = [0.9, 0.6]
-# keep probabilities above .5 for this simulation to make sense.
-# the closer to 0.5, the more ambiguous the predicate is
-#cost_prob_list = [0.68, 0.87]
+# SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
+# selectvity of the previous timestep
+#switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
+switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (100, (0.7, 0.68), (0.6, 0.87))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
