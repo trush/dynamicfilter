@@ -20,17 +20,23 @@ def worker_done(ID):
     Returns true if worker has no tasks to do. False otherwise.
     """
     start = time.time()
+    for i in IP_Pair.objects.all():
+        i.refresh_from_db()
     completedTasks = Task.objects.filter(workerID=ID)
     completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
     incompleteIP = IP_Pair.objects.filter(isDone=False).exclude(id__in=completedIP)
 
     # if queue_pending_system:
     if (EDDY_SYS == 1):
+        for pred in Predicate.objects.all():
+            print str(pred) + " queue_is_full = " + str(pred.queue_is_full)
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
-        #print "incompleteIP excluding out of full q: " + str(list(incompleteIP.exclude(id__in=outOfFullQueue).values_list('id', flat = True)))
+        print "incompleteIP excluding out of full q: " + str(list(incompleteIP.exclude(id__in=outOfFullQueue).values_list('id', flat = True)))
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-        #print "incompleteIP excluding nonUnique: " + str(list(incompleteIP.exclude(id__in=nonUnique).values_list('id', flat = True)))
-        incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
+        print "incompleteIP excluding nonUnique: " + str(list(incompleteIP.exclude(id__in=nonUnique).values_list('id', flat = True)))
+        allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
+        print "incompleteIP excluding allTasksOut: " + str(list(incompleteIP.exclude(id__in=allTasksOut).values_list('id', flat=True)))
+        incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
 
     if not incompleteIP:
         end = time.time()
@@ -47,6 +53,8 @@ def pending_eddy(ID):
     This function chooses which system to use for choosing the next ip_pair
     """
     start = time.time()
+    for i in IP_Pair.objects.all():
+        i.refresh_from_db()
     # if all IP_Pairs are done
     unfinishedList = IP_Pair.objects.filter(isDone=False)
     if not unfinishedList:
@@ -109,12 +117,16 @@ def move_window():
 def give_task(active_tasks, workerID):
     ip_pair, eddy_time = pending_eddy(workerID)
     if ip_pair is not None:
-        IP_Pair.objects.filter(pk=ip_pair.pk).update(inQueue=True, tasks_out=F("tasks_out") + 1)
+        print "IP pair selected"
+        # IP_Pair.objects.filter(pk=ip_pair.pk).update(inQueue=True, tasks_out+= 1)
         # ip_pair.update(inQueue=True)
         # ip_pair.update(tasks_out=F("tasks_out") + 1)
-        # ip_pair.inQueue = True
-        # ip_pair.tasks_out += 1
-        # ip_pair.save()
+        ip_pair.inQueue = True
+        ip_pair.tasks_out += 1
+        ip_pair.save(update_fields=["inQueue", "tasks_out"])
+        ip_pair.refresh_from_db()
+    else:
+        print "IP pair was none"
 
     return ip_pair, eddy_time
 
@@ -204,12 +216,15 @@ def lotteryPendingQueue(ipSet):
         chosenIP.inQueue = True
         chosenIP.item.inQueue = True
         chosenIP.item.save()
+        chosenIP.predicate.save(update_fields=["num_tickets", "num_pending"])
+        chosenIP.save(update_fields=['inQueue'])
 
+    chosenIP.predicate.refresh_from_db()
     # if the queue is full, update the predicate
     if chosenIP.predicate.num_pending >= PENDING_QUEUE_SIZE:
         chosenIP.predicate.queue_is_full = True
 
-    chosenIP.predicate.save()
+    chosenIP.predicate.save(update_fields=["queue_is_full"])
     return chosenIP
 
 #____________STAT UPDATES____________#
@@ -217,8 +232,11 @@ def updateCounts(workerTask, chosenIP):
     """
     Update all the stats after a IP_Pair is choosen and a vote is casted.
     """
+    chosenIP.refresh_from_db()
+    workerTask.refresh_from_db()
     chosenPred = chosenIP.predicate
     chosenIP.status_votes += 1
+    chosenIP.tot_votes += 1
     chosenPred.totalTasks += 1
     chosenPred.num_wickets = F('num_wickets') + 1
 
@@ -237,6 +255,9 @@ def updateCounts(workerTask, chosenIP):
     chosenPred.updateSelectivity()
     chosenPred.updateCost()
 
+    chosenIP.save(update_fields=["value", "num_yes", "num_no", "status_votes", "tot_votes"])
+    chosenPred.save(update_fields=["totalNo"])
+
     # check if the ip_pair is finished and update accordingly
     if chosenIP.status_votes == NUM_CERTAIN_VOTES:
         # calculate the probability of this vote scheme happening
@@ -254,9 +275,16 @@ def updateCounts(workerTask, chosenIP):
 
             # need to update status in the item as well
             chosenIP.isDone = True
+            chosenIP.save(update_fields=["isDone"])
+            print "************************************************************************************************"
+            print "Completed IP Pair: " + str(chosenIP)
+            print "Total votes: " + str(chosenIP.tot_votes)
+            print "Total yes: " + str(chosenIP.num_yes) + "  Total no: " + str(chosenIP.num_no)
+            print "************************************************************************************************"
             if not chosenIP.isFalse() and chosenPred.num_tickets > 1:
                 chosenPred.num_tickets -= 1
             chosenIP.item.save()
+            chosenPred.save(update_fields=["num_tickets"])
 
             # take one from the queue
             if (EDDY_SYS == 1):
@@ -265,12 +293,15 @@ def updateCounts(workerTask, chosenIP):
                 chosenPred.num_pending -= 1
                 chosenPred.queue_is_full = False
                 chosenIP.item.inQueue = False
-                chosenIP.item.save()
+                chosenIP.item.save(update_fields=["inQueue"])
+                chosenIP.save(update_fields=['inQueue'])
+                chosenPred.save(update_fields=['num_pending', 'queue_is_full'])
 
             # first update all ip's with failed items
             IP_Pair.objects.filter(item__hasFailed=True).update(isDone=True)
         else:
             chosenIP.status_votes -= 2
+            chosenIP.save(update_fields=["status_votes"])
 
     # POSSIBLE IMPLEMENTAION OF ALMOST_FALSE
     elif ((ITEM_SYS == 2) and (chosenIP.value < 0)):

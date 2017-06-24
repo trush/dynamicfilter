@@ -145,6 +145,7 @@ class SimulationTest(TransactionTestCase):
 		"""
 		Simulates the vote of a worker on a ip_pair from real data
 		"""
+		chosenIP.refresh_from_db()
 		start = time.time()
 		#if chosenIP is not None:
 
@@ -171,6 +172,8 @@ class SimulationTest(TransactionTestCase):
 
 		if not SIMULATE_TIME:
 			updateCounts(t, chosenIP)
+			t.refresh_from_db()
+			chosenIP.refresh_from_db()
 
 		end = time.time()
 		runTime = end - start
@@ -180,6 +183,7 @@ class SimulationTest(TransactionTestCase):
 		"""
 		synthesize a task
 		"""
+		chosenIP.refresh_from_db()
 		start = time.time()
 		if chosenIP is None:
 			t = None
@@ -202,21 +206,24 @@ class SimulationTest(TransactionTestCase):
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
 				startTime=start_task, endTime=end_task)
 		t.save()
+		t.refresh_from_db()
 
 		if not SIMULATE_TIME:
 			updateCounts(t, chosenIP)
+			t.refresh_from_db()
+			chosenIP.refresh_from_db()
 		end = time.time()
 		runTime = end - start
 		return t, runTime
 
-	def pick_worker(self, busyWorkers):
+	def pick_worker(self, busyWorkers, triedWorkers):
 		"""
 		Pick a random worker identified by a string
 		"""
 		global SAMPLING_ARRAY
 		Replacement = True
 		choice = busyWorkers[0]
-		while choice in busyWorkers:
+		while (choice in busyWorkers) or (choice in triedWorkers):
 			## uniform distribution
 			if DISTRIBUTION_TYPE == 0:
 				choice = str(randint(1,NUM_WORKERS))
@@ -315,24 +322,29 @@ class SimulationTest(TransactionTestCase):
 		workerDone = True
 		a_num = NUM_WORKERS - len(b_workers)
 		triedWorkers = set()
+		attempts = 0
 		while (workerDone and (len(triedWorkers) != a_num)):
-
-			workerID = self.pick_worker(b_workers)
+			attempts += 1
+			print "Calling pick_worker() " + str(attempts)
+			print "Tried: " +  str(len(triedWorkers)) + " so far"
+			workerID = self.pick_worker(b_workers, triedWorkers)
 			triedWorkers.add(workerID)
 			workerDone, workerDoneTime = worker_done(workerID)
 
 			if workerDone:
 				workerID = None
 				worker_no_tasks += 1
-
+			# reset b_workers (to exclude tried workers) -- prevents the list from needlessly expanding a lot each iteration
 		if workerID is not None:
+			print "Worker picked"
 			# select a task to assign to this person
 			ip_pair, eddy_time = give_task(active_tasks, workerID)
-
+			ip_pair.refresh_from_db()
 			if REAL_DATA:
 				task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 			else:
 				task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
+			task.refresh_from_db()
 		else:
 			task = None
 			workerID = None
@@ -377,7 +389,7 @@ class SimulationTest(TransactionTestCase):
 				ip_pair = IP_Pair.objects.get(item=key[0],predicate=key[1])
 				# do tasks until pair is done
 				while not ip_pair.isDone:
-					workerID = self.pick_worker()
+					workerID = self.pick_worker([0], [0])
 					self.simulate_task(ip_pair, workerID, dictionary)
 					num_tasks += 1
 
@@ -392,7 +404,7 @@ class SimulationTest(TransactionTestCase):
 		while(ip_pair != None):
 
 			# only increment if worker is actually doing a task
-			workerID = self.pick_worker()
+			workerID = self.pick_worker([0], [0])
 			#workerDone = worker_done(workerID)[0]
 
 			if not IP_Pair.objects.filter(isDone=False):
@@ -460,15 +472,21 @@ class SimulationTest(TransactionTestCase):
 		if SIMULATE_TIME:
 
 			while (IP_Pair.objects.filter(isDone=False).exists() or active_tasks) :
+				# IP_Pair.objects.all().refresh_from_db()
 				if DEBUG_FLAG:
 					if (time_clock % 10 == 0):
 						print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ t =  " + str(time_clock) + " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
 						print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-						for task in active_tasks:
-							print str(task) + " will expire at t = " + str(task.endTime)
+						# for task in active_tasks:
+							# print str(task) + " will expire at t = " + str(task.endTime)
 						print "There are still " + str(IP_Pair.objects.filter(isDone=False).count()) +  " incomplete IP pairs"
-						for i in IP_Pair.objects.all():
-							print str(i) + "with id" + str(i.pk) +  " has " + str(i.tasks_out) + " tasks out"
+						for i in IP_Pair.objects.filter(tasks_out__gt=0):
+							# i.refresh_from_db()
+							print str(i) + " with id " + str(i.pk) +  " has " + str(i.tasks_out) + " tasks out"
+						for p in Predicate.objects.filter(queue_is_full=True):
+							print str(p) + " queue is full"
+						for i in Item.objects.filter(inQueue=True):
+							print str(i) + " is in queue"
 						print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
 					if len(active_tasks) == 0:
 						print "active tasks is empty"
@@ -477,21 +495,25 @@ class SimulationTest(TransactionTestCase):
 				# check if any tasks have reached completion, update bookkeeping
 				for task in active_tasks:
 					endTimes.append(task.endTime)
-					print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " previously had " + str(task.ip_pair.tasks_out) + "tasks out"
+					# print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " previously had " + str(task.ip_pair.tasks_out) + "tasks out"
 					if (task.endTime <= time_clock):
 						if task.ip_pair.isDone == False:
 							updateCounts(task, task.ip_pair)
-							print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " had " + str(task.ip_pair.tasks_out) + "tasks out after updateCounts"
+							# print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " had " + str(task.ip_pair.tasks_out) + "tasks out after updateCounts"
+						task.refresh_from_db()
+						task.ip_pair.refresh_from_db()
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
-						print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " had " + str(task.ip_pair.tasks_out) + "tasks out after removing from active array"
+						# print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " had " + str(task.ip_pair.tasks_out) + "tasks out after removing from active array"
 						# tasksOut -= 1
-						IP_Pair.objects.filter(pk=task.ip_pair.pk).update(tasks_out=F("tasks_out") - 1)
+						# IP_Pair.objects.filter(pk=task.ip_pair.pk).update(tasks_out-=1)
 						# task.ip_pair.update(tasks_out=F("tasks_out") - 1)
 						# IP_Pair.objects.filter(pk__in=task.ip_pair.pk).update(tasks_out=tasksOut)
-						# task.ip_pair.tasks_out -= 1
-						print "********" + str(task.ip_pair) + "had tasks_out decremented by 1"
-						print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " has " + str(task.ip_pair.tasks_out) + "tasks out after decrementing by one"
+						task.ip_pair.tasks_out -= 1
+						task.ip_pair.save(update_fields=["tasks_out"])
+						task.ip_pair.refresh_from_db()
+						# print "********" + str(task.ip_pair) + "had tasks_out decremented by 1"
+						# print str(task.ip_pair) + " with id: " + str(task.ip_pair.pk) + " has " + str(task.ip_pair.tasks_out) + "tasks out after decrementing by one"
 						# task.ip_pair.save()
 						num_tasks += 1
 
@@ -518,7 +540,7 @@ class SimulationTest(TransactionTestCase):
 								print "task added: " + str(task)
 								print "It will expire at t = " + str(task.endTime)
 								print "The tasks's IP pair has " + str(task.ip_pair.tasks_out) + " tasks out"
-								print "accessing a different way, the task's ip pair has " + str(IP_Pair.objects.filter(pk=task.ip_pair.pk).values("tasks_out")) + " tasks out"
+								# print "accessing a different way, the task's ip pair has " + str(IP_Pair.objects.filter(pk=task.ip_pair.pk).values("tasks_out")) + " tasks out"
 								print "number of active tasks is: " +  str(len(active_tasks))
 
 							# ITEM ROUTING DATA COLLECTION
@@ -563,12 +585,13 @@ class SimulationTest(TransactionTestCase):
 						for count in range(NUM_QUESTIONS):
 							predicate = Predicate.objects.get(pk=count+1)
 							ticketNums[count].append(predicate.num_tickets)
+				# IP_Pair.objects.all().refresh_from_db()
 
 		else:
 			while(ip_pair != None):
 
 				# only increment if worker is actually doing a task
-				workerID = self.pick_worker([0]) # array needed to make pick_worker run
+				workerID = self.pick_worker([0], [0]) # array needed to make pick_worker run
 				workerDone, workerDoneTime = worker_done(workerID)
 
 				if not IP_Pair.objects.filter(isDone=False):
@@ -632,9 +655,9 @@ class SimulationTest(TransactionTestCase):
 			if DEBUG_FLAG:
 				print "Wrote File: " + dest + ".csv"
 			if GEN_GRAPHS:
-				line_graph_gen([dataToWrite[0], dataToWrite[1]], dest + ".png",
+				line_graph_gen(dataToWrite[0], dataToWrite[1], dest + ".png",
 							labels = ("Number Tasks Completed", "Number IP Pairs Completed"),
-							title = "Number Items Categorized vs. Number Tasks Completed")
+							title = "Number IP Pairs Done vs. Number Tasks Completed")
 
 		if TRACK_NO_TASKS:
 			dest = OUTPUT_PATH + RUN_NAME + "noTasks.csv"
@@ -1037,7 +1060,7 @@ class SimulationTest(TransactionTestCase):
 		Runs a simulation of real data and prints out the number of tasks
 		ran to complete the filter
 		"""
-		# dest = "dynamicfilterapp/simulation_files/output/aa_terminal_out7.txt"
+		# dest = "dynamicfilterapp/simulation_files/output/aa_terminal_out11.txt"
 		# with open(dest, 'w') as terminalOut:
 			# sys.stdout = terminalOut
 
@@ -1085,7 +1108,7 @@ class SimulationTest(TransactionTestCase):
 				self.sim_average_cost(sampleData)
 				self.reset_database()
 			if RUN_SINGLE_PAIR:
-				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0])))
+				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
 				self.reset_database()
 		else:
 			sampleData = {}
