@@ -28,14 +28,12 @@ def worker_done(ID):
 
     # if queue_pending_system:
     if (EDDY_SYS == 1):
-        for pred in Predicate.objects.all():
-            print str(pred) + " queue_is_full = " + str(pred.queue_is_full)
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
-        print "incompleteIP excluding out of full q: " + str(list(incompleteIP.exclude(id__in=outOfFullQueue).values_list('id', flat = True)))
+        # print "incompleteIP excluding out of full q: " + str(list(incompleteIP.exclude(id__in=outOfFullQueue).values_list('id', flat = True)))
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-        print "incompleteIP excluding nonUnique: " + str(list(incompleteIP.exclude(id__in=nonUnique).values_list('id', flat = True)))
+        # print "incompleteIP excluding nonUnique: " + str(list(incompleteIP.exclude(id__in=nonUnique).values_list('id', flat = True)))
         allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
-        print "incompleteIP excluding allTasksOut: " + str(list(incompleteIP.exclude(id__in=allTasksOut).values_list('id', flat=True)))
+        # print "incompleteIP excluding allTasksOut: " + str(list(incompleteIP.exclude(id__in=allTasksOut).values_list('id', flat=True)))
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
 
     if not incompleteIP:
