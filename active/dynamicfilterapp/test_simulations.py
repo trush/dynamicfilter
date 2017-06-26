@@ -122,22 +122,33 @@ class SimulationTest(TransactionTestCase):
 
 		return sampleData
 
-	def get_correct_answers(self, filename, numQuestions):
+	def get_correct_answers(self, filename):
 	    #read in answer data
-	    answers = np.genfromtxt(fname = filename, dtype = None, delimiter = ",")
-
+		raw = generic_csv_read(filename)
+		data = []
+		for row in raw:
+			l=[row[0]]
+			for val in row[1:]:
+				if val == "FALSE" or val == "False":
+					l.append(False)
+				elif val == "TRUE" or val == "True":
+					l.append(True)
+				else:
+					raise ValueError("Error in correctAnswers csv file")
+			data.append(l)
+		answers = data
 	    # create an empty dictionary that we'll populate with (item, predicate) keys
 	    # and boolean correct answer values
-	    correctAnswers = {}
+		correctAnswers = {}
 
-	    for line in answers:
-	        for i in range(numQuestions):
-	            key = (Item.objects.get(name = line[0]),
-	                    Predicate.objects.get(pk = i+1))
-	            value = line[i+1]
-	            correctAnswers[key] = value
+		for line in answers:
+			for i in range(len(line)-1):
+				key = (Item.objects.get(name = line[0]),
+					Predicate.objects.get(pk = i+1))
+				value = line[i+1]
+				correctAnswers[key] = value
 
-	    return correctAnswers
+		return correctAnswers
 
 	###___HELPERS USED FOR SIMULATION___###
 	def simulate_task(self, chosenIP, workerID, time_clock, dictionary):
@@ -357,7 +368,7 @@ class SimulationTest(TransactionTestCase):
 				e.g. [4,2] instead of [2,4] (for restaurants)
 		"""
 		# get correct answers from file
-		answers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+		answers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv')
 		# select only the chosen predicates
 		predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
 		idD={}
@@ -910,7 +921,7 @@ class SimulationTest(TransactionTestCase):
 		incorrectStdDevs = []
 
 		# set up the set of items that SHOULD be passed
-		correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+		correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv')
 		shouldPass = self.get_passed_items(correctAnswers)
 
 		for val in uncertainties:
@@ -1113,7 +1124,7 @@ class SimulationTest(TransactionTestCase):
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
 		if TEST_ACCURACY:
-			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv')
 			passedItems = self.get_passed_items(correctAnswers)
 
 
@@ -1143,6 +1154,7 @@ class SimulationTest(TransactionTestCase):
 
 			runTasksArray = []
 			goodArray, badArray = [], []
+			goodPoints, badPoints = [], []
 
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i+1)
@@ -1165,13 +1177,17 @@ class SimulationTest(TransactionTestCase):
 							if (correctAnswers[(pair.item,pair.predicate)]) == val:
 								goodPairs.append(pair)
 								goodArray.append(pair.num_no+pair.num_yes)
+								goodPoints.append((pair.num_no,pair.num_yes))
 							else:
 								badPairs.append(pair)
 								badArray.append(pair.num_no+pair.num_yes)
+								badPoints.append((pair.num_no,pair.num_yes))
 					else:
 						reals = IP_Pair.objects.filter(Q(num_no__gt=0)|Q(num_yes__gt=0))
 						for pair in reals:
 							goodArray.append(pair.num_no + pair.num_yes)
+							goodPoints.append((pair.num_no,pair.num_yes))
+
 					#print "This is number of incorrect items: ", num_incorrect
 
 				self.reset_database()
@@ -1216,10 +1232,10 @@ class SimulationTest(TransactionTestCase):
 				if len(goodArray)>1:
 					if len(badArray) == 0:
 						generic_csv_write(dest+'.csv',[goodArray])
-						print goodArray
+						#print goodArray
 					else:
 						generic_csv_write(dest+'.csv',[goodArray,badArray])
-						print goodArray,badArray
+						#print goodArray,badArray
 					if DEBUG_FLAG:
 						print "Wrote File: " + dest + '.csv'
 					if GEN_GRAPHS:
@@ -1232,7 +1248,26 @@ class SimulationTest(TransactionTestCase):
 							multi_hist_gen([goodArray,badArray],leg,dest+'.png',labels=labels,title=title)
 				elif DEBUG_FLAG:
 					print "only ran one sim, ignoring results"
-
+			if VOTE_GRID:
+				dest = OUTPUT_PATH + RUN_NAME+'_vote_grid'
+				if len(goodPoints)>1:
+					if len(badPoints)==0:
+						generic_csv_write(dest+'.csv',goodPoints)
+					else:
+						generic_csv_write(dest+'_good.csv',goodPoints)
+						generic_csv_write(dest+'_bad.csv',badPoints)
+					if GEN_GRAPHS:
+						title = "Vote Grid Graph"
+						labels = ("Number of No Votes","Number of Yes Votes")
+						if len(badPoints)==0:
+							xL,yL=zip(goodPoints)
+							line_graph_gen(xL,yL,dest+'.png',title=title,labels=labels,scatter=True,square=True)
+						else:
+							gX,gY = zip(*goodPoints)
+							bX,bY = zip(*badPoints)
+							multi_line_graph_gen((gX,bX),(gY,bY),('Correct','Incorrect'),dest+'_both.png',title=title,labels=labels,scatter=True,square=True)
+							line_graph_gen(gX,gY,dest+'_good.png',title=title+" goodPoints",labels=labels,scatter=True,square=True)
+							line_graph_gen(bX,bY,dest+'_bad.png',title=title+" badPoints",labels=labels,scatter=True,square=True)
 		if TIME_SIMS:
 			self.timeRun(sampleData)
 

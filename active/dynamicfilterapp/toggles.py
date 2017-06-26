@@ -4,8 +4,6 @@ from responseTimeDistribution import *
 
 RUN_NAME = 'StaticQ1' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 ITEM_TYPE = "Restaurant"
-#We have 5 questions for hotels right now, 10 for restaurants
-NUM_QUEST = 10 #used for accuracy testing
 
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
@@ -129,6 +127,8 @@ TEST_ACCURACY = False
 OUTPUT_SELECTIVITIES = False
 
 RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
+
+VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
 TEST_ACCURACY = False
 

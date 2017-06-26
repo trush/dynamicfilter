@@ -13,7 +13,7 @@ def dest_resolver(dest):
     """
     given a filename (ending in .png) returns a version which wont overide data
     """
-    if dest[-4:] != '.png':
+    if dest[-4:] != '.png' and dest[-4:] != '.csv':
         raise ValueError('Invalid File Extention')
     if os.path.isfile(dest):
         num = 1
@@ -146,9 +146,10 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     # save
     mx = 0
     for L in xL+yL:
-        mx = max(L+[mx])
+        mx = max(list(L)+[mx])
     if square:
         plt.axis([-1,mx+2,-1,mx+2])
+        plt.grid()
     plt.savefig(dest_resolver(dest))
 
 def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = None):
