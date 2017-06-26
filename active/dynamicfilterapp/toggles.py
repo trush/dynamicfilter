@@ -73,11 +73,14 @@ GEN_GRAPHS = False # if true, any tests run will generate their respective graph
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
 NUM_ITEMS = 100
+SIN = -1
+
+SELECTIVITY_GRAPH = True
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
 # selectvity of the previous timestep
-#switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
-switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (100, (0.7, 0.68), (0.6, 0.87))]
+switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
+#switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (100, (0.7, 0.68), (0.6, 0.87))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -104,7 +107,7 @@ NUM_SIM = 50 # how many simulations to run?
 
 TIME_SIMS = False
 
-RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 

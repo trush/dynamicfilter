@@ -61,6 +61,9 @@ class Predicate(models.Model):
 
     # fields to keep track of selectivity
     selectivity = models.FloatField(default=0.1)
+    calculatedSelectivity = models.FloatField(default=0.1)
+    trueSelectivity = models.FloatField(default=0.0)
+    trueAmbiguity = models.FloatField(default=0.0)
     totalTasks = models.FloatField(default=0.0)
     totalNo = models.FloatField(default=0.0)
     num_ip_complete = models.IntegerField(default=0)
@@ -74,8 +77,8 @@ class Predicate(models.Model):
         return "Predicate branch with question: " + self.question.question_text
 
     def updateSelectivity(self):
-        self.selectivity = self.totalNo/self.totalTasks
-        return self.selectivity
+        self.calculatedSelectivity = self.totalNo/self.totalTasks
+        return self.calculatedSelectivity
 
     def updateCost(self):
         self.cost = self.avg_completion_time * self.avg_tasks_per_pair

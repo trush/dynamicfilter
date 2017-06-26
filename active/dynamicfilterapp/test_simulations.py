@@ -150,12 +150,12 @@ class SimulationTest(TransactionTestCase):
 		runTime = end - start
 		return runTime
 
-	def syn_simulate_task(self, chosenIP, workerID, switch):
+	def syn_simulate_task(self, chosenIP, workerID, switch, numTasks):
 		"""
 		synthesize a task
 		"""
 		start = time.time()
-		value = syn_answer(chosenIP, switch)
+		value = syn_answer(chosenIP, switch, numTasks)
 
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
 		t.save()
@@ -179,7 +179,7 @@ class SimulationTest(TransactionTestCase):
 		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
 		Task.objects.all().delete()
 		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,
-			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
+			calculatedSelectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False, isStarted=False)
 		end = time.time()
 		reset_time = end - start
@@ -231,11 +231,12 @@ class SimulationTest(TransactionTestCase):
 		passedItems = []
 		itemsDoneArray = [0]
 		tasksArray = [0]
-		switch = 0
+		switch = 1
 		eddyTimes = []
 		taskTimes = []
 		workerDoneTimes = []
 		ticketNums = []
+		selectivities = []
 
 		#Setting up arrays to count tickets for ticketing counting graphs
 		if REAL_DATA:
@@ -244,6 +245,10 @@ class SimulationTest(TransactionTestCase):
 		else:
 			for count in range(NUM_QUESTIONS):
 				ticketNums.append([])
+
+		if SELECTIVITY_GRAPH:
+			for count in range(NUM_QUESTIONS):
+				selectivities.append([])
 		
 
 		#If running Item_routing, setup needed values
@@ -302,7 +307,7 @@ class SimulationTest(TransactionTestCase):
 				if REAL_DATA :
 					taskTime = self.simulate_task(ip_pair, workerID, dictionary)
 				else:
-					taskTime = self.syn_simulate_task(ip_pair, workerID, switch)
+					taskTime = self.syn_simulate_task(ip_pair, workerID, switch, num_tasks)
 
 
 				move_window()
@@ -319,6 +324,11 @@ class SimulationTest(TransactionTestCase):
 						for count in range(NUM_QUESTIONS):
 							predicate = Predicate.objects.get(pk=count+1)
 							ticketNums[count].append(predicate.num_tickets)
+
+				if SELECTIVITY_GRAPH:
+					for count in range(NUM_QUESTIONS):
+						predicate = Predicate.objects.get(pk=count+1)
+						selectivities[count].append(predicate.trueSelectivity)
 				# get a sense of what items have been ruled out and which ones
 				# are still in the running
 				#numRuledOut = Item.objects.filter(hasFailed = True).count()
@@ -345,6 +355,7 @@ class SimulationTest(TransactionTestCase):
 				#so we need index 0 of the tuple to get the time at which the switch should occur
 				if switch < len(switch_list) and switch_list[switch][0] == num_tasks:
 					switch += 1
+					"here"
 
 		#print num_tasks
 		#print str(itemsDoneArray)
@@ -362,11 +373,25 @@ class SimulationTest(TransactionTestCase):
 
 		if COUNT_TICKETS:
 			ticketCountsLegend = []
-			for predNum in range(len(CHOSEN_PREDS)):
-				ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
-			multi_line_graph_gen([range(num_tasks)]*len(CHOSEN_PREDS), ticketNums, ticketCountsLegend,
+			if REAL_DATA:
+				numPreds = len(CHOSEN_PREDS)
+				for predNum in range(predNum):
+					ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+			else:
+				numPreds = NUM_QUESTIONS
+				for predNum in range(predNum):
+					ticketCountsLegend.append("Pred " + str(predNum))
+			multi_line_graph_gen([range(num_tasks)]*numPreds, ticketNums, ticketCountsLegend,
 								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "ticketCounts.png",
 								labels = ("Number of simulations run", "Ticket counts"))
+
+		if SELECTIVITY_GRAPH:
+			selectivitiesLegend = []
+			for predNum in range(NUM_QUESTIONS):
+				selectivitiesLegend.append("Pred " + str(predNum))
+			multi_line_graph_gen([range(num_tasks)]*NUM_QUESTIONS, selectivities, selectivitiesLegend,
+								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "selectivities.png",
+								labels = ("Number of tasks completed in single simulation", "Predicate selectivities"))
 
 		# if this is the first time running a routing test
 		if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
@@ -793,6 +818,12 @@ class SimulationTest(TransactionTestCase):
 		if COUNT_TICKETS and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: ticket counting"
+			self.run_sim(sampleData)
+			self.reset_database()
+
+		if SELECTIVITY_GRAPH and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
+			if DEBUG_FLAG:
+				print "Running: selectivity amounts over time"
 			self.run_sim(sampleData)
 			self.reset_database()
 

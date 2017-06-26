@@ -310,7 +310,7 @@ def output_selectivities(run_name):
     f = open(OUTPUT_PATH + run_name + '_sample_selectivites.csv', 'a')
     for p in CHOSEN_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
-        f.write(str(pred.selectivity) + ", " + str(pred.totalTasks) + ", " + str(pred.num_ip_complete) + "; ")
+        f.write(str(pred.calculatedSelectivity) + ", " + str(pred.totalTasks) + ", " + str(pred.num_ip_complete) + "; ")
     f.write('\n')
     f.close()
 
@@ -336,6 +336,6 @@ def output_cost(run_name):
         if num_finished != 0:
             avg_cost = avg_cost/num_finished
 
-        f.write('\n' + 'avg cost: ' + str(avg_cost) + ', selectivity: ' + str(pred.selectivity) + '\n \n')
+        f.write('\n' + 'avg cost: ' + str(avg_cost) + ', calculated selectivity: ' + str(pred.calculatedSelectivity) + '\n \n')
     f.write('\n')
     f.close()
