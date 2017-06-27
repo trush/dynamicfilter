@@ -9,13 +9,11 @@ from collections import defaultdict
 import os.path
 import csv
 #from ..toggles import *
-SAVE_CONFIG_DATA = False # Expirimental info writing (doesn't work well atm)
-
 def dest_resolver(dest):
     """
     given a filename (ending in .png) returns a version which wont overide data
     """
-    if dest[-4:] != '.png':
+    if dest[-4:] != '.png' and dest[-4:] != '.csv':
         raise ValueError('Invalid File Extention')
     if os.path.isfile(dest):
         num = 1
@@ -26,22 +24,6 @@ def dest_resolver(dest):
         return name
     else:
         return dest
-
-def get_config_text():
-    """
-    a probably allready depricated system for getting run info to save into a graph
-    """
-    eddy_names = ["Queue", "Random", "Controlled"]
-    item_sys_names = ["Random", "Item-started", "item-almost-false"]
-    text = "Using Eddy system: " + eddy_names[EDDY_SYS-1]
-    text += " and Item System: " + item_sys_names[ITEM_SYS] +"\n"
-    if SLIDING_WINDOW:
-        text+= "Using Sliding window with LIFETIME = " + str(LIFETIME) +'\n'
-    elif EDDY_SYS == 1:
-        text += "PENDING_QUEUE_SIZE = " + str(PENDING_QUEUE_SIZE) +'\n'
-    text += "With consensus options: " +str(NUM_CERTAIN_VOTES) +";"+str(UNCERTAINTY_THRESHOLD) +";"
-    text += str(FALSE_THRESHOLD) +";"+str(DECISION_THRESHOLD) +";"+str(CUT_OFF) +"\n"
-    return text
 
 def generic_csv_write(filename, data):
     """
@@ -78,7 +60,7 @@ def generic_csv_read(filename):
     toRead.close()
     return retArray
 
-def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats = False):
+def hist_gen(data, dest, labels = ('',''), title='', smoothness=False, writeStats = False):
     """
     Automagically generates a Histogram for you from a given list of data and a
     destination name (ending in .png). Can additionally be passed many arguments
@@ -86,35 +68,9 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats
         title, a string title of your graph
         smoothness, defaults true, set False to get a blocky version instead
     """
+    multi_hist_gen([data], [None], dest, labels = labels, title = title,smoothness=smoothness)
 
-    if smoothness:
-        text = ''
-
-        # Expirimental section, writes out mean and count for single histograms
-        if writeStats:
-            avg = int(np.mean(data))
-            n = len(data)
-            text = ' $\mu=$' + str(avg) + ' $n=$'+str(n)
-        multi_hist_gen([data], [None], dest, labels = labels, title = title + text)
-    else:
-        #TODO make this section actually work consistently
-            #NOTE this problem has something to do with the second number passed
-                 #to ax.hist (currently 30) which I think is the number of boxes
-                 #total to make, it should probably scale with (mx) the highest
-                 #cost recorded
-        mx = max(data)
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        n, bins, patches = ax.hist(data, 30 , normed=1, facecolor='g')
-        ax.set_xlim(0, mx+5)
-        ax.set_ylim(0, 0.3)
-    	ax.set_xlabel(labels[0])
-    	ax.set_ylabel(labels[1])
-    	ax.set_title(title)
-    	ax.grid(True)
-        plt.savefig(dest_resolver(dest))
-
-def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
+def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothness=False):
     """
     Very similar to hist_gen, however takes a list of datasets and a list of
     names of your datasets and a destination name, plots all datasets on one
@@ -130,20 +86,15 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title=''):
     sns.despine(left=True)
     # the histogram of the data
     for i in range(len(dataList)):
-    	sns.distplot(dataList[i], hist=False, kde_kws={"shade": False}, ax=ax, label=legendList[i])
+    	sns.distplot(dataList[i], hist=(not smoothness), kde_kws={"shade": False}, ax=ax, label=legendList[i])
     ax.set_xlabel(labels[0])
     ax.set_ylabel(labels[1])
     ax.set_title(title)
     #ax.set_xlim(100, 320)
     ax.grid(True)
-    if SAVE_CONFIG_DATA:
-        ax.set_position((.1, .3, .8, .6)) # made room for 6 whole lines
-        text = get_config_text()
-
-        fig.text(0.02,0.02,text)
     plt.savefig(dest_resolver(dest))
 
-def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr = [], square = False):
+def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr = [], square = False, scatter=False):
     """
     Generate a linegraph from a set of x and y points, optional parameters:
         labels a touple in the format ('x-axis label', 'y-axis label')
@@ -153,9 +104,9 @@ def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr 
     std = []
     if len(stderr) != 0:
         std = [stderr]
-    multi_line_graph_gen([xpoints],[ypoints], [''], dest, labels=labels, title = title, stderrL = std, square = square)
+    multi_line_graph_gen([xpoints],[ypoints], [''], dest, labels=labels, title = title, stderrL = std, square = square, scatter=scatter)
 
-def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '', stderrL = [], square = False):
+def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '', stderrL = [], square = False, scatter=False):
     """
     plot multiple linegraphs on one graph. takes in lists of lists of x and y
     values for each graph, a list of strings for naming each linegraph and an
@@ -178,6 +129,8 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
         if len(stderrL) != 0:
             std = stderrL[i]
             ax.errorbar(x,y,yerr=std, label=legendList[i])
+        elif scatter:
+            ax.scatter(x, y, label=legendList[i])
         else:
             ax.plot(x, y, label=legendList[i])
 
@@ -193,9 +146,10 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     # save
     mx = 0
     for L in xL+yL:
-        mx = max(L+[mx])
+        mx = max(list(L)+[mx])
     if square:
         plt.axis([-1,mx+2,-1,mx+2])
+        plt.grid()
     plt.savefig(dest_resolver(dest))
 
 def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = None):
@@ -219,6 +173,39 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
     # Title the graph
     plt.title(title)
     plt.savefig(dest_resolver(dest))
+
+def split_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = '',split='vertical'):
+    knownSplits=('vertical','horizontal')
+    if len(dataL)<= 1:
+        raise ValueError("not enough data!")
+    if split not in knownSplits:
+        raise ValueError(str(split)+" Is not a known split")
+    fig = plt.figure()
+    pos = np.arange(len(dataL[0]))
+
+    if split=='vertical':
+        width = 0.9/len(dataL[0])
+        for i in range(len(dataL)):
+            ind = pos + (i*width)
+            plt.bar(ind,dataL[i],width)
+
+    if split=='horizontal':
+        width = 0.9
+        plt.bar(pos,dataL[0],width)
+        for i in range(1,len(dataL)):
+            ind = pos + (i*width)
+            plt.bar(pos,dataL[i],width,bottom=dataL[i-1])
+
+    plt.xticks(pos,legend)
+
+    # Label the axes
+    plt.xlabel(labels[0])
+    plt.ylabel(labels[1])
+
+    # Title the graph
+    plt.title(title)
+    plt.savefig(dest_resolver(dest))
+
 def stats_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = ''):
     avg, std = [],[]
     for L in dataL:

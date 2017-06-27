@@ -24,10 +24,12 @@ def worker_done(ID):
     completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
     incompleteIP = IP_Pair.objects.filter(isDone=False).exclude(id__in=completedIP)
 
+    # if queue_pending_system:
     if (EDDY_SYS == 1):
-    #if queue_pending_system:
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
+        #print "incompleteIP excluding out of full q: " + str(list(incompleteIP.exclude(id__in=outOfFullQueue).values_list('id', flat = True)))
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
+        #print "incompleteIP excluding nonUnique: " + str(list(incompleteIP.exclude(id__in=nonUnique).values_list('id', flat = True)))
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
 
     if not incompleteIP:
@@ -107,6 +109,41 @@ def move_window():
     else:
         pass
 
+def give_task(active_tasks, workerID):
+    ip_pair, eddy_time = pending_eddy(workerID)
+    if ip_pair is not None:
+        ip_pair.inQueue = True
+        ip_pair.tasks_out += 1
+        ip_pair.save()
+    # TODO keep track of the number of tasks issued for an IP pair
+    return ip_pair, eddy_time
+    
+def inc_queue_length(pred):
+    """
+    increase the queue_length value of the given predicate by one
+    also takes care of fullness
+    """
+    pred.queue_length = F('queue_length') + 1
+    pred.queue_is_full = False
+    pred.save()
+    return pred.queue_length
+
+def dec_queue_length(pred):
+    """
+    decreases the queue_length value of the given predicate by one
+    raises an error if the pred was full when called
+    """
+    if (pred.queue_is_full):
+        raise ValueError("Tried to decrement the queue_length of a predicate with a full queue")
+    old = pred.queue_length
+    if old == 1:
+        raise ValueError("Tried to decrement queue_length to zero")
+    pred.queue_length = old-1
+    if pred.num_pending >= (old - 1):
+        pred.queue_is_full = True
+    pred.save()
+    return old-1
+
 #____________LOTTERY SYSTEMS____________#
 def chooseItem(ipSet):
     """
@@ -161,7 +198,6 @@ def lotteryPendingTickets(ipSet):
     chosenIP.predicate.num_pending += 1
     chosenIP.predicate.save()
 
-    #print chosenIP
     return chosenIP
 
 def lotteryPendingQueue(ipSet):
@@ -196,7 +232,7 @@ def lotteryPendingQueue(ipSet):
         chosenIP.item.save()
 
     # if the queue is full, update the predicate
-    if chosenIP.predicate.num_pending >= PENDING_QUEUE_SIZE:
+    if chosenIP.predicate.num_pending >= chosenIP.predicate.queue_length:
         chosenIP.predicate.queue_is_full = True
 
     chosenIP.predicate.save()
@@ -250,6 +286,7 @@ def updateCounts(workerTask, chosenIP):
         chosenIP.value -= 1
         chosenIP.num_no +=1
         chosenPred.totalNo += 1
+    #TODO update stats about amount of worker time spent on a given IP pair?
 
     #update predicate statistics
     chosenPred.updateSelectivity()
