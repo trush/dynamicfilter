@@ -9,6 +9,9 @@ from collections import defaultdict
 import os.path
 import csv
 #from ..toggles import *
+
+Suppress = True
+
 def dest_resolver(dest):
     """
     given a filename (ending in .png) returns a version which wont overide data
@@ -85,8 +88,15 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothne
     ax = fig.add_subplot(111)
     sns.despine(left=True)
     # the histogram of the data
-    for i in range(len(dataList)):
-    	sns.distplot(dataList[i], hist=(not smoothness), kde_kws={"shade": False}, ax=ax, label=legendList[i])
+    try:
+        for i in range(len(dataList)):
+        	sns.distplot(dataList[i], hist=(not smoothness), kde_kws={"shade": False}, ax=ax, label=legendList[i])
+    except:
+        if Suppress:
+            print "Something went wrong. Plotting skipped"
+            return
+        else:
+            raise ValueError("Something went wrong")
     ax.set_xlabel(labels[0])
     ax.set_ylabel(labels[1])
     ax.set_title(title)
@@ -122,18 +132,24 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     if len(xL) != len(yL):
         raise ValueError('xL and yL are different lengths!')
 
-    # Plot each given line
-    for i in range(len(xL)):
-        x, y = xL[i], yL[i]
-        # If given errors, plot them
-        if len(stderrL) != 0:
-            std = stderrL[i]
-            ax.errorbar(x,y,yerr=std, label=legendList[i])
-        elif scatter:
-            ax.scatter(x, y, label=legendList[i])
+    try:
+        # Plot each given line
+        for i in range(len(xL)):
+            x, y = xL[i], yL[i]
+            # If given errors, plot them
+            if len(stderrL) != 0:
+                std = stderrL[i]
+                ax.errorbar(x,y,yerr=std, label=legendList[i])
+            elif scatter:
+                ax.scatter(x, y, label=legendList[i],alpha=0.2)
+            else:
+                ax.plot(x, y, label=legendList[i])
+    except:
+        if Suppress:
+            print "Something went wrong. Plotting skipped"
+            return
         else:
-            ax.plot(x, y, label=legendList[i])
-
+            raise ValueError("Something went wrong")
     # Label the axes
     plt.xlabel(labels[0])
     plt.ylabel(labels[1])
@@ -163,7 +179,14 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
         raise ValueError('data and legend are different lengths!')
     fig = plt.figure()
     pos = np.arange(len(data))
-    plt.bar(pos, data, align='center', alpha = 0.5, yerr = stderr)
+    try:
+        plt.bar(pos, data, align='center', alpha = 0.5, yerr = stderr)
+    except:
+        if Suppress:
+            print "Something went wrong. Plotting skipped"
+            return
+        else:
+            raise ValueError("Something went wrong")
     plt.xticks(pos,legend)
 
     # Label the axes
@@ -182,20 +205,25 @@ def split_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = '',split=
         raise ValueError(str(split)+" Is not a known split")
     fig = plt.figure()
     pos = np.arange(len(dataL[0]))
+    try:
+        if split=='vertical':
+            width = 0.9/len(dataL[0])
+            for i in range(len(dataL)):
+                ind = pos + (i*width)
+                plt.bar(ind,dataL[i],width)
 
-    if split=='vertical':
-        width = 0.9/len(dataL[0])
-        for i in range(len(dataL)):
-            ind = pos + (i*width)
-            plt.bar(ind,dataL[i],width)
-
-    if split=='horizontal':
-        width = 0.9
-        plt.bar(pos,dataL[0],width)
-        for i in range(1,len(dataL)):
-            ind = pos + (i*width)
-            plt.bar(pos,dataL[i],width,bottom=dataL[i-1])
-
+        elif split=='horizontal':
+            width = 0.9
+            plt.bar(pos,dataL[0],width)
+            for i in range(1,len(dataL)):
+                ind = pos + (i*width)
+                plt.bar(pos,dataL[i],width,bottom=dataL[i-1])
+    except:
+        if Suppress:
+            print "Something went wrong. Plotting skipped"
+            return
+        else:
+            raise ValueError("Something went wrong")
     plt.xticks(pos,legend)
 
     # Label the axes

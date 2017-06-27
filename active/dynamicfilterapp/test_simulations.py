@@ -20,6 +20,7 @@ import sys
 import io
 import csv
 import time
+from copy import deepcopy
 
 # Global Variables for Item Routing tests
 HAS_RUN_ITEM_ROUTING = False #keeps track of if a routing test has ever run
@@ -161,6 +162,9 @@ class SimulationTest(TransactionTestCase):
 		# simulated worker votes
 		#print chosenIP
 		value = choice(dictionary[chosenIP])
+		if not RESPONSE_SAMPLING_REPLACEMENT:
+			#print len(dictionary[chosenIP])
+			dictionary[chosenIP].remove(value)
 		if SIMULATE_TIME:
 			if value :
 				#worker said true, take from true distribution
@@ -1113,13 +1117,13 @@ class SimulationTest(TransactionTestCase):
 		if RUN_ITEM_ROUTING and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: item Routing"
-			self.run_sim(sampleData)
+			self.run_sim(deepcopy(sampleData))
 			self.reset_database()
 
 		if COUNT_TICKETS and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: ticket counting"
-			self.run_sim(sampleData)
+			self.run_sim(deepcopy(sampleData))
 			self.reset_database()
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
@@ -1158,7 +1162,7 @@ class SimulationTest(TransactionTestCase):
 
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i+1)
-				retValues = self.run_sim(sampleData)
+				retValues = self.run_sim(deepcopy(sampleData))
 				num_tasks = retValues[0]
 				runTasksArray.append(num_tasks)
 
@@ -1241,7 +1245,7 @@ class SimulationTest(TransactionTestCase):
 					if GEN_GRAPHS:
 						title = 'Normalized Distribution of Tasks before Consensus'
 						labels = ('Number of Tasks', 'Frequency')
-						if len(badArray) == 0:
+						if len(badArray) < 2:
 							hist_gen(goodArray, dest+'.png',labels=labels,title=title)
 						else:
 							leg = ('Correctly Evaluated IP pairs','Incorrectly Evaluated IP pairs')
@@ -1260,7 +1264,7 @@ class SimulationTest(TransactionTestCase):
 						title = "Vote Grid Graph"
 						labels = ("Number of No Votes","Number of Yes Votes")
 						if len(badPoints)==0:
-							xL,yL=zip(goodPoints)
+							xL,yL=zip(*goodPoints)
 							line_graph_gen(xL,yL,dest+'.png',title=title,labels=labels,scatter=True,square=True)
 						else:
 							gX,gY = zip(*goodPoints)

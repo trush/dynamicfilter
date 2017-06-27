@@ -2,23 +2,23 @@ import datetime as DT
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'StaticQ1' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-ITEM_TYPE = "Restaurant"
+RUN_NAME = 'Accuracy' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+ITEM_TYPE = "Hotel"
 
-INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
+INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-IP_PAIR_DATA_FILE = 'real_data1.csv'
+IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
 DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-NUM_CERTAIN_VOTES = 5
+NUM_CERTAIN_VOTES = 3
 UNCERTAINTY_THRESHOLD = 0.2
 FALSE_THRESHOLD = 0.2
-DECISION_THRESHOLD = 0.5
-CUT_OFF = 21
+DECISION_THRESHOLD = 0.7
+CUT_OFF = 23
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
@@ -36,7 +36,7 @@ EDDY_SYS = 1
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [2,9] # predicates that will be used when run on real data
+CHOSEN_PREDS = [1,4] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -63,7 +63,7 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 10
 
-ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
@@ -84,6 +84,7 @@ GEN_GRAPHS = True # if true, any tests run will generate their respective graphs
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
+RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response data with or without replacement
 
 RUN_ABSTRACT_SIM = False
 
@@ -106,11 +107,11 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 50 # how many simulations to run?
+NUM_SIM = 10 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = True # simulate time passing/concurrency
+SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 10 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 
@@ -121,16 +122,14 @@ TRACK_IP_PAIRS_DONE = False
 TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-TEST_ACCURACY = False
+TEST_ACCURACY = True
 
 
 OUTPUT_SELECTIVITIES = False
 
-RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
+RUN_CONSENSUS_COUNT = True # keeps track of the number of tasks needed before consensus for each IP
 
 VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
-
-TEST_ACCURACY = False
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
