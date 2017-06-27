@@ -49,12 +49,12 @@ def generic_csv_read(filename):
     for row in reader:
         if len(row) > 0:
             try:
-                int(row[0])
-                isInt=True
+                float(row[0])
+                isFloat=True
             except ValueError:
                 isInt=False
-        if isInt:
-            retArray.append(map(int, row))
+        if isFloat:
+            retArray.append(map(float, row))
         else:
             retArray.append(row)
     toRead.close()

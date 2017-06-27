@@ -101,9 +101,6 @@ class IP_Pair(models.Model):
     # a marker for the status of the IP
     status_votes = models.IntegerField(default=0)
 
-    # total number of votes collected for an IP pair
-    tot_votes = models.IntegerField(default=0)
-
     inQueue = models.BooleanField(default=False)
 
     # for random algorithm

@@ -36,7 +36,7 @@ EDDY_SYS = 1
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
-PENDING_QUEUE_SIZE = 3
+PENDING_QUEUE_SIZE = 5
 
 CHOSEN_PREDS = [2,5] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
@@ -107,9 +107,9 @@ NUM_SIM = 2 # how many simulations to run?
 TIME_SIMS = False # track the computer runtime of simulations
 
 SIMULATE_TIME = True # simulate time passing/concurrency
-MAX_TASKS = 10 # maximum number of active tasks in a simulation with time
+MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
-MAX_TASKS_OUT = 9
+MAX_TASKS_OUT = 5
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
