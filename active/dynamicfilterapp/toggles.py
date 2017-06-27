@@ -79,7 +79,7 @@ SELECTIVITY_GRAPH = True
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
 # selectvity of the previous timestep
-switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
+switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .1, 400, .1, .6), 0.68), (0.6, 0.87))]
 #switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (100, (0.7, 0.68), (0.6, 0.87))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################

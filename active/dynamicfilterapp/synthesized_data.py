@@ -45,28 +45,43 @@ def syn_answer(chosenIP, switch, numTasks):
 #TODO: If trans is 0, it starts at the selectvity of the previous timestep
 
 	timeStepInfo = switch_list[switch]
-	pred = chosenIP.predicate
-	ID = pred.predicate_ID
+	#pred = chosenIP.predicate
+	#ID = pred.predicate_ID
 	#add 1 because index 0 of timeStepInfo is the timestep. After that are the pred tuples
-	predInfo = timeStepInfo[ID+1]
+	#predInfo = timeStepInfo[ID+1]
 
-	#TODO more elegant way. make it so you dont' have to pass pred into the sin function
-	if isinstance(predInfo[0], tuple):
-		selSinInfo = predInfo[0]
-		selSinVal = getSinValue(selSinInfo, numTasks, pred)
-		pred.trueSelectivity = selSinVal
-	else:
-		pred.trueSelectivity = predInfo[0]
+	#TODO more elegant way
+	# print "timeStepInfo: ", str(switch_list[switch])
+	# print "ID+1: ", str(ID+1)
+	# print "predInfo: ", str(predInfo)
+	# print "switch: ", str(switch)
 
-	if isinstance(predInfo[1], tuple):
-		ambSinInfo = predInfo[1]
-		ambSinVal = getSinValue(ambSinInfo, numTasks, pred)
-		pred.trueAmbiguity = ambSinVal
-	else:
-		pred.trueAmbiguity = predInfo[1]
+	for predNum in range(NUM_QUESTIONS):
 
-	#TODO giving error
-	pred.save()
+		pred = Predicate.objects.get(pk=predNum+1)
+		predInfo = timeStepInfo[predNum+1]
+
+		if isinstance(predInfo[0], tuple):
+			selSinInfo = predInfo[0]
+			samplingFrac = selSinInfo[3]
+			period = selSinInfo[2]
+			#TODO make sure rounding won't ruin things
+			print "smaplingFrac*period: ", str(samplingFrac*period)
+			if((numTasks % (samplingFrac*period)) == 0):
+				pred.trueSelectivity = getSinValue(selSinInfo, numTasks)
+		else:
+			pred.trueSelectivity = predInfo[0]
+
+		if isinstance(predInfo[1], tuple):
+			ambSinInfo = predInfo[1]
+			samplingFrac = ambSinInfo[3]
+			period = ambSinInfo[2]
+			if((numTasks % (samplingFrac*period)) == 0):
+				pred.trueAmbiguity = getSinValue(ambSinInfo, numTasks)
+		else:
+			pred.trueAmbiguity = predInfo[1]
+
+		pred.save()
 
 	# decide if the answer is going to lean towards true or false
 	# lean towards true
@@ -80,16 +95,18 @@ def syn_answer(chosenIP, switch, numTasks):
 	return value
 
 def getSinValue(sinInfo, numTasks):
-	samplingFrac = sinInfo[3]
+	print "in sin fcn"
 	period = sinInfo[2]
-	#TODO make sure rounding won't ruin things
-	if((numTasks % (samplingFrac*period)) == 0):
-		print "here"
-		degrees = (numTasks % period)/period*360.0
-		radians = math.radians(degrees)
-		trans = selSinInfo[4]
-		amp = selSinInfo[1]
-		return trans + math.sin(radians)*amp
+	degrees = (numTasks % period)/(1.0*period)*360
+	radians = math.radians(degrees)
+	trans = sinInfo[4]
+	amp = sinInfo[1]
+	# print "degrees: ", str(degrees)
+	# print "radians: ", str(radians)
+	# print "amp: ", str (amp)
+	# print "trans: ", str(trans)
+	# print "sin val: " + str(math.sin(radians)*amp)
+	return trans + math.sin(radians)*amp
 
 def decision(probability):
 	"""

@@ -231,7 +231,7 @@ class SimulationTest(TransactionTestCase):
 		passedItems = []
 		itemsDoneArray = [0]
 		tasksArray = [0]
-		switch = 1
+		switch = 0
 		eddyTimes = []
 		taskTimes = []
 		workerDoneTimes = []
@@ -351,11 +351,16 @@ class SimulationTest(TransactionTestCase):
 
 				#itemsDoneArray.append(numItemsDone)
 
+				print "num tasks: ", str(num_tasks)
+				#print "switch+1: ", str(switch+1)
+
 				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 				#so we need index 0 of the tuple to get the time at which the switch should occur
-				if switch < len(switch_list) and switch_list[switch][0] == num_tasks:
+				if (switch + 1) < len(switch_list) and switch_list[switch + 1][0] == num_tasks:
+					print "target tasks in switch_list[", str(switch), "]: ", str(switch_list[switch][0])
+					print "here"
 					switch += 1
-					"here"
+					#print "here"
 
 		#print num_tasks
 		#print str(itemsDoneArray)
@@ -375,11 +380,11 @@ class SimulationTest(TransactionTestCase):
 			ticketCountsLegend = []
 			if REAL_DATA:
 				numPreds = len(CHOSEN_PREDS)
-				for predNum in range(predNum):
+				for predNum in range(numPreds):
 					ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
 			else:
 				numPreds = NUM_QUESTIONS
-				for predNum in range(predNum):
+				for predNum in range(numPreds):
 					ticketCountsLegend.append("Pred " + str(predNum))
 			multi_line_graph_gen([range(num_tasks)]*numPreds, ticketNums, ticketCountsLegend,
 								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "ticketCounts.png",
@@ -391,7 +396,7 @@ class SimulationTest(TransactionTestCase):
 				selectivitiesLegend.append("Pred " + str(predNum))
 			multi_line_graph_gen([range(num_tasks)]*NUM_QUESTIONS, selectivities, selectivitiesLegend,
 								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "selectivities.png",
-								labels = ("Number of tasks completed in single simulation", "Predicate selectivities"))
+								labels = ("Number of tasks completed in single simulation", "Predicate selectivities"), scatter=True)
 
 		# if this is the first time running a routing test
 		if RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
