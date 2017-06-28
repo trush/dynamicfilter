@@ -4,9 +4,10 @@ from validator import validate_positive
 import subprocess
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
+from scipy.special import btdtr
 
 
-from toggles import PENDING_QUEUE_SIZE
+from toggles import PENDING_QUEUE_SIZE, LIFETIME, NUM_CERTAIN_VOTES, CUT_OFF, DECISION_THRESHOLD, UNCERTAINTY_THRESHOLD
 
 @python_2_unicode_compatible
 class Item(models.Model):
@@ -102,9 +103,10 @@ class Predicate(models.Model):
         self.save(update_fields = ["num_tickets", "num_pending"])
 
     def check_queue_full(self):
-        if self.num_pending >= PENDING_QUEUE_SIZE:
+        if self.num_pending >= self.queue_length:
             self.queue_is_full = True
             self.save(update_fields = ["queue_is_full"])
+
 
 @python_2_unicode_compatible
 class IP_Pair(models.Model):
@@ -179,12 +181,12 @@ class IP_Pair(models.Model):
         self.predicate.updateSelectivity()
         self.predicate.updateCost()
 
-    def set_done_if_done():
+    def set_done_if_done(self):
         if self.status_votes == NUM_CERTAIN_VOTES:
 
-            if found_consensus():
+            if self.found_consensus():
                 self.isDone = True
-                self.save(update_fields["isDone"])
+                self.save(update_fields=["isDone"])
 
                 if not self.is_false() and self.predicate.num_tickets > 1:
                     self.predicate.num_tickets -= 1
@@ -192,7 +194,7 @@ class IP_Pair(models.Model):
                 self.status_votes -= 2
                 self.save(update_fields=["status_votes"])
 
-    def found_consensus():
+    def found_consensus(self):
         if self.value > 0:
             uncertLevel = btdtr(self.num_yes+1, self.num_no+1, DECISION_THRESHOLD)
         else:

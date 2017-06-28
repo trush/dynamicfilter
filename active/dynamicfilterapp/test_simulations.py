@@ -511,7 +511,7 @@ class SimulationTest(TransactionTestCase):
 						for p in Predicate.objects.filter(queue_is_full=True) :
 							print "Predicate with id " +  str(p.pk) + " queue is full"
 
-						print print "$"*96
+						print "$"*96
 
 					if len(active_tasks) == 0:
 						print "active tasks is empty"
@@ -1215,31 +1215,179 @@ class SimulationTest(TransactionTestCase):
 		print "p2 " + str(p2.num_wickets) + ", " + str(p2.num_tickets)
 
 	def awardTicketTest(self):
-		pass
+		q = Question(question_ID = 10, question_text = "blah")
+		q.save()
+		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0, num_pending = 5)
+		p1.save()
+
+		print "after init"
+		print "num_tickets: " + str(p1.num_tickets)
+		print "num_pending: " + str(p1.num_pending)
+
+		p1.award_ticket()
+
+		print "without refresh"
+		print "num_tickets: " + str(p1.num_tickets)
+		print "num_pending: " + str(p1.num_pending)
+
+		print p1.num_pending == 6
+		print p1.num_tickets == 1
 
 	def checkQueueFullTest(self):
-		pass
+		q = Question(question_ID = 10, question_text = "blah")
+		q.save()
+		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full = True, num_pending = 1, num_wickets = LIFETIME)
+		p1.save()
+		p2 = Predicate(predicate_ID = 10, question = q, queue_is_full=False, num_pending = 0, num_wickets = LIFETIME)
+		p2.save()
+
+		print "after init"
+		print "p1 " + str(p1.queue_is_full)
+		print "p2 " + str(p2.queue_is_full)
+
+		p2.award_ticket()
+		p1.check_queue_full()
+		p2.check_queue_full()
+
+		print "no refresh"
+		print "p1 " + str(p1.queue_is_full)
+		print "p2 " + str(p2.queue_is_full)
 
 	def shouldLeaveQueueTest(self):
-		pass
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
+		i.save()
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_pending = 1)
+		p.save()
+		# create a predicate
+		ip1 = IP_Pair(item = i, predicate = p, inQueue = True, isDone=True, tasks_out = 0)
+		ip1.save()
+
+		ip2 = IP_Pair(item = i, predicate = p, inQueue = True, isDone=False, tasks_out = 0)
+		ip2.save()
+
+		ip3 = IP_Pair(item = i, predicate = p, inQueue = True, isDone=True, tasks_out = 1)
+		ip3.save()
+
+		ip4 = IP_Pair(item = i, predicate = p, inQueue = True, isDone=False, tasks_out = 1)
+		ip4.save()
+
+		print "after init"
+		print "ip1: " + str(ip1.should_leave_queue == True)
+		print "ip2: " + str(ip2.should_leave_queue == False)
+		print "ip3: " + str(ip3.should_leave_queue == False)
+		print "ip4: " + str(ip4.should_leave_queue == False)
 
 	def addToQueueTest(self):
-		pass
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i.save()
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_pending = 1)
+		p.save()
+		# create a predicate
+		ip1 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0)
+		ip1.save()
+
+		print "after init"
+		print str(ip1.item.inQueue == False)
+		print str(ip1.inQueue == False)
+
+		ip1.add_to_queue()
+
+		print "after func called"
+		print str(ip1.item.inQueue == True)
+		print str(ip1.inQueue == True)
 
 	def setDoneTest(self):
-		pass
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i.save()
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_tickets = 5)
+		p.save()
+		# create a predicate
+		ip1 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 5,
+					num_no = 0, num_yes = 5, value = 5)
+		ip1.save()
 
-	def foundConsensusTest(self):
-		pass
+		ip2 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 5,
+					num_no = 5, num_yes = 0, value = -5)
+		ip2.save()
+
+		ip3 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 3,
+					num_no = 0, num_yes = 3, value = 3)
+		ip3.save()
+
+		ip4 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 5,
+					num_no = 2, num_yes = 3, value = 1)
+		ip4.save()
+
+
+		print "after init"
+		print str(ip1.isDone == False)
+		print str(ip2.isDone == False)
+		print str(ip3.isDone == False)
+		print str(ip4.isDone == False)
+
+		ip1.set_done_if_done()
+		ip2.set_done_if_done()
+		ip3.set_done_if_done()
+		ip4.set_done_if_done()
+
+		print "after funcs called"
+		print str(ip1.isDone == True)
+		print str(ip1.predicate.num_tickets == 4)
+		print str(ip2.isDone == True)
+		print str(ip2.predicate.num_tickets == 4)
+		print str(ip3.isDone == False)
+		print str(ip3.predicate.num_tickets == 4)
+		print str(ip4.isDone == False)
+		print str(ip4.status_votes == 3)
+		print str(ip4.predicate.num_tickets == 4)
 
 	def distributeTaskTest(self):
-		pass
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i.save()
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_tickets = 5)
+		p.save()
+		# create a predicate
+		ip1 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 5,
+					num_no = 0, num_yes = 5, value = 5)
+		ip1.save()
+		print "after init"
+		print ip1.tasks_out
+
+		ip1.distribute_task()
+
+		print "after init"
+		print str(ip1.tasks_out == 1)
 
 	def collectTaskTest(self):
-		pass
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i.save()
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_tickets = 5)
+		p.save()
+		# create a predicate
+		ip1 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 5,
+					num_no = 0, num_yes = 5, value = 5)
+		ip1.save()
+		print "after init"
+		print ip1.tasks_out
+		print "predicate total tasks: " + str(ip1.predicate.totalTasks)
 
-	def startTest(self):
-		pass
+		ip1.distribute_task()
+		print str(ip1.tasks_out == 1)
+		ip1.collect_task()
+		print "after call"
+
+		print str(ip1.predicate.totalTasks == 1)
+		print str(ip1.tasks_out == 0)
 
 	def getConfig(self):
 		vals = []
@@ -1447,26 +1595,3 @@ class SimulationTest(TransactionTestCase):
 
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
-
-		self.remFromQueueTest()
-		self.recordVoteTest()
-
-		self.load_data()
-
-		self.moveWindowTest()
-
-		self.awardTicketTest()
-
-		self.checkQueueFullTest()
-
-		self.shouldLeaveQueueTest()
-
-		self.addToQueueTest()
-
-		self.setDoneTest()
-
-		self.foundConsensusTest()
-
-		self.distributeTaskTest()
-
-		self.collectTaskTest()

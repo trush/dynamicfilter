@@ -15,7 +15,7 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-NUM_CERTAIN_VOTES = 3
+NUM_CERTAIN_VOTES = 5
 UNCERTAINTY_THRESHOLD = 0.2
 FALSE_THRESHOLD = 0.2
 DECISION_THRESHOLD = 0.7
@@ -113,12 +113,12 @@ NUM_SIM = 5 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = True # simulate time passing/concurrency
+SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 MAX_TASKS_OUT = 7
 
-RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = True
 
