@@ -21,6 +21,7 @@ import sys
 import io
 import csv
 import time
+from copy import deepcopy
 
 # Global Variables for Item Routing tests
 HAS_RUN_ITEM_ROUTING = False #keeps track of if a routing test has ever run
@@ -123,22 +124,33 @@ class SimulationTest(TransactionTestCase):
 
 		return sampleData
 
-	def get_correct_answers(self, filename, numQuestions):
+	def get_correct_answers(self, filename):
 	    #read in answer data
-	    answers = np.genfromtxt(fname = filename, dtype = None, delimiter = ",")
-
+		raw = generic_csv_read(filename)
+		data = []
+		for row in raw:
+			l=[row[0]]
+			for val in row[1:]:
+				if val == "FALSE" or val == "False":
+					l.append(False)
+				elif val == "TRUE" or val == "True":
+					l.append(True)
+				else:
+					raise ValueError("Error in correctAnswers csv file")
+			data.append(l)
+		answers = data
 	    # create an empty dictionary that we'll populate with (item, predicate) keys
 	    # and boolean correct answer values
-	    correctAnswers = {}
+		correctAnswers = {}
 
-	    for line in answers:
-	        for i in range(numQuestions):
-	            key = (Item.objects.get(name = line[0]),
-	                    Predicate.objects.get(pk = i+1))
-	            value = line[i+1]
-	            correctAnswers[key] = value
+		for line in answers:
+			for i in range(len(line)-1):
+				key = (Item.objects.get(name = line[0]),
+					Predicate.objects.get(pk = i+1))
+				value = line[i+1]
+				correctAnswers[key] = value
 
-	    return correctAnswers
+		return correctAnswers
 
 	###___HELPERS USED FOR SIMULATION___###
 	def simulate_task(self, chosenIP, workerID, time_clock, dictionary):
@@ -152,6 +164,9 @@ class SimulationTest(TransactionTestCase):
 		# simulated worker votes
 		#print chosenIP
 		value = choice(dictionary[chosenIP])
+		if not RESPONSE_SAMPLING_REPLACEMENT:
+			#print len(dictionary[chosenIP])
+			dictionary[chosenIP].remove(value)
 		if SIMULATE_TIME:
 			if value :
 				#worker said true, take from true distribution
@@ -271,7 +286,7 @@ class SimulationTest(TransactionTestCase):
 		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
 		Task.objects.all().delete()
 		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,
-			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
+			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False,queue_length=PENDING_QUEUE_SIZE)
 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
 		end = time.time()
 		reset_time = end - start
@@ -302,10 +317,16 @@ class SimulationTest(TransactionTestCase):
 		title = str(globalVar) + " variance impact on Task Count"
 		dest = OUTPUT_PATH+RUN_NAME+'_abstract_sim'
 		if GEN_GRAPHS:
-			line_graph_gen(listOfValuesToTest, avgL, dest +'.png',stderr = stdL,labels=labels, title = title)
-			multi_hist_gen(counts, listOfValuesToTest, dest +'.png',labels=labels, title = title)
-		if DEBUG_FLAG:
-			print "Wrote File: " + dest+'.png'
+			line_graph_gen(listOfValuesToTest, avgL, dest +'line.png',stderr = stdL,labels=labels, title = title)
+			if DEBUG_FLAG:
+				print "Wrote File: " + dest+'line.png'
+			if len(counts[0])>1:
+				multi_hist_gen(counts, listOfValuesToTest, dest +'hist.png',labels=labels, title = title)
+				if DEBUG_FLAG:
+					print "Wrote File: " + dest+'hist.png'
+			elif DEBUG_FLAG:
+				print "only ran one sim, ignoring hist_gen"
+
 		setattr(thismodule, globalVar, storage)
 		return
 
@@ -361,7 +382,7 @@ class SimulationTest(TransactionTestCase):
 				e.g. [4,2] instead of [2,4] (for restaurants)
 		"""
 		# get correct answers from file
-		answers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+		answers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv')
 		# select only the chosen predicates
 		predicates = [Predicate.objects.get(pk=pred+1) for pred in CHOSEN_PREDS]
 		idD={}
@@ -520,6 +541,26 @@ class SimulationTest(TransactionTestCase):
 						b_workers.remove(task.workerID)
 						num_tasks += 1
 
+						if ADAPTIVE_QUEUE:
+							pred = task.ip_pair.predicate
+							tickets = pred.num_tickets
+							qlength = pred.queue_length
+							if ADAPTIVE_QUEUE_MODE == 0:
+								for pair in QUEUE_LENGTH_ARRAY:
+									if tickets>pair[0] and qlength<pair[1]:
+										inc_queue_length(pred)
+										pred.refresh_from_db()
+										break
+							if ADAPTIVE_QUEUE_MODE == 1:
+								for pair in QUEUE_LENGTH_ARRAY:
+									if tickets>pair[0] and qlength<pair[1]:
+										inc_queue_length(pred)
+										break
+									elif tickets<= pair[0] and qlength>=pair[1]:
+										dec_queue_length(pred)
+										pred.refresh_from_db()
+										break
+
 						if TRACK_IP_PAIRS_DONE:
 							itemsDoneArray.append(IP_Pair.objects.filter(isDone=True).count())
 
@@ -670,13 +711,13 @@ class SimulationTest(TransactionTestCase):
 
 		if TRACK_NO_TASKS:
 			dest = OUTPUT_PATH + RUN_NAME + "noTasks.csv"
-			with open(dest, 'w') as f:
+			with open(dest, 'a') as f:
 				f.write(str(no_tasks_to_give) + ",")
 			if DEBUG_FLAG:
 				print "Wrote file: " + dest
 
 			dest = OUTPUT_PATH + RUN_NAME + "workerHasNoTasks.csv"
-			with open(dest, 'w') as f1:
+			with open(dest, 'a') as f1:
 				f1.write(str(total_worker_no_tasks) + ',')
 			if DEBUG_FLAG:
 				print "Wrote file: " + dest
@@ -700,7 +741,7 @@ class SimulationTest(TransactionTestCase):
 			for predNum in range(len(CHOSEN_PREDS)):
 				ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
 			multi_line_graph_gen([range(time_proxy)]*xMultiplier, ticketNums, ticketCountsLegend,
-								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "ticketCounts.png",
+								OUTPUT_PATH + RUN_NAME + "ticketCounts.png",
 								labels = ("time_proxy_steps", "Ticket counts"))
 
 		# if this is the first time running a routing test
@@ -860,11 +901,14 @@ class SimulationTest(TransactionTestCase):
 		if DEBUG_FLAG:
 			print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_single_pair_cost.csv'
 		if GEN_GRAPHS:
-			dest = OUTPUT_PATH+RUN_NAME+'_single_pair_cost.png'
-			title = RUN_NAME + " Distribution of Single Pair Cost"
-			hist_gen(outputArray, dest, labels = ('Num Tasks','Frequency'), title = title, smoothness = True)
-			if DEBUG_FLAG:
-				print "Wrote File: " + dest
+			if len(outputArray) > 1:
+				dest = OUTPUT_PATH+RUN_NAME+'_single_pair_cost.png'
+				title = RUN_NAME + " Distribution of Single Pair Cost"
+				hist_gen(outputArray, dest, labels = ('Num Tasks','Frequency'), title = title, smoothness = True)
+				if DEBUG_FLAG:
+					print "Wrote File: " + dest
+			elif DEBUG_FLAG:
+				print "only ran 1 sim, not running hist_gen"
 
 	def output_data_stats(self, dictionary):
 		"""
@@ -930,7 +974,7 @@ class SimulationTest(TransactionTestCase):
 		incorrectStdDevs = []
 
 		# set up the set of items that SHOULD be passed
-		correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+		correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv')
 		shouldPass = self.get_passed_items(correctAnswers)
 
 		for val in uncertainties:
@@ -969,24 +1013,24 @@ class SimulationTest(TransactionTestCase):
 
 		# graph the reset time vs. number of resets
 		line_graph_gen(range(0, NUM_SIM), resetTimes,
-						'dynamicfilterapp/simulation_files/output/graphs/' + RUN_NAME + "resetTimes.png",
+						OUTPUT_PATH + RUN_NAME + "resetTimes.png",
 						labels = ("Number of reset_database() Run", "Reset Time (seconds)"))
 
 		# graph the sim time vs. the number of sims (for random and queue separately)
 		line_graph_gen(range(0, NUM_SIM), simTimes,
-						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "simTimes.png",
+						OUTPUT_PATH + RUN_NAME + "simTimes.png",
 						labels = ("Number of simulations run", "Simulation runtime"))
 
 		line_graph_gen(range(0, NUM_SIM), eddyTimes,
-						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "eddyTimes.png",
+						OUTPUT_PATH + RUN_NAME + "eddyTimes.png",
 						labels = ("Number of simulations run", "Total pending_eddy() runtime per sim"))
 
 		line_graph_gen(range(0, NUM_SIM), taskTimes,
-						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "taskTimes.png",
+						OUTPUT_PATH + RUN_NAME + "taskTimes.png",
 						labels = ("Number of simulations run", "Total simulate_task() runtime per sim"))
 
 		line_graph_gen(range(0, NUM_SIM), workerDoneTimes,
-						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "workerDoneTimes.png",
+						OUTPUT_PATH + RUN_NAME + "workerDoneTimes.png",
 						labels = ("Number of simulations run", "Total worker_done() runtime per sim"))
 
 
@@ -994,13 +1038,13 @@ class SimulationTest(TransactionTestCase):
 		yL = [simTimes, eddyTimes, taskTimes, workerDoneTimes]
 
 		#write the y values to a csv file
-		with open("dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "timeGraphYvals.csv", "wb") as f:
+		with open(OUTPUT_PATH + RUN_NAME + "timeGraphYvals.csv", "wb") as f:
 			writer = csv.writer(f)
 			writer.writerows(yL)
 
 		legends = ["run_sim()", "pending_eddy()", "simulate_task()", "worker_done()"]
 		multi_line_graph_gen(xL, yL, legends,
-							'dynamicfilterapp/simulation_files/output/graphs/' + RUN_NAME + "funcTimes.png",
+							OUTPUT_PATH + RUN_NAME + "funcTimes.png",
 							labels = ("Number simulations run", "Duration of function call (seconds)"),
 							title = "Cum. Duration function calls vs. Number Simulations Run" + RUN_NAME)
 
@@ -1197,6 +1241,13 @@ class SimulationTest(TransactionTestCase):
 	def startTest(self):
 		pass
 
+	def getConfig(self):
+		vals = []
+		for key in VARLIST:
+			resp=str(globals()[key])
+			vals.append(resp)
+		data = zip(VARLIST,vals)
+		return reduce(lambda x,y: x+y, map(lambda x: x[0]+" = "+x[1]+'\n',data))
 
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
@@ -1204,44 +1255,19 @@ class SimulationTest(TransactionTestCase):
 		Runs a simulation of real data and prints out the number of tasks
 		ran to complete the filter
 		"""
-		# dest = "dynamicfilterapp/simulation_files/output/aa_terminal_out11.txt"
-		# with open(dest, 'w') as terminalOut:
-			# sys.stdout = terminalOut
 
-		global NUM_CERTAIN_VOTES
+		global NUM_CERTAIN_VOTES,OUTPUT_PATH
+
 		print "Simulation is being tested"
 
 		if DEBUG_FLAG: #TODO Update print section.... re-think print section?
 			print "Debug Flag Set!"
 
-			print "ITEM_TYPE: " + ITEM_TYPE
-			print "NUM_WORKERS: " + str(NUM_WORKERS)
-			print "REAL_DATA: " + str(REAL_DATA)
-			print "INPUT_PATH: " + INPUT_PATH
-			print "OUTPUT_PATH: " + OUTPUT_PATH
-			print "RUN_NAME: " + RUN_NAME
+			print self.getConfig()
 
-			print "RUN_DATA_STATS: " + str(RUN_DATA_STATS)
-
-			print "RUN_AVERAGE_COST: " + str(RUN_AVERAGE_COST)
-			if RUN_AVERAGE_COST:
-				print "Number of samples for avg. cost: " + str(COST_SAMPLES)
-
-			print "RUN_SINGLE_PAIR: " + str(RUN_SINGLE_PAIR)
-			if RUN_SINGLE_PAIR:
-				print "Number of runs for single pair data: " + str(SINGLE_PAIR_RUNS)
-
-			print "TEST_ACCURACY: " + str(TEST_ACCURACY)
-
-			print "RUN_TASKS_COUNT: " + str(RUN_TASKS_COUNT)
-
-			if RUN_TASKS_COUNT:
-				print "NUM_SIM: " + str(NUM_SIM)
-
-				print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
-
-				print "OUTPUT_COST: " + str(OUTPUT_COST)
-
+		if PACKING:
+			OUTPUT_PATH=OUTPUT_PATH+RUN_NAME+'/'
+			packageMaker(OUTPUT_PATH,self.getConfig())
 
 		if REAL_DATA:
 			sampleData = self.load_data()
@@ -1261,18 +1287,18 @@ class SimulationTest(TransactionTestCase):
 		if RUN_ITEM_ROUTING and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: item Routing"
-			self.run_sim(sampleData)
+			self.run_sim(deepcopy(sampleData))
 			self.reset_database()
 
 		if COUNT_TICKETS and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: ticket counting"
-			self.run_sim(sampleData)
+			self.run_sim(deepcopy(sampleData))
 			self.reset_database()
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
 		if TEST_ACCURACY:
-			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv', NUM_QUEST)
+			correctAnswers = self.get_correct_answers(INPUT_PATH + ITEM_TYPE + '_correct_answers.csv')
 			passedItems = self.get_passed_items(correctAnswers)
 
 
@@ -1302,11 +1328,11 @@ class SimulationTest(TransactionTestCase):
 
 			runTasksArray = []
 			goodArray, badArray = [], []
-			noTasksArray = []
+			goodPoints, badPoints = [], []
 
 			for i in range(NUM_SIM):
 				print "running simulation " + str(i+1)
-				retValues = self.run_sim(sampleData)
+				retValues = self.run_sim(deepcopy(sampleData))
 				num_tasks = retValues[0]
 				runTasksArray.append(num_tasks)
 
@@ -1325,13 +1351,17 @@ class SimulationTest(TransactionTestCase):
 							if (correctAnswers[(pair.item,pair.predicate)]) == val:
 								goodPairs.append(pair)
 								goodArray.append(pair.num_no+pair.num_yes)
+								goodPoints.append((pair.num_no,pair.num_yes))
 							else:
 								badPairs.append(pair)
 								badArray.append(pair.num_no+pair.num_yes)
+								badPoints.append((pair.num_no,pair.num_yes))
 					else:
 						reals = IP_Pair.objects.filter(Q(num_no__gt=0)|Q(num_yes__gt=0))
 						for pair in reals:
 							goodArray.append(pair.num_no + pair.num_yes)
+							goodPoints.append((pair.num_no,pair.num_yes))
+
 					#print "This is number of incorrect items: ", num_incorrect
 
 				self.reset_database()
@@ -1341,11 +1371,14 @@ class SimulationTest(TransactionTestCase):
 				if DEBUG_FLAG:
 					print "Wrote File: " + OUTPUT_PATH + RUN_NAME + '_tasks_count.csv'
 				if GEN_GRAPHS:
-					dest = OUTPUT_PATH + RUN_NAME + '_tasks_count.png'
-					title = RUN_NAME + ' Cost distribution'
-					hist_gen(runTasksArray, dest, labels = ('Cost','Frequency'), title = title)
-					if DEBUG_FLAG:
-						print "Wrote File: " + dest
+					if len(runTasksArray)>1:
+						dest = OUTPUT_PATH + RUN_NAME + '_tasks_count.png'
+						title = RUN_NAME + ' Cost distribution'
+						hist_gen(runTasksArray, dest, labels = ('Cost','Frequency'), title = title)
+						if DEBUG_FLAG:
+							print "Wrote File: " + dest
+					elif DEBUG_FLAG:
+						print "only ran one sim, not running hist_gen"
 			if RUN_MULTI_ROUTING:
 					dest = OUTPUT_PATH + RUN_NAME + '_multi_routing.png'
 					title = RUN_NAME + ' Average Predicate Routing'
@@ -1370,37 +1403,45 @@ class SimulationTest(TransactionTestCase):
 							print "Wrote File: " + OUTPUT_PATH+RUN_NAME+'_multi_routing.png'
 			if RUN_CONSENSUS_COUNT:
 				dest = OUTPUT_PATH + RUN_NAME+'_consensus_count'
-				if len(badArray) == 0:
-					generic_csv_write(dest+'.csv',[goodArray])
-					print goodArray
-				else:
-					generic_csv_write(dest+'.csv',[goodArray,badArray])
-					print goodArray,badArray
-				if DEBUG_FLAG:
-					print "Wrote File: " + dest + '.csv'
-				if GEN_GRAPHS:
-					title = 'Normalized Distribution of Tasks before Consensus'
-					labels = ('Number of Tasks', 'Frequency')
+				if len(goodArray)>1:
 					if len(badArray) == 0:
-						hist_gen(goodArray, dest+'.png',labels=labels,title=title)
+						generic_csv_write(dest+'.csv',[goodArray])
+						#print goodArray
 					else:
-						leg = ('Correctly Evaluated IP pairs','Incorrectly Evaluated IP pairs')
-						multi_hist_gen([goodArray,badArray],leg,dest+'.png',labels=labels,title=title)
-			if TRACK_NO_TASKS:
-				if sum(noTasksArray) != 0:
-					dest = OUTPUT_PATH+RUN_NAME+'_no_tasks'
-					generic_csv_write(dest+'.csv',[noTasksArray])
+						generic_csv_write(dest+'.csv',[goodArray,badArray])
+						#print goodArray,badArray
 					if DEBUG_FLAG:
 						print "Wrote File: " + dest + '.csv'
 					if GEN_GRAPHS:
-						title = 'Distribution of `No Tasks`'
-						labels = ('# of Times Chosen worker had nothing to do','Frequency')
-						hist_gen(noTasksArray,dest+'.png',labels=labels,title=title)
-						if DEBUG_FLAG:
-							print "Wrote File: "+dest+'.png'
+						title = 'Normalized Distribution of Tasks before Consensus'
+						labels = ('Number of Tasks', 'Frequency')
+						if len(badArray) < 2:
+							hist_gen(goodArray, dest+'.png',labels=labels,title=title)
+						else:
+							leg = ('Correctly Evaluated IP pairs','Incorrectly Evaluated IP pairs')
+							multi_hist_gen([goodArray,badArray],leg,dest+'.png',labels=labels,title=title)
 				elif DEBUG_FLAG:
-					print "No workers went without tasks, ignoring test results"
-
+					print "only ran one sim, ignoring results"
+			if VOTE_GRID:
+				dest = OUTPUT_PATH + RUN_NAME+'_vote_grid'
+				if len(goodPoints)>1:
+					if len(badPoints)==0:
+						generic_csv_write(dest+'.csv',goodPoints)
+					else:
+						generic_csv_write(dest+'_good.csv',goodPoints)
+						generic_csv_write(dest+'_bad.csv',badPoints)
+					if GEN_GRAPHS:
+						title = "Vote Grid Graph"
+						labels = ("Number of No Votes","Number of Yes Votes")
+						if len(badPoints)==0:
+							xL,yL=zip(*goodPoints)
+							line_graph_gen(xL,yL,dest+'.png',title=title,labels=labels,scatter=True,square=True)
+						else:
+							gX,gY = zip(*goodPoints)
+							bX,bY = zip(*badPoints)
+							multi_line_graph_gen((gX,bX),(gY,bY),('Correct','Incorrect'),dest+'_both.png',title=title,labels=labels,scatter=True,square=True)
+							line_graph_gen(gX,gY,dest+'_good.png',title=title+" goodPoints",labels=labels,scatter=True,square=True)
+							line_graph_gen(bX,bY,dest+'_bad.png',title=title+" badPoints",labels=labels,scatter=True,square=True)
 		if TIME_SIMS:
 			self.timeRun(sampleData)
 

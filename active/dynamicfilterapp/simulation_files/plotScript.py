@@ -5,15 +5,17 @@ import seaborn as sns
 import datetime as DT
 import pylab
 import sys
-from collections import defaultdict
+from collections import defaultdict, Counter
 import os.path
+from os import makedirs
 import csv
-#from ..toggles import *
+Suppress = True
+
 def dest_resolver(dest):
     """
     given a filename (ending in .png) returns a version which wont overide data
     """
-    if dest[-4:] != '.png':
+    if dest[-4:] != '.png' and dest[-4:] != '.csv':
         raise ValueError('Invalid File Extention')
     if os.path.isfile(dest):
         num = 1
@@ -85,8 +87,15 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothne
     ax = fig.add_subplot(111)
     sns.despine(left=True)
     # the histogram of the data
-    for i in range(len(dataList)):
-    	sns.distplot(dataList[i], hist=(not smoothness), kde_kws={"shade": False}, ax=ax, label=legendList[i])
+    try:
+        for i in range(len(dataList)):
+        	sns.distplot(dataList[i], hist=(not smoothness), kde_kws={"shade": False}, ax=ax, label=legendList[i])
+    except:
+        if Suppress:
+            print "Something went wrong. Plotting skipped"
+            return
+        else:
+            raise ValueError("Something went wrong")
     ax.set_xlabel(labels[0])
     ax.set_ylabel(labels[1])
     ax.set_title(title)
@@ -115,6 +124,7 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
         title, a string title of your graph
         stderrL a list of lists of standard error for adding y-error bars to data
     """
+    heatMap=True
     # Make the graph
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -122,18 +132,36 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     if len(xL) != len(yL):
         raise ValueError('xL and yL are different lengths!')
 
-    # Plot each given line
-    for i in range(len(xL)):
-        x, y = xL[i], yL[i]
-        # If given errors, plot them
-        if len(stderrL) != 0:
-            std = stderrL[i]
-            ax.errorbar(x,y,yerr=std, label=legendList[i])
-        elif scatter:
-            ax.scatter(x, y, label=legendList[i])
+    try:
+        # Plot each given line
+        for i in range(len(xL)):
+            x, y = xL[i], yL[i]
+            # If given errors, plot them
+            if len(stderrL) != 0:
+                std = stderrL[i]
+                ax.errorbar(x,y,yerr=std, label=legendList[i])
+            elif scatter:
+                alph = None
+                if heatMap:
+                    mL=[]
+                    for i in range(len(xL)):
+                        pl = Counter(zip(xL[i],yL[i]))
+                        mL.append(pl.most_common(1)[0])
+                    mx = 0
+                    for i in range(1,len(mL)):
+                        if mL[i][1] > mL[mx][1]:
+                            mx=i
+                    count = mL[mx][1]
+                    alph = 1.0/math.sqrt(count)
+                ax.scatter(x, y, label=legendList[i],alpha=alph)
+            else:
+                ax.plot(x, y, label=legendList[i])
+    except:
+        if Suppress:
+            print "Something went wrong. Plotting skipped"
+            return
         else:
-            ax.plot(x, y, label=legendList[i])
-
+            raise ValueError("Something went wrong")
     # Label the axes
     plt.xlabel(labels[0])
     plt.ylabel(labels[1])
@@ -146,9 +174,10 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     # save
     mx = 0
     for L in xL+yL:
-        mx = max(L+[mx])
+        mx = max(list(L)+[mx])
     if square:
         plt.axis([-1,mx+2,-1,mx+2])
+        plt.grid()
     plt.savefig(dest_resolver(dest))
 
 def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = None):
@@ -162,7 +191,51 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
         raise ValueError('data and legend are different lengths!')
     fig = plt.figure()
     pos = np.arange(len(data))
-    plt.bar(pos, data, align='center', alpha = 0.5, yerr = stderr)
+    try:
+        plt.bar(pos, data, align='center', alpha = 0.5, yerr = stderr)
+    except:
+        if Suppress:
+            print "Something went wrong. Plotting skipped"
+            return
+        else:
+            raise ValueError("Something went wrong")
+    plt.xticks(pos,legend)
+
+    # Label the axes
+    plt.xlabel(labels[0])
+    plt.ylabel(labels[1])
+
+    # Title the graph
+    plt.title(title)
+    plt.savefig(dest_resolver(dest))
+
+def split_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = '',split='vertical'):
+    knownSplits=('vertical','horizontal')
+    if len(dataL)<= 1:
+        raise ValueError("not enough data!")
+    if split not in knownSplits:
+        raise ValueError(str(split)+" Is not a known split")
+    fig = plt.figure()
+    pos = np.arange(len(dataL[0]))
+    try:
+        if split=='vertical':
+            width = 0.9/len(dataL[0])
+            for i in range(len(dataL)):
+                ind = pos + (i*width)
+                plt.bar(ind,dataL[i],width)
+
+        elif split=='horizontal':
+            width = 0.9
+            plt.bar(pos,dataL[0],width)
+            for i in range(1,len(dataL)):
+                ind = pos + (i*width)
+                plt.bar(pos,dataL[i],width,bottom=dataL[i-1])
+    except:
+        if Suppress:
+            print "Something went wrong. Plotting skipped"
+            return
+        else:
+            raise ValueError("Something went wrong")
     plt.xticks(pos,legend)
 
     # Label the axes
@@ -179,3 +252,10 @@ def stats_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = ''):
         avg.append(np.mean(L))
         std.append(np.std(L))
     bar_graph_gen(avg, legend, dest, labels = labels, title = title, stderr = std)
+
+def packageMaker(dest,conf):
+    if not os.path.exists(dest):
+        makedirs(dest)
+    configName = "config.ini"
+    with open(dest+configName,'w') as f:
+        f.write(conf)

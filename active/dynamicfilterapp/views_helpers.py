@@ -126,6 +126,32 @@ def give_task(active_tasks, workerID):
         print "IP pair was none"
 
     return ip_pair, eddy_time
+    
+def inc_queue_length(pred):
+    """
+    increase the queue_length value of the given predicate by one
+    also takes care of fullness
+    """
+    pred.queue_length = F('queue_length') + 1
+    pred.queue_is_full = False
+    pred.save()
+    return pred.queue_length
+
+def dec_queue_length(pred):
+    """
+    decreases the queue_length value of the given predicate by one
+    raises an error if the pred was full when called
+    """
+    if (pred.queue_is_full):
+        raise ValueError("Tried to decrement the queue_length of a predicate with a full queue")
+    old = pred.queue_length
+    if old == 1:
+        raise ValueError("Tried to decrement queue_length to zero")
+    pred.queue_length = old-1
+    if pred.num_pending >= (old - 1):
+        pred.queue_is_full = True
+    pred.save()
+    return old-1
 
 #____________LOTTERY SYSTEMS____________#
 def chooseItem(ipSet):
@@ -215,7 +241,7 @@ def lotteryPendingQueue(ipSet):
     chosenIP.predicate.refresh_from_db()
     chosenIP.refresh_from_db()
     # if the queue is full, update the predicate
-    if chosenIP.predicate.num_pending >= PENDING_QUEUE_SIZE:
+    if chosenIP.predicate.num_pending >= chosenIP.predicate.queue_length:
         chosenIP.predicate.queue_is_full = True
 
     chosenIP.predicate.save(update_fields=["queue_is_full"])

@@ -1,30 +1,30 @@
 import datetime as DT
+import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'AA_CHECK_OUTPUTS' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-ITEM_TYPE = "Restaurant"
-#We have 5 questions for hotels right now, 10 for restaurants
-NUM_QUEST = 10 #used for accuracy testing
+RUN_NAME = 'packing' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+ITEM_TYPE = "Hotel"
 
-INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
+INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-IP_PAIR_DATA_FILE = 'real_data1.csv'
+IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
 DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-NUM_CERTAIN_VOTES = 5
+NUM_CERTAIN_VOTES = 3
 UNCERTAINTY_THRESHOLD = 0.2
 FALSE_THRESHOLD = 0.2
-DECISION_THRESHOLD = 0.5
-CUT_OFF = 21
+DECISION_THRESHOLD = 0.7
+CUT_OFF = 23
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
-NUM_WORKERS = 101
+
+NUM_WORKERS = 301
 DISTRIBUTION_TYPE = 0 # tells pick_worker how to choose workers.
 # 0  -  Uniform Distribution; (all worker equally likely)
 # 1  -  Geometric Distribution; (synthetic graph which fits out data well)
@@ -36,9 +36,9 @@ EDDY_SYS = 1
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
-PENDING_QUEUE_SIZE = 3
+PENDING_QUEUE_SIZE = 1
+CHOSEN_PREDS = [1,4] # predicates that will be used when run on real data
 
-CHOSEN_PREDS = [2,5] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -65,6 +65,12 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 10
 
+ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE_MODE = 0
+# 0 - only increase ql if reached that number of tickets
+# 1 - increase like (0) but also decreases if a pred drops below the limit
+QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,qlength)]
+
 #############################################################################
 #############################################################################
 
@@ -80,6 +86,7 @@ GEN_GRAPHS = False # if true, any tests run will generate their respective graph
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
+RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response data with or without replacement
 
 RUN_ABSTRACT_SIM = False
 
@@ -119,16 +126,33 @@ TRACK_NO_TASKS = False # keeps track of the number of times the next worker has 
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
-FILTER_BY_PREDS = [2, 3] # predicates we want to check successful filtering by
 
 
 OUTPUT_SELECTIVITIES = False
 
 RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
 
-TEST_ACCURACY = False
+VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
-COST_PREDS = [2, 3] # predicates whose cost we want to estimate
-                    # if controlled eddy system, must match CONTROLLED_RUN_PREDS
+
+PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
+
+
+# List of toggles for debug printing and Config.ini generation
+            ##### PLEASE UPDATE AS NEW TOGGLES ADDED #####
+VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE',
+            'REAL_DISTRIBUTION_FILE','DEBUG_FLAG',
+            'NUM_CERTAIN_VOTES','UNCERTAINTY_THRESHOLD','FALSE_THRESHOLD','DECISION_THRESHOLD',
+            'CUT_OFF','NUM_WORKERS','DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
+            'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
+            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA','GEN_GRAPHS',
+            'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
+            'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','RUN_AVERAGE_COST',
+            'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
+            'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
+            'MAX_TASKS','BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
+            'TRACK_NO_TASKS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
+            'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST'
+]

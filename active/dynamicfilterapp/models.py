@@ -5,6 +5,9 @@ import subprocess
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
 
+
+from toggles import PENDING_QUEUE_SIZE
+
 @python_2_unicode_compatible
 class Item(models.Model):
     """
@@ -58,7 +61,9 @@ class Predicate(models.Model):
     num_wickets = models.IntegerField(default=0)
     num_pending = models.IntegerField(default=0)
 
+    # Queue variables
     queue_is_full = models.BooleanField(default=False)
+    queue_length = models.IntegerField(default=PENDING_QUEUE_SIZE)
 
     # fields to keep track of selectivity
     selectivity = models.FloatField(default=0.1)
