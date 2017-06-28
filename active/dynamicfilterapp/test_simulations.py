@@ -193,33 +193,46 @@ class SimulationTest(TransactionTestCase):
 		"""
 		synthesize a task
 		"""
+		# start = time.time()
+		# # if chosenIP is None:
+		# # 	t = None
+		# # else:
+		# value = syn_answer(chosenIP, switch, numTasks)
+		# if SIMULATE_TIME:
+		# 	if value :
+		# 		#worker said true, take from true distribution
+		# 		work_time = choice(TRUE_TIMES)
+		# 	else:
+		# 		#worker said false, take from false distribution
+		# 		work_time = choice(FALSE_TIMES)
+
+		# 	start_task = time_clock + BUFFER_TIME
+		# 	end_task = start + work_time
+		# else:
+		# 	start_task = 0
+		# 	end_task = 0
+
+		# t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+		# 		startTime=start_task, endTime=end_task)
+		# t.save()
+		# if not SIMULATE_TIME:
+		# 	updateCounts(t, chosenIP)
+		# end = time.time()
+		# runTime = end - start
+		# return t, runTime
+
+		"""
+		synthesize a task
+		"""
 		start = time.time()
-		if chosenIP is None:
-			t = None
-		else:
-			value = syn_answer(chosenIP, switch, numTasks)
-			if SIMULATE_TIME:
-				if value :
-					#worker said true, take from true distribution
-					work_time = choice(TRUE_TIMES)
-				else:
-					#worker said false, take from false distribution
-					work_time = choice(FALSE_TIMES)
+		value = syn_answer(chosenIP, switch, numTasks)
 
-				start_task = time_clock + BUFFER_TIME
-				end_task = start + work_time
-			else:
-				start_task = 0
-				end_task = 0
-
-		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
-				startTime=start_task, endTime=end_task)
+		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
 		t.save()
-		if not SIMULATE_TIME:
-			updateCounts(t, chosenIP)
+		updateCounts(t, chosenIP)
 		end = time.time()
 		runTime = end - start
-		return t, runTime
+		return runTime
 
 	def pick_worker(self, busyWorkers):
 		"""
@@ -350,6 +363,7 @@ class SimulationTest(TransactionTestCase):
 			if REAL_DATA:
 				task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 			else:
+				#TODO make selectivity changing work for time 
 				task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
 		else:
 			task = None
@@ -446,12 +460,13 @@ class SimulationTest(TransactionTestCase):
 		selectivities = []
 
 		#Setting up arrays to count tickets for ticketing counting graphs
-		if REAL_DATA:
-			for predNum in range(len(CHOSEN_PREDS)):
-				ticketNums.append([])
-		else:
-			for count in range(NUM_QUESTIONS):
-				ticketNums.append([])
+		if COUNT_TICKETS:
+			if REAL_DATA:
+				for predNum in range(len(CHOSEN_PREDS)):
+					ticketNums.append([])
+			else:
+				for count in range(NUM_QUESTIONS):
+					ticketNums.append([])
 
 		if SELECTIVITY_GRAPH:
 			for count in range(NUM_QUESTIONS):
@@ -468,15 +483,6 @@ class SimulationTest(TransactionTestCase):
 
 		#time counter
 		time_clock = 0
-
-		if COUNT_TICKETS:
-			if REAL_DATA:
-				for predNum in range(len(CHOSEN_PREDS)):
-					ticketNums.append([])
-			else:
-				for count in range(NUM_QUESTIONS):
-					ticketNums.append([])
-
 
 		# If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and RUN_ITEM_ROUTING) or RUN_MULTI_ROUTING:
@@ -627,49 +633,58 @@ class SimulationTest(TransactionTestCase):
 					# run_sim or 2) we're runing multiple routing tests, and
 					# so should take this data every time we run.
 
-				if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
-					# if this is a "new" item
-					if ip_pair.item.item_ID not in seenItems:
-						seenItems.add(ip_pair.item.item_ID)
-						# increment the count of that item's predicate
-						for i in range(len(predicates)):
-							if ip_pair.predicate == predicates[i]:
-								routingC[i]+=1
-							# and add this "timestep" to the running list
-							routingL[i].append(routingC[i])
+					if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
+						# if this is a "new" item
+						if ip_pair.item.item_ID not in seenItems:
+							seenItems.add(ip_pair.item.item_ID)
+							# increment the count of that item's predicate
+							for i in range(len(predicates)):
+								if ip_pair.predicate == predicates[i]:
+									routingC[i]+=1
+								# and add this "timestep" to the running list
+								routingL[i].append(routingC[i])
 
-				if REAL_DATA :
-					taskTime = self.simulate_task(ip_pair, workerID, dictionary)
-				else:
-					taskTime = self.syn_simulate_task(ip_pair, workerID, switch, num_tasks)
-
-
-				move_window()
-				num_tasks += 1
-				taskTimes.append(taskTime)
-				tasksArray.append(num_tasks)
-
-				if COUNT_TICKETS:
-					if REAL_DATA:
-						for predNum in range(len(CHOSEN_PREDS)):
-							predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
-							ticketNums[predNum].append(predicate.num_tickets)
+					if REAL_DATA :
+						taskTime = self.simulate_task(ip_pair, workerID, dictionary)
 					else:
+						#def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks):
+						#TODO time stuff 0 replacement
+						#print "ip pair: ", str(ip_pair)
+						#print "ip pair is None: ", str(ip_pair == None)
+						taskTime = self.syn_simulate_task(ip_pair, workerID, 0, switch, num_tasks)
+						predi = Predicate.objects.get(pk=1)
+						predi.refresh_from_db()
+						#print "right after simulate_task call: ", str(predi.trueSelectivity)
+
+
+					move_window()
+					num_tasks += 1
+					taskTimes.append(taskTime)
+					tasksArray.append(num_tasks)
+
+					if COUNT_TICKETS:
+						if REAL_DATA:
+							for predNum in range(len(CHOSEN_PREDS)):
+								predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
+								ticketNums[predNum].append(predicate.num_tickets)
+						else:
+							for count in range(NUM_QUESTIONS):
+								predicate = Predicate.objects.get(pk=count+1)
+								ticketNums[count].append(predicate.num_tickets)
+
+					if SELECTIVITY_GRAPH:
 						for count in range(NUM_QUESTIONS):
 							predicate = Predicate.objects.get(pk=count+1)
-							ticketNums[count].append(predicate.num_tickets)
+							predicate.refresh_from_db()
+							#print "true selectivity: ", str(predicate.trueSelectivity)
+							selectivities[count].append(predicate.trueSelectivity)
 
-				if SELECTIVITY_GRAPH:
-					for count in range(NUM_QUESTIONS):
-						predicate = Predicate.objects.get(pk=count+1)
-						selectivities[count].append(predicate.trueSelectivity)
-
-				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
-				#so we need index 0 of the tuple to get the time at which the switch should occur
-				if (switch + 1) < len(switch_list) and switch_list[switch + 1][0] == num_tasks:
-					#print "target tasks in switch_list[", str(switch), "]: ", str(switch_list[switch][0])
-					#print "here"
-					switch += 1
+					#the tuples in switch_list are of the form (time, pred1, pred2 ....),
+					#so we need index 0 of the tuple to get the time at which the switch should occur
+					if (switch + 1) < len(switch_list) and switch_list[switch + 1][0] == num_tasks:
+						#print "target tasks in switch_list[", str(switch), "]: ", str(switch_list[switch][0])
+						#print "here"
+						switch += 1
 
 		if TRACK_IP_PAIRS_DONE:
 			dest = OUTPUT_PATH + RUN_NAME + "ip_done_vs_tasks"

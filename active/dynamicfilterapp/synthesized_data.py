@@ -55,6 +55,7 @@ def syn_answer(chosenIP, switch, numTasks):
 	# print "ID+1: ", str(ID+1)
 	# print "predInfo: ", str(predInfo)
 	# print "switch: ", str(switch)
+	#print "numTasks: ", str(numTasks)
 
 	for predNum in range(NUM_QUESTIONS):
 
@@ -66,11 +67,15 @@ def syn_answer(chosenIP, switch, numTasks):
 			samplingFrac = selSinInfo[3]
 			period = selSinInfo[2]
 			#TODO make sure rounding won't ruin things
-			print "smaplingFrac*period: ", str(samplingFrac*period)
+			#print "smaplingFrac*period: ", str(samplingFrac*period)
 			if((numTasks % (samplingFrac*period)) == 0):
 				pred.trueSelectivity = getSinValue(selSinInfo, numTasks)
+				print "right after sin call: ", str(pred.trueSelectivity)
 		else:
 			pred.trueSelectivity = predInfo[0]
+
+		#TODO remove after testing
+		pred.save()
 
 		if isinstance(predInfo[1], tuple):
 			ambSinInfo = predInfo[1]
@@ -83,29 +88,35 @@ def syn_answer(chosenIP, switch, numTasks):
 
 		pred.save()
 
+		#TODO remove after testing
+		pred.refresh_from_db()
+
 	# decide if the answer is going to lean towards true or false
 	# lean towards true
 	if decision(pred.trueSelectivity): #index 0 is selectivity
 		# decide if the answer is going to be true or false
-		value = decision(1 - pred.trueAmbiguity) #index 1 is ambiguity
+		value = decision(1 - chosenIP.predicate.trueAmbiguity) #index 1 is ambiguity
 	# lean towards false
 	else:
-		value = decision(pred.trueAmbiguity) #index 1 is ambiguity
+		value = decision(chosenIP.predicate.trueAmbiguity) #index 1 is ambiguity
+
+	predi = Predicate.objects.get(pk=1)
+	#print "right before syn return: ", str(predi.trueSelectivity)
 
 	return value
 
 def getSinValue(sinInfo, numTasks):
-	print "in sin fcn"
+	#print "in sin fcn"
 	period = sinInfo[2]
 	degrees = (numTasks % period)/(1.0*period)*360
 	radians = math.radians(degrees)
 	trans = sinInfo[4]
 	amp = sinInfo[1]
-	# print "degrees: ", str(degrees)
+	print "degrees: ", str(degrees)
 	# print "radians: ", str(radians)
 	# print "amp: ", str (amp)
 	# print "trans: ", str(trans)
-	# print "sin val: " + str(math.sin(radians)*amp)
+	print "sin val: " + str(math.sin(radians)*amp)
 	return trans + math.sin(radians)*amp
 
 def decision(probability):

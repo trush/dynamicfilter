@@ -3,7 +3,7 @@ now = DT.datetime.now()
 from responseTimeDistribution import *
 
 
-RUN_NAME = 'SynDataNEW_Queue_.9.6.68.87_50runs_2Q_100I' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'Hotel_Queue_Preds34_50runs_Window10' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
 
@@ -62,10 +62,10 @@ ITEM_SYS = 0
 # 1 - item-started system
 # 2 - item-almost-false system
 
-SLIDING_WINDOW = False
+SLIDING_WINDOW = True
 LIFETIME = 10
 
-ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
@@ -80,7 +80,7 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 
 REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
@@ -88,12 +88,12 @@ NUM_QUESTIONS = 2
 NUM_ITEMS = 100
 SIN = -1
 
-SELECTIVITY_GRAPH = True
+SELECTIVITY_GRAPH = False
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
 # selectvity of the previous timestep
-switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .1, 400, .1, .6), 0.68), (0.6, 0.87))]
-#switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (100, (0.7, 0.68), (0.6, 0.87))]
+#switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .1, 400, .05, .6), 0.68), (0.6, 0.87))]
+switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), (600, (0.8, 0.68), (0.7, 0.87)), (900, (0.8, 0.68), (0.75, 0.87))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -123,11 +123,11 @@ NUM_SIM = 50 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = True # simulate time passing/concurrency
+SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 10 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
@@ -141,7 +141,7 @@ OUTPUT_SELECTIVITIES = False
 
 RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
 
-VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
+VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
 TEST_ACCURACY = False
 
