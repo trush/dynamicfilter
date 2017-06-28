@@ -692,7 +692,7 @@ class SimulationTest(TransactionTestCase):
 			for predNum in range(len(CHOSEN_PREDS)):
 				ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
 			multi_line_graph_gen([range(time_proxy)]*xMultiplier, ticketNums, ticketCountsLegend,
-								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "ticketCounts.png",
+								OUTPUT_PATH + RUN_NAME + "ticketCounts.png",
 								labels = ("time_proxy_steps", "Ticket counts"))
 
 		# if this is the first time running a routing test
@@ -964,24 +964,24 @@ class SimulationTest(TransactionTestCase):
 
 		# graph the reset time vs. number of resets
 		line_graph_gen(range(0, NUM_SIM), resetTimes,
-						'dynamicfilterapp/simulation_files/output/graphs/' + RUN_NAME + "resetTimes.png",
+						OUTPUT_PATH + RUN_NAME + "resetTimes.png",
 						labels = ("Number of reset_database() Run", "Reset Time (seconds)"))
 
 		# graph the sim time vs. the number of sims (for random and queue separately)
 		line_graph_gen(range(0, NUM_SIM), simTimes,
-						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "simTimes.png",
+						OUTPUT_PATH + RUN_NAME + "simTimes.png",
 						labels = ("Number of simulations run", "Simulation runtime"))
 
 		line_graph_gen(range(0, NUM_SIM), eddyTimes,
-						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "eddyTimes.png",
+						OUTPUT_PATH + RUN_NAME + "eddyTimes.png",
 						labels = ("Number of simulations run", "Total pending_eddy() runtime per sim"))
 
 		line_graph_gen(range(0, NUM_SIM), taskTimes,
-						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "taskTimes.png",
+						OUTPUT_PATH + RUN_NAME + "taskTimes.png",
 						labels = ("Number of simulations run", "Total simulate_task() runtime per sim"))
 
 		line_graph_gen(range(0, NUM_SIM), workerDoneTimes,
-						"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "workerDoneTimes.png",
+						OUTPUT_PATH + RUN_NAME + "workerDoneTimes.png",
 						labels = ("Number of simulations run", "Total worker_done() runtime per sim"))
 
 
@@ -989,13 +989,13 @@ class SimulationTest(TransactionTestCase):
 		yL = [simTimes, eddyTimes, taskTimes, workerDoneTimes]
 
 		#write the y values to a csv file
-		with open("dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "timeGraphYvals.csv", "wb") as f:
+		with open(OUTPUT_PATH + RUN_NAME + "timeGraphYvals.csv", "wb") as f:
 			writer = csv.writer(f)
 			writer.writerows(yL)
 
 		legends = ["run_sim()", "pending_eddy()", "simulate_task()", "worker_done()"]
 		multi_line_graph_gen(xL, yL, legends,
-							'dynamicfilterapp/simulation_files/output/graphs/' + RUN_NAME + "funcTimes.png",
+							OUTPUT_PATH + RUN_NAME + "funcTimes.png",
 							labels = ("Number simulations run", "Duration of function call (seconds)"),
 							title = "Cum. Duration function calls vs. Number Simulations Run" + RUN_NAME)
 
