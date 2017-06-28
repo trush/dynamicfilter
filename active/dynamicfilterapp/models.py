@@ -74,13 +74,32 @@ class Predicate(models.Model):
     def __str__(self):
         return "Predicate branch with question: " + self.question.question_text
 
-    def updateSelectivity(self):
+    def update_selectivity(self):
         self.selectivity = self.totalNo/self.totalTasks
         return self.selectivity
 
-    def updateCost(self):
+    def update_cost(self):
         self.cost = self.avg_completion_time * self.avg_tasks_per_pair
         return self.cost
+
+    def move_window(self):
+        if self.num_wickets == LIFETIME:
+            self.num_wickets = 0
+            self.save(update_fields=["num_wickets"])
+
+            if self.num_tickets > 1:
+                self.num_tickets -= 1
+                self.save(update_fields=["num_tickets"])
+
+    def award_ticket(self):
+        self.num_tickets += 1
+        self.num_pending += 1
+        self.save(update_fields = ["num_tickets", "num_pending"])
+
+    def check_queue_full(self):
+        if self.num_pending >= PENDING_QUEUE_SIZE:
+            self.queue_is_full = True
+            self.save(update_fields = ["queue_is_full"])
 
 @python_2_unicode_compatible
 class IP_Pair(models.Model):
@@ -109,10 +128,91 @@ class IP_Pair(models.Model):
     def __str__(self):
         return self.item.name + "/" + self.predicate.question.question_text
 
-    def isFalse(self):
+    def _get_should_leave_queue(self):
+        return self.isDone and self.tasks_out < 1
+
+    should_leave_queue = property(_get_should_leave_queue)
+
+    def is_false(self):
         if self.isDone and (self.value < 0):
             self.item.hasFailed = True
         return self.item.hasFailed
+
+    def _get_is_in_queue(self):
+        return self.inQueue
+
+    is_in_queue = property(_get_is_in_queue)
+
+    def add_to_queue(self):
+        self.inQueue = True
+        self.item.inQueue = True
+        self.save(update_fields=["inQueue"])
+
+    def remove_from_queue(self):
+        self.inQueue = False
+        self.item.inQueue = False
+        self.predicate.queue_is_full = False
+        self.predicate.num_pending -= 1
+        self.save(update_fields=["inQueue"])
+
+    def record_vote(self, workerTask):
+        self.status_votes += 1
+        self.predicate.num_wickets += 1
+        self.save(update_fields=["status_votes"])
+
+        if workerTask.answer:
+            self.value += 1
+            self.num_yes += 1
+            self.save(update_fields=["value", "num_yes"])
+
+        elif not workerTask.answer:
+            self.value -= 1
+            self.num_no += 1
+            self.predicate.totalNo += 1
+            self.save(update_fields=["value", "num_no"])
+
+        self.predicate.updateSelectivity()
+        self.predicate.updateCost()
+
+    def set_done_if_done():
+        if self.status_votes == NUM_CERTAIN_VOTES:
+
+            if found_consensus():
+                self.isDone = True
+                self.save(update_fields["isDone"])
+
+                if not self.is_false() and self.predicate.num_tickets > 1:
+                    self.predicate.num_tickets -= 1
+            else:
+                self.status_votes -= 2
+                self.save(update_fields=["status_votes"])
+
+    def found_consensus():
+        if self.value > 0:
+            uncertLevel = btdtr(self.num_yes+1, self.num_no+1, DECISION_THRESHOLD)
+        else:
+            uncertLevel = btdtr(self.num_no+1, self.num_yes+1, DECISION_THRESHOLD)
+
+        votes_cast = self.num_yes + self.num_no
+
+        if (uncertLevel < UNCERTAINTY_THRESHOLD) | (votes_cast >= CUT_OFF):
+            return True
+
+        else:
+            return False
+
+    def distribute_task(self):
+        self.tasks_out += 1
+        self.save(update_fields = ["tasks_out"])
+
+    def collect_task(self):
+        self.tasks_out -= 1
+        self.predicate.totalTasks += 1
+        self.save(update_fields = ["tasks_out"])
+
+    def start(self):
+        self.isStarted = True
+        self.save(update_fields=["isStarted"])
 
 @python_2_unicode_compatible
 class Task(models.Model):
