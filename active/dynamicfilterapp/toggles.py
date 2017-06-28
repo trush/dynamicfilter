@@ -23,6 +23,7 @@ CUT_OFF = 23
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
+
 NUM_WORKERS = 301
 DISTRIBUTION_TYPE = 0 # tells pick_worker how to choose workers.
 # 0  -  Uniform Distribution; (all worker equally likely)
@@ -36,8 +37,8 @@ EDDY_SYS = 1
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
-
 CHOSEN_PREDS = [1,4] # predicates that will be used when run on real data
+
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -79,7 +80,7 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
@@ -108,17 +109,18 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 2 # how many simulations to run?
+NUM_SIM = 5 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = False # simulate time passing/concurrency
-MAX_TASKS = 10 # maximum number of active tasks in a simulation with time
+SIMULATE_TIME = True # simulate time passing/concurrency
+MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
+MAX_TASKS_OUT = 7
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
-TRACK_IP_PAIRS_DONE = False
+TRACK_IP_PAIRS_DONE = True
 
 TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
 
