@@ -3,6 +3,8 @@
 *.pyc
 *.csv
 *.png
+*.ini
+
 
 !Hotel_correct_answers.csv
 !Hotel_items.csv

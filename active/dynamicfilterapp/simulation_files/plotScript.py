@@ -5,11 +5,10 @@ import seaborn as sns
 import datetime as DT
 import pylab
 import sys
-from collections import defaultdict
+from collections import defaultdict, Counter
 import os.path
+from os import makedirs
 import csv
-#from ..toggles import *
-
 Suppress = True
 
 def dest_resolver(dest):
@@ -125,6 +124,7 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
         title, a string title of your graph
         stderrL a list of lists of standard error for adding y-error bars to data
     """
+    heatMap=True
     # Make the graph
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -141,7 +141,19 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
                 std = stderrL[i]
                 ax.errorbar(x,y,yerr=std, label=legendList[i])
             elif scatter:
-                ax.scatter(x, y, label=legendList[i],alpha=0.2)
+                alph = None
+                if heatMap:
+                    mL=[]
+                    for i in range(len(xL)):
+                        pl = Counter(zip(xL[i],yL[i]))
+                        mL.append(pl.most_common(1)[0])
+                    mx = 0
+                    for i in range(1,len(mL)):
+                        if mL[i][1] > mL[mx][1]:
+                            mx=i
+                    count = mL[mx][1]
+                    alph = 1.0/math.sqrt(count)
+                ax.scatter(x, y, label=legendList[i],alpha=alph)
             else:
                 ax.plot(x, y, label=legendList[i])
     except:
@@ -240,3 +252,10 @@ def stats_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = ''):
         avg.append(np.mean(L))
         std.append(np.std(L))
     bar_graph_gen(avg, legend, dest, labels = labels, title = title, stderr = std)
+
+def packageMaker(dest,conf):
+    if not os.path.exists(dest):
+        makedirs(dest)
+    configName = "config.ini"
+    with open(dest+configName,'w') as f:
+        f.write(conf)

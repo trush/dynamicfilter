@@ -1057,6 +1057,13 @@ class SimulationTest(TransactionTestCase):
 			stderrL = incorrStdList)
 			print "made graph 2"
 
+	def getConfig(self):
+		vals = []
+		for key in VARLIST:
+			resp=str(globals()[key])
+			vals.append(resp)
+		data = zip(VARLIST,vals)
+		return reduce(lambda x,y: x+y, map(lambda x: x[0]+" = "+x[1]+'\n',data))
 
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
@@ -1064,40 +1071,17 @@ class SimulationTest(TransactionTestCase):
 		Runs a simulation of real data and prints out the number of tasks
 		ran to complete the filter
 		"""
-		global NUM_CERTAIN_VOTES
+		global NUM_CERTAIN_VOTES,OUTPUT_PATH
 		print "Simulation is being tested"
 
 		if DEBUG_FLAG: #TODO Update print section.... re-think print section?
 			print "Debug Flag Set!"
 
-			print "ITEM_TYPE: " + ITEM_TYPE
-			print "NUM_WORKERS: " + str(NUM_WORKERS)
-			print "REAL_DATA: " + str(REAL_DATA)
-			print "INPUT_PATH: " + INPUT_PATH
-			print "OUTPUT_PATH: " + OUTPUT_PATH
-			print "RUN_NAME: " + RUN_NAME
+			print self.getConfig()
 
-			print "RUN_DATA_STATS: " + str(RUN_DATA_STATS)
-
-			print "RUN_AVERAGE_COST: " + str(RUN_AVERAGE_COST)
-			if RUN_AVERAGE_COST:
-				print "Number of samples for avg. cost: " + str(COST_SAMPLES)
-
-			print "RUN_SINGLE_PAIR: " + str(RUN_SINGLE_PAIR)
-			if RUN_SINGLE_PAIR:
-				print "Number of runs for single pair data: " + str(SINGLE_PAIR_RUNS)
-
-			print "TEST_ACCURACY: " + str(TEST_ACCURACY)
-
-			print "RUN_TASKS_COUNT: " + str(RUN_TASKS_COUNT)
-
-			if RUN_TASKS_COUNT:
-				print "NUM_SIM: " + str(NUM_SIM)
-
-				print "CHOSEN_PREDS: " + str(CHOSEN_PREDS)
-
-				print "OUTPUT_COST: " + str(OUTPUT_COST)
-
+		if PACKING:
+			OUTPUT_PATH=OUTPUT_PATH+RUN_NAME+'/'
+			packageMaker(OUTPUT_PATH,self.getConfig())
 
 		if REAL_DATA:
 			sampleData = self.load_data()
