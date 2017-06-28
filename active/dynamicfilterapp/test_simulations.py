@@ -511,7 +511,7 @@ class SimulationTest(TransactionTestCase):
 						for p in Predicate.objects.filter(queue_is_full=True) :
 							print "Predicate with id " +  str(p.pk) + " queue is full"
 
-						print print "$"*96
+						print "$"*96
 
 					if len(active_tasks) == 0:
 						print "active tasks is empty"
