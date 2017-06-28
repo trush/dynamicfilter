@@ -226,10 +226,16 @@ class SimulationTest(TransactionTestCase):
 		"""
 		start = time.time()
 		value = syn_answer(chosenIP, switch, numTasks)
-
+		chosenIP.refresh_from_db()
+		predi = Predicate.objects.get(pk=1)
+		predi.refresh_from_db()
+		print "right before updateCounts: ", str(predi.trueSelectivity)
 		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID)
 		t.save()
+
 		updateCounts(t, chosenIP)
+		predi = Predicate.objects.get(pk=1)
+		print "right after updateCounts: ", str(predi.trueSelectivity)
 		end = time.time()
 		runTime = end - start
 		return runTime
@@ -654,7 +660,7 @@ class SimulationTest(TransactionTestCase):
 						taskTime = self.syn_simulate_task(ip_pair, workerID, 0, switch, num_tasks)
 						predi = Predicate.objects.get(pk=1)
 						predi.refresh_from_db()
-						#print "right after simulate_task call: ", str(predi.trueSelectivity)
+						print "right after simulate_task call: ", str(predi.trueSelectivity)
 
 
 					move_window()

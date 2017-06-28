@@ -55,7 +55,7 @@ def syn_answer(chosenIP, switch, numTasks):
 	# print "ID+1: ", str(ID+1)
 	# print "predInfo: ", str(predInfo)
 	# print "switch: ", str(switch)
-	#print "numTasks: ", str(numTasks)
+	print "numTasks: ", str(numTasks)
 
 	for predNum in range(NUM_QUESTIONS):
 
@@ -101,7 +101,7 @@ def syn_answer(chosenIP, switch, numTasks):
 		value = decision(chosenIP.predicate.trueAmbiguity) #index 1 is ambiguity
 
 	predi = Predicate.objects.get(pk=1)
-	#print "right before syn return: ", str(predi.trueSelectivity)
+	print "right before syn return: ", str(predi.trueSelectivity)
 
 	return value
 

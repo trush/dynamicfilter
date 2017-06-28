@@ -272,6 +272,8 @@ def updateCounts(workerTask, chosenIP):
     """
     Update all the stats after a IP_Pair is choosen and a vote is casted.
     """
+    #TODO infinite loop of "worker has no task to do"
+    #chosenIP.refresh_from_db()
     chosenPred = chosenIP.predicate
     chosenIP.status_votes += 1
     chosenPred.totalTasks += 1
@@ -336,6 +338,13 @@ def updateCounts(workerTask, chosenIP):
             chosenIP.item.almostFalse = False
         chosenIP.item.save()
 
+    predi = Predicate.objects.get(pk=1)
+    #predi.refresh_from_db()
+    print "in update counts, right before save: ", str(predi.trueSelectivity)
+    # TODO remove
+    chosenPred.trueSelectivity = chosenIP.predicate.trueSelectivity
+    #TODO INFINITE LOOP OF "WORKER HAS NO TASKS TO DO"
+    #chosenPred.refresh_from_db()
     chosenPred.save()
     chosenIP.save()
 
