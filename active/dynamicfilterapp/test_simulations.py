@@ -1397,6 +1397,86 @@ class SimulationTest(TransactionTestCase):
 		data = zip(VARLIST,vals)
 		return reduce(lambda x,y: x+y, map(lambda x: x[0]+" = "+x[1]+'\n',data))
 
+	def moveWindowContextTest(self):
+		global SLIDING_WINDOW, CHOSEN_PREDS
+		SLIDING_WINDOW = True
+		# CHOSEN_PREDS = [0, 1, 2]
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+
+		# # wickets to 0, no loss tickets
+		# p1 = Predicate(predicate_ID = 1, question = q, num_tickets = 0, num_wickets = LIFETIME)
+		# p1.save()
+		# # wickets to 0, 1 ticket
+		# p2 = Predicate(predicate_ID = 2, question = q, num_tickets = 2, num_wickets = LIFETIME)
+		# p2.save()
+		# # wickets same, no loss tickets
+		# p3 = Predicate(predicate_ID = 3, question = q, num_tickets = 2, num_wickets = LIFETIME-1)
+		# p3.save()
+		#
+		# move_window()
+		# p1.refresh_from_db()
+		# p2.refresh_from_db()
+		# p3.refresh_from_db()
+		# assert (p1.num_wickets == 0)
+		# assert (p1.num_tickets == 0)
+		# assert (p2.num_wickets == 0)
+		# assert (p2.num_tickets == 1)
+		# assert (p3.num_wickets == LIFETIME-1)
+		# assert (p3.num_tickets == 2)
+
+		# CHOSEN_PREDS = [3, 4, 5]
+		p4 = Predicate(predicate_ID = 4, question = q, num_tickets = 0, num_wickets = LIFETIME)
+		p4.save()
+		# wickets to 0, 1 ticket
+		p5 = Predicate(predicate_ID = 5, question = q, num_tickets = 2, num_wickets = LIFETIME)
+		p5.save()
+		# wickets same, no loss tickets
+		p6 = Predicate(predicate_ID = 6, question = q, num_tickets = 2, num_wickets = LIFETIME-1)
+		p6.save()
+		print "p4" + str(p4.pk)
+		print "p5" + str(p5.pk)
+		print "p6" + str(p6.pk)
+
+		move_window1()
+
+		# p4 = Predicate.objects.get(id=1)
+		# p5 = Predicate.objects.get(id=2)
+		# p6 = Predicate.objects.get(id=3)
+		p4.refresh_from_db()
+		p5.refresh_from_db()
+		p6.refresh_from_db()
+		print p4.num_wickets
+		print p4.num_tickets
+		print p5.num_wickets
+		print p5.num_tickets
+		print p6.num_wickets
+		print p6.num_tickets
+		assert (p4.num_wickets == 0)
+		assert (p4.num_tickets == 0)
+		assert (p5.num_wickets == 0)
+		assert (p5.num_tickets == 1)
+		assert (p6.num_wickets == LIFETIME-1)
+		assert (p6.num_tickets == 2)
+
+	def give_taskContextTest(self):
+
+		tasks = []
+		workerID = 1
+
+		ip_pair = give_task(tasks, workerID)[0]
+
+		assert(ip_pair.tasks_out == 1)
+
+		ip_pair = give_task1(tasks, workerID)[0]
+
+		assert(ip_pair.tasks_out == 1)
+
+
+
+
+
+
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
 		"""
@@ -1595,3 +1675,8 @@ class SimulationTest(TransactionTestCase):
 
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
+
+	def test_refactor(self):
+
+		# self.moveWindowContextTest()
+		self.give_taskContextTest()

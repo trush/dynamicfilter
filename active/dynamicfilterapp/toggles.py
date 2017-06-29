@@ -37,7 +37,7 @@ EDDY_SYS = 1
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
-CHOSEN_PREDS = [1,4] # predicates that will be used when run on real data
+CHOSEN_PREDS = [0, 1, 2] # predicates that will be used when run on real data
 
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
@@ -62,7 +62,7 @@ ITEM_SYS = 0
 # 1 - item-started system
 # 2 - item-almost-false system
 
-SLIDING_WINDOW = False
+SLIDING_WINDOW = True
 LIFETIME = 10
 
 ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates

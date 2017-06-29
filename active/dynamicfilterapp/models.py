@@ -90,6 +90,7 @@ class Predicate(models.Model):
 
     def move_window(self):
         if self.num_wickets == LIFETIME:
+            print "lifetime reached for " + str(self.predicate_ID)
             self.num_wickets = 0
             self.save(update_fields=["num_wickets"])
 

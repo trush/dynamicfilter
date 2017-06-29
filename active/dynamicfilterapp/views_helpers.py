@@ -24,18 +24,12 @@ def worker_done(ID):
     completedTasks = Task.objects.filter(workerID=ID)
     completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
     incompleteIP = IP_Pair.objects.filter(isDone=False).exclude(id__in=completedIP)
-    complete = "Worker has completed: " +  str(completedIP.values_list('id', flat=True))
-    inQueue = "IP pairs in the queue: " + str(IP_Pair.objects.filter(inQueue=True).values_list('id', flat=True))
-    doneInQueue = "IP pairs completed in the queue: " + str(IP_Pair.objects.filter(isDone=True, inQueue=True).values_list('id', flat=True))
 
     # if queue_pending_system:
     if (EDDY_SYS == 1):
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
-        inFullq = "incompleteIP excluding out of full q: " + str(list(incompleteIP.exclude(id__in=outOfFullQueue).values_list('id', flat = True)))
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-        unique = "incompleteIP excluding nonUnique: " + str(list(incompleteIP.exclude(id__in=nonUnique).values_list('id', flat = True)))
         allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
-        notAllTasksOut = "incompleteIP excluding allTasksOut: " + str(list(incompleteIP.exclude(id__in=allTasksOut).values_list('id', flat=True)))
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
 
     if not incompleteIP:
@@ -96,37 +90,66 @@ def pending_eddy(ID):
     runTime = end - start
     return chosenIP, runTime
 
+# def move_window():
+#     """
+#     Checks to see if ticket has reached lifetime
+#     """
+#     if SLIDING_WINDOW:
+#         # get the chosen predicates
+#         pred = Predicate.objects.filter(pk__in=[p+1 for p in CHOSEN_PREDS])
+#
+#         # handle window properties
+#         for p in pred:
+#             if p.num_wickets == LIFETIME:
+#                 p.num_wickets = 0
+#                 if p.num_tickets > 1:
+#                     p.num_tickets = F('num_tickets') - 1
+#             p.save()
+#     else:
+#         pass
+
 def move_window():
-    """
-    Checks to see if ticket has reached lifetime
-    """
     if SLIDING_WINDOW:
-        # get the chosen predicates
         pred = Predicate.objects.filter(pk__in=[p+1 for p in CHOSEN_PREDS])
 
-        # handle window properties
         for p in pred:
-            if p.num_wickets == LIFETIME:
-                p.num_wickets = 0
-                if p.num_tickets > 1:
-                    p.num_tickets = F('num_tickets') - 1
-            p.save()
-    else:
-        pass
+            p.move_window()
+
+
+# def give_task(active_tasks, workerID):
+#     # ip_pair, eddy_time = pending_eddy(workerID)
+#     i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
+#     i.save()
+#     q = Question(question_ID = 1, question_text = "blah")
+#     q.save()
+#     p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_pending = 1)
+#     p.save()
+# 	# create a predicate
+#     ip_pair = IP_Pair(item = i, predicate = p, inQueue = True)
+#     ip_pair.save()
+#     if ip_pair is not None:
+#         # print "IP pair selected"
+#         ip_pair.tasks_out += 1
+#         ip_pair.save(update_fields=["tasks_out"])
+#         ip_pair.refresh_from_db()
+#
+#     else:
+#         print "IP pair was none"
+#     eddy_time = 0
+#     return ip_pair, eddy_time
 
 def give_task(active_tasks, workerID):
     ip_pair, eddy_time = pending_eddy(workerID)
+
     if ip_pair is not None:
         # print "IP pair selected"
-        ip_pair.tasks_out += 1
-        ip_pair.save(update_fields=["tasks_out"])
-        ip_pair.refresh_from_db()
+        ip_pair.distribute_task()
 
     else:
         print "IP pair was none"
-
+        
     return ip_pair, eddy_time
-    
+
 def inc_queue_length(pred):
     """
     increase the queue_length value of the given predicate by one
