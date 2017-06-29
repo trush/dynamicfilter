@@ -186,30 +186,35 @@ class IP_Pair(models.Model):
         self.predicate.check_queue_full()
 
     def remove_from_queue(self):
-        self.inQueue = False
-        self.item.inQueue = False
-        self.predicate.queue_is_full = False
-        self.predicate.num_pending -= 1
-        self.save(update_fields=["inQueue"])
+        if self.should_leave_queue :
+            self.inQueue = False
+            self.item.inQueue = False
+            self.predicate.queue_is_full = False
+            self.predicate.num_pending -= 1
+            self.save(update_fields=["inQueue"])
 
     def record_vote(self, workerTask):
-        self.status_votes += 1
-        self.predicate.num_wickets += 1
-        self.save(update_fields=["status_votes"])
+        # add vote to tally only if appropriate
+        if not self.isDone:
+            self.status_votes += 1
+            self.predicate.num_wickets += 1
+            self.save(update_fields=["status_votes"])
 
-        if workerTask.answer:
-            self.value += 1
-            self.num_yes += 1
-            self.save(update_fields=["value", "num_yes"])
+            if workerTask.answer:
+                self.value += 1
+                self.num_yes += 1
+                self.save(update_fields=["value", "num_yes"])
 
-        elif not workerTask.answer:
-            self.value -= 1
-            self.num_no += 1
-            self.predicate.totalNo += 1
-            self.save(update_fields=["value", "num_no"])
+            elif not workerTask.answer:
+                self.value -= 1
+                self.num_no += 1
+                self.predicate.totalNo += 1
+                self.save(update_fields=["value", "num_no"])
 
-        self.predicate.updateSelectivity()
-        self.predicate.updateCost()
+            self.predicate.update_selectivity()
+            self.predicate.update_cost()
+
+            self.set_done_if_done()
 
     def set_done_if_done(self):
         if self.status_votes == toggles.NUM_CERTAIN_VOTES:
@@ -217,6 +222,15 @@ class IP_Pair(models.Model):
             if self.found_consensus():
                 self.isDone = True
                 self.save(update_fields=["isDone"])
+
+                # helpful print statements
+                if toggles.DEBUG_FLAG:
+                    print "*"*40
+                    print "Completed IP Pair: " + str(self.id)
+                    print "Total yes: " + str(self.num_yes) + "  Total no: " + str(self.num_no)
+                    print "Total votes: " + str(self.num_yes+self.num_no)
+                    print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
+                    print "*"*40
 
                 if not self.is_false() and self.predicate.num_tickets > 1:
                     self.predicate.num_tickets -= 1

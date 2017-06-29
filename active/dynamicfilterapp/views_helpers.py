@@ -273,110 +273,122 @@ def lotteryPendingQueue(ipSet):
     return chosenIP
 
 def updateCounts(workerTask, chosenIP):
-    # make sure values are up to date
-    workerTask.refresh_from_db()
-    chosenIP.refresh_from_db()
+    # update stats counting tasks completed
+    chosenIP.collect_task()
 
-    # a task has been completed, change relevant task counts
-    chosenIP.tasks_out -= 1
-    chosenIP.predicate.totalTasks += 1
+    # update stats counting numbers of votes (only if IP not completed)
+    chosenIP.record_vote(workerTask)
 
-    chosenIP.save(update_fields=["tasks_out", "predicate"])
-    chosenIP.predicate.save(update_fields=["totalTasks"])
-    chosenIP.refresh_from_db()
+    # if we're using queueing, remove the IP pair from the queue if appropriate
+    if toggles.EDDY_SYS == 1:
+        chosenIP.remove_from_queue()
 
 
-    # if we're not already done, collect votes
-    if not chosenIP.isDone :
-        chosenIP.status_votes += 1
-        chosenIP.predicate.num_wickets = F('num_wickets') + 1
-        chosenIP.save(update_fields=["status_votes"])
-        chosenIP.refresh_from_db()
-        chosenIP.predicate.save(update_fields=["num_wickets"])
-        chosenIP.refresh_from_db()
-
-        # update according to worker's answer
-        if workerTask.answer == True:
-            chosenIP.value += 1
-            chosenIP.num_yes += 1
-            chosenIP.save(update_fields=['num_yes', "value"])
-            chosenIP.refresh_from_db()
-
-        elif workerTask.answer == False:
-            chosenIP.value -= 1
-            chosenIP.num_no +=1
-            chosenIP.predicate.totalNo += 1
-            chosenIP.save(update_fields=["num_no", "value"])
-            chosenIP.predicate.save(update_fields=['totalNo'])
-            chosenIP.refresh_from_db()
-            chosenIP.predicate.refresh_from_db()
-
-        # save and record changes
-        chosenIP.predicate.update_selectivity()
-        chosenIP.predicate.update_cost()
-
-        # if we've arrived at the right number of votes collected, evaluate consensus
-        print "IP pair " + str(chosenIP.id) + " status votes: " + str(chosenIP.status_votes)
-        if chosenIP.status_votes == NUM_CERTAIN_VOTES:
-            # calculate the probability of this vote scheme happening
-            if chosenIP.value > 0:
-                uncertaintyLevel = btdtr(chosenIP.num_yes+1, chosenIP.num_no+1, DECISION_THRESHOLD)
-            else:
-                uncertaintyLevel = btdtr(chosenIP.num_no+1, chosenIP.num_yes+1, DECISION_THRESHOLD)
-
-            # we are certain enough about the answer or at cut off point
-            print "For IP Pair " + str(chosenIP.id) + "sum of num no and num yes = " + str(chosenIP.num_yes+chosenIP.num_no)
-            if (uncertaintyLevel < UNCERTAINTY_THRESHOLD)|(chosenIP.num_yes+chosenIP.num_no >= CUT_OFF):
-
-                #____FOR OUTPUT_SELECTIVITES()____#
-                #if not IP_Pair.objects.filter(isDone=True).filter(item=chosenIP.item):
-                #    chosenPred.num_ip_complete += 1
-
-                # we're done with the IP pair
-                chosenIP.isDone = True
-                chosenIP.save(update_fields=["isDone"])
-                chosenIP.refresh_from_db()
-
-                if DEBUG_FLAG:
-                    print "*"*40
-                    print "Completed IP Pair: " + str(chosenIP.id)
-                    yes = chosenIP.num_yes
-                    no = chosenIP.num_no
-                    print "Total yes: " + str(yes) + "  Total no: " + str(no)
-                    print "Total votes: " + str(yes+no)
-                    print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
-                    print "*"*40
-
-                # punish the predicate if this IP pair returned True
-                if not chosenIP.is_false() and chosenIP.predicate.num_tickets > 1:
-                    chosenIP.predicate.num_tickets -= 1
-                    chosenIP.predicate.save(update_fields=["num_tickets"])
-                    chosenIP.save(update_fields=["predicate"])
-                    chosenIP.refresh_from_db()
-            else:
-                chosenIP.status_votes -= 2
-                chosenIP.save(update_fields=["status_votes"])
-                chosenIP.refresh_from_db()
-
-    # if the IP pair is now done
-    chosenIP.refresh_from_db()
-    chosenIP.predicate.refresh_from_db()
-    chosenIP.item.refresh_from_db()
-    if chosenIP.isDone :
-        # if it's got no tasks left active, remove from the queue
-        if chosenIP.tasks_out < 1 and EDDY_SYS == 1:
-            chosenIP.inQueue = False
-            chosenIP.item.inQueue = False
-            chosenIP.predicate.queue_is_full = False
-            chosenIP.predicate.num_pending -= 1
-
-            # save and refresh changes
-            chosenIP.save(update_fields=["inQueue", "item", "predicate"])
-            chosenIP.item.save(update_fields=["inQueue"])
-            chosenIP.predicate.save(update_fields=["queue_is_full", "num_pending"])
-            chosenIP.refresh_from_db()
-            chosenIP.predicate.refresh_from_db()
-            chosenIP.predicate.refresh_from_db()
+# def updateCounts(workerTask, chosenIP):
+#     # make sure values are up to date
+#     workerTask.refresh_from_db()
+#     chosenIP.refresh_from_db()
+#
+#     # a task has been completed, change relevant task counts
+#     chosenIP.tasks_out -= 1
+#     chosenIP.predicate.totalTasks += 1
+#
+#     chosenIP.save(update_fields=["tasks_out", "predicate"])
+#     chosenIP.predicate.save(update_fields=["totalTasks"])
+#     chosenIP.refresh_from_db()
+#
+#
+#     # if we're not already done, collect votes
+#     if not chosenIP.isDone :
+#         chosenIP.status_votes += 1
+#         chosenIP.predicate.num_wickets = F('num_wickets') + 1
+#         chosenIP.save(update_fields=["status_votes"])
+#         chosenIP.refresh_from_db()
+#         chosenIP.predicate.save(update_fields=["num_wickets"])
+#         chosenIP.refresh_from_db()
+#
+#         # update according to worker's answer
+#         if workerTask.answer == True:
+#             chosenIP.value += 1
+#             chosenIP.num_yes += 1
+#             chosenIP.save(update_fields=['num_yes', "value"])
+#             chosenIP.refresh_from_db()
+#
+#         elif workerTask.answer == False:
+#             chosenIP.value -= 1
+#             chosenIP.num_no +=1
+#             chosenIP.predicate.totalNo += 1
+#             chosenIP.save(update_fields=["num_no", "value"])
+#             chosenIP.predicate.save(update_fields=['totalNo'])
+#             chosenIP.refresh_from_db()
+#             chosenIP.predicate.refresh_from_db()
+#
+#         # save and record changes
+#         chosenIP.predicate.update_selectivity()
+#         chosenIP.predicate.update_cost()
+#
+#         # if we've arrived at the right number of votes collected, evaluate consensus
+#         print "IP pair " + str(chosenIP.id) + " status votes: " + str(chosenIP.status_votes)
+#         if chosenIP.status_votes == NUM_CERTAIN_VOTES:
+#             # calculate the probability of this vote scheme happening
+#             if chosenIP.value > 0:
+#                 uncertaintyLevel = btdtr(chosenIP.num_yes+1, chosenIP.num_no+1, DECISION_THRESHOLD)
+#             else:
+#                 uncertaintyLevel = btdtr(chosenIP.num_no+1, chosenIP.num_yes+1, DECISION_THRESHOLD)
+#
+#             # we are certain enough about the answer or at cut off point
+#             print "For IP Pair " + str(chosenIP.id) + "sum of num no and num yes = " + str(chosenIP.num_yes+chosenIP.num_no)
+#             if (uncertaintyLevel < UNCERTAINTY_THRESHOLD)|(chosenIP.num_yes+chosenIP.num_no >= CUT_OFF):
+#
+#                 #____FOR OUTPUT_SELECTIVITES()____#
+#                 #if not IP_Pair.objects.filter(isDone=True).filter(item=chosenIP.item):
+#                 #    chosenPred.num_ip_complete += 1
+#
+#                 # we're done with the IP pair
+#                 chosenIP.isDone = True
+#                 chosenIP.save(update_fields=["isDone"])
+#                 chosenIP.refresh_from_db()
+#
+#                 if DEBUG_FLAG:
+#                     print "*"*40
+#                     print "Completed IP Pair: " + str(chosenIP.id)
+#                     yes = chosenIP.num_yes
+#                     no = chosenIP.num_no
+#                     print "Total yes: " + str(yes) + "  Total no: " + str(no)
+#                     print "Total votes: " + str(yes+no)
+#                     print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
+#                     print "*"*40
+#
+#                 # punish the predicate if this IP pair returned True
+#                 if not chosenIP.is_false() and chosenIP.predicate.num_tickets > 1:
+#                     chosenIP.predicate.num_tickets -= 1
+#                     chosenIP.predicate.save(update_fields=["num_tickets"])
+#                     chosenIP.save(update_fields=["predicate"])
+#                     chosenIP.refresh_from_db()
+#             else:
+#                 chosenIP.status_votes -= 2
+#                 chosenIP.save(update_fields=["status_votes"])
+#                 chosenIP.refresh_from_db()
+#
+#     # if the IP pair is now done
+#     chosenIP.refresh_from_db()
+#     chosenIP.predicate.refresh_from_db()
+#     chosenIP.item.refresh_from_db()
+#     if chosenIP.isDone :
+#         # if it's got no tasks left active, remove from the queue
+#         if chosenIP.tasks_out < 1 and EDDY_SYS == 1:
+#             chosenIP.inQueue = False
+#             chosenIP.item.inQueue = False
+#             chosenIP.predicate.queue_is_full = False
+#             chosenIP.predicate.num_pending -= 1
+#
+#             # save and refresh changes
+#             chosenIP.save(update_fields=["inQueue", "item", "predicate"])
+#             chosenIP.item.save(update_fields=["inQueue"])
+#             chosenIP.predicate.save(update_fields=["queue_is_full", "num_pending"])
+#             chosenIP.refresh_from_db()
+#             chosenIP.predicate.refresh_from_db()
+#             chosenIP.predicate.refresh_from_db()
 
 #____________IMPORT/EXPORT CSV FILE____________#
 def output_selectivities(run_name):

@@ -1523,6 +1523,49 @@ class SimulationTest(TransactionTestCase):
 		assert(ip.predicate.num_tickets == ip2.predicate.num_tickets)
 		assert(ip.predicate.queue_is_full == ip2.predicate.queue_is_full)
 
+	def updateCountsTest(self):
+		q = Question(question_ID = 10, question_text = "blah")
+		q.save()
+
+		i_0_0 = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
+		i_0_0.save()
+		i_0_1 = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
+		i_0_1.save()
+		p_0_0 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0, num_pending = 5)
+		p_0_0.save()
+		p_0_1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0, num_pending = 5)
+		p_0_1.save()
+		ip_0_0 = IP_Pair (item = i_0_0, predicate = p_0_0, status_votes = NUM_CERTAIN_VOTES-1, num_yes = 0, num_no = 4, tasks_out = 2)
+		ip_0_0.save()
+		ip_0_1 = IP_Pair (item = i_0_1, predicate = p_0_1, status_votes = NUM_CERTAIN_VOTES-1, num_yes = 0, num_no = 4, tasks_out = 2)
+		ip_0_1.save()
+		t_0_0 = Task(ip_pair = ip_0_0, answer = False, workerID = 1)
+		t_0_0.save()
+		t_0_1 = Task(ip_pair = ip_0_1, answer = False, workerID = 1)
+		t_0_1.save()
+
+		updateCounts(t_0_0, ip_0_0)
+
+		updateCounts1(t_0_1, ip_0_1)
+
+		ip_0_0.refresh_from_db()
+		ip_0_1.refresh_from_db()
+		assert(ip_0_0.inQueue == ip_0_1.inQueue)
+		assert(ip_0_0.item.inQueue == ip_0_1.item.inQueue)
+		assert(ip_0_0.tasks_out == ip_0_1.tasks_out)
+		assert(ip_0_0.predicate.totalTasks == ip_0_1.predicate.totalTasks)
+		assert(ip_0_0.predicate.queue_is_full == ip_0_1.predicate.queue_is_full)
+		assert(ip_0_0.isDone == ip_0_1.isDone)
+		assert(ip_0_0.status_votes == ip_0_1.status_votes)
+		assert(ip_0_0.num_yes == ip_0_1.num_yes)
+		assert(ip_0_0.num_no == ip_0_1.num_no)
+		assert(ip_0_0.value == ip_0_1.value)
+
+
+
+
+
+
 
 
 
@@ -1730,4 +1773,5 @@ class SimulationTest(TransactionTestCase):
 		# self.moveWindowContextTest()
 		# self.give_taskContextTest()
 		# self.awardTicketTest()
-		self.add_to_queueTest()
+		# self.add_to_queueTest()
+		self.updateCountsTest()
