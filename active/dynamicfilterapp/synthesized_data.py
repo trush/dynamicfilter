@@ -93,7 +93,7 @@ def syn_answer(chosenIP, switch, numTasks):
 
 	# decide if the answer is going to lean towards true or false
 	# lean towards true
-	if decision(pred.trueSelectivity): #index 0 is selectivity
+	if decision(chosenIP.predicate.trueSelectivity): #index 0 is selectivity
 		# decide if the answer is going to be true or false
 		value = decision(1 - chosenIP.predicate.trueAmbiguity) #index 1 is ambiguity
 	# lean towards false
@@ -101,7 +101,7 @@ def syn_answer(chosenIP, switch, numTasks):
 		value = decision(chosenIP.predicate.trueAmbiguity) #index 1 is ambiguity
 
 	predi = Predicate.objects.get(pk=1)
-	#print "right before syn return: ", str(predi.trueSelectivity)
+	print "right before syn return: ", str(chosenIP.predicate.trueSelectivity)
 
 	return value
 

@@ -4,7 +4,8 @@ now = DT.datetime.now()
 from responseTimeDistribution import *
 
 
-RUN_NAME = 'SynData_Queue1_Window20_2Q_100I_50Sims' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+#RUN_NAME = 'SynData_Queue1_Window20_2Q_100I_50Sims' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'SynData_Queue1_SIN' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
 
@@ -18,11 +19,17 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-NUM_CERTAIN_VOTES = 3
+# NUM_CERTAIN_VOTES = 3
+# UNCERTAINTY_THRESHOLD = 0.2
+# FALSE_THRESHOLD = 0.2
+# DECISION_THRESHOLD = 0.7
+# CUT_OFF = 23
+
+NUM_CERTAIN_VOTES = 5
 UNCERTAINTY_THRESHOLD = 0.2
 FALSE_THRESHOLD = 0.2
-DECISION_THRESHOLD = 0.7
-CUT_OFF = 23
+DECISION_THRESHOLD = 0.5
+CUT_OFF = 21
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
@@ -93,8 +100,8 @@ SELECTIVITY_GRAPH = True
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
 # selectvity of the previous timestep
-#switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .1, 400, .05, .6), 0.68), (0.6, 0.87))]
-switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), (600, (0.8, 0.68), (0.7, 0.87)), (900, (0.8, 0.68), (0.75, 0.87))]
+switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .1, 400, .05, .6), 0.68), (0.6, 0.87))]
+#switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), (600, (0.8, 0.68), (0.7, 0.87)), (900, (0.8, 0.68), (0.75, 0.87))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False

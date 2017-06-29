@@ -6,7 +6,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
 
 
-from toggles import PENDING_QUEUE_SIZE
+from toggles import *
 
 @python_2_unicode_compatible
 class Item(models.Model):
