@@ -6,7 +6,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
 
 
-from toggles import PENDING_QUEUE_SIZE
+import toggles
 
 @python_2_unicode_compatible
 class Item(models.Model):
@@ -63,7 +63,7 @@ class Predicate(models.Model):
 
     # Queue variables
     queue_is_full = models.BooleanField(default=False)
-    queue_length = models.IntegerField(default=PENDING_QUEUE_SIZE)
+    queue_length = models.IntegerField(default=toggles.PENDING_QUEUE_SIZE)
 
     # fields to keep track of selectivity
     selectivity = models.FloatField(default=0.1)
@@ -88,7 +88,7 @@ class Predicate(models.Model):
         return self.cost
 
     def move_window(self):
-        if self.num_wickets == LIFETIME:
+        if self.num_wickets == toggles.LIFETIME:
             self.num_wickets = 0
             self.save(update_fields=["num_wickets"])
 
@@ -102,7 +102,7 @@ class Predicate(models.Model):
         self.save(update_fields = ["num_tickets", "num_pending"])
 
     def check_queue_full(self):
-        if self.num_pending >= PENDING_QUEUE_SIZE:
+        if self.num_pending >= toggles.PENDING_QUEUE_SIZE:
             self.queue_is_full = True
             self.save(update_fields = ["queue_is_full"])
 
@@ -180,7 +180,7 @@ class IP_Pair(models.Model):
         self.predicate.updateCost()
 
     def set_done_if_done():
-        if self.status_votes == NUM_CERTAIN_VOTES:
+        if self.status_votes == toggles.NUM_CERTAIN_VOTES:
 
             if found_consensus():
                 self.isDone = True
@@ -194,13 +194,13 @@ class IP_Pair(models.Model):
 
     def found_consensus():
         if self.value > 0:
-            uncertLevel = btdtr(self.num_yes+1, self.num_no+1, DECISION_THRESHOLD)
+            uncertLevel = btdtr(self.num_yes+1, self.num_no+1, toggles.DECISION_THRESHOLD)
         else:
-            uncertLevel = btdtr(self.num_no+1, self.num_yes+1, DECISION_THRESHOLD)
+            uncertLevel = btdtr(self.num_no+1, self.num_yes+1, toggles.DECISION_THRESHOLD)
 
         votes_cast = self.num_yes + self.num_no
 
-        if (uncertLevel < UNCERTAINTY_THRESHOLD) | (votes_cast >= CUT_OFF):
+        if (uncertLevel < toggles.UNCERTAINTY_THRESHOLD) | (votes_cast >= toggles.CUT_OFF):
             return True
 
         else:
