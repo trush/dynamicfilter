@@ -203,7 +203,7 @@ class SimulationTest(TransactionTestCase):
 		if chosenIP is None:
 			t = None
 		else:
-			value = syn_answer(chosenIP, switch)
+			value = syn_answer(chosenIP, switch, numTasks)
 			if SIMULATE_TIME:
 				if value :
 					#worker said true, take from true distribution
@@ -1161,7 +1161,7 @@ class SimulationTest(TransactionTestCase):
 		print "item in queue? " + str(ip.item.inQueue)
 		print "IP pair in queue? " + str(ip.inQueue)
 
-		ip.removeFromQueue()
+		ip.remove_from_queue()
 
 		print "&&&& before refresh &&&&"
 		print "pred queue is full? " + str(ip.predicate.queue_is_full)
@@ -1202,7 +1202,7 @@ class SimulationTest(TransactionTestCase):
 		print "IP value: " + str(ip.value)
 		print "IP status votes: " + str(ip.status_votes)
 
-		ip.recordVote(trueVote)
+		ip.record_vote(trueVote)
 
 		print "&&&& before refresh, true Vote &&&&"
 		print "ip num_no? " + str(ip.num_no)

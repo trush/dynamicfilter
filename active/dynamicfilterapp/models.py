@@ -180,7 +180,7 @@ class IP_Pair(models.Model):
             self.save(update_fields=["value", "num_no"])
 
         self.predicate.updateSelectivity()
-        self.predicate.updateCost()
+        self.predicate.update_cost()
 
     def set_done_if_done():
         if self.status_votes == NUM_CERTAIN_VOTES:

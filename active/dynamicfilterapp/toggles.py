@@ -89,7 +89,7 @@ NUM_QUESTIONS = 2
 NUM_ITEMS = 100
 SIN = -1
 
-SELECTIVITY_GRAPH = False
+SELECTIVITY_GRAPH = True
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
 # selectvity of the previous timestep

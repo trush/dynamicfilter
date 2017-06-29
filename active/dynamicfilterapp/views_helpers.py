@@ -321,7 +321,7 @@ def updateCounts(workerTask, chosenIP):
             chosenIP.predicate.refresh_from_db()
 
         # save and record changes
-        chosenIP.predicate.update_selectivity()
+        chosenIP.predicate.updateSelectivity()
         chosenIP.predicate.update_cost()
 
         # if we've arrived at the right number of votes collected, evaluate consensus

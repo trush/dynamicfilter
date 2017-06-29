@@ -101,7 +101,7 @@ def syn_answer(chosenIP, switch, numTasks):
 		value = decision(chosenIP.predicate.trueAmbiguity) #index 1 is ambiguity
 
 	predi = Predicate.objects.get(pk=1)
-	print "right before syn return: ", str(predi.trueSelectivity)
+	#print "right before syn return: ", str(predi.trueSelectivity)
 
 	return value
 
@@ -112,11 +112,11 @@ def getSinValue(sinInfo, numTasks):
 	radians = math.radians(degrees)
 	trans = sinInfo[4]
 	amp = sinInfo[1]
-	print "degrees: ", str(degrees)
+	#print "degrees: ", str(degrees)
 	# print "radians: ", str(radians)
 	# print "amp: ", str (amp)
 	# print "trans: ", str(trans)
-	print "sin val: " + str(math.sin(radians)*amp)
+	#print "sin val: " + str(math.sin(radians)*amp)
 	return trans + math.sin(radians)*amp
 
 def decision(probability):
