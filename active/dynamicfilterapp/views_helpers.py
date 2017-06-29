@@ -147,7 +147,7 @@ def give_task(active_tasks, workerID):
 
     else:
         print "IP pair was none"
-        
+
     return ip_pair, eddy_time
 
 def inc_queue_length(pred):
@@ -158,6 +158,7 @@ def inc_queue_length(pred):
     pred.queue_length = F('queue_length') + 1
     pred.queue_is_full = False
     pred.save()
+    # TODO move functionality into models
     return pred.queue_length
 
 def dec_queue_length(pred):
@@ -174,6 +175,7 @@ def dec_queue_length(pred):
     if pred.num_pending >= (old - 1):
         pred.queue_is_full = True
     pred.save()
+    # TODO move functionality into models
     return old-1
 
 #____________LOTTERY SYSTEMS____________#
@@ -223,10 +225,8 @@ def lotteryPendingTickets(ipSet):
     item = chooseItem(chosenPredSet)
     chosenIP = ipSet.get(predicate=chosenPred, item=item)
 
-    # deliever tickets to the predicate
-    chosenIP.predicate.num_tickets += 1
-    chosenIP.predicate.num_pending += 1
-    chosenIP.predicate.save()
+    # deliever tickets to the predicate, add to pred's number of pending items
+    chosenIP.predicate.award_ticket()
 
     return chosenIP
 
@@ -252,23 +252,24 @@ def lotteryPendingQueue(ipSet):
     chosenIP = ipSet.get(predicate=chosenPred, item=item)
 
     # if this ip is not in the queue
-    if chosenIP.inQueue == False:
-        chosenIP.predicate.num_tickets += 1
-        chosenIP.predicate.num_pending += 1
-        chosenIP.inQueue = True
-        chosenIP.item.inQueue = True
-        chosenIP.item.save(update_fields=["inQueue"])
-        chosenIP.predicate.save(update_fields=["num_tickets", "num_pending"])
-        chosenIP.save(update_fields=['inQueue'])
-
-    chosenIP.predicate.refresh_from_db()
-    chosenIP.refresh_from_db()
-    # if the queue is full, update the predicate
-    if chosenIP.predicate.num_pending >= chosenIP.predicate.queue_length:
-        chosenIP.predicate.queue_is_full = True
-
-    chosenIP.predicate.save(update_fields=["queue_is_full"])
-    chosenIP.predicate.refresh_from_db()
+    if not chosenIP.is_in_queue:
+        chosenIP.add_to_queue()
+    #     chosenIP.predicate.num_tickets += 1
+    #     chosenIP.predicate.num_pending += 1
+    #     chosenIP.inQueue = True
+    #     chosenIP.item.inQueue = True
+    #     chosenIP.item.save(update_fields=["inQueue"])
+    #     chosenIP.predicate.save(update_fields=["num_tickets", "num_pending"])
+    #     chosenIP.save(update_fields=['inQueue'])
+    #
+    # chosenIP.predicate.refresh_from_db()
+    # chosenIP.refresh_from_db()
+    # # if the queue is full, update the predicate
+    # if chosenIP.predicate.num_pending >= chosenIP.predicate.queue_length:
+    #     chosenIP.predicate.queue_is_full = True
+    #
+    # chosenIP.predicate.save(update_fields=["queue_is_full"])
+    # chosenIP.predicate.refresh_from_db()
     return chosenIP
 
 def updateCounts(workerTask, chosenIP):

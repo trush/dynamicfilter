@@ -6,8 +6,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
 from scipy.special import btdtr
 
-
-from toggles import PENDING_QUEUE_SIZE, LIFETIME, NUM_CERTAIN_VOTES, CUT_OFF, DECISION_THRESHOLD, UNCERTAINTY_THRESHOLD
+import toggles
 
 @python_2_unicode_compatible
 class Item(models.Model):
@@ -64,7 +63,7 @@ class Predicate(models.Model):
 
     # Queue variables
     queue_is_full = models.BooleanField(default=False)
-    queue_length = models.IntegerField(default=PENDING_QUEUE_SIZE)
+    queue_length = models.IntegerField(default=toggles.PENDING_QUEUE_SIZE)
 
     # fields to keep track of selectivity
     selectivity = models.FloatField(default=0.1)
@@ -89,7 +88,7 @@ class Predicate(models.Model):
         return self.cost
 
     def move_window(self):
-        if self.num_wickets == LIFETIME:
+        if self.num_wickets == toggles.LIFETIME:
             print "lifetime reached for " + str(self.predicate_ID)
             self.num_wickets = 0
             self.save(update_fields=["num_wickets"])
@@ -107,6 +106,32 @@ class Predicate(models.Model):
         if self.num_pending >= self.queue_length:
             self.queue_is_full = True
             self.save(update_fields = ["queue_is_full"])
+
+    def inc_queue_length(self):
+        self.queue_length += 1
+        self.queue_is_full = False
+        self.save(update_fields=["queue_length", "queue_is_full"])
+
+        return self.queue_length
+
+    def dec_queue_length(self):
+        """
+        decreases the queue_length value of the given predicate by one
+        raises an error if the pred was full when called
+        """
+        if (self.queue_is_full):
+            raise ValueError("Tried to decrement the queue_length of a predicate with a full queue")
+        old = self.queue_length
+        if old == 1:
+            raise ValueError("Tried to decrement queue_length to zero")
+        self.queue_length = old-1
+        self.save(update_fields=["queue_length"])
+        if self.num_pending >= (old - 1):
+            self.queue_is_full = True
+            self.save(update_fields=["queue_is_full"])
+
+        return self.queue_length
+
 
 
 @python_2_unicode_compatible
@@ -154,7 +179,11 @@ class IP_Pair(models.Model):
     def add_to_queue(self):
         self.inQueue = True
         self.item.inQueue = True
+        self.predicate.num_tickets += 1
+        self.predicate.num_pending += 1
         self.save(update_fields=["inQueue"])
+        # checks if pred queue is now full and changes state accordingly
+        self.predicate.check_queue_full()
 
     def remove_from_queue(self):
         self.inQueue = False
@@ -183,7 +212,7 @@ class IP_Pair(models.Model):
         self.predicate.updateCost()
 
     def set_done_if_done(self):
-        if self.status_votes == NUM_CERTAIN_VOTES:
+        if self.status_votes == toggles.NUM_CERTAIN_VOTES:
 
             if self.found_consensus():
                 self.isDone = True
@@ -197,13 +226,13 @@ class IP_Pair(models.Model):
 
     def found_consensus(self):
         if self.value > 0:
-            uncertLevel = btdtr(self.num_yes+1, self.num_no+1, DECISION_THRESHOLD)
+            uncertLevel = btdtr(self.num_yes+1, self.num_no+1, toggles.DECISION_THRESHOLD)
         else:
-            uncertLevel = btdtr(self.num_no+1, self.num_yes+1, DECISION_THRESHOLD)
+            uncertLevel = btdtr(self.num_no+1, self.num_yes+1, toggles.DECISION_THRESHOLD)
 
         votes_cast = self.num_yes + self.num_no
 
-        if (uncertLevel < UNCERTAINTY_THRESHOLD) | (votes_cast >= CUT_OFF):
+        if (uncertLevel < toggles.UNCERTAINTY_THRESHOLD) | (votes_cast >= toggles.CUT_OFF):
             return True
 
         else:

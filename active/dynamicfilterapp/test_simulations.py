@@ -1215,20 +1215,23 @@ class SimulationTest(TransactionTestCase):
 		print "p2 " + str(p2.num_wickets) + ", " + str(p2.num_tickets)
 
 	def awardTicketTest(self):
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
+		i.save()
 		q = Question(question_ID = 10, question_text = "blah")
 		q.save()
 		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0, num_pending = 5)
 		p1.save()
+		ip = IP_Pair(predicate = p1, item = i)
 
 		print "after init"
 		print "num_tickets: " + str(p1.num_tickets)
 		print "num_pending: " + str(p1.num_pending)
 
-		p1.award_ticket()
+		ip.predicate.award_ticket()
 
 		print "without refresh"
-		print "num_tickets: " + str(p1.num_tickets)
-		print "num_pending: " + str(p1.num_pending)
+		print "num_tickets: " + str(ip.predicate.num_tickets)
+		print "num_pending: " + str(ip.predicate.num_pending)
 
 		print p1.num_pending == 6
 		print p1.num_tickets == 1
@@ -1472,7 +1475,53 @@ class SimulationTest(TransactionTestCase):
 
 		assert(ip_pair.tasks_out == 1)
 
+	def oldAddToQueue(self, chosenIP):
+		if chosenIP.inQueue == False:
+			chosenIP.predicate.num_tickets += 1
+			chosenIP.predicate.num_pending += 1
+			chosenIP.inQueue = True
+			chosenIP.item.inQueue = True
+			chosenIP.item.save(update_fields=["inQueue"])
+			chosenIP.predicate.save(update_fields=["num_tickets", "num_pending"])
+			chosenIP.save(update_fields=['inQueue'])
 
+		chosenIP.predicate.refresh_from_db()
+		chosenIP.refresh_from_db()
+		# if the queue is full, update the predicate
+		if chosenIP.predicate.num_pending >= chosenIP.predicate.queue_length:
+			chosenIP.predicate.queue_is_full = True
+
+
+	def add_to_queueTest(self):
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i.save()
+		i2 = Item(item_ID = 2, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i2.save()
+		q = Question(question_ID = 10, question_text = "blah")
+		q.save()
+		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=False, num_tickets = 0, num_pending = 5)
+		p1.save()
+		p2 = Predicate(predicate_ID = 11, question = q, queue_is_full=False, num_tickets = 0, num_pending = 5)
+		p2.save()
+		ip = IP_Pair(predicate = p1, item = i, inQueue = False)
+		ip.save()
+
+		self.oldAddToQueue(ip)
+
+		ip.refresh_from_db()
+
+		ip2 = IP_Pair(predicate = p2, item = i2, inQueue = False)
+		ip2.save()
+
+		if not ip2.is_in_queue:
+			ip2.add_to_queue()
+
+		assert(ip.inQueue == ip2.inQueue)
+		assert(ip.is_in_queue == ip2.is_in_queue)
+		assert(ip.item.inQueue == ip2.item.inQueue)
+		assert(ip.predicate.num_pending == ip2.predicate.num_pending)
+		assert(ip.predicate.num_tickets == ip2.predicate.num_tickets)
+		assert(ip.predicate.queue_is_full == ip2.predicate.queue_is_full)
 
 
 
@@ -1679,4 +1728,6 @@ class SimulationTest(TransactionTestCase):
 	def test_refactor(self):
 
 		# self.moveWindowContextTest()
-		self.give_taskContextTest()
+		# self.give_taskContextTest()
+		# self.awardTicketTest()
+		self.add_to_queueTest()
