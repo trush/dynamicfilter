@@ -31,6 +31,14 @@ class Item(models.Model):
     def __str__(self):
         return str(self.name)
 
+    def add_to_queue(self):
+        self.inQueue = True
+        self.save(update_fields=["inQueue"])
+
+    def remove_from_queue(self):
+        self.inQueue = False
+        self.save(update_fields=["inQueue"])
+
 @python_2_unicode_compatible
 class Question(models.Model):
     """
@@ -102,10 +110,33 @@ class Predicate(models.Model):
         self.num_pending += 1
         self.save(update_fields = ["num_tickets", "num_pending"])
 
+    def award_wicket(self):
+        self.num_wickets += 1
+        self.save(update_fields=["num_wickets"])
+
+    def add_no(self):
+        self.totalNo += 1
+        self.save(update_fields=["totalNo"])
+
     def check_queue_full(self):
         if self.num_pending >= self.queue_length:
             self.queue_is_full = True
-            self.save(update_fields = ["queue_is_full"])
+        else:
+            self.queue_is_full = False
+
+        self.save(update_fields = ["queue_is_full"])
+
+    def remove_pending(self):
+        self.num_pending -= 1
+        self.save(update_fields=["num_pending"])
+
+    def remove_ticket(self):
+        self.num_tickets -= 1
+        self.save(update_fields=["num_tickets"])
+
+    def add_total_task(self):
+        self.totalTasks += 1
+        self.save(update_fields=["totalTasks"])
 
     def inc_queue_length(self):
         self.queue_length += 1
@@ -178,9 +209,8 @@ class IP_Pair(models.Model):
 
     def add_to_queue(self):
         self.inQueue = True
-        self.item.inQueue = True
-        self.predicate.num_tickets += 1
-        self.predicate.num_pending += 1
+        self.item.add_to_queue()
+        self.predicate.award_ticket()
         self.save(update_fields=["inQueue"])
         # checks if pred queue is now full and changes state accordingly
         self.predicate.check_queue_full()
@@ -188,16 +218,17 @@ class IP_Pair(models.Model):
     def remove_from_queue(self):
         if self.should_leave_queue :
             self.inQueue = False
-            self.item.inQueue = False
-            self.predicate.queue_is_full = False
-            self.predicate.num_pending -= 1
             self.save(update_fields=["inQueue"])
+            self.item.remove_from_queue()
+            self.predicate.remove_pending()
+            self.predicate.check_queue_full()
+
 
     def record_vote(self, workerTask):
         # add vote to tally only if appropriate
         if not self.isDone:
             self.status_votes += 1
-            self.predicate.num_wickets += 1
+            self.predicate.award_wicket()
             self.save(update_fields=["status_votes"])
 
             if workerTask.answer:
@@ -208,7 +239,7 @@ class IP_Pair(models.Model):
             elif not workerTask.answer:
                 self.value -= 1
                 self.num_no += 1
-                self.predicate.totalNo += 1
+                self.predicate.add_no()
                 self.save(update_fields=["value", "num_no"])
 
             self.predicate.update_selectivity()
@@ -233,7 +264,7 @@ class IP_Pair(models.Model):
                     print "*"*40
 
                 if not self.is_false() and self.predicate.num_tickets > 1:
-                    self.predicate.num_tickets -= 1
+                    self.predicate.remove_ticket()
             else:
                 self.status_votes -= 2
                 self.save(update_fields=["status_votes"])
@@ -258,7 +289,7 @@ class IP_Pair(models.Model):
 
     def collect_task(self):
         self.tasks_out -= 1
-        self.predicate.totalTasks += 1
+        self.predicate.add_total_task()
         self.save(update_fields = ["tasks_out"])
 
     def start(self):

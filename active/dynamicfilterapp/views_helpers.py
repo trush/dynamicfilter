@@ -67,6 +67,12 @@ def pending_eddy(ID):
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
         chosenIP = lotteryPendingQueue(incompleteIP)
         chosenIP.refresh_from_db()
+        # print "pending eddy after lottery call"
+        # print "IP " +  str(chosenIP.id) + " inqueue: " + str(chosenIP.inQueue)
+        # print "IP's item " +  str(chosenIP.item.id) + " inqueue: " + str(chosenIP.item.inQueue)
+        # print "IPs in queue: " + str(IP_Pair.objects.filter(inQueue = True).count())
+        # print "Items in queue: " + str(Item.objects.filter(inQueue = True).count())
+
 
     #random_system:
     elif (EDDY_SYS == 2):
@@ -88,6 +94,12 @@ def pending_eddy(ID):
 
     end = time.time()
     runTime = end - start
+    # print "end of pending eddy"
+    # print "IP " +  str(chosenIP.id) + " inqueue: " + str(chosenIP.inQueue)
+    # print "IP's item " +  str(chosenIP.item.id) + " inqueue: " + str(chosenIP.item.inQueue)
+    # print "IPs in queue: " + str(IP_Pair.objects.filter(inQueue = True).count())
+    # print "Items in queue: " + str(Item.objects.filter(inQueue = True).count())
+
     return chosenIP, runTime
 
 # def move_window():
@@ -115,18 +127,9 @@ def move_window():
         for p in pred:
             p.move_window()
 
-
+## OLD VERSION
 # def give_task(active_tasks, workerID):
-#     # ip_pair, eddy_time = pending_eddy(workerID)
-#     i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
-#     i.save()
-#     q = Question(question_ID = 1, question_text = "blah")
-#     q.save()
-#     p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_pending = 1)
-#     p.save()
-# 	# create a predicate
-#     ip_pair = IP_Pair(item = i, predicate = p, inQueue = True)
-#     ip_pair.save()
+#     ip_pair, eddy_time = pending_eddy(workerID)
 #     if ip_pair is not None:
 #         # print "IP pair selected"
 #         ip_pair.tasks_out += 1
@@ -135,11 +138,17 @@ def move_window():
 #
 #     else:
 #         print "IP pair was none"
-#     eddy_time = 0
 #     return ip_pair, eddy_time
 
 def give_task(active_tasks, workerID):
     ip_pair, eddy_time = pending_eddy(workerID)
+    # print "within give_task"
+    # print "IP " +  str(ip_pair.id) + " inqueue: " + str(ip_pair.inQueue)
+    # print "IP's item " +  str(ip_pair.item.id) + " inqueue: " + str(ip_pair.item.inQueue)
+    # print "IPs in queue: " + str(IP_Pair.objects.filter(inQueue = True).count())
+    # print "Items in queue: " + str(Item.objects.filter(inQueue = True).count())
+
+
 
     if ip_pair is not None:
         # print "IP pair selected"
@@ -270,18 +279,28 @@ def lotteryPendingQueue(ipSet):
     #
     # chosenIP.predicate.save(update_fields=["queue_is_full"])
     # chosenIP.predicate.refresh_from_db()
+    chosenIP.refresh_from_db()
+    # print "at end lottery pending"
+    # print "IP " +  str(chosenIP.id) + " inqueue: " + str(chosenIP.inQueue)
+    # print "IP's item " +  str(chosenIP.item.id) + " inqueue: " + str(chosenIP.item.inQueue)
+    # print "IPs in queue: " + str(IP_Pair.objects.filter(inQueue = True).count())
+    # print "Items in queue: " + str(Item.objects.filter(inQueue = True).count())
+
     return chosenIP
 
 def updateCounts(workerTask, chosenIP):
     # update stats counting tasks completed
     chosenIP.collect_task()
+    chosenIP.refresh_from_db()
 
     # update stats counting numbers of votes (only if IP not completed)
     chosenIP.record_vote(workerTask)
+    chosenIP.refresh_from_db()
 
     # if we're using queueing, remove the IP pair from the queue if appropriate
     if toggles.EDDY_SYS == 1:
         chosenIP.remove_from_queue()
+        chosenIP.refresh_from_db()
 
 
 # def updateCounts(workerTask, chosenIP):

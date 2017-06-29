@@ -360,6 +360,7 @@ class SimulationTest(TransactionTestCase):
 			# select a task to assign to this person
 			ip_pair, eddy_time = give_task(active_tasks, workerID)
 			ip_pair.refresh_from_db()
+
 			if REAL_DATA:
 				task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 			else:
@@ -370,6 +371,11 @@ class SimulationTest(TransactionTestCase):
 			workerID = None
 			eddy_time = None
 			task_time = None
+
+		# print "IP " +  str(ip_pair.id) + " inqueue: " + str(ip_pair.inQueue)
+		# print "IP's item " +  str(ip_pair.item.id) + " inqueue: " + str(ip_pair.item.inQueue)
+		# print "IPs in queue: " + str(IP_Pair.objects.filter(inQueue = True).count())
+		# print "Items in queue: " + str(Item.objects.filter(inQueue = True).count())
 
 		return task, workerID, eddy_time, task_time, worker_no_tasks
 
@@ -520,6 +526,8 @@ class SimulationTest(TransactionTestCase):
 				if not (Item.objects.filter(inQueue=True).count() <= PENDING_QUEUE_SIZE*len(CHOSEN_PREDS)):
 					raise Exception("Too many things in the queue")
 				if not (Item.objects.filter(inQueue=True).count() == IP_Pair.objects.filter(inQueue=True).count()):
+					print "inQueue items: " + str(Item.objects.filter(inQueue=True).count())
+					print "inQueue IPs: " + str(IP_Pair.objects.filter(inQueue=True).count())
 					raise Exception("IP and item mismatch")
 
 				inFullQueue = IP_Pair.objects.filter(predicate__queue_is_full=True, inQueue=True).count()
@@ -1561,14 +1569,6 @@ class SimulationTest(TransactionTestCase):
 		assert(ip_0_0.num_no == ip_0_1.num_no)
 		assert(ip_0_0.value == ip_0_1.value)
 
-
-
-
-
-
-
-
-
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
 		"""
@@ -1768,10 +1768,10 @@ class SimulationTest(TransactionTestCase):
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
 
-	def test_refactor(self):
-
-		# self.moveWindowContextTest()
-		# self.give_taskContextTest()
-		# self.awardTicketTest()
-		# self.add_to_queueTest()
-		self.updateCountsTest()
+	# def test_refactor(self):
+	#
+	# 	# self.moveWindowContextTest()
+	# 	# self.give_taskContextTest()
+	# 	# self.awardTicketTest()
+	# 	# self.add_to_queueTest()
+	# 	self.updateCountsTest()
