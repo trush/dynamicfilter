@@ -3,9 +3,9 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-
+RUN_NAME = 'SynData_IPBatching_Window40_2Q_100I_50Sims_SIN_Round3' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 #RUN_NAME = 'SynData_Queue1_Window20_2Q_100I_50Sims' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-RUN_NAME = 'SynData_Queue1_SIN' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+#RUN_NAME = 'SynData_Queue1_SIN' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
 
@@ -72,7 +72,7 @@ ITEM_SYS = 0
 # 2 - item-almost-false system
 
 SLIDING_WINDOW = False
-LIFETIME = 20
+LIFETIME = 40
 
 ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
@@ -96,11 +96,13 @@ NUM_QUESTIONS = 2
 NUM_ITEMS = 100
 SIN = -1
 
-SELECTIVITY_GRAPH = True
+SELECTIVITY_GRAPH = False
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
 # selectvity of the previous timestep
-switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .1, 400, .05, .6), 0.68), (0.6, 0.87))]
+
+switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (400, ((SIN, .1, 300, .05, .6), 0.68), (0.6, 0.87))]
+#switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .1, 400, .05, .6), 0.68), (0.6, 0.87))]
 #switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), (600, (0.8, 0.68), (0.7, 0.87)), (900, (0.8, 0.68), (0.75, 0.87))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
@@ -129,7 +131,7 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 5 # how many simulations to run?
+NUM_SIM = 50 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
@@ -139,7 +141,7 @@ MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 MAX_TASKS_OUT = 7
 
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
@@ -158,7 +160,7 @@ VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT o
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PACKING=False # Enable for "Packing" of outputs into a folder and generation of config.ini
+PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
 
 
 # List of toggles for debug printing and Config.ini generation
