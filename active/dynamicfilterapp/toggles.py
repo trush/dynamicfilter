@@ -3,7 +3,7 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'SynData_IPBatching_Window40_2Q_100I_50Sims_SIN_Round3' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'SynData_Queue_Window40_2Q_100I_50Sims_SIN_Round3' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 #RUN_NAME = 'SynData_Queue1_Window20_2Q_100I_50Sims' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 #RUN_NAME = 'SynData_Queue1_SIN' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
@@ -71,7 +71,7 @@ ITEM_SYS = 0
 # 1 - item-started system
 # 2 - item-almost-false system
 
-SLIDING_WINDOW = False
+SLIDING_WINDOW = True
 LIFETIME = 40
 
 ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
