@@ -86,6 +86,14 @@ class Predicate(models.Model):
         self.calculatedSelectivity = self.totalNo/self.totalTasks
         return self.calculatedSelectivity
 
+    def setTrueSelectivity(self, sel):
+        self.trueSelectivity = sel
+        self.save(update_fields=["trueSelectivity"])
+
+    def setTrueAmbiguity(self, amb):
+        self.trueAmbiguity = amb
+        self.save(update_fields=["trueAmbiguity"])
+
     def update_cost(self):
         self.cost = self.avg_completion_time * self.avg_tasks_per_pair
         return self.cost
@@ -101,8 +109,11 @@ class Predicate(models.Model):
 
     def award_ticket(self):
         self.num_tickets += 1
+        self.save(update_fields = ["num_tickets"])
+
+    def increment_num_pending(self)
         self.num_pending += 1
-        self.save(update_fields = ["num_tickets", "num_pending"])
+        self.save(update_fields = ["num_pending"])
 
     def check_queue_full(self):
         if self.num_pending >= PENDING_QUEUE_SIZE:

@@ -363,7 +363,6 @@ class SimulationTest(TransactionTestCase):
 			if REAL_DATA:
 				task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 			else:
-				#TODO make selectivity changing work for time 
 				task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
 			task.refresh_from_db()
 		else:
@@ -687,15 +686,7 @@ class SimulationTest(TransactionTestCase):
 					if REAL_DATA :
 						taskTime = self.simulate_task(ip_pair, workerID, dictionary)
 					else:
-						#def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks):
-						#TODO time stuff 0 replacement
-						#print "ip pair: ", str(ip_pair)
-						#print "ip pair is None: ", str(ip_pair == None)
 						taskTime = self.syn_simulate_task(ip_pair, workerID, 0, switch, num_tasks)
-						predi = Predicate.objects.get(pk=1)
-						predi.refresh_from_db()
-						print "right after simulate_task call: ", str(predi.trueSelectivity)
-
 
 					move_window()
 					num_tasks += 1
@@ -722,8 +713,6 @@ class SimulationTest(TransactionTestCase):
 					#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 					#so we need index 0 of the tuple to get the time at which the switch should occur
 					if (switch + 1) < len(switch_list) and switch_list[switch + 1][0] == num_tasks:
-						#print "target tasks in switch_list[", str(switch), "]: ", str(switch_list[switch][0])
-						#print "here"
 						switch += 1
 
 		if TRACK_IP_PAIRS_DONE:

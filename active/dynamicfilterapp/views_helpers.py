@@ -275,9 +275,7 @@ def useLottery(ipSet):
     item = chooseItem(chosenPredSet)
     chosenIP = ipSet.get(predicate=chosenPred, item=item)
 
-    #TODO: (see method above) why save item and predicate but not the IP?
-    chosenIP.predicate.num_tickets += 1
-    chosenIP.predicate.save()
+    chosenIP.predicate.award_ticket()
 
     return chosenIP
 
