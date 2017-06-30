@@ -116,7 +116,7 @@ class SimulationTest(TransactionTestCase):
 
 				# Some tasks won't have matching RestaurantPredicates, since we
 				# may not be using all the possible predicates
-				if len(predKey) > 0:
+				if predKey.count() > 0:
 					if answer > 0:
 						sampleData[predKey[0]].append(True)
 					elif answer < 0:
@@ -194,7 +194,7 @@ class SimulationTest(TransactionTestCase):
 		runTime = end - start
 		return t, runTime
 
-	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch):
+	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks):
 		"""
 		synthesize a task
 		"""
@@ -457,6 +457,12 @@ class SimulationTest(TransactionTestCase):
 		taskTimes = []
 		workerDoneTimes = []
 		ticketNums = []
+		selectivities = []
+
+
+		if toggles.SELECTIVITY_GRAPH:
+			for count in range(toggles.NUM_QUESTIONS):
+				selectivities.append([])
 
 		totalWorkTime = 0
 		tasksArray = []
@@ -470,6 +476,7 @@ class SimulationTest(TransactionTestCase):
 		#time counter
 		time_clock = 0
 
+		#Setting up arrays to count tickets for ticketing counting graphs
 		if toggles.COUNT_TICKETS:
 			if toggles.REAL_DATA:
 				for predNum in range(len(toggles.CHOSEN_PREDS)):
@@ -477,7 +484,6 @@ class SimulationTest(TransactionTestCase):
 			else:
 				for count in range(NUM_QUESTIONS):
 					ticketNums.append([])
-
 
 		# If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and toggles.RUN_ITEM_ROUTING) or toggles.RUN_MULTI_ROUTING:
@@ -619,10 +625,6 @@ class SimulationTest(TransactionTestCase):
 							total_worker_no_tasks += worker_no_tasks
 
 				move_window()
-
-				if num_tasks == 200:
-					switch = 1
-
 				time_clock += 1
 
 				if toggles.COUNT_TICKETS:
@@ -653,8 +655,17 @@ class SimulationTest(TransactionTestCase):
 						print "worker has no tasks to do"
 
 				else:
-					ip_pair, eddy_time = pending_eddy(workerID)
-					eddyTimes.append(eddy_time)
+					if (EDDY_SYS == 4):
+						try:
+							#test to see if ip_pair is the dummy or not
+							ipExists = IP_Pair.objects.get(pk=ip_pair.pk)
+							if(ip_pair.isDone == True):
+								ip_pair = pending_eddy(workerID)
+						except:
+							ip_pair = pending_eddy(workerID)
+							#print "here"
+					else:
+						ip_pair = pending_eddy(workerID)
 
 					# If we should be running a routing test
 					# this is true in two cases: 1) we hope to run a single
@@ -676,15 +687,12 @@ class SimulationTest(TransactionTestCase):
 					if toggles.REAL_DATA :
 						taskTime = self.simulate_task(ip_pair, workerID, 0, dictionary)
 					else:
-						taskTime = self.syn_simulate_task(ip_pair, workerID, 0, switch)
+						taskTime = self.syn_simulate_task(ip_pair, workerID, 0, switch, num_tasks)
 
 					move_window()
 					num_tasks += 1
 					taskTimes.append(taskTime)
 					tasksArray.append(num_tasks)
-
-					if num_tasks == 200:
-						switch = 1
 
 					if toggles.COUNT_TICKETS:
 						if toggles.REAL_DATA:
@@ -692,11 +700,21 @@ class SimulationTest(TransactionTestCase):
 								predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
 								ticketNums[predNum].append(predicate.num_tickets)
 						else:
-							for count in range(NUM_QUESTIONS):
+							for count in range(toggles.NUM_QUESTIONS):
 								predicate = Predicate.objects.get(pk=count+1)
 								ticketNums[count].append(predicate.num_tickets)
 
-				workerDoneTimes.append(workerDoneTime)
+					if toggles.SELECTIVITY_GRAPH:
+						for count in range(toggles.NUM_QUESTIONS):
+							predicate = Predicate.objects.get(pk=count+1)
+							predicate.refresh_from_db()
+							#print "true selectivity: ", str(predicate.trueSelectivity)
+							selectivities[count].append(predicate.trueSelectivity)
+
+					#the tuples in switch_list are of the form (time, pred1, pred2 ....),
+					#so we need index 0 of the tuple to get the time at which the switch should occur
+					if (switch + 1) < len(switch_list) and switch_list[switch + 1][0] == num_tasks:
+						switch += 1
 
 		if toggles.TRACK_IP_PAIRS_DONE:
 			dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + "ip_done_vs_tasks"
@@ -736,13 +754,23 @@ class SimulationTest(TransactionTestCase):
 			ticketCountsLegend = []
 			if toggles.REAL_DATA:
 				xMultiplier = len(toggles.CHOSEN_PREDS)
+				for predNum in range(numPreds):
+					ticketCountsLegend.append("Pred " + str(toggles.CHOSEN_PREDS[predNum]))
 			else:
-				xMultiplier = NUM_QUESTIONS
-			for predNum in range(len(toggles.CHOSEN_PREDS)):
-				ticketCountsLegend.append("Pred " + str(toggles.CHOSEN_PREDS[predNum]))
+				xMultiplier = toggles.NUM_QUESTIONS
+				for predNum in range(numPreds):
+					ticketCountsLegend.append("Pred " + str(predNum))
 			multi_line_graph_gen([range(time_proxy)]*xMultiplier, ticketNums, ticketCountsLegend,
-								toggles.OUTPUT_PATH + toggles.RUN_NAME + "ticketCounts.png",
-								labels = ("time_proxy_steps", "Ticket counts"))
+								"dynamicfilterapp/simulation_files/output/graphs/" + toggles.RUN_NAME + "ticketCounts.png",
+								labels = ("time proxy", "Ticket counts"))
+
+		if toggles.SELECTIVITY_GRAPH:
+			selectivitiesLegend = []
+			for predNum in range(toggles.NUM_QUESTIONS):
+				selectivitiesLegend.append("Pred " + str(predNum))
+			multi_line_graph_gen([range(num_tasks)]*toggles.NUM_QUESTIONS, selectivities, selectivitiesLegend,
+								"dynamicfilterapp/simulation_files/output/graphs/" + toggles.RUN_NAME + "selectivities.png",
+								labels = ("Number of tasks completed in single simulation", "Predicate selectivities"), scatter=True)
 
 		# if this is the first time running a routing test
 		if toggles.RUN_ITEM_ROUTING and not HAS_RUN_ITEM_ROUTING:
@@ -842,7 +870,7 @@ class SimulationTest(TransactionTestCase):
 				pred_cost += item_cost
 				f.write(ip.item.name + ': ' + str(item_cost) + " ")
 
-			pred_cost = float(pred_cost)/len(IP_Pair.objects.filter(predicate=pred))
+			pred_cost = float(pred_cost)/IP_Pair.objects.filter(predicate=pred).count()
 			f.write('\npredicate average cost: ' + str(pred_cost) + '\n \n')
 		f.close()
 		if toggles.DEBUG_FLAG:
@@ -922,7 +950,7 @@ class SimulationTest(TransactionTestCase):
 		for ip in IP_Pair.objects.all():
 			#print len(dictionary[ip])
 			numTrue = sum(1 for vote in dictionary[ip] if vote)
-			numFalse = len(dictionary[ip]) - numTrue
+			numFalse = dictionary[ip].count() - numTrue
 			overallVote = (numTrue > numFalse)
 			f.write(str(ip) + ', ' + str(numTrue) + ', ' + str(numFalse)
 				+ ', ' + str(overallVote) + '\n')
@@ -1118,7 +1146,7 @@ class SimulationTest(TransactionTestCase):
 		print "item in queue? " + str(ip.item.inQueue)
 		print "IP pair in queue? " + str(ip.inQueue)
 
-		ip.removeFromQueue()
+		ip.remove_from_queue()
 
 		print "&&&& before refresh &&&&"
 		print "pred queue is full? " + str(ip.predicate.queue_is_full)
@@ -1159,7 +1187,7 @@ class SimulationTest(TransactionTestCase):
 		print "IP value: " + str(ip.value)
 		print "IP status votes: " + str(ip.status_votes)
 
-		ip.recordVote(trueVote)
+		ip.record_vote(trueVote)
 
 		print "&&&& before refresh, true Vote &&&&"
 		print "ip num_no? " + str(ip.num_no)
@@ -1287,6 +1315,12 @@ class SimulationTest(TransactionTestCase):
 			if toggles.DEBUG_FLAG:
 				print "Running: ticket counting"
 			self.run_sim(deepcopy(sampleData))
+			self.reset_database()
+
+		if SELECTIVITY_GRAPH and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
+			if DEBUG_FLAG:
+				print "Running: selectivity amounts over time"
+			self.run_sim(sampleData)
 			self.reset_database()
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#

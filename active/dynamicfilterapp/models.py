@@ -46,7 +46,7 @@ class WorkerID(models.Model):
     Restricts worker ID to positive integers. Used in IDForm in forms.py.
     (may want to change this to a string for future use)
     """
-    workerID = models.IntegerField(validators=[validate_positive], unique=True)
+    workerID = models.IntegerField(validators=[validate_positive], unique=True, db_index=True)
 
 @python_2_unicode_compatible
 class Predicate(models.Model):
@@ -67,6 +67,9 @@ class Predicate(models.Model):
 
     # fields to keep track of selectivity
     selectivity = models.FloatField(default=0.1)
+    calculatedSelectivity = models.FloatField(default=0.1)
+    trueSelectivity = models.FloatField(default=0.0)
+    trueAmbiguity = models.FloatField(default=0.0)
     totalTasks = models.FloatField(default=0.0)
     totalNo = models.FloatField(default=0.0)
     num_ip_complete = models.IntegerField(default=0)
@@ -79,9 +82,17 @@ class Predicate(models.Model):
     def __str__(self):
         return "Predicate branch with question: " + self.question.question_text
 
-    def update_selectivity(self):
-        self.selectivity = self.totalNo/self.totalTasks
-        return self.selectivity
+    def updateSelectivity(self):
+        self.calculatedSelectivity = self.totalNo/self.totalTasks
+        return self.calculatedSelectivity
+
+    def setTrueSelectivity(self, sel):
+        self.trueSelectivity = sel
+        self.save(update_fields=["trueSelectivity"])
+
+    def setTrueAmbiguity(self, amb):
+        self.trueAmbiguity = amb
+        self.save(update_fields=["trueAmbiguity"])
 
     def update_cost(self):
         self.cost = self.avg_completion_time * self.avg_tasks_per_pair
@@ -98,8 +109,11 @@ class Predicate(models.Model):
 
     def award_ticket(self):
         self.num_tickets += 1
+        self.save(update_fields = ["num_tickets"])
+
+    def increment_num_pending(self):
         self.num_pending += 1
-        self.save(update_fields = ["num_tickets", "num_pending"])
+        self.save(update_fields = ["num_pending"])
 
     def check_queue_full(self):
         if self.num_pending >= toggles.PENDING_QUEUE_SIZE:
@@ -125,7 +139,7 @@ class IP_Pair(models.Model):
     # a marker for the status of the IP
     status_votes = models.IntegerField(default=0)
 
-    inQueue = models.BooleanField(default=False)
+    inQueue = models.BooleanField(default=False, db_index=True)
 
     # for random algorithm
     isStarted = models.BooleanField(default=False)
@@ -177,7 +191,7 @@ class IP_Pair(models.Model):
             self.save(update_fields=["value", "num_no"])
 
         self.predicate.updateSelectivity()
-        self.predicate.updateCost()
+        self.predicate.update_cost()
 
     def set_done_if_done():
         if self.status_votes == toggles.NUM_CERTAIN_VOTES:

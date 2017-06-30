@@ -77,7 +77,7 @@ def pending_eddy(ID):
     #random_system:
     elif (toggles.EDDY_SYS == 2):
         startedIPs = incompleteIP.filter(isStarted=True)
-        if len(startedIPs) != 0:
+        if startedIPs.count() != 0: #not sure if count() or len() is more efficient here
             incompleteIP = startedIPs
         chosenIP = choice(incompleteIP)
         chosenIP.isStarted = True
@@ -92,9 +92,13 @@ def pending_eddy(ID):
             incompleteIP = tempSet
         chosenIP = choice(incompleteIP)
 
+    #system that uses ticketing and finishes an IP pair once started
+    elif (EDDY_SYS ==4):
+        chosenIP = useLottery(incompleteIP)
+
     end = time.time()
     runTime = end - start
-    return chosenIP, runTime
+    return chosenIP
 
 def move_window():
     """
@@ -248,6 +252,33 @@ def lotteryPendingQueue(ipSet):
     chosenIP.predicate.refresh_from_db()
     return chosenIP
 
+def useLottery(ipSet):
+    """
+    Runs lottery based on pending queues
+    """
+    # make list of possible predicates and remove duplicates
+    predicates = [ip.predicate for ip in ipSet]
+    #print str(predicates) + "before seen are removed"
+    seen = set()
+    seen_add = seen.add
+    predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
+    #print str(predicates) + "after seen are removed"
+
+    #choose the predicate
+    weightList = np.array([pred.num_tickets for pred in predicates])
+    totalTickets = np.sum(weightList)
+    probList = np.true_divide(weightList, totalTickets)
+    chosenPred = np.random.choice(predicates, p=probList)
+
+    #choose the item and then ip
+    chosenPredSet = ipSet.filter(predicate=chosenPred)
+    item = chooseItem(chosenPredSet)
+    chosenIP = ipSet.get(predicate=chosenPred, item=item)
+
+    chosenIP.predicate.award_ticket()
+
+    return chosenIP
+
 def updateCounts(workerTask, chosenIP):
     # make sure values are up to date
     workerTask.refresh_from_db()
@@ -288,7 +319,7 @@ def updateCounts(workerTask, chosenIP):
             chosenIP.predicate.refresh_from_db()
 
         # save and record changes
-        chosenIP.predicate.update_selectivity()
+        chosenIP.predicate.updateSelectivity()
         chosenIP.predicate.update_cost()
 
         # if we've arrived at the right number of votes collected, evaluate consensus
@@ -352,7 +383,6 @@ def updateCounts(workerTask, chosenIP):
             chosenIP.predicate.save(update_fields=["queue_is_full", "num_pending"])
             chosenIP.refresh_from_db()
             chosenIP.predicate.refresh_from_db()
-            chosenIP.predicate.refresh_from_db()
 
 #____________IMPORT/EXPORT CSV FILE____________#
 def output_selectivities(run_name):
@@ -362,7 +392,7 @@ def output_selectivities(run_name):
     f = open(toggles.OUTPUT_PATH + run_name + '_sample_selectivites.csv', 'a')
     for p in toggles.CHOSEN_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
-        f.write(str(pred.selectivity) + ", " + str(pred.totalTasks) + ", " + str(pred.num_ip_complete) + "; ")
+        f.write(str(pred.calculatedSelectivity) + ", " + str(pred.totalTasks) + ", " + str(pred.num_ip_complete) + "; ")
     f.write('\n')
     f.close()
 
@@ -388,6 +418,6 @@ def output_cost(run_name):
         if num_finished != 0:
             avg_cost = avg_cost/num_finished
 
-        f.write('\n' + 'avg cost: ' + str(avg_cost) + ', selectivity: ' + str(pred.selectivity) + '\n \n')
+        f.write('\n' + 'avg cost: ' + str(avg_cost) + ', calculated selectivity: ' + str(pred.calculatedSelectivity) + '\n \n')
     f.write('\n')
     f.close()

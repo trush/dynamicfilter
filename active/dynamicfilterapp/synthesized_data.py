@@ -7,25 +7,19 @@ import sys
 import math
 import random
 
-NUM_QUESTIONS = 2
-NUM_ITEMS = 100
-
-# not really selectivity: selectivity is more selectivity_list[i]*cost_prob_list[i]
-# this is just the probabiility of leaning towards false
-selectivity_list = [0.9, 0.9, 0.9]
-# keep probabilities above .5 for this simulation to make sense.
-# the closer to 0.5, the more ambiguous the predicate is
-cost_prob_list = [0.9, 0.6, 0.9]
+import toggles
 
 def syn_load_data():
 	"""
 	load in sythensized data
 	"""
-	for ID in range(NUM_QUESTIONS):
+	for ID in range(toggles.NUM_QUESTIONS):
 		q = Question.objects.create(question_ID=ID, question_text="question" + str(ID))
 		pred = Predicate.objects.create(predicate_ID=ID, question=q)
+		pred.setTrueSelectivity(switch_list[0][1+ID][0])
+		pred.setTrueAmbiguity(switch_list[0][1+ID][1])
 
-	for ID in range(NUM_ITEMS):
+	for ID in range(toggles.NUM_ITEMS):
 		i = Item.objects.create(item_ID=ID, name="item " + str(ID), item_type="syn")
 
 	predicates = Predicate.objects.all()
@@ -34,21 +28,58 @@ def syn_load_data():
 		for i in itemList:
 			ip_pair = IP_Pair.objects.create(item=i, predicate=p)
 
-def syn_answer(chosenIP, switch):
+def syn_answer(chosenIP, switch, numTasks):
 	"""
 	make up a fake answer based on global variables
 	"""
-	ID = chosenIP.predicate.predicate_ID + switch
+
+	# SIN tuple is of the form (SIN, amp, period, samplingFrac, trans)
+	#TODO: If trans is 0, it starts at the selectvity of the previous timestep
+
+	timeStepInfo = switch_list[switch]
+
+	for predNum in range(toggles.NUM_QUESTIONS):
+
+		pred = Predicate.objects.get(pk=predNum+1)
+		predInfo = timeStepInfo[predNum+1]
+
+		if isinstance(predInfo[0], tuple):
+			selSinInfo = predInfo[0]
+			samplingFrac = selSinInfo[3]
+			period = selSinInfo[2]
+			if((numTasks % (samplingFrac*period)) == 0):
+				pred.setTrueSelectivity(getSinValue(selSinInfo, numTasks))
+				print "right after sin call: ", str(pred.trueSelectivity)
+		else:
+			pred.setTrueSelectivity(predInfo[0])
+
+		if isinstance(predInfo[1], tuple):
+			ambSinInfo = predInfo[1]
+			samplingFrac = ambSinInfo[3]
+			period = ambSinInfo[2]
+			if((numTasks % (samplingFrac*period)) == 0):
+				pred.setTrueAmbiguity(getSinValue(ambSinInfo, numTasks))
+		else:
+			pred.setTrueAmbiguity(predInfo[1])
+
 	# decide if the answer is going to lean towards true or false
 	# lean towards true
-	if decision(selectivity_list[ID]):
+	if decision(chosenIP.predicate.trueSelectivity): #index 0 is selectivity
 		# decide if the answer is going to be true or false
-		value = decision(1 - cost_prob_list[ID])
+		value = decision(1 - chosenIP.predicate.trueAmbiguity)
 	# lean towards false
 	else:
-		value = decision(cost_prob_list[ID])
+		value = decision(chosenIP.predicate.trueAmbiguity)
 
 	return value
+
+def getSinValue(sinInfo, numTasks):
+	period = sinInfo[2]
+	degrees = (numTasks % period)/(1.0*period)*360
+	radians = math.radians(degrees)
+	trans = sinInfo[4]
+	amp = sinInfo[1]
+	return trans + math.sin(radians)*amp
 
 def decision(probability):
 	"""
