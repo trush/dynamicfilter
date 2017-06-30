@@ -6,7 +6,7 @@ from math import exp
 from django.db.models import Q
 from django.db.models import F
 
-from toggles import *
+import toggles
 
 import csv
 import sys
@@ -29,12 +29,12 @@ def worker_done(ID):
     doneInQueue = "IP pairs completed in the queue: " + str(IP_Pair.objects.filter(isDone=True, inQueue=True).values_list('id', flat=True))
 
     # if queue_pending_system:
-    if (EDDY_SYS == 1):
+    if (toggles.EDDY_SYS == 1):
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         inFullq = "incompleteIP excluding out of full q: " + str(list(incompleteIP.exclude(id__in=outOfFullQueue).values_list('id', flat = True)))
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
         unique = "incompleteIP excluding nonUnique: " + str(list(incompleteIP.exclude(id__in=nonUnique).values_list('id', flat = True)))
-        allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
+        allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
         notAllTasksOut = "incompleteIP excluding allTasksOut: " + str(list(incompleteIP.exclude(id__in=allTasksOut).values_list('id', flat=True)))
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
 
@@ -65,17 +65,17 @@ def pending_eddy(ID):
     incompleteIP = unfinishedList.exclude(id__in=completedIP)
 
     #queue_pending_system:
-    if (EDDY_SYS == 1):
+    if (toggles.EDDY_SYS == 1):
         # filter out the ips that are not in the queue of full predicates
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-        allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
+        allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
         chosenIP = lotteryPendingQueue(incompleteIP)
         chosenIP.refresh_from_db()
 
     #random_system:
-    elif (EDDY_SYS == 2):
+    elif (toggles.EDDY_SYS == 2):
         startedIPs = incompleteIP.filter(isStarted=True)
         if startedIPs.count() != 0: #not sure if count() or len() is more efficient here
             incompleteIP = startedIPs
@@ -84,9 +84,9 @@ def pending_eddy(ID):
         chosenIP.save()
 
     #controlled_system:
-    elif (EDDY_SYS == 3):
+    elif (toggles.EDDY_SYS == 3):
         #this config will run pred[0] first ALWAYS and then pred[1]
-        chosenPred = Predicate.objects.get(pk=1+CHOSEN_PREDS[0])
+        chosenPred = Predicate.objects.get(pk=1+toggles.CHOSEN_PREDS[0])
         tempSet = incompleteIP.filter(predicate=chosenPred)
         if len(tempSet) != 0:
             incompleteIP = tempSet
@@ -104,13 +104,13 @@ def move_window():
     """
     Checks to see if ticket has reached lifetime
     """
-    if SLIDING_WINDOW:
+    if toggles.SLIDING_WINDOW:
         # get the chosen predicates
-        pred = Predicate.objects.filter(pk__in=[p+1 for p in CHOSEN_PREDS])
+        pred = Predicate.objects.filter(pk__in=[p+1 for p in toggles.CHOSEN_PREDS])
 
         # handle window properties
         for p in pred:
-            if p.num_wickets == LIFETIME:
+            if p.num_wickets == toggles.LIFETIME:
                 p.num_wickets = 0
                 if p.num_tickets > 1:
                     p.num_tickets = F('num_tickets') - 1
@@ -130,7 +130,7 @@ def give_task(active_tasks, workerID):
         print "IP pair was none"
 
     return ip_pair, eddy_time
-    
+
 def inc_queue_length(pred):
     """
     increase the queue_length value of the given predicate by one
@@ -162,13 +162,13 @@ def chooseItem(ipSet):
     """
     Chooses random item for right now
     """
-    if (ITEM_SYS == 1):
+    if (toggles.ITEM_SYS == 1):
     #if item_started_system:
         tempSet = ipSet.filter(item__isStarted=True)
         if len(tempSet) != 0:
             ipSet = tempSet
 
-    elif (ITEM_SYS == 2):
+    elif (toggles.ITEM_SYS == 2):
     #if item_almost_false_system:
         tempSet = ipSet.filter(item__almostFalse=True)
         if len(tempSet) != 0:
@@ -324,16 +324,16 @@ def updateCounts(workerTask, chosenIP):
 
         # if we've arrived at the right number of votes collected, evaluate consensus
         print "IP pair " + str(chosenIP.id) + " status votes: " + str(chosenIP.status_votes)
-        if chosenIP.status_votes == NUM_CERTAIN_VOTES:
+        if chosenIP.status_votes == toggles.NUM_CERTAIN_VOTES:
             # calculate the probability of this vote scheme happening
             if chosenIP.value > 0:
-                uncertaintyLevel = btdtr(chosenIP.num_yes+1, chosenIP.num_no+1, DECISION_THRESHOLD)
+                uncertaintyLevel = btdtr(chosenIP.num_yes+1, chosenIP.num_no+1, toggles.DECISION_THRESHOLD)
             else:
-                uncertaintyLevel = btdtr(chosenIP.num_no+1, chosenIP.num_yes+1, DECISION_THRESHOLD)
+                uncertaintyLevel = btdtr(chosenIP.num_no+1, chosenIP.num_yes+1, toggles.DECISION_THRESHOLD)
 
             # we are certain enough about the answer or at cut off point
             print "For IP Pair " + str(chosenIP.id) + "sum of num no and num yes = " + str(chosenIP.num_yes+chosenIP.num_no)
-            if (uncertaintyLevel < UNCERTAINTY_THRESHOLD)|(chosenIP.num_yes+chosenIP.num_no >= CUT_OFF):
+            if (uncertaintyLevel < toggles.UNCERTAINTY_THRESHOLD)|(chosenIP.num_yes+chosenIP.num_no >= toggles.CUT_OFF):
 
                 #____FOR OUTPUT_SELECTIVITES()____#
                 #if not IP_Pair.objects.filter(isDone=True).filter(item=chosenIP.item):
@@ -344,7 +344,7 @@ def updateCounts(workerTask, chosenIP):
                 chosenIP.save(update_fields=["isDone"])
                 chosenIP.refresh_from_db()
 
-                if DEBUG_FLAG:
+                if toggles.DEBUG_FLAG:
                     print "*"*40
                     print "Completed IP Pair: " + str(chosenIP.id)
                     yes = chosenIP.num_yes
@@ -371,7 +371,7 @@ def updateCounts(workerTask, chosenIP):
     chosenIP.item.refresh_from_db()
     if chosenIP.isDone :
         # if it's got no tasks left active, remove from the queue
-        if chosenIP.tasks_out < 1 and EDDY_SYS == 1:
+        if chosenIP.tasks_out < 1 and toggles.EDDY_SYS == 1:
             chosenIP.inQueue = False
             chosenIP.item.inQueue = False
             chosenIP.predicate.queue_is_full = False
@@ -389,8 +389,8 @@ def output_selectivities(run_name):
     """
     Writes out the sample selectivites from a run
     """
-    f = open(OUTPUT_PATH + run_name + '_sample_selectivites.csv', 'a')
-    for p in CHOSEN_PREDS:
+    f = open(toggles.OUTPUT_PATH + run_name + '_sample_selectivites.csv', 'a')
+    for p in toggles.CHOSEN_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
         f.write(str(pred.calculatedSelectivity) + ", " + str(pred.totalTasks) + ", " + str(pred.num_ip_complete) + "; ")
     f.write('\n')
@@ -400,9 +400,9 @@ def output_cost(run_name):
     """
     Writes out the cost of each ip_pair, the average cost for the predicate, and the selectivity for the predicate
     """
-    f = open(OUTPUT_PATH + run_name + '_sample_cost.csv', 'a')
+    f = open(toggles.OUTPUT_PATH + run_name + '_sample_cost.csv', 'a')
 
-    for p in CHOSEN_PREDS:
+    for p in toggles.CHOSEN_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
         f.write(pred.question.question_text + '\n')
         avg_cost = 0.0;
