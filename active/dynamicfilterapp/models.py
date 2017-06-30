@@ -111,7 +111,7 @@ class Predicate(models.Model):
         self.num_tickets += 1
         self.save(update_fields = ["num_tickets"])
 
-    def increment_num_pending(self)
+    def increment_num_pending(self):
         self.num_pending += 1
         self.save(update_fields = ["num_pending"])
 
