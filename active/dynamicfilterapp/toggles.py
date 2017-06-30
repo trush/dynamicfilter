@@ -3,33 +3,36 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'SynData_Queue_Window40_2Q_100I_50Sims_SIN_Round3' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-#RUN_NAME = 'SynData_Queue1_Window20_2Q_100I_50Sims' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-#RUN_NAME = 'SynData_Queue1_SIN' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'Triangle' #+ "_" + str(now.date())+ "_" + str(now.time())[:-7]
+ITEM_TYPE = "Restaurant"
 
-ITEM_TYPE = "Hotel"
-
-INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
-OUTPUT_PATH = 'dynamicfilterapp/simulation_files/'
-
-IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
+INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
+OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
+IP_PAIR_DATA_FILE = 'real_data1.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
-DEBUG_FLAG = True # useful print statements turned on
+DEBUG_FLAG = False # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-# NUM_CERTAIN_VOTES = 3
-# UNCERTAINTY_THRESHOLD = 0.2
-# FALSE_THRESHOLD = 0.2
-# DECISION_THRESHOLD = 0.7
-# CUT_OFF = 23
+UNCERTAINTY_THRESHOLD = 0.05     # maximum acceptable proability area
+FALSE_THRESHOLD = 0.05           # Used for ALMOST_FALSE TODO better docs
+DECISION_THRESHOLD = 0.9        # Upper bound of integration
+NUM_CERTAIN_VOTES = 5           # number of votes to gather no matter the results
+CUT_OFF = 21                    # Maximum number of votes to ask for before using Majority Vote as backup metric
+SINGLE_VOTE_CUTOFF = 21#int(1+math.ceil(CUT_OFF/2.0)+1-(CUT_OFF%2))    # Number of votes for a single result (Y/N) before calling that the winner
+# Our consensus metric is Complicated. For each IP pair chosen, we do the following
+# We gather (NUM_CERTAIN_VOTES) votes on the chosen IP pair
+# To take "consensus" we generate a beta distribution from the number of (y/n) votes
+#   then intigrate over it from zero to (DECISION_THRESHOLD)
+#   if the probability area is less than (UNCERTAINTY_THRESHOLD) then we have consensus
+#   else we gather more votes
+# This is repeated until one of several conditions is met
+#   1 - We reach consensus (naturally)
+#   2 - The total number of gathered votes is equal to (CUT_OFF)
+#   3 - The number of either (yes)s or (no)s on their own is equal to (SINGLE_VOTE_CUTOFF)
+# If either cond. (2|3) we take a simple majority vote
 
-NUM_CERTAIN_VOTES = 5
-UNCERTAINTY_THRESHOLD = 0.2
-FALSE_THRESHOLD = 0.2
-DECISION_THRESHOLD = 0.5
-CUT_OFF = 21
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
@@ -47,7 +50,8 @@ EDDY_SYS = 1
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
 PENDING_QUEUE_SIZE = 1
-CHOSEN_PREDS = [3,4] # predicates that will be used when run on real data
+
+CHOSEN_PREDS = [1,2] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -71,7 +75,7 @@ ITEM_SYS = 0
 # 1 - item-started system
 # 2 - item-almost-false system
 
-SLIDING_WINDOW = True
+SLIDING_WINDOW = False
 LIFETIME = 40
 
 ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
@@ -87,7 +91,7 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 ###################### CONFIGURING TESTING ##################################
 #############################################################################
 
-REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
+REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
 GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
@@ -98,7 +102,7 @@ SIN = -1
 
 SELECTIVITY_GRAPH = False
 
-# SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
+# SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
 
 switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (400, ((SIN, .1, 300, .05, .6), 0.68), (0.6, 0.87))]
@@ -148,14 +152,18 @@ TRACK_IP_PAIRS_DONE = False
 TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-TEST_ACCURACY = False
-
+TEST_ACCURACY = True
+ACCURACY_COUNT = True
 
 OUTPUT_SELECTIVITIES = False
 
-RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
+RUN_CONSENSUS_COUNT = True # keeps track of the number of tasks needed before consensus for each IP
 
-VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
+CONSENSUS_LOCATION_STATS = True
+
+VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
+
+IDEAL_GRID = True #draws the vote grid rules for our consensus metric
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False

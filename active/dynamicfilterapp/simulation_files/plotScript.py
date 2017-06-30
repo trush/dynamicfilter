@@ -49,12 +49,13 @@ def generic_csv_read(filename):
     toRead = open(filename,'r')
     reader = csv.reader(toRead)
     for row in reader:
+        isFloat=False
         if len(row) > 0:
             try:
                 float(row[0])
                 isFloat=True
             except ValueError:
-                isInt=False
+                isFloat=False
         if isFloat:
             retArray.append(map(float, row))
         else:

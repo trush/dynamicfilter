@@ -333,7 +333,7 @@ def updateCounts(workerTask, chosenIP):
 
             # we are certain enough about the answer or at cut off point
             print "For IP Pair " + str(chosenIP.id) + "sum of num no and num yes = " + str(chosenIP.num_yes+chosenIP.num_no)
-            if (uncertaintyLevel < toggles.UNCERTAINTY_THRESHOLD)|(chosenIP.num_yes+chosenIP.num_no >= toggles.CUT_OFF):
+            if (uncertaintyLevel < toggles.UNCERTAINTY_THRESHOLD)|(chosenIP.num_yes+chosenIP.num_no >= toggles.CUT_OFF|(max(chosenIP.num_yes,chosenIP.num_no)>=toggles.SINGLE_VOTE_CUTOFF)):
 
                 #____FOR OUTPUT_SELECTIVITES()____#
                 #if not IP_Pair.objects.filter(isDone=True).filter(item=chosenIP.item):
