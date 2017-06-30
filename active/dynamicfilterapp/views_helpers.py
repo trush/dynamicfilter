@@ -141,6 +141,13 @@ def move_window():
 #     return ip_pair, eddy_time
 
 def give_task(active_tasks, workerID):
+    # TODO add parameter "placeholder" -- that says whether we can give a real task
+    # TODO: add functionality where if placeholder is True, distribute some sort of placeholder task
+        # toggles: Placeholder - just have IP Pair be None and have simulate task know what to do with this"
+        #          Random - go through a process of grabbing an IP pair that isn't currently being worked on
+        #                   i.e. not all tasks are out, and it's not in queue
+        #                   We will still need to be able to give out a null task if we couldn't pick anything
+        #                   for random
     ip_pair, eddy_time = pending_eddy(workerID)
     # print "within give_task"
     # print "IP " +  str(ip_pair.id) + " inqueue: " + str(ip_pair.inQueue)

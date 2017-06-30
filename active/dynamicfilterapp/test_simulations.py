@@ -163,6 +163,10 @@ class SimulationTest(TransactionTestCase):
 
 		# simulated worker votes
 		#print chosenIP
+		# TODO be able to do the right thing when IP Pair is none:
+		#		create a dummy task with IP_Pair = None, answer = None,
+		# 		workerID is the worker it's been assigned to
+		#		duration should be a random choice from TRUE_TIMEs concatenated with FALSE_TIMES
 		value = choice(dictionary[chosenIP])
 		if not RESPONSE_SAMPLING_REPLACEMENT:
 			#print len(dictionary[chosenIP])
@@ -285,7 +289,7 @@ class SimulationTest(TransactionTestCase):
 		SAMPLING_ARRAY = []
 		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
 		Task.objects.all().delete()
-		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,
+		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_ip_complete=0,
 			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False,queue_length=PENDING_QUEUE_SIZE)
 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
 		end = time.time()
@@ -330,7 +334,7 @@ class SimulationTest(TransactionTestCase):
 		setattr(thismodule, globalVar, storage)
 		return
 
-	def issueTask(self, active_tasks, b_workers, time_clock, dictionary):
+	def issue_task(self, active_tasks, b_workers, time_clock, dictionary):
 		"""
 		Used in simulations with time. Given the status of active tasks and
 		busy workers, selects and simulates a task to be added to the tasks array.
@@ -344,6 +348,11 @@ class SimulationTest(TransactionTestCase):
 		a_num = NUM_WORKERS - len(b_workers)
 		triedWorkers = set()
 		# attempts = 0
+		# TODO add a toggle/option here to give a (placeholder) task to whichever worker is picked
+			# pick_worker
+			# if they can't do anything according to worker_done, call give_task with parameter placeholder = True
+		# TODO add a way to keep track of the number of "placeholder" tasks we distribute and how much cumulative worker time we spend on this
+		# TODO be able to compare cumulative work time that workers spent on the whole project and cumulative work time on placeholders -- maybe with a ratio?
 		while (workerDone and (len(triedWorkers) != a_num)):
 			# attempts += 1
 			# print "Calling pick_worker() " + str(attempts)
@@ -367,6 +376,7 @@ class SimulationTest(TransactionTestCase):
 				task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
 			task.refresh_from_db()
 		else:
+			# TODO if in mode where we give placeholder tasks, the task should never be None
 			task = None
 			workerID = None
 			eddy_time = None
@@ -574,6 +584,8 @@ class SimulationTest(TransactionTestCase):
 							print "Number pending for pred " + str(task.ip_pair.predicate.id) + ": " + str(task.ip_pair.predicate.num_pending)
 							raise Exception("WHEN REMOVING Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
 
+						# TODO make sure adaptive_Queue code can deal with a task having a None ip_pair
+						# TODO move the functionality listed below about changing queue length into updateCounts
 						if ADAPTIVE_QUEUE:
 							pred = task.ip_pair.predicate
 							tickets = pred.num_tickets
@@ -609,8 +621,9 @@ class SimulationTest(TransactionTestCase):
 				if IP_Pair.objects.filter(isDone=False).exists():
 
 					while (len(active_tasks) != MAX_TASKS):
-						task, worker, eddy_t, task_t, worker_no_tasks = self.issueTask(active_tasks, b_workers, time_clock, dictionary)
+						task, worker, eddy_t, task_t, worker_no_tasks = self.issue_task(active_tasks, b_workers, time_clock, dictionary)
 						if task is not None:
+							# TODO if we're in "placeholder task" mode, task should never be None
 							task.ip_pair.refresh_from_db()
 							task.ip_pair.predicate.refresh_from_db()
 							task.ip_pair.item.refresh_from_db()
@@ -1144,7 +1157,7 @@ class SimulationTest(TransactionTestCase):
 		i.save()
 		q = Question(question_ID = 1, question_text = "blah")
 		q.save()
-		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_pending = 1)
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True)
 		p.save()
 		# create a predicate
 		ip = IP_Pair(item = i, predicate = p, inQueue = True)
@@ -1177,7 +1190,7 @@ class SimulationTest(TransactionTestCase):
 		i.save()
 		q = Question(question_ID = 1, question_text = "blah")
 		q.save()
-		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_pending = 1, totalTasks = 1)
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, totalTasks = 1)
 		p.save()
 		ip = IP_Pair(item = i, predicate = p, inQueue = True)
 		ip.save()
@@ -1252,7 +1265,7 @@ class SimulationTest(TransactionTestCase):
 		i.save()
 		q = Question(question_ID = 10, question_text = "blah")
 		q.save()
-		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0, num_pending = 5)
+		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0)
 		p1.save()
 		ip = IP_Pair(predicate = p1, item = i)
 
@@ -1272,9 +1285,9 @@ class SimulationTest(TransactionTestCase):
 	def checkQueueFullTest(self):
 		q = Question(question_ID = 10, question_text = "blah")
 		q.save()
-		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full = True, num_pending = 1, num_wickets = LIFETIME)
+		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full = True, num_wickets = LIFETIME)
 		p1.save()
-		p2 = Predicate(predicate_ID = 10, question = q, queue_is_full=False, num_pending = 0, num_wickets = LIFETIME)
+		p2 = Predicate(predicate_ID = 10, question = q, queue_is_full=False, num_wickets = LIFETIME)
 		p2.save()
 
 		print "after init"
@@ -1294,7 +1307,7 @@ class SimulationTest(TransactionTestCase):
 		i.save()
 		q = Question(question_ID = 1, question_text = "blah")
 		q.save()
-		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_pending = 1)
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True)
 		p.save()
 		# create a predicate
 		ip1 = IP_Pair(item = i, predicate = p, inQueue = True, isDone=True, tasks_out = 0)
@@ -1320,7 +1333,7 @@ class SimulationTest(TransactionTestCase):
 		i.save()
 		q = Question(question_ID = 1, question_text = "blah")
 		q.save()
-		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_pending = 1)
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True)
 		p.save()
 		# create a predicate
 		ip1 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0)
@@ -1532,9 +1545,9 @@ class SimulationTest(TransactionTestCase):
 		i2.save()
 		q = Question(question_ID = 10, question_text = "blah")
 		q.save()
-		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=False, num_tickets = 0, num_pending = 5)
+		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=False, num_tickets = 0)
 		p1.save()
-		p2 = Predicate(predicate_ID = 11, question = q, queue_is_full=False, num_tickets = 0, num_pending = 5)
+		p2 = Predicate(predicate_ID = 11, question = q, queue_is_full=False, num_tickets = 0)
 		p2.save()
 		ip = IP_Pair(predicate = p1, item = i, inQueue = False)
 		ip.save()
@@ -1564,9 +1577,9 @@ class SimulationTest(TransactionTestCase):
 		i_0_0.save()
 		i_0_1 = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
 		i_0_1.save()
-		p_0_0 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0, num_pending = 5)
+		p_0_0 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0)
 		p_0_0.save()
-		p_0_1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0, num_pending = 5)
+		p_0_1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0)
 		p_0_1.save()
 		ip_0_0 = IP_Pair (item = i_0_0, predicate = p_0_0, status_votes = NUM_CERTAIN_VOTES-1, num_yes = 0, num_no = 4, tasks_out = 2)
 		ip_0_0.save()

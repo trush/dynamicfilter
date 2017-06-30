@@ -71,7 +71,6 @@ class Predicate(models.Model):
     def _get_num_pending(self):
         return IP_Pair.objects.filter(inQueue=True, predicate=self).count()
 
-    # num_pending = models.IntegerField(default=0)
     num_pending = property(_get_num_pending)
 
     # Queue variables
@@ -269,15 +268,12 @@ class IP_Pair(models.Model):
                 self.isDone = True
                 self.save(update_fields=["isDone"])
 
-                oldComplete = IP_Pair.objects.filter(isDone=True).count()
-
                 if not self.is_false() and self.predicate.num_tickets > 1:
                     self.predicate.remove_ticket()
 
                 if self.is_false():
                     IP_Pair.objects.filter(item__hasFailed=True).update(isDone=True)
 
-                newComplete = IP_Pair.objects.filter(isDone=True).count()
                 # helpful print statements
                 if toggles.DEBUG_FLAG:
                     print "*"*96
@@ -287,8 +283,6 @@ class IP_Pair(models.Model):
                     print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
                     print "*"*96
 
-                if oldComplete - newComplete > 1:
-                    raise Exception("Reduced number of IP pairs to do by eliminating a whole item")
             else:
                 self.status_votes -= 2
                 self.save(update_fields=["status_votes"])
