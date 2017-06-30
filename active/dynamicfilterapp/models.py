@@ -5,7 +5,10 @@ import subprocess
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
 
-@python_2_unicode_compatible 
+
+from toggles import PENDING_QUEUE_SIZE
+
+@python_2_unicode_compatible
 class Item(models.Model):
     """
     General model representing an item in the database
@@ -14,9 +17,10 @@ class Item(models.Model):
     name = models.CharField(max_length=100)
     item_type = models.CharField(max_length=50)
     address = models.CharField(max_length=200, default='')
-    
+
     # set to True if one of the predicates has been evaluated to False
     hasFailed = models.BooleanField(db_index=True, default=False)
+    shouldPass = models.BooleanField(db_index = True, default=False)
 
     # attributes for item specific systems
     isStarted = models.BooleanField(default=False)
@@ -27,7 +31,7 @@ class Item(models.Model):
     def __str__(self):
         return str(self.name)
 
-@python_2_unicode_compatible 
+@python_2_unicode_compatible
 class Question(models.Model):
     """
     Model for questions in the database
@@ -47,7 +51,7 @@ class WorkerID(models.Model):
 @python_2_unicode_compatible
 class Predicate(models.Model):
     """
-    Model representing one predicate 
+    Model representing one predicate
     """
     predicate_ID = models.IntegerField(default=None)
     question = models.ForeignKey(Question)
@@ -57,14 +61,19 @@ class Predicate(models.Model):
     num_wickets = models.IntegerField(default=0)
     num_pending = models.IntegerField(default=0)
 
+    # Queue variables
     queue_is_full = models.BooleanField(default=False)
     
     #variables for epsilon-greedy MAB
     value = models.FloatField(default=0.0)
     count = models.IntegerField(default=0)
+    queue_length = models.IntegerField(default=PENDING_QUEUE_SIZE)
 
     # fields to keep track of selectivity
     selectivity = models.FloatField(default=0.1)
+    calculatedSelectivity = models.FloatField(default=0.1)
+    trueSelectivity = models.FloatField(default=0.0)
+    trueAmbiguity = models.FloatField(default=0.0)
     totalTasks = models.FloatField(default=0.0)
     totalNo = models.FloatField(default=0.0)
     num_ip_complete = models.IntegerField(default=0)
@@ -81,25 +90,27 @@ class Predicate(models.Model):
         return "Predicate branch with question: " + self.question.question_text
 
     def updateSelectivity(self):
-        self.selectivity = self.totalNo/self.totalTasks
-        return self.selectivity
+        self.calculatedSelectivity = self.totalNo/self.totalTasks
+        return self.calculatedSelectivity
 
     def updateCost(self):
         self.cost = self.avg_completion_time * self.avg_tasks_per_pair
         return self.cost
     
     def updateRank(self):
-        self.rank = (self.selectivity - 1)/self.cost
+        self.rank = (self.trueSelectivity - 1)/self.trueAmbiguity
         return self.rank
 
 @python_2_unicode_compatible
 class IP_Pair(models.Model):
     """
-    Model representing an item-predicate pair. 
+    Model representing an item-predicate pair.
     """
     item = models.ForeignKey(Item)
     predicate = models.ForeignKey(Predicate)
 
+    # tasks issued
+    tasks_out = models.IntegerField(default=0)
     # running cumulation of votes
     value = models.FloatField(default=0.0)
     num_no = models.IntegerField(default=0)
@@ -131,9 +142,12 @@ class Task(models.Model):
     answer = models.NullBooleanField(default=None)
     workerID = models.CharField(db_index=True, max_length=15)
 
+    #used for simulating task completion having DURATION
+    startTime = models.IntegerField(default=0)
+    endTime = models.IntegerField(default=0)
+
     # a text field for workers to give feedback on the task
     feedback = models.CharField(max_length=500, blank=True)
 
     def __str__(self):
-        return "Task from worker " + str(self.workerID.workerID)
-    
+        return "Task from worker " + str(self.workerID) + " for IP Pair " + str(self.ip_pair)

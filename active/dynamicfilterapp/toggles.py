@@ -1,5 +1,6 @@
 import datetime as DT
 now = DT.datetime.now()
+from responseTimeDistribution import *
 
 
 RUN_NAME = 'SynDataNEW' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
@@ -11,6 +12,8 @@ NUM_QUEST = 5 #used for accuracy testing
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/'
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
+TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
 DEBUG_FLAG = True # useful print statements turned on
 
@@ -23,8 +26,13 @@ CUT_OFF = 21
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
-NUM_WORKERS = 101
-EDDY_SYS = 5
+NUM_WORKERS = 301
+DISTRIBUTION_TYPE = 0 # tells pick_worker how to choose workers.
+# 0  -  Uniform Distribution; (all worker equally likely)
+# 1  -  Geometric Distribution; (synthetic graph which fits out data well)
+# 2  -  Real Distribution (samples directly from the real data)
+
+EDDY_SYS = 1
 # EDDY SYS KEY:
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
 # 2 - random system
@@ -58,8 +66,14 @@ ITEM_SYS = 0
 # 1 - item-started system
 # 2 - item-almost-false system
 
-SLIDING_WINDOW = False # right now, only works in controlled run mode
-LIFETIME = 10
+SLIDING_WINDOW = False
+LIFETIME = 20
+
+ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE_MODE = 0
+# 0 - only increase ql if reached that number of tickets
+# 1 - increase like (0) but also decreases if a pred drops below the limit
+QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,qlength)]
 
 #############################################################################
 #############################################################################
@@ -70,17 +84,21 @@ LIFETIME = 10
 
 REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
+
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
 NUM_ITEMS = 100
+SIN = -1
+
+SELECTIVITY_GRAPH = False
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
 # selectvity of the previous timestep
 #switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
  #(time,(selectivity,ambiguity), (...))
-switch_list = [(0, (0.5, 0.8), (0.8, 0.5)), (800, (0.8, 0.5), (0.5, 0.8))]
+switch_list = [(0, (0.8, 0.3), (0.3, 0.8)), (800, (0.3, 0.8), (0.8, 0.3))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -93,10 +111,10 @@ ABSTRACT_VALUES = [1,4,5]
 COUNT_TICKETS = False
 
 RUN_AVERAGE_COST = False
-COST_SAMPLES = 1000
+COST_SAMPLES = 100
 
 RUN_SINGLE_PAIR = False
-SINGLE_PAIR_RUNS = 1000
+SINGLE_PAIR_RUNS = 50
 
 RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
@@ -105,24 +123,37 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 ##################	EPSILON GREEDY MAB OPTIONS	##################
 EPSILON = 0.7
 REWARD = 1.4
+RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 NUM_SIM = 2 # how many simulations to run?
 
-TIME_SIMS = False
+TIME_SIMS = False # track the computer runtime of simulations
+
+SIMULATE_TIME = False # simulate time passing/concurrency
+MAX_TASKS = 10 # maximum number of active tasks in a simulation with time
+BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
+TRACK_IP_PAIRS_DONE = False
+
+TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
+
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
+TEST_ACCURACY = False
+
+
+OUTPUT_SELECTIVITIES = False
 
 RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
 
 NO_TASKS_COUNT = False # keeps track of the number of times the next worker has no possible task
+VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
 TEST_ACCURACY = False
 
-OUTPUT_SELECTIVITIES = False
-
+## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
 PRED_SCORE_COUNT = False
