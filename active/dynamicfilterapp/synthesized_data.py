@@ -18,7 +18,6 @@ def syn_load_data():
 		pred = Predicate.objects.create(predicate_ID=ID, question=q)
 		pred.setTrueSelectivity(toggles.switch_list[0][1+ID][0])
 		pred.setTrueAmbiguity(toggles.switch_list[0][1+ID][1])
-
 	for ID in range(toggles.NUM_ITEMS):
 		i = Item.objects.create(item_ID=ID, name="item " + str(ID), item_type="syn")
 

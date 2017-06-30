@@ -323,7 +323,8 @@ def updateCounts(workerTask, chosenIP):
         chosenIP.predicate.update_cost()
 
         # if we've arrived at the right number of votes collected, evaluate consensus
-        print "IP pair " + str(chosenIP.id) + " status votes: " + str(chosenIP.status_votes)
+        if toggles.DEBUG_FLAG:
+            print "IP pair " + str(chosenIP.id) + " status votes: " + str(chosenIP.status_votes)
         if chosenIP.status_votes == toggles.NUM_CERTAIN_VOTES:
             # calculate the probability of this vote scheme happening
             if chosenIP.value > 0:
@@ -332,8 +333,9 @@ def updateCounts(workerTask, chosenIP):
                 uncertaintyLevel = btdtr(chosenIP.num_no+1, chosenIP.num_yes+1, toggles.DECISION_THRESHOLD)
 
             # we are certain enough about the answer or at cut off point
-            print "For IP Pair " + str(chosenIP.id) + "sum of num no and num yes = " + str(chosenIP.num_yes+chosenIP.num_no)
-            if (uncertaintyLevel < toggles.UNCERTAINTY_THRESHOLD)|(chosenIP.num_yes+chosenIP.num_no >= toggles.CUT_OFF):
+            if toggles.DEBUG_FLAG:
+                print "For IP Pair " + str(chosenIP.id) + "sum of num no and num yes = " + str(chosenIP.num_yes+chosenIP.num_no)
+            if (uncertaintyLevel < toggles.UNCERTAINTY_THRESHOLD)|(chosenIP.num_yes+chosenIP.num_no >= toggles.CUT_OFF|(max(chosenIP.num_yes,chosenIP.num_no)>=toggles.SINGLE_VOTE_CUTOFF)):
 
                 #____FOR OUTPUT_SELECTIVITES()____#
                 #if not IP_Pair.objects.filter(isDone=True).filter(item=chosenIP.item):
@@ -360,6 +362,8 @@ def updateCounts(workerTask, chosenIP):
                     chosenIP.predicate.save(update_fields=["num_tickets"])
                     chosenIP.save(update_fields=["predicate"])
                     chosenIP.refresh_from_db()
+                IP_Pair.objects.filter(item__hasFailed=True).update(isDone=True)
+
             else:
                 chosenIP.status_votes -= 2
                 chosenIP.save(update_fields=["status_votes"])

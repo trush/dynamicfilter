@@ -22,6 +22,7 @@ import io
 import csv
 import time
 from copy import deepcopy
+from scipy.special import btdtr
 
 # Global Variables for Item Routing tests
 HAS_RUN_ITEM_ROUTING = False #keeps track of if a routing test has ever run
@@ -329,6 +330,45 @@ class SimulationTest(TransactionTestCase):
 
 		setattr(thismodule, globalVar, storage)
 		return
+
+	def voteResults(self,no,yes):
+		def con(no,yes):
+			return bool((no<=yes))
+		if no+yes < toggles.NUM_CERTAIN_VOTES:
+			return None,0
+		if no < yes:
+			uL = btdtr(yes+1,no+1,toggles.DECISION_THRESHOLD)
+		else:
+			uL = btdtr(no+1,yes+1,toggles.DECISION_THRESHOLD)
+		if uL< toggles.UNCERTAINTY_THRESHOLD:
+			return con(no,yes), 1
+		elif (max(no,yes)>=toggles.SINGLE_VOTE_CUTOFF):
+			return con(no,yes),2
+		elif (no+yes)>=toggles.CUT_OFF:
+			return con(no,yes),3
+		return None,0
+
+	def consensusGrid(self):
+		tL,fL,nL=[],[],[]
+		for no in range(toggles.SINGLE_VOTE_CUTOFF+1):
+			for yes in range(toggles.SINGLE_VOTE_CUTOFF+1):
+				val, loc = self.voteResults(no,yes)
+				if val == None:
+					nL.append((no,yes))
+				elif val == True:
+					tL.append((no,yes))
+				elif val == False:
+					fL.append((no,yes))
+		xL,yL=[],[]
+		for l in [tL,nL,fL]:
+			tx,ty=zip(*l)
+			xL.append(tx)
+			yL.append(ty)
+		multi_line_graph_gen(xL,yL,['t','n','f'],toggles.OUTPUT_PATH+toggles.RUN_NAME+"Grid.png",scatter=True)
+
+
+
+
 
 	def issueTask(self, active_tasks, b_workers, time_clock, dictionary):
 		"""
@@ -1265,13 +1305,12 @@ class SimulationTest(TransactionTestCase):
 		pass
 
 	def getConfig(self):
-		#TODO check that this still works?
 		vals = []
 		for key in toggles.VARLIST:
 			resp=str(getattr(toggles, key))
 			vals.append(resp)
 		data = zip(toggles.VARLIST,vals)
-		return reduce(lambda x,y: x+y, map(lambda x: x[0]+" = "+x[1]+'\n',data))
+		return reduce(lambda x,y: x+y, map(lambda x: x[0]+" = "+x[1]+'\n',data))[:-1]
 
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
@@ -1281,14 +1320,15 @@ class SimulationTest(TransactionTestCase):
 		"""
 		print "Simulation is being tested"
 
-		if toggles.DEBUG_FLAG: #TODO Update print section.... re-think print section?
+		if toggles.DEBUG_FLAG:
 			print "Debug Flag Set!"
-
 			print self.getConfig()
 
 		if toggles.PACKING:
 			toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
 			packageMaker(toggles.OUTPUT_PATH,self.getConfig())
+		if toggles.IDEAL_GRID:
+			self.consensusGrid()
 
 		if toggles.REAL_DATA:
 			sampleData = self.load_data()
@@ -1317,7 +1357,7 @@ class SimulationTest(TransactionTestCase):
 			self.run_sim(deepcopy(sampleData))
 			self.reset_database()
 
-		if toggles.SELECTIVITY_GRAPH and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
+		if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: selectivity amounts over time"
 			self.run_sim(sampleData)
@@ -1356,6 +1396,8 @@ class SimulationTest(TransactionTestCase):
 			runTasksArray = []
 			goodArray, badArray = [], []
 			goodPoints, badPoints = [], []
+			accCount = []
+			locArray = [[],[],[],[]]
 
 			for i in range(toggles.NUM_SIM):
 				print "running simulation " + str(i+1)
@@ -1366,28 +1408,35 @@ class SimulationTest(TransactionTestCase):
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
 				if toggles.TEST_ACCURACY:
 					num_incorrect = self.final_item_mismatch(passedItems)
-				if toggles.RUN_CONSENSUS_COUNT:
+					accCount.append(num_incorrect)
+				if toggles.RUN_CONSENSUS_COUNT or toggles.VOTE_GRID:
+					donePairs = IP_Pair.objects.filter(Q(num_no__gt=0)|Q(num_yes__gt=0))
 					if toggles.TEST_ACCURACY:
-						donePairs = IP_Pair.objects.filter(Q(num_no__gt=0)|Q(num_yes__gt=0))
 						goodPairs, badPairs = [], []
 						for pair in donePairs:
-							if (pair.num_yes-pair.num_no)>0:
-								val = True
-							else:
-								val = False
+							val = bool((pair.num_yes-pair.num_no)>0)
 							if (correctAnswers[(pair.item,pair.predicate)]) == val:
-								goodPairs.append(pair)
 								goodArray.append(pair.num_no+pair.num_yes)
 								goodPoints.append((pair.num_no,pair.num_yes))
 							else:
-								badPairs.append(pair)
 								badArray.append(pair.num_no+pair.num_yes)
 								badPoints.append((pair.num_no,pair.num_yes))
 					else:
-						reals = IP_Pair.objects.filter(Q(num_no__gt=0)|Q(num_yes__gt=0))
-						for pair in reals:
+						for pair in donePairs:
 							goodArray.append(pair.num_no + pair.num_yes)
 							goodPoints.append((pair.num_no,pair.num_yes))
+					if toggles.CONSENSUS_LOCATION_STATS:
+						temp = [0,0,0,0]
+						for pair in donePairs:
+							val, loc = self.voteResults(pair.num_no,pair.num_yes)
+							temp[loc]+=1
+						for i in range(4):
+							locArray[i].append(temp[i])
+
+
+
+
+
 
 					#print "This is number of incorrect items: ", num_incorrect
 
@@ -1428,6 +1477,12 @@ class SimulationTest(TransactionTestCase):
 						stats_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
 						if toggles.DEBUG_FLAG:
 							print "Wrote File: " + toggles.OUTPUT_PATH+toggles.RUN_NAME+'_multi_routing.png'
+			if toggles.ACCURACY_COUNT:
+				dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_acc_count'
+				generic_csv_write(dest+'.csv',[accCount])
+				if toggles.GEN_GRAPHS:
+					hist_gen(accCount, dest+'.png')
+
 			if toggles.RUN_CONSENSUS_COUNT:
 				dest = toggles.OUTPUT_PATH + toggles.RUN_NAME+'_consensus_count'
 				if len(goodArray)>1:
@@ -1469,6 +1524,13 @@ class SimulationTest(TransactionTestCase):
 							multi_line_graph_gen((gX,bX),(gY,bY),('Correct','Incorrect'),dest+'_both.png',title=title,labels=labels,scatter=True,square=True)
 							line_graph_gen(gX,gY,dest+'_good.png',title=title+" goodPoints",labels=labels,scatter=True,square=True)
 							line_graph_gen(bX,bY,dest+'_bad.png',title=title+" badPoints",labels=labels,scatter=True,square=True)
+			if toggles.CONSENSUS_LOCATION_STATS:
+				data = locArray[1:]
+				dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_consensus_location'
+				generic_csv_write(dest+'.csv',data)
+				if toggles.GEN_GRAPHS:
+					multi_hist_gen(data,('Bayes','single Cut','total Cut'),dest+'.png')
+
 		if toggles.TIME_SIMS:
 			self.timeRun(sampleData)
 
