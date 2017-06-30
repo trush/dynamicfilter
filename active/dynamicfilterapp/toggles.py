@@ -3,7 +3,7 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'Triangle' #+ "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'SynData_Queue_Window40_2Q_100I_50Sims_SIN_Round3' #+ "_" + str(now.date())+ "_" + str(now.time())[:-7]
 ITEM_TYPE = "Restaurant"
 
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
@@ -15,9 +15,9 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 DEBUG_FLAG = False # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-UNCERTAINTY_THRESHOLD = 0.05     # maximum acceptable proability area
-FALSE_THRESHOLD = 0.05           # Used for ALMOST_FALSE TODO better docs
-DECISION_THRESHOLD = 0.9        # Upper bound of integration
+UNCERTAINTY_THRESHOLD = 0.2     # maximum acceptable proability area
+FALSE_THRESHOLD = 0.2           # Used for ALMOST_FALSE TODO better docs
+DECISION_THRESHOLD = 0.5        # Upper bound of integration
 NUM_CERTAIN_VOTES = 5           # number of votes to gather no matter the results
 CUT_OFF = 21                    # Maximum number of votes to ask for before using Majority Vote as backup metric
 SINGLE_VOTE_CUTOFF = 21#int(1+math.ceil(CUT_OFF/2.0)+1-(CUT_OFF%2))    # Number of votes for a single result (Y/N) before calling that the winner
@@ -75,7 +75,7 @@ ITEM_SYS = 0
 # 1 - item-started system
 # 2 - item-almost-false system
 
-SLIDING_WINDOW = False
+SLIDING_WINDOW = True
 LIFETIME = 40
 
 ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
@@ -91,7 +91,7 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 ###################### CONFIGURING TESTING ##################################
 #############################################################################
 
-REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
+REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
 
 GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
@@ -152,18 +152,18 @@ TRACK_IP_PAIRS_DONE = False
 TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-TEST_ACCURACY = True
-ACCURACY_COUNT = True
+TEST_ACCURACY = False
+ACCURACY_COUNT = False
 
 OUTPUT_SELECTIVITIES = False
 
-RUN_CONSENSUS_COUNT = True # keeps track of the number of tasks needed before consensus for each IP
+RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
 
-CONSENSUS_LOCATION_STATS = True
+CONSENSUS_LOCATION_STATS = False
 
-VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
+VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
-IDEAL_GRID = True #draws the vote grid rules for our consensus metric
+IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
