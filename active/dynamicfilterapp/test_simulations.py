@@ -801,7 +801,7 @@ class SimulationTest(TransactionTestCase):
 				for predNum in range(numPreds):
 					ticketCountsLegend.append("Pred " + str(predNum))
 			multi_line_graph_gen([range(time_proxy)]*xMultiplier, ticketNums, ticketCountsLegend,
-								"dynamicfilterapp/simulation_files/output/graphs/" + toggles.RUN_NAME + "ticketCounts.png",
+								toggles.OUTPUT_PATH + toggles.RUN_NAME + "ticketCounts.png",
 								labels = ("time proxy", "Ticket counts"))
 
 		if toggles.SELECTIVITY_GRAPH:
@@ -809,7 +809,7 @@ class SimulationTest(TransactionTestCase):
 			for predNum in range(toggles.NUM_QUESTIONS):
 				selectivitiesLegend.append("Pred " + str(predNum))
 			multi_line_graph_gen([range(num_tasks)]*toggles.NUM_QUESTIONS, selectivities, selectivitiesLegend,
-								"dynamicfilterapp/simulation_files/output/graphs/" + toggles.RUN_NAME + "selectivities.png",
+								toggles.OUTPUT_PATH + toggles.RUN_NAME + "selectivities.png",
 								labels = ("Number of tasks completed in single simulation", "Predicate selectivities"), scatter=True)
 
 		# if this is the first time running a routing test
@@ -1254,9 +1254,9 @@ class SimulationTest(TransactionTestCase):
 	def moveWindowTest(self):
 		q = Question(question_ID = 10, question_text = "blah")
 		q.save()
-		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0, num_wickets = LIFETIME)
+		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0, num_wickets = toggles.LIFETIME)
 		p1.save()
-		p2 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 5, num_wickets = LIFETIME)
+		p2 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 5, num_wickets = toggles.LIFETIME)
 		p2.save()
 
 		print "after init"
@@ -1358,7 +1358,7 @@ class SimulationTest(TransactionTestCase):
 			self.reset_database()
 
 		if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-			if DEBUG_FLAG:
+			if toggles.DEBUG_FLAG:
 				print "Running: selectivity amounts over time"
 			self.run_sim(sampleData)
 			self.reset_database()

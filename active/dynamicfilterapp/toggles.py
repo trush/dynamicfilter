@@ -5,8 +5,6 @@ from responseTimeDistribution import *
 
 
 RUN_NAME = 'SynData_Queue_Window40_2Q_100I_50Sims_SIN_Round3' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-#RUN_NAME = 'SynData_Queue1_Window20_2Q_100I_50Sims' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-#RUN_NAME = 'SynData_Queue1_SIN' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
 
@@ -107,7 +105,7 @@ NUM_QUESTIONS = 2
 NUM_ITEMS = 100
 SIN = -1
 
-SELECTIVITY_GRAPH = False
+SELECTIVITY_GRAPH = True
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
 # selectvity of the previous timestep
@@ -152,25 +150,25 @@ MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 MAX_TASKS_OUT = 7
 
-RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
 TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-TEST_ACCURACY = True
-ACCURACY_COUNT = True
+TEST_ACCURACY = False
+ACCURACY_COUNT = False
 
 OUTPUT_SELECTIVITIES = False
 
-RUN_CONSENSUS_COUNT = True # keeps track of the number of tasks needed before consensus for each IP
+RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
 
-CONSENSUS_LOCATION_STATS = True
+CONSENSUS_LOCATION_STATS = False
 
-VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
+VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
-IDEAL_GRID = True #draws the vote grid rules for our consensus metric
+IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
