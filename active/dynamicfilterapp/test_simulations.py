@@ -179,7 +179,7 @@ class SimulationTest(TransactionTestCase):
 		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
 		Task.objects.all().delete()
 		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,
-			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False)
+			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False, value=0.0, count=0)
 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False, isStarted=False)
 		end = time.time()
 		reset_time = end - start
@@ -235,6 +235,7 @@ class SimulationTest(TransactionTestCase):
 		workerDoneTimes = []
 		noTasks = 0
 		scores = []
+		ranks = []
 		ticketNums = []
 
 		#Setting up arrays to count tickets for ticketing counting graphs
@@ -244,6 +245,13 @@ class SimulationTest(TransactionTestCase):
 		else:
 			for count in range(NUM_QUESTIONS):
 				ticketNums.append([])
+		
+		if REAL_DATA:
+			for predNum in range(len(CHOSEN_PREDS)):
+				ranks.append([])
+		else:
+			for count in range(NUM_QUESTIONS):
+				ranks.append([])
 		
 
 		#If running Item_routing, setup needed values
@@ -322,6 +330,16 @@ class SimulationTest(TransactionTestCase):
 						for count in range(NUM_QUESTIONS):
 							predicate = Predicate.objects.get(pk=count+1)
 							scores[count].append(predicate.value)
+				
+				if PRED_RANK_COUNT:
+					if REAL_DATA:
+						for pred in range(len(CHOSEN_PREDS)):
+							predicate = Predicate.objects.get(pk=CHOSEN_PREDS[pred]+1)
+							ranks[pred].append(predicate.rank)
+					else:
+						for count in range(NUM_QUESTIONS):
+							predicate = Predicate.objects.get(pk=count+1)
+							ranks[count].append(predicate.rank)
 
 				if COUNT_TICKETS:
 					if REAL_DATA:
@@ -375,17 +393,43 @@ class SimulationTest(TransactionTestCase):
 		
 		if PRED_SCORE_COUNT:
 			predScoreLegend = []
-			for pred in range(len(CHOSEN_PREDS)):
-				predScoreLegend.append("Pred " + str(CHOSEN_PREDS[pred]))
-			multi_line_graph_gen([range(num_tasks)]*len(CHOSEN_PREDS), scores, predScoreLegend,
+			if REAL_DATA:
+				numPreds = len(CHOSEN_PREDS)
+				for predNum in range(numPreds):
+					predScoreLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+			else:
+				numPreds = NUM_QUESTIONS
+				for predNum in range(numPreds):
+					predScoreLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+			multi_line_graph_gen([range(num_tasks)]*numPreds, scores, predScoreLegend,
 								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "predScore.png",
-								labels = ("Number of simulations run", "score"))
+								labels = ("Number of tasks", "score"))
+
+		if PRED_RANK_COUNT:
+			predRankLegend = []
+			if REAL_DATA:
+				numPreds = len(CHOSEN_PREDS)
+				for predNum in range(numPreds):
+					predRankLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+			else:
+				numPreds = NUM_QUESTIONS
+				for predNum in range(numPreds):
+					predRankLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+			multi_line_graph_gen([range(num_tasks)]*numPreds, ranks, predRankLegend,
+								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "predRank.png",
+								labels = ("Number of tasks", "rank"))
 
 		if COUNT_TICKETS:
 			ticketCountsLegend = []
-			for predNum in range(len(CHOSEN_PREDS)):
-				ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
-			multi_line_graph_gen([range(num_tasks)]*len(CHOSEN_PREDS), ticketNums, ticketCountsLegend,
+			if REAL_DATA:
+				numPreds = len(CHOSEN_PREDS)
+				for predNum in range(numPreds):
+					ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+			else:
+				numPreds = NUM_QUESTIONS
+				for predNum in range(numPreds):
+					ticketCountsLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+			multi_line_graph_gen([range(num_tasks)]*numPreds, ticketNums, ticketCountsLegend,
 								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "ticketCounts.png",
 								labels = ("Number of simulations run", "Ticket counts"))
 
@@ -813,6 +857,12 @@ class SimulationTest(TransactionTestCase):
 		if PRED_SCORE_COUNT and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: Pred Score count"
+			self.run_sim(sampleData)
+			self.reset_database()
+		
+		if PRED_RANK_COUNT and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
+			if DEBUG_FLAG:
+				print "Running: Rank count"
 			self.run_sim(sampleData)
 			self.reset_database()
 

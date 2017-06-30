@@ -73,6 +73,9 @@ class Predicate(models.Model):
     cost = models.FloatField(default=0.0)
     avg_completion_time = models.FloatField(default=0.0)
     avg_tasks_per_pair = models.FloatField(default=0.0)
+    
+    #field that stores rank of each predicate
+    rank = models.FloatField(default=0.0)
 
     def __str__(self):
         return "Predicate branch with question: " + self.question.question_text
@@ -84,6 +87,10 @@ class Predicate(models.Model):
     def updateCost(self):
         self.cost = self.avg_completion_time * self.avg_tasks_per_pair
         return self.cost
+    
+    def updateRank(self):
+        self.rank = (self.selectivity - 1)/self.cost
+        return self.rank
 
 @python_2_unicode_compatible
 class IP_Pair(models.Model):

@@ -88,8 +88,6 @@ def pending_eddy(ID):
 			incompleteIP = startedIPs
 		predicates = [ip.predicate for ip in incompleteIP]
 		chosenPred = selectArm(predicates)
-		#print chosenPred
-		#print "value: " + str(chosenPred.value) + ", count: " + str(chosenPred.count)
 		predIPs = incompleteIP.filter(predicate=chosenPred)
 		chosenIP = choice(predIPs)
 	
@@ -101,6 +99,17 @@ def pending_eddy(ID):
 		chosenPred = annealingSelectArm(predicates)
 		predIPs = incompleteIP.filter(predicate=chosenPred)
 		chosenIP = choice(predIPs)
+	
+	elif(EDDY_SYS == 6):
+		startedIPs = incompleteIP.filter(isStarted=True)
+		if len(startedIPs) != 0:
+			incompleteIP = startedIPs
+		predicates = [ip.predicate for ip in incompleteIP]
+		chosenPred = rankSelectArm(predicates)
+		predIPs = incompleteIP.filter(predicate=chosenPred)
+		chosenIP = choice(predIPs)
+	print chosenIP
+	print chosenPred.cost
 
 	end = time.time()
 	runTime = end - start
@@ -164,6 +173,25 @@ def annealingSelectArm(predList):
 	
 	else:
 		newPredlist = [pred for pred in predList if pred.value != maxVal]
+		if len(newPredlist)!= 0:
+			return random.choice(newPredlist)
+		else:
+			return random.choice(predList)
+
+def rankSelectArm(predList):
+	countList = np.array([(pred.count) for pred in predList])
+	countSum = sum(countList)
+	epsilon = 1 / math.log(countSum + 0.0000001)
+	rNum = random.random()
+	rankList = np.array([(pred.rank) for pred in predList])
+	maxRank = max(rankList)
+	
+	if rNum > epsilon:
+		maxPredlist = [pred for pred in predList if pred.rank == maxRank]
+		return random.choice(maxPredlist)
+	
+	else:
+		newPredlist = [pred for pred in predList if pred.rank != maxRank]
 		if len(newPredlist)!= 0:
 			return random.choice(newPredlist)
 		else:
@@ -312,18 +340,20 @@ def updateCounts(workerTask, chosenIP):
 
 	elif workerTask.answer == False:
 		chosenIP.value -= 1
-		chosenIP.num_no +=1
+		chosenIP.num_no += 1
 		chosenPred.totalNo += 1
 
 	#update predicate statistics
 	chosenPred.updateSelectivity()
 	chosenPred.updateCost()
+	if chosenPred.cost > 0:
+		chosenPred.updateRank()
 
 	# check if the ip_pair is finished and update accordingly
 	if chosenIP.status_votes == NUM_CERTAIN_VOTES:
 		# calculate the probability of this vote scheme happening
 		if chosenIP.value > 0:
-			uncertaintyLevel = btdtr(chosenIP.num_yes+1, chosenIP.num_no+1, DECISION_THRESHOLD)
+			uncertaintyLevel = btdtr(chosenIP.num_yes+1, chosenIP.num_no + 1, DECISION_THRESHOLD)
 		else:
 			uncertaintyLevel = btdtr(chosenIP.num_no+1, chosenIP.num_yes+1, DECISION_THRESHOLD)
 
