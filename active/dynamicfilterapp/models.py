@@ -67,10 +67,16 @@ class Predicate(models.Model):
     # lottery system variables
     num_tickets = models.IntegerField(default=1)
     num_wickets = models.IntegerField(default=0)
-    num_pending = models.IntegerField(default=0)
+
+    def _get_num_pending(self):
+        return IP_Pair.objects.filter(inQueue=True, predicate=self).count()
+
+    # num_pending = models.IntegerField(default=0)
+    num_pending = property(_get_num_pending)
 
     # Queue variables
     queue_is_full = models.BooleanField(default=False)
+    # queue_length = models.IntegerField(default=toggles.PENDING_QUEUE_SIZE)
     queue_length = models.IntegerField(default=toggles.PENDING_QUEUE_SIZE)
 
     # fields to keep track of selectivity
@@ -97,7 +103,6 @@ class Predicate(models.Model):
 
     def move_window(self):
         if self.num_wickets == toggles.LIFETIME:
-            print "lifetime reached for " + str(self.predicate_ID)
             self.num_wickets = 0
             self.save(update_fields=["num_wickets"])
 
@@ -107,8 +112,7 @@ class Predicate(models.Model):
 
     def award_ticket(self):
         self.num_tickets += 1
-        self.num_pending += 1
-        self.save(update_fields = ["num_tickets", "num_pending"])
+        self.save(update_fields = ["num_tickets"])
 
     def award_wicket(self):
         self.num_wickets += 1
@@ -119,16 +123,21 @@ class Predicate(models.Model):
         self.save(update_fields=["totalNo"])
 
     def check_queue_full(self):
-        if self.num_pending >= self.queue_length:
+        if self.num_pending == self.queue_length:
             self.queue_is_full = True
-        else:
+            self.save(update_fields = ["queue_is_full"])
+        elif self.num_pending < self.queue_length:
             self.queue_is_full = False
+            self.save(update_fields = ["queue_is_full"])
+        else:
+            raise Exception ("Queue for predicate " + str(self.id) + " is over-full")
 
-        self.save(update_fields = ["queue_is_full"])
+        if IP_Pair.objects.filter(inQueue=True, predicate = self).count() < self.queue_length and self.queue_is_full:
+            raise Exception ("Queue for predicate " + str(self.id) + " set to full when not")
 
-    def remove_pending(self):
-        self.num_pending -= 1
-        self.save(update_fields=["num_pending"])
+    # def remove_pending(self):
+    #     self.num_pending -= 1
+    #     self.save(update_fields=["num_pending"])
 
     def remove_ticket(self):
         self.num_tickets -= 1
@@ -209,9 +218,15 @@ class IP_Pair(models.Model):
 
     def add_to_queue(self):
         self.inQueue = True
+        self.save(update_fields=["inQueue"])
+        if IP_Pair.objects.filter(inQueue=True, predicate=self.predicate).count() > toggles.PENDING_QUEUE_SIZE:
+            raise Exception ("Too many IP pair objects in queue for predicate " + str(self.predicate.id))
         self.item.add_to_queue()
         self.predicate.award_ticket()
-        self.save(update_fields=["inQueue"])
+        if not IP_Pair.objects.filter(predicate=self.predicate, inQueue=True).count() == self.predicate.num_pending:
+            print "IP objects in queue for pred " + str(self.predicate.id) + ": " + str(IP_Pair.objects.filter(predicate=self.predicate, inQueue=True).count())
+            print "Number pending for pred " + str(self.predicate.id) + ": " + str(self.predicate.num_pending)
+            raise Exception("ADD_TO_QUEUE Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
         # checks if pred queue is now full and changes state accordingly
         self.predicate.check_queue_full()
 
@@ -220,9 +235,8 @@ class IP_Pair(models.Model):
             self.inQueue = False
             self.save(update_fields=["inQueue"])
             self.item.remove_from_queue()
-            self.predicate.remove_pending()
+            # self.predicate.remove_pending()
             self.predicate.check_queue_full()
-
 
     def record_vote(self, workerTask):
         # add vote to tally only if appropriate
@@ -254,17 +268,26 @@ class IP_Pair(models.Model):
                 self.isDone = True
                 self.save(update_fields=["isDone"])
 
+                oldComplete = IP_Pair.objects.filter(isDone=True).count()
+
+                if not self.is_false() and self.predicate.num_tickets > 1:
+                    self.predicate.remove_ticket()
+
+                if self.is_false():
+                    IP_Pair.objects.filter(item__hasFailed=True).update(isDone=True)
+
+                newComplete = IP_Pair.objects.filter(isDone=True).count()
                 # helpful print statements
                 if toggles.DEBUG_FLAG:
-                    print "*"*40
+                    print "*"*96
                     print "Completed IP Pair: " + str(self.id)
                     print "Total yes: " + str(self.num_yes) + "  Total no: " + str(self.num_no)
                     print "Total votes: " + str(self.num_yes+self.num_no)
                     print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
-                    print "*"*40
+                    print "*"*96
 
-                if not self.is_false() and self.predicate.num_tickets > 1:
-                    self.predicate.remove_ticket()
+                if oldComplete - newComplete > 1:
+                    raise Exception("Reduced number of IP pairs to do by eliminating a whole item")
             else:
                 self.status_votes -= 2
                 self.save(update_fields=["status_votes"])

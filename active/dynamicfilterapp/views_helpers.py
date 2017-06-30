@@ -148,8 +148,6 @@ def give_task(active_tasks, workerID):
     # print "IPs in queue: " + str(IP_Pair.objects.filter(inQueue = True).count())
     # print "Items in queue: " + str(Item.objects.filter(inQueue = True).count())
 
-
-
     if ip_pair is not None:
         # print "IP pair selected"
         ip_pair.distribute_task()
@@ -289,6 +287,8 @@ def lotteryPendingQueue(ipSet):
     return chosenIP
 
 def updateCounts(workerTask, chosenIP):
+    chosenIP.refresh_from_db()
+    workerTask.refresh_from_db()
     # update stats counting tasks completed
     chosenIP.collect_task()
     chosenIP.refresh_from_db()
@@ -301,7 +301,6 @@ def updateCounts(workerTask, chosenIP):
     if toggles.EDDY_SYS == 1:
         chosenIP.remove_from_queue()
         chosenIP.refresh_from_db()
-
 
 # def updateCounts(workerTask, chosenIP):
 #     # make sure values are up to date

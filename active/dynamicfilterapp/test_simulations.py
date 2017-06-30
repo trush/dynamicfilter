@@ -502,16 +502,21 @@ class SimulationTest(TransactionTestCase):
 				# IP_Pair.objects.all().refresh_from_db()
 
 				if DEBUG_FLAG:
-					if (time_clock % 10 == 0) or (time_clock - prev_time > 1):
-						print "$"*41 + " t =  " + str(time_clock) + " " + "$"*41
+					if (time_clock % 60 == 0) or (time_clock - prev_time > 1):
+						print "$"*43 + " t =  " + str(time_clock) + " " + "$"*42
 						print "$"*96
 
 						print "There are still " + str(IP_Pair.objects.filter(isDone=False).count()) +  " incomplete IP pairs"
 						print "number of tasks completed is: " + str(num_tasks)
 
 						for ip in IP_Pair.objects.filter(inQueue=True):
-							print "IP pair with id " + str(ip.pk) +  " has " + str(ip.tasks_out) + " tasks out. Num yes: " + str(ip.num_yes) + " Num no: " + str(ip.num_no) + " and isDone = " + str(ip.isDone)
+							print "IP pair with id " + str(ip.pk) + " for pred " + str(ip.predicate.id) +  " has " + str(ip.tasks_out) + " tasks out. Num yes: " + str(ip.num_yes) + " Num no: " + str(ip.num_no) + " and isDone = " + str(ip.isDone)
 
+							if ip.num_no + ip.num_yes > toggles.CUT_OFF:
+								print "Total votes: " + str(ip.num_no+ip.num_yes)
+								raise Exception ("Too many votes cast for IP Pair " + str(ip.id))
+
+						print "Active tasks: " + str(len(active_tasks))
 						print "IP pairs in queue: " + str(IP_Pair.objects.filter(inQueue=True).count())
 
 						for p in Predicate.objects.filter(queue_is_full=True) :
@@ -523,17 +528,33 @@ class SimulationTest(TransactionTestCase):
 						print "active tasks is empty"
 
 				# some assertions for debugging purposes
-				if not (Item.objects.filter(inQueue=True).count() <= PENDING_QUEUE_SIZE*len(CHOSEN_PREDS)):
-					raise Exception("Too many things in the queue")
+				# if not (Item.objects.filter(inQueue=True).count() <= PENDING_QUEUE_SIZE*len(CHOSEN_PREDS)):
+				# 	raise Exception("Too many things in the queue")
 				if not (Item.objects.filter(inQueue=True).count() == IP_Pair.objects.filter(inQueue=True).count()):
 					print "inQueue items: " + str(Item.objects.filter(inQueue=True).count())
 					print "inQueue IPs: " + str(IP_Pair.objects.filter(inQueue=True).count())
 					raise Exception("IP and item mismatch")
 
-				inFullQueue = IP_Pair.objects.filter(predicate__queue_is_full=True, inQueue=True).count()
-				fullQueueSpots = Predicate.objects.filter(queue_is_full=True).count()*PENDING_QUEUE_SIZE
-				if not (inFullQueue == fullQueueSpots):
-					raise Exception("Queue isn't actually full")
+				# inFullQueue = IP_Pair.objects.filter(predicate__queue_is_full=True, inQueue=True).count()
+				# fullQueueSpots = Predicate.objects.filter(queue_is_full=True).count()*PENDING_QUEUE_SIZE
+				# if not (inFullQueue == fullQueueSpots):
+				# 	raise Exception("Queue isn't actually full")
+
+				for p in Predicate.objects.filter(queue_is_full = True):
+					if not p.num_pending >= p.queue_length:
+						raise Exception ("Queue for predicate " + str(p.id) + " isn't actually full")
+
+					if IP_Pair.objects.filter(predicate=p, inQueue=True).count() < p.queue_length:
+						raise Exception ("Not enough IP_Pairs in queue for predicate " + str(p.id) + " for it to be full")
+
+					if IP_Pair.objects.filter(predicate=p, inQueue=True).count() > p.queue_length:
+						raise Exception("The queue for predicate " + str(p.id) + " is over-full")
+
+					if not IP_Pair.objects.filter(predicate=p, inQueue=True).count() == p.num_pending:
+						print "IP objects in queue for pred " + str(p.id) + ": " + str(IP_Pair.objects.filter(predicate=p, inQueue=True).count())
+						print "Number pending for pred " + str(p.id) + ": " + str(p.num_pending)
+						raise Exception("WHEN REMOVING Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
+
 
 				prev_time = time_clock
 				endTimes = []
@@ -548,6 +569,10 @@ class SimulationTest(TransactionTestCase):
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
 						num_tasks += 1
+						if not IP_Pair.objects.filter(predicate=task.ip_pair.predicate, inQueue=True).count() == task.ip_pair.predicate.num_pending:
+							print "IP objects in queue for pred " + str(task.ip_pair.predicate.id) + ": " + str(IP_Pair.objects.filter(predicate=task.ip_pair.predicate, inQueue=True).count())
+							print "Number pending for pred " + str(task.ip_pair.predicate.id) + ": " + str(task.ip_pair.predicate.num_pending)
+							raise Exception("WHEN REMOVING Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
 
 						if ADAPTIVE_QUEUE:
 							pred = task.ip_pair.predicate
@@ -573,9 +598,9 @@ class SimulationTest(TransactionTestCase):
 							itemsDoneArray.append(IP_Pair.objects.filter(isDone=True).count())
 
 						if DEBUG_FLAG:
-							print "IP pair with id " + str(task.ip_pair.pk) + " now has " + str(task.ip_pair.tasks_out) + " tasks out"
-							print "number of active tasks is: " +  str(len(active_tasks))
-							print "number of tasks completed is: " + str(num_tasks)
+							print "Task removed - Item: " + str(task.ip_pair.item.id) + " Predicate: " + str(task.ip_pair.predicate.id) + " IP Pair: " + str(task.ip_pair.id)
+							# print "number of active tasks is: " +  str(len(active_tasks))
+							# print "number of tasks completed is: " + str(num_tasks)
 
 
 					else:
@@ -594,10 +619,10 @@ class SimulationTest(TransactionTestCase):
 							eddyTimes.append(eddy_t)
 							taskTimes.append(task_t)
 							if DEBUG_FLAG:
-								print "task added - Item: " + str(task.ip_pair.item.id) + " Predicate: " + str(task.ip_pair.predicate.id) + " IP Pair: " + str(task.ip_pair.id)
-								print "number of active tasks is: " +  str(len(active_tasks))
-								for p in Predicate.objects.filter(queue_is_full=True) :
-									print "Queue is full for predicate " + str(p.pk)
+								print "Task added - Item: " + str(task.ip_pair.item.id) + " Predicate: " + str(task.ip_pair.predicate.id) + " IP Pair: " + str(task.ip_pair.id)
+								# print "number of active tasks is: " +  str(len(active_tasks))
+								# for p in Predicate.objects.filter(queue_is_full=True) :
+								# 	print "Queue is full for predicate " + str(p.pk)
 
 							# ITEM ROUTING DATA COLLECTION
 							# If we should be running a routing test
