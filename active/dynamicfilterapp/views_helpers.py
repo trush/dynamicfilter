@@ -360,6 +360,8 @@ def updateCounts(workerTask, chosenIP):
                     chosenIP.predicate.save(update_fields=["num_tickets"])
                     chosenIP.save(update_fields=["predicate"])
                     chosenIP.refresh_from_db()
+                IP_Pair.objects.filter(item__hasFailed=True).update(isDone=True)
+
             else:
                 chosenIP.status_votes -= 2
                 chosenIP.save(update_fields=["status_votes"])
