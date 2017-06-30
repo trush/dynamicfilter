@@ -155,6 +155,7 @@ class IP_Pair(models.Model):
     def is_false(self):
         if self.isDone and (self.value < 0):
             self.item.hasFailed = True
+            self.item.save(update_fields=['hasFailed'])
         return self.item.hasFailed
 
     def _get_is_in_queue(self):
