@@ -93,7 +93,7 @@ def pending_eddy(ID):
         chosenIP = choice(incompleteIP)
 
     #system that uses ticketing and finishes an IP pair once started
-    elif (EDDY_SYS ==4):
+    elif (toggles.EDDY_SYS ==4):
         chosenIP = useLottery(incompleteIP)
 
     end = time.time()

@@ -203,7 +203,7 @@ class SimulationTest(TransactionTestCase):
 		if chosenIP is None:
 			t = None
 		else:
-			value = syn_answer(chosenIP, switch)
+			value = syn_answer(chosenIP, switch, numTasks)
 			if toggles.SIMULATE_TIME:
 				if value :
 					#worker said true, take from true distribution
@@ -655,7 +655,7 @@ class SimulationTest(TransactionTestCase):
 						print "worker has no tasks to do"
 
 				else:
-					if (EDDY_SYS == 4):
+					if (toggles.EDDY_SYS == 4):
 						try:
 							#test to see if ip_pair is the dummy or not
 							ipExists = IP_Pair.objects.get(pk=ip_pair.pk)
@@ -713,7 +713,7 @@ class SimulationTest(TransactionTestCase):
 
 					#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 					#so we need index 0 of the tuple to get the time at which the switch should occur
-					if (switch + 1) < len(switch_list) and switch_list[switch + 1][0] == num_tasks:
+					if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] == num_tasks:
 						switch += 1
 
 		if toggles.TRACK_IP_PAIRS_DONE:
@@ -1317,7 +1317,7 @@ class SimulationTest(TransactionTestCase):
 			self.run_sim(deepcopy(sampleData))
 			self.reset_database()
 
-		if SELECTIVITY_GRAPH and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
+		if toggles.SELECTIVITY_GRAPH and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: selectivity amounts over time"
 			self.run_sim(sampleData)
