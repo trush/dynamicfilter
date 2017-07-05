@@ -204,7 +204,7 @@ class SimulationTest(TransactionTestCase):
 		if chosenIP is None:
 			t = None
 		else:
-			value = syn_answer(chosenIP, switch)
+			value = syn_answer(chosenIP, switch, numTasks)
 			if toggles.SIMULATE_TIME:
 				if value :
 					#worker said true, take from true distribution
@@ -370,7 +370,7 @@ class SimulationTest(TransactionTestCase):
 
 
 
-	def issueTask(self, active_tasks, b_workers, time_clock, dictionary):
+	def issueTask(self, active_tasks, b_workers, time_clock, dictionary, switch):
 		"""
 		Used in simulations with time. Given the status of active tasks and
 		busy workers, selects and simulates a task to be added to the tasks array.
@@ -498,6 +498,7 @@ class SimulationTest(TransactionTestCase):
 		workerDoneTimes = []
 		ticketNums = []
 		selectivities = []
+		time_proxy = 0
 
 
 		if toggles.SELECTIVITY_GRAPH:
@@ -606,6 +607,16 @@ class SimulationTest(TransactionTestCase):
 										dec_queue_length(pred)
 										pred.refresh_from_db()
 										break
+						if toggles.COUNT_TICKETS:
+							time_proxy += 1
+							if toggles.REAL_DATA:
+								for predNum in range(len(toggles.CHOSEN_PREDS)):
+									predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
+									ticketNums[predNum].append(predicate.num_tickets)
+							else:
+								for count in range(toggles.NUM_QUESTIONS):
+									predicate = Predicate.objects.get(pk=count+1)
+									ticketNums[count].append(predicate.num_tickets)
 
 						if toggles.TRACK_IP_PAIRS_DONE:
 							itemsDoneArray.append(IP_Pair.objects.filter(isDone=True).count())
@@ -622,7 +633,7 @@ class SimulationTest(TransactionTestCase):
 				if IP_Pair.objects.filter(isDone=False).exists():
 
 					while (len(active_tasks) != toggles.MAX_TASKS):
-						task, worker, eddy_t, task_t, worker_no_tasks = self.issueTask(active_tasks, b_workers, time_clock, dictionary)
+						task, worker, eddy_t, task_t, worker_no_tasks = self.issueTask(active_tasks, b_workers, time_clock, dictionary, switch)
 						if task is not None:
 							task.ip_pair.refresh_from_db()
 							task.ip_pair.predicate.refresh_from_db()
@@ -666,16 +677,12 @@ class SimulationTest(TransactionTestCase):
 
 				move_window()
 				time_clock += 1
+				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
+				#so we need index 0 of the tuple to get the time at which the switch should occur
+				if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] >= time_clock:
+					switch += 1
+				print "time clock: ", str(time_clock)
 
-				if toggles.COUNT_TICKETS:
-					if toggles.REAL_DATA:
-						for predNum in range(len(toggles.CHOSEN_PREDS)):
-							predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
-							ticketNums[predNum].append(predicate.num_tickets)
-					else:
-						for count in range(NUM_QUESTIONS):
-							predicate = Predicate.objects.get(pk=count+1)
-							ticketNums[count].append(predicate.num_tickets)
 			if toggles.DEBUG_FLAG:
 				print "Simulaton completed. Simulated time = " + str(time_clock) + ", number of tasks: " + str(num_tasks)
 
@@ -700,12 +707,14 @@ class SimulationTest(TransactionTestCase):
 							#test to see if ip_pair is the dummy or not
 							ipExists = IP_Pair.objects.get(pk=ip_pair.pk)
 							if(ip_pair.isDone == True):
-								ip_pair = pending_eddy(workerID)
+								ip_pair, eddy_time = pending_eddy(workerID)
 						except:
-							ip_pair = pending_eddy(workerID)
+							ip_pair, eddy_time = pending_eddy(workerID)
 							#print "here"
 					else:
-						ip_pair = pending_eddy(workerID)
+						ip_pair, eddy_time = pending_eddy(workerID)
+
+					eddyTimes.append(eddy_time)
 
 					# If we should be running a routing test
 					# this is true in two cases: 1) we hope to run a single
@@ -787,21 +796,19 @@ class SimulationTest(TransactionTestCase):
 			output_cost(toggles.RUN_NAME)
 
 		if toggles.COUNT_TICKETS:
-			if toggles.SIMULATE_TIME:
-				time_proxy = time_clock
-			else:
+			if not toggles.SIMULATE_TIME:
 				time_proxy = num_tasks
 			ticketCountsLegend = []
 			if toggles.REAL_DATA:
 				xMultiplier = len(toggles.CHOSEN_PREDS)
-				for predNum in range(numPreds):
-					ticketCountsLegend.append("Pred " + str(toggles.CHOSEN_PREDS[predNum]))
+				for predNum in toggles.CHOSEN_PREDS:
+					ticketCountsLegend.append("Pred " + str(predNum))
 			else:
 				xMultiplier = toggles.NUM_QUESTIONS
-				for predNum in range(numPreds):
+				for predNum in range(toggles.NUM_QUESTIONS):
 					ticketCountsLegend.append("Pred " + str(predNum))
 			multi_line_graph_gen([range(time_proxy)]*xMultiplier, ticketNums, ticketCountsLegend,
-								"dynamicfilterapp/simulation_files/output/graphs/" + toggles.RUN_NAME + "ticketCounts.png",
+								toggles.OUTPUT_PATH + toggles.RUN_NAME + "ticketCounts.png",
 								labels = ("time proxy", "Ticket counts"))
 
 		if toggles.SELECTIVITY_GRAPH:
@@ -809,7 +816,7 @@ class SimulationTest(TransactionTestCase):
 			for predNum in range(toggles.NUM_QUESTIONS):
 				selectivitiesLegend.append("Pred " + str(predNum))
 			multi_line_graph_gen([range(num_tasks)]*toggles.NUM_QUESTIONS, selectivities, selectivitiesLegend,
-								"dynamicfilterapp/simulation_files/output/graphs/" + toggles.RUN_NAME + "selectivities.png",
+								OUTPUT_PATH + toggles.RUN_NAME + "selectivities.png",
 								labels = ("Number of tasks completed in single simulation", "Predicate selectivities"), scatter=True)
 
 		# if this is the first time running a routing test
@@ -1254,9 +1261,9 @@ class SimulationTest(TransactionTestCase):
 	def moveWindowTest(self):
 		q = Question(question_ID = 10, question_text = "blah")
 		q.save()
-		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0, num_wickets = LIFETIME)
+		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0, num_wickets = toggles.LIFETIME)
 		p1.save()
-		p2 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 5, num_wickets = LIFETIME)
+		p2 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 5, num_wickets = toggles.LIFETIME)
 		p2.save()
 
 		print "after init"

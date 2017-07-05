@@ -93,12 +93,12 @@ def pending_eddy(ID):
         chosenIP = choice(incompleteIP)
 
     #system that uses ticketing and finishes an IP pair once started
-    elif (EDDY_SYS ==4):
+    elif (toggles.EDDY_SYS ==4):
         chosenIP = useLottery(incompleteIP)
 
     end = time.time()
     runTime = end - start
-    return chosenIP
+    return chosenIP, runTime
 
 def move_window():
     """
@@ -292,6 +292,7 @@ def updateCounts(workerTask, chosenIP):
     chosenIP.predicate.save(update_fields=["totalTasks"])
     chosenIP.refresh_from_db()
 
+    print "task completed for predicate ", str(chosenIP.predicate.predicate_ID), ". Num wickets: ", str(chosenIP.predicate.num_wickets), ". Num tickets: ", str(chosenIP.predicate.num_tickets)
 
     # if we're not already done, collect votes
     if not chosenIP.isDone :
@@ -363,6 +364,8 @@ def updateCounts(workerTask, chosenIP):
                     chosenIP.save(update_fields=["predicate"])
                     chosenIP.refresh_from_db()
                 IP_Pair.objects.filter(item__hasFailed=True).update(isDone=True)
+
+                print "ip pair for predicate ", str(chosenIP.predicate.predicate_ID), " finished. Num tickets: ", str(chosenIP.predicate.num_tickets)
 
             else:
                 chosenIP.status_votes -= 2

@@ -3,7 +3,7 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'SynData_Queue_Window40_2Q_100I_50Sims_SIN_Round3' #+ "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'SynData_Queue1_Window40_2Q_100I_50Sims_Round1' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 ITEM_TYPE = "Restaurant"
 
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
@@ -27,7 +27,7 @@ SINGLE_VOTE_CUTOFF = 21#int(1+math.ceil(CUT_OFF/2.0)+1-(CUT_OFF%2))    # Number 
 #   then intigrate over it from zero to (DECISION_THRESHOLD)
 #   if the probability area is less than (UNCERTAINTY_THRESHOLD) then we have consensus
 #   else we gather more votes
-# This is repeated until one of several conditions is met
+# This is repeated until one of sevreal conditions is met
 #   1 - We reach consensus (naturally)
 #   2 - The total number of gathered votes is equal to (CUT_OFF)
 #   3 - The number of either (yes)s or (no)s on their own is equal to (SINGLE_VOTE_CUTOFF)
@@ -51,7 +51,7 @@ EDDY_SYS = 1
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [1,2] # predicates that will be used when run on real data
+CHOSEN_PREDS = [3,4] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -105,9 +105,7 @@ SELECTIVITY_GRAPH = False
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
 
-switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (400, ((SIN, .1, 300, .05, .6), 0.68), (0.6, 0.87))]
-#switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .1, 400, .05, .6), 0.68), (0.6, 0.87))]
-#switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), (600, (0.8, 0.68), (0.7, 0.87)), (900, (0.8, 0.68), (0.75, 0.87))]
+switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), (600, (0.8, 0.68), (0.7, 0.87)), (900, (0.8, 0.68), (0.75, 0.87))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
