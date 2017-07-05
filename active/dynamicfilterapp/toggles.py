@@ -12,10 +12,10 @@ IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
-DEBUG_FLAG = True # useful print statements turned on
+DEBUG_FLAG = False # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-NUM_CERTAIN_VOTES = 5
+NUM_CERTAIN_VOTES = 3
 UNCERTAINTY_THRESHOLD = 0.2
 FALSE_THRESHOLD = 0.2
 DECISION_THRESHOLD = 0.7
@@ -36,7 +36,7 @@ EDDY_SYS = 1
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
-PENDING_QUEUE_SIZE = 2
+PENDING_QUEUE_SIZE = 5
 CHOSEN_PREDS = [3, 1] # predicates that will be used when run on real data
 
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
@@ -80,13 +80,19 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
+
+DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
+                   # to do" and will track the number of times this happens
+DUMMY_TASK_OPTION = 0
+# 0 gives a complete placeholder task
+
 GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-RESPONSE_SAMPLING_REPLACEMENT = True # decides if we should sample our response data with or without replacement
+RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response data with or without replacement
 
 RUN_ABSTRACT_SIM = False
 
@@ -109,18 +115,18 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 5 # how many simulations to run?
+NUM_SIM = 10 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
 SIMULATE_TIME = True # simulate time passing/concurrency
-MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
+MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
-MAX_TASKS_OUT = 7
+MAX_TASKS_OUT = 5
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
-TRACK_IP_PAIRS_DONE = True
+TRACK_IP_PAIRS_DONE = False
 
 TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
 
@@ -147,7 +153,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'NUM_CERTAIN_VOTES','UNCERTAINTY_THRESHOLD','FALSE_THRESHOLD','DECISION_THRESHOLD',
             'CUT_OFF','NUM_WORKERS','DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
-            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA','GEN_GRAPHS',
+            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS','GEN_GRAPHS',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',

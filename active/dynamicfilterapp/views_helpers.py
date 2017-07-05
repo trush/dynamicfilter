@@ -65,8 +65,12 @@ def pending_eddy(ID):
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
         allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
-        chosenIP = lotteryPendingQueue(incompleteIP)
-        chosenIP.refresh_from_db()
+        # if there are IP pairs that could be assigned to this worker
+        if incompleteIP.exists():
+            chosenIP = lotteryPendingQueue(incompleteIP)
+            chosenIP.refresh_from_db()
+        else:
+            chosenIP = None
         # print "pending eddy after lottery call"
         # print "IP " +  str(chosenIP.id) + " inqueue: " + str(chosenIP.inQueue)
         # print "IP's item " +  str(chosenIP.item.id) + " inqueue: " + str(chosenIP.item.inQueue)
@@ -76,21 +80,26 @@ def pending_eddy(ID):
 
     #random_system:
     elif (EDDY_SYS == 2):
-        startedIPs = incompleteIP.filter(isStarted=True)
-        if len(startedIPs) != 0:
-            incompleteIP = startedIPs
-        chosenIP = choice(incompleteIP)
-        chosenIP.isStarted = True
-        chosenIP.save()
+        if incompleteIP.exists():
+            startedIPs = incompleteIP.filter(isStarted=True)
+            if startedIPs.exists():
+                incompleteIP = startedIPs
+            chosenIP = choice(incompleteIP)
+            chosenIP.start()
+        else:
+            chosenIP = None
 
     #controlled_system:
     elif (EDDY_SYS == 3):
         #this config will run pred[0] first ALWAYS and then pred[1]
-        chosenPred = Predicate.objects.get(pk=1+CHOSEN_PREDS[0])
-        tempSet = incompleteIP.filter(predicate=chosenPred)
-        if len(tempSet) != 0:
-            incompleteIP = tempSet
-        chosenIP = choice(incompleteIP)
+        if incompleteIP.exists():
+            chosenPred = Predicate.objects.get(pk=1+CHOSEN_PREDS[0])
+            tempSet = incompleteIP.filter(predicate=chosenPred)
+            if tempSet.exists():
+                incompleteIP = tempSet
+            chosenIP = choice(incompleteIP)
+        else:
+            chosenIP = None
 
     end = time.time()
     runTime = end - start
@@ -160,7 +169,9 @@ def give_task(active_tasks, workerID):
         ip_pair.distribute_task()
 
     else:
-        print "IP pair was none"
+        pass
+        # for now, do nothing and generate a placeholder task
+        # TODO toggles here for what to do if optimal thing isn't available
 
     return ip_pair, eddy_time
 
@@ -294,6 +305,7 @@ def lotteryPendingQueue(ipSet):
     return chosenIP
 
 def updateCounts(workerTask, chosenIP):
+    # TODO add ability to deal w/ chosenIP being NONE/placeholder
     chosenIP.refresh_from_db()
     workerTask.refresh_from_db()
     # update stats counting tasks completed
@@ -308,6 +320,12 @@ def updateCounts(workerTask, chosenIP):
     if toggles.EDDY_SYS == 1:
         chosenIP.remove_from_queue()
         chosenIP.refresh_from_db()
+
+    # change queue length accordingly if appropriate
+    # if toggles.ADAPTIVE_QUEUE:
+    #     chosenIP.predicate.adapt_queue_length()
+    #     chosenIP.predicate.refresh_from_db()
+
 
 # def updateCounts(workerTask, chosenIP):
 #     # make sure values are up to date

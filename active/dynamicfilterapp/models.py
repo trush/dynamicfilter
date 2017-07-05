@@ -171,7 +171,24 @@ class Predicate(models.Model):
 
         return self.queue_length
 
+    def adapt_queue_length(self):
+        '''
+        depending on adaptive queue mode, changes queue length as appropriate
+        '''
+        if toggles.ADAPTIVE_QUEUE_MODE == 0:
+            for pair in toggles.QUEUE_LENGTH_ARRAY:
+                if self.num_tickets > pair[0] and self.queue_length < pair[1]:
+                    self.inc_queue_length
+                    break
 
+        if toggles.ADAPTIVE_QUEUE_MODE == 1:
+            for pair in toggles.QUEUE_LENGTH_ARRAY:
+                if self.num_tickets > pair[0] and self.queue_length < pair[1]:
+                    self.inc_queue_length
+                    break
+                elif self.num_tickets <= pair[0] and self.queue_length >= pair[1]:
+                    self.dec_queue_length()
+                    break
 
 @python_2_unicode_compatible
 class IP_Pair(models.Model):
@@ -324,11 +341,26 @@ class Task(models.Model):
     workerID = models.CharField(db_index=True, max_length=15)
 
     #used for simulating task completion having DURATION
-    startTime = models.IntegerField(default=0)
-    endTime = models.IntegerField(default=0)
+    start_time = models.IntegerField(default=0)
+    end_time = models.IntegerField(default=0)
 
     # a text field for workers to give feedback on the task
     feedback = models.CharField(max_length=500, blank=True)
 
     def __str__(self):
         return "Task from worker " + str(self.workerID) + " for IP Pair " + str(self.ip_pair)
+
+@python_2_unicode_compatible
+class DummyTask(models.Model):
+    """
+    Model representing a task that will be distributed that isn't associated w/ IP Pair
+    """
+    ip_pair = None
+    answer = None
+    workerID = models.CharField(db_index=True, max_length=15)
+
+    start_time = models.IntegerField(default=0)
+    end_time = models.IntegerField(default=0)
+
+    def __str__(self):
+        return "Placeholder task from worker " + str(self.workerID)

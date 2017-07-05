@@ -167,35 +167,54 @@ class SimulationTest(TransactionTestCase):
 		#		create a dummy task with IP_Pair = None, answer = None,
 		# 		workerID is the worker it's been assigned to
 		#		duration should be a random choice from TRUE_TIMEs concatenated with FALSE_TIMES
-		value = choice(dictionary[chosenIP])
-		if not RESPONSE_SAMPLING_REPLACEMENT:
-			#print len(dictionary[chosenIP])
-			dictionary[chosenIP].remove(value)
-		if SIMULATE_TIME:
-			if value :
-				#worker said true, take from true distribution
-				work_time = choice(TRUE_TIMES)
+		if chosenIP is None:
+			if toggles.SIMULATE_TIME:
+				# TODO
+				# this task is going to be as long as any task can be?
+				# or delay workers by a fixed amount of time?
+				work_time = choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
+				start_task = time_clock + toggles.BUFFER_TIME
+				end_task = start_task + work_time
 			else:
-				#worker said false, take from false distribution
-				work_time = choice(FALSE_TIMES)
-
-			start_task = time_clock + BUFFER_TIME
-			end_task = start_task + work_time
+				start_task = 0
+				end_task = 0
+			#########################
+			# TODO: test whether you can save a task with a "none" IP pair and "none" answer
+			t = Task(ip_pair = None, answer = None, workerID = workerID,
+				start_time = start_task, end_time = end_task)
+			t.save()
+			###########################
 		else:
-			start_task = 0
-			end_task = 0
+			value = choice(dictionary[chosenIP])
+			if not RESPONSE_SAMPLING_REPLACEMENT:
+				#print len(dictionary[chosenIP])
+				dictionary[chosenIP].remove(value)
+			if SIMULATE_TIME:
+				if value :
+					#worker said true, take from true distribution
+					work_time = choice(TRUE_TIMES)
+				else:
+					#worker said false, take from false distribution
+					work_time = choice(FALSE_TIMES)
 
-		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
-				startTime=start_task, endTime=end_task)
-		t.save()
+				start_task = time_clock + BUFFER_TIME
+				end_task = start_task + work_time
+			else:
+				start_task = 0
+				end_task = 0
 
-		if not SIMULATE_TIME:
-			updateCounts(t, chosenIP)
-			t.refresh_from_db()
-			chosenIP.refresh_from_db()
+			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+					start_time=start_task, end_time=end_task)
+			t.save()
 
-		end = time.time()
-		runTime = end - start
+			if not SIMULATE_TIME:
+				updateCounts(t, chosenIP)
+				t.refresh_from_db()
+				chosenIP.refresh_from_db()
+
+			end = time.time()
+			runTime = end - start
+
 		return t, runTime
 
 	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch):
@@ -205,7 +224,22 @@ class SimulationTest(TransactionTestCase):
 		chosenIP.refresh_from_db()
 		start = time.time()
 		if chosenIP is None:
-			t = None
+			if SIMULATE_TIME:
+				# TODO
+				# this task is going to be as long as any task can be?
+				# or delay workers by a fixed amount of time?
+				work_time = choice(TRUE_TIMES + FALSE_TIMES)
+				start_task = time_clock + BUFFER_TIME
+				end_task = start_task + work_time
+			else:
+				start_task = 0
+				end_task = 0
+			#########################
+			# TODO: test whether you can save a task with a "none" IP pair and "none" answer
+			t = DummyTask(workerID = workerID,
+				start_time = start_task, end_time = end_task)
+			t.save()
+			###########################
 		else:
 			value = syn_answer(chosenIP, switch)
 			if SIMULATE_TIME:
@@ -222,15 +256,16 @@ class SimulationTest(TransactionTestCase):
 				start_task = 0
 				end_task = 0
 
-		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
-				startTime=start_task, endTime=end_task)
-		t.save()
-		t.refresh_from_db()
-
-		if not SIMULATE_TIME:
-			updateCounts(t, chosenIP)
+			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+					start_time=start_task, end_time=end_task)
+			t.save()
 			t.refresh_from_db()
-			chosenIP.refresh_from_db()
+
+			if not SIMULATE_TIME:
+				updateCounts(t, chosenIP)
+				t.refresh_from_db()
+				chosenIP.refresh_from_db()
+
 		end = time.time()
 		runTime = end - start
 		return t, runTime
@@ -353,39 +388,43 @@ class SimulationTest(TransactionTestCase):
 			# if they can't do anything according to worker_done, call give_task with parameter placeholder = True
 		# TODO add a way to keep track of the number of "placeholder" tasks we distribute and how much cumulative worker time we spend on this
 		# TODO be able to compare cumulative work time that workers spent on the whole project and cumulative work time on placeholders -- maybe with a ratio?
-		while (workerDone and (len(triedWorkers) != a_num)):
-			# attempts += 1
-			# print "Calling pick_worker() " + str(attempts)
-			# print "Tried: " +  str(len(triedWorkers)) + " so far"
-			workerID = self.pick_worker(b_workers, triedWorkers)
-			triedWorkers.add(workerID)
-			workerDone, workerDoneTime = worker_done(workerID)
 
-			if workerDone:
+		if not DUMMY_TASKS:
+			while (workerDone and (len(triedWorkers) != a_num)):
+
+				workerID = self.pick_worker(b_workers, triedWorkers)
+				triedWorkers.add(workerID)
+				workerDone, workerDoneTime = worker_done(workerID)
+
+				if workerDone:
+					workerID = None
+					worker_no_tasks += 1
+
+			if workerID is not None:
+				# select a task to assign to this person
+				ip_pair, eddy_time = give_task(active_tasks, workerID)
+				ip_pair.refresh_from_db()
+
+				if REAL_DATA:
+					task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
+				else:
+					task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
+				task.refresh_from_db()
+			else:
+				# TODO if in mode where we give placeholder tasks, the task should never be None
+				task = None
 				workerID = None
-				worker_no_tasks += 1
-			# reset b_workers (to exclude tried workers) -- prevents the list from needlessly expanding a lot each iteration
-		if workerID is not None:
-			# select a task to assign to this person
+				eddy_time = None
+				task_time = None
+
+		else:
+			workerID = pick_worker(b_workers, [])
 			ip_pair, eddy_time = give_task(active_tasks, workerID)
 			ip_pair.refresh_from_db()
-
 			if REAL_DATA:
 				task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 			else:
-				task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
-			task.refresh_from_db()
-		else:
-			# TODO if in mode where we give placeholder tasks, the task should never be None
-			task = None
-			workerID = None
-			eddy_time = None
-			task_time = None
-
-		# print "IP " +  str(ip_pair.id) + " inqueue: " + str(ip_pair.inQueue)
-		# print "IP's item " +  str(ip_pair.item.id) + " inqueue: " + str(ip_pair.item.inQueue)
-		# print "IPs in queue: " + str(IP_Pair.objects.filter(inQueue = True).count())
-		# print "Items in queue: " + str(Item.objects.filter(inQueue = True).count())
+				task, task_time, self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
 
 		return task, workerID, eddy_time, task_time, worker_no_tasks
 
@@ -526,16 +565,24 @@ class SimulationTest(TransactionTestCase):
 								print "Total votes: " + str(ip.num_no+ip.num_yes)
 								raise Exception ("Too many votes cast for IP Pair " + str(ip.id))
 
-						print "Active tasks: " + str(len(active_tasks))
-						print "IP pairs in queue: " + str(IP_Pair.objects.filter(inQueue=True).count())
+						placeholders = 0
+						for task in active_tasks:
+							if task.ip_pair == None:
+								placeholders += 1
+
+						if len(active_tasks) == 0:
+							print "Active tasks is empty."
+						else:
+							print "Active tasks: " + str(len(active_tasks)) + ", Placeholders: " + str(placeholders)
+
+							print "IP pairs in queue: " + str(IP_Pair.objects.filter(inQueue=True).count())
 
 						for p in Predicate.objects.filter(queue_is_full=True) :
 							print "Predicate with id " +  str(p.pk) + " queue is full"
 
 						print "$"*96
 
-					if len(active_tasks) == 0:
-						print "active tasks is empty"
+
 
 				# some assertions for debugging purposes
 				# if not (Item.objects.filter(inQueue=True).count() <= PENDING_QUEUE_SIZE*len(CHOSEN_PREDS)):
@@ -586,7 +633,7 @@ class SimulationTest(TransactionTestCase):
 
 						# TODO make sure adaptive_Queue code can deal with a task having a None ip_pair
 						# TODO move the functionality listed below about changing queue length into updateCounts
-						if ADAPTIVE_QUEUE:
+						if toggles.ADAPTIVE_QUEUE:
 							pred = task.ip_pair.predicate
 							tickets = pred.num_tickets
 							qlength = pred.queue_length
@@ -1607,6 +1654,19 @@ class SimulationTest(TransactionTestCase):
 		assert(ip_0_0.num_no == ip_0_1.num_no)
 		assert(ip_0_0.value == ip_0_1.value)
 
+	def taskTest(self):
+		# construct a task that looks like the kind simulate_task would make
+		# make sure things work Properly
+
+		work_time = choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
+		t = DummyTask(workerID = 10, start_time = 0, end_time = work_time)
+		t.save()
+
+		print t.workerID
+		print t.end_time
+		if t.ip_pair == None:
+			print "IP is none"
+
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
 		"""
@@ -1806,10 +1866,5 @@ class SimulationTest(TransactionTestCase):
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
 
-	# def test_refactor(self):
-	#
-	# 	# self.moveWindowContextTest()
-	# 	# self.give_taskContextTest()
-	# 	# self.awardTicketTest()
-	# 	# self.add_to_queueTest()
-	# 	self.updateCountsTest()
+	def test_dummy(self):
+		self.taskTest()
