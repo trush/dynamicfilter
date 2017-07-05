@@ -157,7 +157,6 @@ class SimulationTest(TransactionTestCase):
 		"""
 		Simulates the vote of a worker on a ip_pair from real data
 		"""
-		chosenIP.refresh_from_db()
 		start = time.time()
 		#if chosenIP is not None:
 
@@ -179,12 +178,11 @@ class SimulationTest(TransactionTestCase):
 				start_task = 0
 				end_task = 0
 			#########################
-			# TODO: test whether you can save a task with a "none" IP pair and "none" answer
-			t = Task(ip_pair = None, answer = None, workerID = workerID,
-				start_time = start_task, end_time = end_task)
+			t = DummyTask(workerID = workerID, start_time = start_task, end_time = end_task)
 			t.save()
 			###########################
 		else:
+			chosenIP.refresh_from_db()
 			value = choice(dictionary[chosenIP])
 			if not RESPONSE_SAMPLING_REPLACEMENT:
 				#print len(dictionary[chosenIP])
@@ -212,8 +210,8 @@ class SimulationTest(TransactionTestCase):
 				t.refresh_from_db()
 				chosenIP.refresh_from_db()
 
-			end = time.time()
-			runTime = end - start
+		end = time.time()
+		runTime = end - start
 
 		return t, runTime
 
@@ -234,12 +232,11 @@ class SimulationTest(TransactionTestCase):
 			else:
 				start_task = 0
 				end_task = 0
-			#########################
-			# TODO: test whether you can save a task with a "none" IP pair and "none" answer
+
 			t = DummyTask(workerID = workerID,
 				start_time = start_task, end_time = end_task)
 			t.save()
-			###########################
+
 		else:
 			value = syn_answer(chosenIP, switch)
 			if SIMULATE_TIME:
@@ -382,10 +379,6 @@ class SimulationTest(TransactionTestCase):
 		workerDone = True
 		a_num = NUM_WORKERS - len(b_workers)
 		triedWorkers = set()
-		# attempts = 0
-		# TODO add a toggle/option here to give a (placeholder) task to whichever worker is picked
-			# pick_worker
-			# if they can't do anything according to worker_done, call give_task with parameter placeholder = True
 		# TODO add a way to keep track of the number of "placeholder" tasks we distribute and how much cumulative worker time we spend on this
 		# TODO be able to compare cumulative work time that workers spent on the whole project and cumulative work time on placeholders -- maybe with a ratio?
 
@@ -418,9 +411,9 @@ class SimulationTest(TransactionTestCase):
 				task_time = None
 
 		else:
-			workerID = pick_worker(b_workers, [])
+			workerID = self.pick_worker(b_workers, [])
 			ip_pair, eddy_time = give_task(active_tasks, workerID)
-			ip_pair.refresh_from_db()
+
 			if REAL_DATA:
 				task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 			else:
@@ -548,18 +541,16 @@ class SimulationTest(TransactionTestCase):
 			prev_time = 0
 
 			while (IP_Pair.objects.filter(isDone=False).exists() or active_tasks) :
-				# IP_Pair.objects.all().refresh_from_db()
 
 				if DEBUG_FLAG:
 					if (time_clock % 60 == 0) or (time_clock - prev_time > 1):
-						print "$"*43 + " t =  " + str(time_clock) + " " + "$"*42
+						print "$"*43 + " t = " + str(time_clock) + " " + "$"*(47-len(str(time_clock)))
 						print "$"*96
 
-						print "There are still " + str(IP_Pair.objects.filter(isDone=False).count()) +  " incomplete IP pairs"
-						print "number of tasks completed is: " + str(num_tasks)
-
+						print "Incomplete IP Pairs: " + str(IP_Pair.objects.filter(isDone=False).count()) + " | Tasks completed: " + str(num_tasks)
+						print ""
 						for ip in IP_Pair.objects.filter(inQueue=True):
-							print "IP pair with id " + str(ip.pk) + " for pred " + str(ip.predicate.id) +  " has " + str(ip.tasks_out) + " tasks out. Num yes: " + str(ip.num_yes) + " Num no: " + str(ip.num_no) + " and isDone = " + str(ip.isDone)
+							print "IP Pair " + str(ip.pk) + " |  Predicate: " + str(ip.predicate.id) +  " ||| Tasks out: " +  str(ip.tasks_out) + " | Num yes: " + str(ip.num_yes) + " | Num no: " + str(ip.num_no) + " | isDone: " + str(ip.isDone)
 
 							if ip.num_no + ip.num_yes > toggles.CUT_OFF:
 								print "Total votes: " + str(ip.num_no+ip.num_yes)
@@ -569,33 +560,26 @@ class SimulationTest(TransactionTestCase):
 						for task in active_tasks:
 							if task.ip_pair == None:
 								placeholders += 1
-
+						print ""
 						if len(active_tasks) == 0:
 							print "Active tasks is empty."
 						else:
-							print "Active tasks: " + str(len(active_tasks)) + ", Placeholders: " + str(placeholders)
+							print "Active tasks: " + str(len(active_tasks)) + " | Placeholders: " + str(placeholders)
 
 							print "IP pairs in queue: " + str(IP_Pair.objects.filter(inQueue=True).count())
-
-						for p in Predicate.objects.filter(queue_is_full=True) :
-							print "Predicate with id " +  str(p.pk) + " queue is full"
+						print ""
+						for p in Predicate.objects.filter(pk__in=[pred+1 for pred in CHOSEN_PREDS]) :
+							print "Predicate " +  str(p.pk) + " |||  Queue full: " + str(p.queue_is_full) + " | Queue length: " + str(p.queue_length) + " | Tickets: " + str(p.num_tickets)
 
 						print "$"*96
 
 
 
-				# some assertions for debugging purposes
-				# if not (Item.objects.filter(inQueue=True).count() <= PENDING_QUEUE_SIZE*len(CHOSEN_PREDS)):
-				# 	raise Exception("Too many things in the queue")
+				# throw some errors for debugging purposes
 				if not (Item.objects.filter(inQueue=True).count() == IP_Pair.objects.filter(inQueue=True).count()):
 					print "inQueue items: " + str(Item.objects.filter(inQueue=True).count())
 					print "inQueue IPs: " + str(IP_Pair.objects.filter(inQueue=True).count())
 					raise Exception("IP and item mismatch")
-
-				# inFullQueue = IP_Pair.objects.filter(predicate__queue_is_full=True, inQueue=True).count()
-				# fullQueueSpots = Predicate.objects.filter(queue_is_full=True).count()*PENDING_QUEUE_SIZE
-				# if not (inFullQueue == fullQueueSpots):
-				# 	raise Exception("Queue isn't actually full")
 
 				for p in Predicate.objects.filter(queue_is_full = True):
 					if not p.num_pending >= p.queue_length:
@@ -617,53 +601,34 @@ class SimulationTest(TransactionTestCase):
 				endTimes = []
 				# check if any tasks have reached completion, update bookkeeping
 				for task in active_tasks:
-					if (task.endTime <= time_clock):
+					if (task.end_time <= time_clock):
 						updateCounts(task, task.ip_pair)
 						task.refresh_from_db()
-						task.ip_pair.refresh_from_db()
-						task.ip_pair.item.refresh_from_db()
-						task.ip_pair.predicate.refresh_from_db()
+						if task.ip_pair is not None:
+							task.ip_pair.refresh_from_db()
+							task.ip_pair.item.refresh_from_db()
+							task.ip_pair.predicate.refresh_from_db()
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
 						num_tasks += 1
-						if not IP_Pair.objects.filter(predicate=task.ip_pair.predicate, inQueue=True).count() == task.ip_pair.predicate.num_pending:
-							print "IP objects in queue for pred " + str(task.ip_pair.predicate.id) + ": " + str(IP_Pair.objects.filter(predicate=task.ip_pair.predicate, inQueue=True).count())
-							print "Number pending for pred " + str(task.ip_pair.predicate.id) + ": " + str(task.ip_pair.predicate.num_pending)
-							raise Exception("WHEN REMOVING Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
-
-						# TODO make sure adaptive_Queue code can deal with a task having a None ip_pair
-						# TODO move the functionality listed below about changing queue length into updateCounts
-						if toggles.ADAPTIVE_QUEUE:
-							pred = task.ip_pair.predicate
-							tickets = pred.num_tickets
-							qlength = pred.queue_length
-							if ADAPTIVE_QUEUE_MODE == 0:
-								for pair in QUEUE_LENGTH_ARRAY:
-									if tickets>pair[0] and qlength<pair[1]:
-										inc_queue_length(pred)
-										pred.refresh_from_db()
-										break
-							if ADAPTIVE_QUEUE_MODE == 1:
-								for pair in QUEUE_LENGTH_ARRAY:
-									if tickets>pair[0] and qlength<pair[1]:
-										inc_queue_length(pred)
-										break
-									elif tickets<= pair[0] and qlength>=pair[1]:
-										dec_queue_length(pred)
-										pred.refresh_from_db()
-										break
+						if task.ip_pair is not None:
+							if not IP_Pair.objects.filter(predicate=task.ip_pair.predicate, inQueue=True).count() == task.ip_pair.predicate.num_pending:
+								print "IP objects in queue for pred " + str(task.ip_pair.predicate.id) + ": " + str(IP_Pair.objects.filter(predicate=task.ip_pair.predicate, inQueue=True).count())
+								print "Number pending for pred " + str(task.ip_pair.predicate.id) + ": " + str(task.ip_pair.predicate.num_pending)
+								raise Exception("WHEN REMOVING Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
 
 						if TRACK_IP_PAIRS_DONE:
 							itemsDoneArray.append(IP_Pair.objects.filter(isDone=True).count())
 
 						if DEBUG_FLAG:
-							print "Task removed - Item: " + str(task.ip_pair.item.id) + " Predicate: " + str(task.ip_pair.predicate.id) + " IP Pair: " + str(task.ip_pair.id)
-							# print "number of active tasks is: " +  str(len(active_tasks))
-							# print "number of tasks completed is: " + str(num_tasks)
+							if task.ip_pair is None:
+								print "Task removed ||| Placeholder"
+							else:
+								print "Task removed ||| Item: " + str(task.ip_pair.item.id) + " | Predicate: " + str(task.ip_pair.predicate.id) + " | IP Pair: " + str(task.ip_pair.id)
 
 
 					else:
-						endTimes.append(task.endTime)
+						endTimes.append(task.end_time)
 				# fill the active task array with new tasks as long as some IPs need eval
 				if IP_Pair.objects.filter(isDone=False).exists():
 
@@ -671,18 +636,19 @@ class SimulationTest(TransactionTestCase):
 						task, worker, eddy_t, task_t, worker_no_tasks = self.issue_task(active_tasks, b_workers, time_clock, dictionary)
 						if task is not None:
 							# TODO if we're in "placeholder task" mode, task should never be None
-							task.ip_pair.refresh_from_db()
-							task.ip_pair.predicate.refresh_from_db()
-							task.ip_pair.item.refresh_from_db()
+							if task.ip_pair is not None:
+								task.ip_pair.refresh_from_db()
+								task.ip_pair.predicate.refresh_from_db()
+								task.ip_pair.item.refresh_from_db()
 							active_tasks.append(task)
 							b_workers.append(worker)
 							eddyTimes.append(eddy_t)
 							taskTimes.append(task_t)
 							if DEBUG_FLAG:
-								print "Task added - Item: " + str(task.ip_pair.item.id) + " Predicate: " + str(task.ip_pair.predicate.id) + " IP Pair: " + str(task.ip_pair.id)
-								# print "number of active tasks is: " +  str(len(active_tasks))
-								# for p in Predicate.objects.filter(queue_is_full=True) :
-								# 	print "Queue is full for predicate " + str(p.pk)
+								if task.ip_pair is None:
+									print "Task added   ||| Placeholder"
+								else:
+									print "Task added   ||| Item: " + str(task.ip_pair.item.id) + " | Predicate: " + str(task.ip_pair.predicate.id) + " | IP Pair: " + str(task.ip_pair.id)
 
 							# ITEM ROUTING DATA COLLECTION
 							# If we should be running a routing test
@@ -690,16 +656,17 @@ class SimulationTest(TransactionTestCase):
 							# item_routing test and this is the first time we've run
 							# run_sim or 2) we're runing multiple routing tests, and
 							# so should take this data every time we run.
-							if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
-								# if this is a "new" item
-								if task.ip_pair.item.item_ID not in seenItems:
-									seenItems.add(task.ip_pair.item.item_ID)
-									# increment the count of that item's predicate
-									for i in range(len(predicates)):
-										if task.ip_pair.predicate == predicates[i]:
-											routingC[i]+=1
-										# and add this "timestep" to the running list
-										routingL[i].append(routingC[i])
+							if task.ip_pair is not None:
+								if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
+									# if this is a "new" item
+									if task.ip_pair.item.item_ID not in seenItems:
+										seenItems.add(task.ip_pair.item.item_ID)
+										# increment the count of that item's predicate
+										for i in range(len(predicates)):
+											if task.ip_pair.predicate == predicates[i]:
+												routingC[i]+=1
+											# and add this "timestep" to the running list
+											routingL[i].append(routingC[i])
 						else:
 							# we couldn't give ANYONE a task; fast-forward to next task expiry
 							no_tasks_to_give += 1
@@ -728,7 +695,7 @@ class SimulationTest(TransactionTestCase):
 							predicate = Predicate.objects.get(pk=count+1)
 							ticketNums[count].append(predicate.num_tickets)
 			if DEBUG_FLAG:
-				print "Simulaton completed. Simulated time = " + str(time_clock) + ", number of tasks: " + str(num_tasks)
+				print "Simulaton completed ||| Simulated time = " + str(time_clock) + " | number of tasks: " + str(num_tasks)
 
 		else:
 			while(ip_pair != None):
@@ -860,7 +827,8 @@ class SimulationTest(TransactionTestCase):
 
 		sim_end = time.time()
 		sim_time = sim_end - sim_start
-		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes, time_clock
+		placeholders = DummyTask.objects.all().count()
+		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes, time_clock, placeholders
 
 
 	###___HELPERS THAT WRITE OUT STATS___###
@@ -1093,7 +1061,7 @@ class SimulationTest(TransactionTestCase):
 		workerDoneTimes = []
 		for i in range(NUM_SIM):
 			print "Timing simulation " + str(i+1)
-			num_tasks, sim_time, eddy_times, task_times, worker_done_t, time_clock = self.run_sim(data)
+			num_tasks, sim_time, eddy_times, task_times, worker_done_t, time_clock, placeholders = self.run_sim(data)
 
 			simTimes.append(sim_time)
 			eddyTimes.append(np.sum(eddy_times))
@@ -1866,5 +1834,5 @@ class SimulationTest(TransactionTestCase):
 		if RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, ABSTRACT_VARIABLE, ABSTRACT_VALUES)
 
-	def test_dummy(self):
-		self.taskTest()
+	# def test_dummy(self):
+	# 	self.taskTest()

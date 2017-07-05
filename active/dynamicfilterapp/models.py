@@ -134,10 +134,6 @@ class Predicate(models.Model):
         if IP_Pair.objects.filter(inQueue=True, predicate = self).count() < self.queue_length and self.queue_is_full:
             raise Exception ("Queue for predicate " + str(self.id) + " set to full when not")
 
-    # def remove_pending(self):
-    #     self.num_pending -= 1
-    #     self.save(update_fields=["num_pending"])
-
     def remove_ticket(self):
         self.num_tickets -= 1
         self.save(update_fields=["num_tickets"])
@@ -175,20 +171,25 @@ class Predicate(models.Model):
         '''
         depending on adaptive queue mode, changes queue length as appropriate
         '''
+        self.refresh_from_db()
+        # print "adapt queue length called"
         if toggles.ADAPTIVE_QUEUE_MODE == 0:
+            # print "increase version invoked"
             for pair in toggles.QUEUE_LENGTH_ARRAY:
                 if self.num_tickets > pair[0] and self.queue_length < pair[1]:
-                    self.inc_queue_length
+                    self.inc_queue_length()
                     break
+            return self.queue_length
 
         if toggles.ADAPTIVE_QUEUE_MODE == 1:
             for pair in toggles.QUEUE_LENGTH_ARRAY:
                 if self.num_tickets > pair[0] and self.queue_length < pair[1]:
-                    self.inc_queue_length
+                    self.inc_queue_length()
                     break
                 elif self.num_tickets <= pair[0] and self.queue_length >= pair[1]:
                     self.dec_queue_length()
                     break
+            return self.queue_length
 
 @python_2_unicode_compatible
 class IP_Pair(models.Model):
@@ -236,7 +237,7 @@ class IP_Pair(models.Model):
     def add_to_queue(self):
         self.inQueue = True
         self.save(update_fields=["inQueue"])
-        if IP_Pair.objects.filter(inQueue=True, predicate=self.predicate).count() > toggles.PENDING_QUEUE_SIZE:
+        if IP_Pair.objects.filter(inQueue=True, predicate=self.predicate).count() > self.predicate.queue_length:
             raise Exception ("Too many IP pair objects in queue for predicate " + str(self.predicate.id))
         self.item.add_to_queue()
         self.predicate.award_ticket()
@@ -252,7 +253,6 @@ class IP_Pair(models.Model):
             self.inQueue = False
             self.save(update_fields=["inQueue"])
             self.item.remove_from_queue()
-            # self.predicate.remove_pending()
             self.predicate.check_queue_full()
 
     def record_vote(self, workerTask):
@@ -295,7 +295,7 @@ class IP_Pair(models.Model):
                 if toggles.DEBUG_FLAG:
                     print "*"*96
                     print "Completed IP Pair: " + str(self.id)
-                    print "Total yes: " + str(self.num_yes) + "  Total no: " + str(self.num_no)
+                    print "Total votes: " + str(self.num_yes+self.num_no) + " | Total yes: " + str(self.num_yes) + " |  Total no: " + str(self.num_no)
                     print "Total votes: " + str(self.num_yes+self.num_no)
                     print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
                     print "*"*96

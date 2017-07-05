@@ -3,16 +3,16 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'packing' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-ITEM_TYPE = "Hotel"
+RUN_NAME = 'dummyTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+ITEM_TYPE = "Restaurant"
 
-INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
+INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
+IP_PAIR_DATA_FILE = 'real_data1.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
-DEBUG_FLAG = False # useful print statements turned on
+DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
 NUM_CERTAIN_VOTES = 3
@@ -36,8 +36,8 @@ EDDY_SYS = 1
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
-PENDING_QUEUE_SIZE = 5
-CHOSEN_PREDS = [3, 1] # predicates that will be used when run on real data
+PENDING_QUEUE_SIZE = 1
+CHOSEN_PREDS = [4, 1] # predicates that will be used when run on real data
 
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
@@ -65,7 +65,7 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 10
 
-ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
@@ -81,7 +81,7 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
 
-DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
+DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tasks
                    # to do" and will track the number of times this happens
 DUMMY_TASK_OPTION = 0
 # 0 gives a complete placeholder task
@@ -115,12 +115,12 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 10 # how many simulations to run?
+NUM_SIM = 1 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
 SIMULATE_TIME = True # simulate time passing/concurrency
-MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
+MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 MAX_TASKS_OUT = 5
 
@@ -153,7 +153,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'NUM_CERTAIN_VOTES','UNCERTAINTY_THRESHOLD','FALSE_THRESHOLD','DECISION_THRESHOLD',
             'CUT_OFF','NUM_WORKERS','DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
-            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS','GEN_GRAPHS',
+            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS', 'DUMMY_TASK_OPTION','GEN_GRAPHS',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',

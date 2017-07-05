@@ -71,11 +71,6 @@ def pending_eddy(ID):
             chosenIP.refresh_from_db()
         else:
             chosenIP = None
-        # print "pending eddy after lottery call"
-        # print "IP " +  str(chosenIP.id) + " inqueue: " + str(chosenIP.inQueue)
-        # print "IP's item " +  str(chosenIP.item.id) + " inqueue: " + str(chosenIP.item.inQueue)
-        # print "IPs in queue: " + str(IP_Pair.objects.filter(inQueue = True).count())
-        # print "Items in queue: " + str(Item.objects.filter(inQueue = True).count())
 
 
     #random_system:
@@ -103,31 +98,7 @@ def pending_eddy(ID):
 
     end = time.time()
     runTime = end - start
-    # print "end of pending eddy"
-    # print "IP " +  str(chosenIP.id) + " inqueue: " + str(chosenIP.inQueue)
-    # print "IP's item " +  str(chosenIP.item.id) + " inqueue: " + str(chosenIP.item.inQueue)
-    # print "IPs in queue: " + str(IP_Pair.objects.filter(inQueue = True).count())
-    # print "Items in queue: " + str(Item.objects.filter(inQueue = True).count())
-
     return chosenIP, runTime
-
-# def move_window():
-#     """
-#     Checks to see if ticket has reached lifetime
-#     """
-#     if SLIDING_WINDOW:
-#         # get the chosen predicates
-#         pred = Predicate.objects.filter(pk__in=[p+1 for p in CHOSEN_PREDS])
-#
-#         # handle window properties
-#         for p in pred:
-#             if p.num_wickets == LIFETIME:
-#                 p.num_wickets = 0
-#                 if p.num_tickets > 1:
-#                     p.num_tickets = F('num_tickets') - 1
-#             p.save()
-#     else:
-#         pass
 
 def move_window():
     if SLIDING_WINDOW:
@@ -135,19 +106,6 @@ def move_window():
 
         for p in pred:
             p.move_window()
-
-## OLD VERSION
-# def give_task(active_tasks, workerID):
-#     ip_pair, eddy_time = pending_eddy(workerID)
-#     if ip_pair is not None:
-#         # print "IP pair selected"
-#         ip_pair.tasks_out += 1
-#         ip_pair.save(update_fields=["tasks_out"])
-#         ip_pair.refresh_from_db()
-#
-#     else:
-#         print "IP pair was none"
-#     return ip_pair, eddy_time
 
 def give_task(active_tasks, workerID):
     # TODO add parameter "placeholder" -- that says whether we can give a real task
@@ -158,11 +116,6 @@ def give_task(active_tasks, workerID):
         #                   We will still need to be able to give out a null task if we couldn't pick anything
         #                   for random
     ip_pair, eddy_time = pending_eddy(workerID)
-    # print "within give_task"
-    # print "IP " +  str(ip_pair.id) + " inqueue: " + str(ip_pair.inQueue)
-    # print "IP's item " +  str(ip_pair.item.id) + " inqueue: " + str(ip_pair.item.inQueue)
-    # print "IPs in queue: " + str(IP_Pair.objects.filter(inQueue = True).count())
-    # print "Items in queue: " + str(Item.objects.filter(inQueue = True).count())
 
     if ip_pair is not None:
         # print "IP pair selected"
@@ -175,33 +128,6 @@ def give_task(active_tasks, workerID):
 
     return ip_pair, eddy_time
 
-def inc_queue_length(pred):
-    """
-    increase the queue_length value of the given predicate by one
-    also takes care of fullness
-    """
-    pred.queue_length = F('queue_length') + 1
-    pred.queue_is_full = False
-    pred.save()
-    # TODO move functionality into models
-    return pred.queue_length
-
-def dec_queue_length(pred):
-    """
-    decreases the queue_length value of the given predicate by one
-    raises an error if the pred was full when called
-    """
-    if (pred.queue_is_full):
-        raise ValueError("Tried to decrement the queue_length of a predicate with a full queue")
-    old = pred.queue_length
-    if old == 1:
-        raise ValueError("Tried to decrement queue_length to zero")
-    pred.queue_length = old-1
-    if pred.num_pending >= (old - 1):
-        pred.queue_is_full = True
-    pred.save()
-    # TODO move functionality into models
-    return old-1
 
 #____________LOTTERY SYSTEMS____________#
 def chooseItem(ipSet):
@@ -305,26 +231,33 @@ def lotteryPendingQueue(ipSet):
     return chosenIP
 
 def updateCounts(workerTask, chosenIP):
-    # TODO add ability to deal w/ chosenIP being NONE/placeholder
-    chosenIP.refresh_from_db()
-    workerTask.refresh_from_db()
-    # update stats counting tasks completed
-    chosenIP.collect_task()
-    chosenIP.refresh_from_db()
-
-    # update stats counting numbers of votes (only if IP not completed)
-    chosenIP.record_vote(workerTask)
-    chosenIP.refresh_from_db()
-
-    # if we're using queueing, remove the IP pair from the queue if appropriate
-    if toggles.EDDY_SYS == 1:
-        chosenIP.remove_from_queue()
+    if chosenIP is not None:
+        chosenIP.refresh_from_db()
+        workerTask.refresh_from_db()
+        # update stats counting tasks completed
+        chosenIP.collect_task()
         chosenIP.refresh_from_db()
 
-    # change queue length accordingly if appropriate
-    # if toggles.ADAPTIVE_QUEUE:
-    #     chosenIP.predicate.adapt_queue_length()
-    #     chosenIP.predicate.refresh_from_db()
+        # update stats counting numbers of votes (only if IP not completed)
+        chosenIP.record_vote(workerTask)
+        chosenIP.refresh_from_db()
+
+        # if we're using queueing, remove the IP pair from the queue if appropriate
+        if toggles.EDDY_SYS == 1:
+            chosenIP.remove_from_queue()
+            chosenIP.refresh_from_db()
+
+        chosenIP.refresh_from_db()
+        chosenIP.predicate.refresh_from_db()
+        # change queue length accordingly if appropriate
+        if toggles.ADAPTIVE_QUEUE:
+            chosenIP.predicate.adapt_queue_length()
+            chosenIP.predicate.refresh_from_db()
+
+        chosenIP.predicate.check_queue_full()
+        chosenIP.predicate.refresh_from_db()
+    else:
+        pass
 
 
 # def updateCounts(workerTask, chosenIP):
