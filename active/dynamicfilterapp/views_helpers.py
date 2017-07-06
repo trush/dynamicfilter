@@ -6,7 +6,7 @@ from math import exp
 from django.db.models import Q
 from django.db.models import F
 
-from toggles import *
+import toggles
 
 import csv
 import sys
@@ -26,7 +26,7 @@ def worker_done(ID):
     incompleteIP = IP_Pair.objects.filter(isDone=False).exclude(id__in=completedIP)
 
     # if queue_pending_system:
-    if (EDDY_SYS == 1):
+    if (toggles.EDDY_SYS == 1):
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
         allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
@@ -59,11 +59,11 @@ def pending_eddy(ID):
     incompleteIP = unfinishedList.exclude(id__in=completedIP)
 
     #queue_pending_system:
-    if (EDDY_SYS == 1):
+    if (toggles.EDDY_SYS == 1):
         # filter out the ips that are not in the queue of full predicates
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-        allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
+        allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
         # if there are IP pairs that could be assigned to this worker
         if incompleteIP.exists():
@@ -84,8 +84,9 @@ def pending_eddy(ID):
         else:
             chosenIP = None
 
+
     #controlled_system:
-    elif (EDDY_SYS == 3):
+    elif (toggles.EDDY_SYS == 3):
         #this config will run pred[0] first ALWAYS and then pred[1]
         if incompleteIP.exists():
             chosenPred = Predicate.objects.get(pk=1+CHOSEN_PREDS[0])
@@ -96,16 +97,26 @@ def pending_eddy(ID):
         else:
             chosenIP = None
 
+
+    #system that uses ticketing and finishes an IP pair once started
+elif (toggles.EDDY_SYS == 4):
+        chosenIP = useLottery(incompleteIP)
+
     end = time.time()
     runTime = end - start
-    return chosenIP, runTime
+    return chosenIP
 
 def move_window():
-    if SLIDING_WINDOW:
-        pred = Predicate.objects.filter(pk__in=[p+1 for p in CHOSEN_PREDS])
 
+    """
+    Checks to see if ticket has reached lifetime
+    """
+    if toggles.SLIDING_WINDOW:
+        # get the chosen predicates
+        pred = Predicate.objects.filter(pk__in=[p+1 for p in toggles.CHOSEN_PREDS])
         for p in pred:
             p.move_window()
+
 
 def give_task(active_tasks, workerID):
     # TODO add parameter "placeholder" -- that says whether we can give a real task
@@ -134,13 +145,13 @@ def chooseItem(ipSet):
     """
     Chooses random item for right now
     """
-    if (ITEM_SYS == 1):
+    if (toggles.ITEM_SYS == 1):
     #if item_started_system:
         tempSet = ipSet.filter(item__isStarted=True)
         if len(tempSet) != 0:
             ipSet = tempSet
 
-    elif (ITEM_SYS == 2):
+    elif (toggles.ITEM_SYS == 2):
     #if item_almost_false_system:
         tempSet = ipSet.filter(item__almostFalse=True)
         if len(tempSet) != 0:
@@ -205,28 +216,33 @@ def lotteryPendingQueue(ipSet):
     # if this ip is not in the queue
     if not chosenIP.is_in_queue:
         chosenIP.add_to_queue()
-    #     chosenIP.predicate.num_tickets += 1
-    #     chosenIP.predicate.num_pending += 1
-    #     chosenIP.inQueue = True
-    #     chosenIP.item.inQueue = True
-    #     chosenIP.item.save(update_fields=["inQueue"])
-    #     chosenIP.predicate.save(update_fields=["num_tickets", "num_pending"])
-    #     chosenIP.save(update_fields=['inQueue'])
-    #
-    # chosenIP.predicate.refresh_from_db()
-    # chosenIP.refresh_from_db()
-    # # if the queue is full, update the predicate
-    # if chosenIP.predicate.num_pending >= chosenIP.predicate.queue_length:
-    #     chosenIP.predicate.queue_is_full = True
-    #
-    # chosenIP.predicate.save(update_fields=["queue_is_full"])
-    # chosenIP.predicate.refresh_from_db()
     chosenIP.refresh_from_db()
-    # print "at end lottery pending"
-    # print "IP " +  str(chosenIP.id) + " inqueue: " + str(chosenIP.inQueue)
-    # print "IP's item " +  str(chosenIP.item.id) + " inqueue: " + str(chosenIP.item.inQueue)
-    # print "IPs in queue: " + str(IP_Pair.objects.filter(inQueue = True).count())
-    # print "Items in queue: " + str(Item.objects.filter(inQueue = True).count())
+
+    return chosenIP
+
+def useLottery(ipSet):
+    """
+    Runs lottery based on pending queues
+    """
+    # make list of possible predicates and remove duplicates
+    predicates = [ip.predicate for ip in ipSet]
+    seen = set()
+    seen_add = seen.add
+    predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
+
+
+    #choose the predicate
+    weightList = np.array([pred.num_tickets for pred in predicates])
+    totalTickets = np.sum(weightList)
+    probList = np.true_divide(weightList, totalTickets)
+    chosenPred = np.random.choice(predicates, p=probList)
+
+    #choose the item and then ip
+    chosenPredSet = ipSet.filter(predicate=chosenPred)
+    item = chooseItem(chosenPredSet)
+    chosenIP = ipSet.get(predicate=chosenPred, item=item)
+
+    chosenIP.predicate.award_ticket()
 
     return chosenIP
 
@@ -247,6 +263,7 @@ def updateCounts(workerTask, chosenIP):
             chosenIP.remove_from_queue()
             chosenIP.refresh_from_db()
 
+
         chosenIP.refresh_from_db()
         chosenIP.predicate.refresh_from_db()
         # change queue length accordingly if appropriate
@@ -259,122 +276,15 @@ def updateCounts(workerTask, chosenIP):
     else:
         pass
 
-
-# def updateCounts(workerTask, chosenIP):
-#     # make sure values are up to date
-#     workerTask.refresh_from_db()
-#     chosenIP.refresh_from_db()
-#
-#     # a task has been completed, change relevant task counts
-#     chosenIP.tasks_out -= 1
-#     chosenIP.predicate.totalTasks += 1
-#
-#     chosenIP.save(update_fields=["tasks_out", "predicate"])
-#     chosenIP.predicate.save(update_fields=["totalTasks"])
-#     chosenIP.refresh_from_db()
-#
-#
-#     # if we're not already done, collect votes
-#     if not chosenIP.isDone :
-#         chosenIP.status_votes += 1
-#         chosenIP.predicate.num_wickets = F('num_wickets') + 1
-#         chosenIP.save(update_fields=["status_votes"])
-#         chosenIP.refresh_from_db()
-#         chosenIP.predicate.save(update_fields=["num_wickets"])
-#         chosenIP.refresh_from_db()
-#
-#         # update according to worker's answer
-#         if workerTask.answer == True:
-#             chosenIP.value += 1
-#             chosenIP.num_yes += 1
-#             chosenIP.save(update_fields=['num_yes', "value"])
-#             chosenIP.refresh_from_db()
-#
-#         elif workerTask.answer == False:
-#             chosenIP.value -= 1
-#             chosenIP.num_no +=1
-#             chosenIP.predicate.totalNo += 1
-#             chosenIP.save(update_fields=["num_no", "value"])
-#             chosenIP.predicate.save(update_fields=['totalNo'])
-#             chosenIP.refresh_from_db()
-#             chosenIP.predicate.refresh_from_db()
-#
-#         # save and record changes
-#         chosenIP.predicate.update_selectivity()
-#         chosenIP.predicate.update_cost()
-#
-#         # if we've arrived at the right number of votes collected, evaluate consensus
-#         print "IP pair " + str(chosenIP.id) + " status votes: " + str(chosenIP.status_votes)
-#         if chosenIP.status_votes == NUM_CERTAIN_VOTES:
-#             # calculate the probability of this vote scheme happening
-#             if chosenIP.value > 0:
-#                 uncertaintyLevel = btdtr(chosenIP.num_yes+1, chosenIP.num_no+1, DECISION_THRESHOLD)
-#             else:
-#                 uncertaintyLevel = btdtr(chosenIP.num_no+1, chosenIP.num_yes+1, DECISION_THRESHOLD)
-#
-#             # we are certain enough about the answer or at cut off point
-#             print "For IP Pair " + str(chosenIP.id) + "sum of num no and num yes = " + str(chosenIP.num_yes+chosenIP.num_no)
-#             if (uncertaintyLevel < UNCERTAINTY_THRESHOLD)|(chosenIP.num_yes+chosenIP.num_no >= CUT_OFF):
-#
-#                 #____FOR OUTPUT_SELECTIVITES()____#
-#                 #if not IP_Pair.objects.filter(isDone=True).filter(item=chosenIP.item):
-#                 #    chosenPred.num_ip_complete += 1
-#
-#                 # we're done with the IP pair
-#                 chosenIP.isDone = True
-#                 chosenIP.save(update_fields=["isDone"])
-#                 chosenIP.refresh_from_db()
-#
-#                 if DEBUG_FLAG:
-#                     print "*"*40
-#                     print "Completed IP Pair: " + str(chosenIP.id)
-#                     yes = chosenIP.num_yes
-#                     no = chosenIP.num_no
-#                     print "Total yes: " + str(yes) + "  Total no: " + str(no)
-#                     print "Total votes: " + str(yes+no)
-#                     print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
-#                     print "*"*40
-#
-#                 # punish the predicate if this IP pair returned True
-#                 if not chosenIP.is_false() and chosenIP.predicate.num_tickets > 1:
-#                     chosenIP.predicate.num_tickets -= 1
-#                     chosenIP.predicate.save(update_fields=["num_tickets"])
-#                     chosenIP.save(update_fields=["predicate"])
-#                     chosenIP.refresh_from_db()
-#             else:
-#                 chosenIP.status_votes -= 2
-#                 chosenIP.save(update_fields=["status_votes"])
-#                 chosenIP.refresh_from_db()
-#
-#     # if the IP pair is now done
-#     chosenIP.refresh_from_db()
-#     chosenIP.predicate.refresh_from_db()
-#     chosenIP.item.refresh_from_db()
-#     if chosenIP.isDone :
-#         # if it's got no tasks left active, remove from the queue
-#         if chosenIP.tasks_out < 1 and EDDY_SYS == 1:
-#             chosenIP.inQueue = False
-#             chosenIP.item.inQueue = False
-#             chosenIP.predicate.queue_is_full = False
-#             chosenIP.predicate.num_pending -= 1
-#
-#             # save and refresh changes
-#             chosenIP.save(update_fields=["inQueue", "item", "predicate"])
-#             chosenIP.item.save(update_fields=["inQueue"])
-#             chosenIP.predicate.save(update_fields=["queue_is_full", "num_pending"])
-#             chosenIP.refresh_from_db()
-#             chosenIP.predicate.refresh_from_db()
-#             chosenIP.predicate.refresh_from_db()
-
 #____________IMPORT/EXPORT CSV FILE____________#
 def output_selectivities(run_name):
     """
     Writes out the sample selectivites from a run
     """
-    f = open(OUTPUT_PATH + run_name + '_sample_selectivites.csv', 'a')
-    for p in CHOSEN_PREDS:
+    f = open(toggles.OUTPUT_PATH + run_name + '_sample_selectivites.csv', 'a')
+    for p in toggles.CHOSEN_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
-        f.write(str(pred.selectivity) + ", " + str(pred.totalTasks) + ", " + str(pred.num_ip_complete) + "; ")
+        f.write(str(pred.calculatedSelectivity) + ", " + str(pred.totalTasks) + ", " + str(pred.num_ip_complete) + "; ")
     f.write('\n')
     f.close()
 
@@ -382,9 +292,9 @@ def output_cost(run_name):
     """
     Writes out the cost of each ip_pair, the average cost for the predicate, and the selectivity for the predicate
     """
-    f = open(OUTPUT_PATH + run_name + '_sample_cost.csv', 'a')
+    f = open(toggles.OUTPUT_PATH + run_name + '_sample_cost.csv', 'a')
 
-    for p in CHOSEN_PREDS:
+    for p in toggles.CHOSEN_PREDS:
         pred = Predicate.objects.all().get(pk=p+1)
         f.write(pred.question.question_text + '\n')
         avg_cost = 0.0;
@@ -400,6 +310,6 @@ def output_cost(run_name):
         if num_finished != 0:
             avg_cost = avg_cost/num_finished
 
-        f.write('\n' + 'avg cost: ' + str(avg_cost) + ', selectivity: ' + str(pred.selectivity) + '\n \n')
+        f.write('\n' + 'avg cost: ' + str(avg_cost) + ', calculated selectivity: ' + str(pred.calculatedSelectivity) + '\n \n')
     f.write('\n')
     f.close()
