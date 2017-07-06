@@ -16,6 +16,7 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
+
 UNCERTAINTY_THRESHOLD = 0.1    # maximum acceptable proability area
 FALSE_THRESHOLD = 0.05           # Used for ALMOST_FALSE TODO better docs
 DECISION_THRESHOLD = 0.5        # Upper bound of integration
@@ -28,7 +29,7 @@ SINGLE_VOTE_CUTOFF = int(1+math.ceil(CUT_OFF/2.0))    # Number of votes for a si
 #   then intigrate over it from zero to (DECISION_THRESHOLD)
 #   if the probability area is less than (UNCERTAINTY_THRESHOLD) then we have consensus
 #   else we gather more votes
-# This is repeated until one of several conditions is met
+# This is repeated until one of sevreal conditions is met
 #   1 - We reach consensus (naturally)
 #   2 - The total number of gathered votes is equal to (CUT_OFF)
 #   3 - The number of either (yes)s or (no)s on their own is equal to (SINGLE_VOTE_CUTOFF)
@@ -52,7 +53,7 @@ EDDY_SYS = 1
 
 PENDING_QUEUE_SIZE = 1
 
-CHOSEN_PREDS = [1,2] # predicates that will be used when run on real data
+CHOSEN_PREDS = [3,4] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -92,7 +93,7 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 ###################### CONFIGURING TESTING ##################################
 #############################################################################
 
-REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
+REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
 
 
 DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
@@ -112,9 +113,7 @@ SELECTIVITY_GRAPH = False
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
 
-switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (400, ((SIN, .1, 300, .05, .6), 0.68), (0.6, 0.87))]
-#switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .1, 400, .05, .6), 0.68), (0.6, 0.87))]
-#switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), (600, (0.8, 0.68), (0.7, 0.87)), (900, (0.8, 0.68), (0.75, 0.87))]
+switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), (600, (0.8, 0.68), (0.7, 0.87)), (900, (0.8, 0.68), (0.75, 0.87))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -160,18 +159,18 @@ TRACK_IP_PAIRS_DONE = True
 TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-TEST_ACCURACY = True
-ACCURACY_COUNT = True
+TEST_ACCURACY = False
+ACCURACY_COUNT = False
 
 OUTPUT_SELECTIVITIES = False
 
-RUN_CONSENSUS_COUNT = True # keeps track of the number of tasks needed before consensus for each IP
+RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
 
-CONSENSUS_LOCATION_STATS = True
+CONSENSUS_LOCATION_STATS = False
 
-VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
+VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
-IDEAL_GRID = True #draws the vote grid rules for our consensus metric
+IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
