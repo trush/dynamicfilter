@@ -3,10 +3,9 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'aaa_test_placeholder' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'test' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
-
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
@@ -96,12 +95,12 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
 
 
-DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
+DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tasks
                    # to do" and will track the number of times this happens
 DUMMY_TASK_OPTION = 0
 # 0 gives a complete placeholder task
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
@@ -117,7 +116,7 @@ switch_list = [(0, (0.9, 0.75), (0.5, 0.75))]
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-RESPONSE_SAMPLING_REPLACEMENT = True # decides if we should sample our response data with or without replacement
+RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response data with or without replacement
 
 RUN_ABSTRACT_SIM = False
 
@@ -145,7 +144,7 @@ NUM_SIM = 2 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = True # simulate time passing/concurrency
+SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
@@ -153,9 +152,9 @@ MAX_TASKS_OUT = MAX_TASKS
 
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
-TRACK_IP_PAIRS_DONE = True
+TRACK_IP_PAIRS_DONE = False
 
-TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
+TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
@@ -174,7 +173,7 @@ IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
+PACKING=False # Enable for "Packing" of outputs into a folder and generation of config.ini
 
 if GEN_GRAPHS:
     print ''

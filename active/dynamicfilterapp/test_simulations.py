@@ -791,16 +791,6 @@ class SimulationTest(TransactionTestCase):
 				move_window()
 				time_clock += 1
 
-				if toggles.COUNT_TICKETS:
-					if toggles.REAL_DATA:
-						for predNum in range(len(toggles.CHOSEN_PREDS)):
-							predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
-							self.ticketNums[predNum].append(predicate.num_tickets)
-					else:
-						for count in range(NUM_QUESTIONS):
-							predicate = Predicate.objects.get(pk=count+1)
-							self.ticketNums[count].append(predicate.num_tickets)
-
 				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 				#so we need index 0 of the tuple to get the time at which the switch should occur
 				if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] >= time_clock:
@@ -839,8 +829,6 @@ class SimulationTest(TransactionTestCase):
 					else:
 						ip_pair, eddy_time = pending_eddy(workerID)
 						self.pending_eddy_time += eddy_time
-
-
 
 					# If we should be running a routing test
 					# this is true in two cases: 1) we hope to run a single
