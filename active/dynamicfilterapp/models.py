@@ -100,7 +100,7 @@ class Predicate(models.Model):
 	def __str__(self):
 		return "Predicate branch with question: " + self.question.question_text
 
-	def updateSelectivity(self):
+	def update_selectivity(self):
 		self.calculatedSelectivity = self.totalNo/self.totalTasks
 		return self.calculatedSelectivity
 
@@ -117,7 +117,7 @@ class Predicate(models.Model):
 		self.cost = self.avg_tasks_per_pair * self.avg_completion_time
 		return self.cost
 	
-	def updateRank(self):
+	def update_rank(self):
 		if REAL_DATA:
 			self.rank = (self.calculatedSelectivity - 1)/self.cost
 		else:
@@ -314,7 +314,7 @@ class IP_Pair(models.Model):
 
 			self.predicate.update_selectivity()
 			self.predicate.update_cost()
-			self.predicate.updateRank
+			self.predicate.update_rank()
 			# TODO @ Mahlet add your update rank and stuff here!
 
 			self.set_done_if_done()

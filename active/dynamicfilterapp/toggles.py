@@ -3,7 +3,6 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-
 RUN_NAME = 'SynDataNEW' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
@@ -20,19 +19,20 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 DEBUG_FLAG = False # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-UNCERTAINTY_THRESHOLD = 0.05     # maximum acceptable proability area
+
+UNCERTAINTY_THRESHOLD = 0.1    # maximum acceptable proability area
 FALSE_THRESHOLD = 0.05           # Used for ALMOST_FALSE TODO better docs
-DECISION_THRESHOLD = 0.9        # Upper bound of integration
+DECISION_THRESHOLD = 0.5        # Upper bound of integration
 NUM_CERTAIN_VOTES = 5           # number of votes to gather no matter the results
 CUT_OFF = 21                    # Maximum number of votes to ask for before using Majority Vote as backup metric
-SINGLE_VOTE_CUTOFF = 21#int(1+math.ceil(CUT_OFF/2.0)+1-(CUT_OFF%2))    # Number of votes for a single result (Y/N) before calling that the winner
+SINGLE_VOTE_CUTOFF = int(1+math.ceil(CUT_OFF/2.0))    # Number of votes for a single result (Y/N) before calling that the winner
 # Our consensus metric is Complicated. For each IP pair chosen, we do the following
 # We gather (NUM_CERTAIN_VOTES) votes on the chosen IP pair
 # To take "consensus" we generate a beta distribution from the number of (y/n) votes
 #   then intigrate over it from zero to (DECISION_THRESHOLD)
 #   if the probability area is less than (UNCERTAINTY_THRESHOLD) then we have consensus
 #   else we gather more votes
-# This is repeated until one of several conditions is met
+# This is repeated until one of sevreal conditions is met
 #   1 - We reach consensus (naturally)
 #   2 - The total number of gathered votes is equal to (CUT_OFF)
 #   3 - The number of either (yes)s or (no)s on their own is equal to (SINGLE_VOTE_CUTOFF)
@@ -84,7 +84,7 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 20
 
-ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
@@ -105,7 +105,7 @@ DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tas
 DUMMY_TASK_OPTION = 0
 # 0 gives a complete placeholder task
 
-GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
@@ -123,7 +123,7 @@ switch_list = [(0, (0.8, 0.6), (0.5, 0.6)), (500, (0.5, 0.6), (0.8, 0.6)), (1500
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response data with or without replacement
+RESPONSE_SAMPLING_REPLACEMENT = True # decides if we should sample our response data with or without replacement
 
 RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "EDDY_SYS"
@@ -153,7 +153,7 @@ NUM_SIM = 2 # how many simulations to run?
 TIME_SIMS = False # track the computer runtime of simulations
 
 SIMULATE_TIME = False # simulate time passing/concurrency
-MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
+MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 MAX_TASKS_OUT = 5
@@ -162,21 +162,21 @@ RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
+TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-TEST_ACCURACY = True
-ACCURACY_COUNT = True
+TEST_ACCURACY = False
+ACCURACY_COUNT = False
 
 OUTPUT_SELECTIVITIES = False
 
-RUN_CONSENSUS_COUNT = True # keeps track of the number of tasks needed before consensus for each IP
+RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
 
-CONSENSUS_LOCATION_STATS = True
+CONSENSUS_LOCATION_STATS = False
 
-VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
+VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
-IDEAL_GRID = True #draws the vote grid rules for our consensus metric
+IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 
 TEST_ACCURACY = False
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
@@ -188,6 +188,11 @@ PRED_RANK_COUNT = False
 
 PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
 
+if GEN_GRAPHS:
+    print ''
+    reply = raw_input("GEN_GRAPHS is turned on. Do you actually want graphs? Enter y for yes, n for no.  ")
+    if reply == "n":
+        raise Exception ("Set GEN_GRAPHS to False and try again!")
 
 # List of toggles for debug printing and Config.ini generation
             ##### PLEASE UPDATE AS NEW TOGGLES ADDED #####
@@ -202,6 +207,6 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
             'MAX_TASKS','BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
-            'TRACK_NO_TASKS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
+            'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
             'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST'
 ]

@@ -316,33 +316,33 @@ def useLottery(ipSet):
 	return chosenIP
 
 def updateCounts(workerTask, chosenIP):
-	if chosenIP is not None:
-		chosenIP.refresh_from_db()
-		workerTask.refresh_from_db()
-		# update stats counting tasks completed
-		chosenIP.collect_task()
-		chosenIP.refresh_from_db()
+    if chosenIP is not None:
+        chosenIP.refresh_from_db()
+        workerTask.refresh_from_db()
+        # update stats counting tasks completed
+        chosenIP.collect_task()
+        chosenIP.refresh_from_db()
 
-		# update stats counting numbers of votes (only if IP not completed)
-		chosenIP.record_vote(workerTask)
-		chosenIP.refresh_from_db()
+        # update stats counting numbers of votes (only if IP not completed)
+        chosenIP.record_vote(workerTask)
+        chosenIP.refresh_from_db()
 
-		# if we're using queueing, remove the IP pair from the queue if appropriate
-		if toggles.EDDY_SYS == 1:
-			chosenIP.remove_from_queue()
-			chosenIP.refresh_from_db()
+        # if we're using queueing, remove the IP pair from the queue if appropriate
+        if toggles.EDDY_SYS == 1:
+            chosenIP.remove_from_queue()
+            chosenIP.refresh_from_db()
 
+        chosenIP.refresh_from_db()
+        chosenIP.predicate.refresh_from_db()
+        # change queue length accordingly if appropriate
+        if toggles.ADAPTIVE_QUEUE:
+            chosenIP.predicate.adapt_queue_length()
+            chosenIP.predicate.refresh_from_db()
 
-		chosenIP.refresh_from_db()
-		chosenIP.predicate.refresh_from_db()
-		# change queue length accordingly if appropriate
-		if toggles.ADAPTIVE_QUEUE:
-			chosenIP.predicate.adapt_queue_length()
-			chosenIP.predicate.refresh_from_db()
-		chosenIP.predicate.check_queue_full()
-		chosenIP.predicate.refresh_from_db()
-	else:
-		pass
+        chosenIP.predicate.check_queue_full()
+        chosenIP.predicate.refresh_from_db()
+    else:
+        pass
 
 #____________IMPORT/EXPORT CSV FILE____________#
 def output_selectivities(run_name):
