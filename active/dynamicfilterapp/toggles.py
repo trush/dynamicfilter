@@ -3,7 +3,7 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'aa_functionalityTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'test' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Restaurant"
 
@@ -77,10 +77,10 @@ ITEM_SYS = 0
 # 1 - item-started system
 # 2 - item-almost-false system
 
-SLIDING_WINDOW = True
+SLIDING_WINDOW = False
 LIFETIME = 40
 
-ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
@@ -96,12 +96,12 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
 
 
-DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
+DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tasks
                    # to do" and will track the number of times this happens
 DUMMY_TASK_OPTION = 0
 # 0 gives a complete placeholder task
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
@@ -118,7 +118,7 @@ switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-RESPONSE_SAMPLING_REPLACEMENT = True # decides if we should sample our response data with or without replacement
+RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response data with or without replacement
 
 RUN_ABSTRACT_SIM = False
 
@@ -126,7 +126,7 @@ ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [.1, .2, .3]
 
 #produces ticket count graph for 1 simulation
-COUNT_TICKETS = True
+COUNT_TICKETS = False
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 100
@@ -134,7 +134,7 @@ COST_SAMPLES = 100
 RUN_SINGLE_PAIR = False
 SINGLE_PAIR_RUNS = 50
 
-RUN_ITEM_ROUTING = True # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
+RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
 RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
@@ -146,7 +146,7 @@ NUM_SIM = 2 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = True # simulate time passing/concurrency
+SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
@@ -154,9 +154,9 @@ MAX_TASKS_OUT = 5
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
-TRACK_IP_PAIRS_DONE = True
+TRACK_IP_PAIRS_DONE = False
 
-TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
+TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
@@ -175,7 +175,7 @@ IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
+PACKING=False # Enable for "Packing" of outputs into a folder and generation of config.ini
 
 if GEN_GRAPHS:
     print ''

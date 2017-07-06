@@ -321,7 +321,7 @@ class SimulationTest(TransactionTestCase):
 
 		end = time.time()
 		runTime = end - start
-		sim_task_time += runTime
+		self.sim_task_time += runTime
 		return t
 
 	def pick_worker(self, busyWorkers, triedWorkers):
@@ -787,16 +787,6 @@ class SimulationTest(TransactionTestCase):
 				move_window()
 				time_clock += 1
 
-				if toggles.COUNT_TICKETS:
-					if toggles.REAL_DATA:
-						for predNum in range(len(toggles.CHOSEN_PREDS)):
-							predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
-							self.ticketNums[predNum].append(predicate.num_tickets)
-					else:
-						for count in range(NUM_QUESTIONS):
-							predicate = Predicate.objects.get(pk=count+1)
-							self.ticketNums[count].append(predicate.num_tickets)
-
 				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 				#so we need index 0 of the tuple to get the time at which the switch should occur
 				if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] >= time_clock:
@@ -836,8 +826,6 @@ class SimulationTest(TransactionTestCase):
 					else:
 						ip_pair, eddy_time = pending_eddy(workerID)
 
-					eddyTimes.append(eddy_time)
-
 					# If we should be running a routing test
 					# this is true in two cases: 1) we hope to run a single
 					# item_routing test and this is the first time we've run
@@ -858,7 +846,7 @@ class SimulationTest(TransactionTestCase):
 					if toggles.REAL_DATA :
 						task = self.simulate_task(ip_pair, workerID, 0, dictionary)
 					else:
-						task = self.syn_simulate_task(ip_pair, workerID, 0, switch, num_tasks)
+						task = self.syn_simulate_task(ip_pair, workerID, 0, switch, self.num_tasks)
 
 					move_window()
 					self.num_tasks += 1
@@ -882,7 +870,7 @@ class SimulationTest(TransactionTestCase):
 
 					#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 					#so we need index 0 of the tuple to get the time at which the switch should occur
-					if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] == num_tasks:
+					if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] == self.num_tasks:
 						switch += 1
 
 		if toggles.SIMULATE_TIME:
@@ -929,7 +917,7 @@ class SimulationTest(TransactionTestCase):
 			if toggles.REAL_DATA:
 				xMultiplier = len(toggles.CHOSEN_PREDS)
 				for predNum in toggles.CHOSEN_PREDS:
-					ticketCountsLegend.append("Pred " + str(predNum)
+					ticketCountsLegend.append("Pred " + str(predNum))
 
 			else:
 				xMultiplier = toggles.NUM_QUESTIONS
