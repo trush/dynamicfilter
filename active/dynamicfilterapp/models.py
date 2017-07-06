@@ -4,8 +4,7 @@ from validator import validate_positive
 import subprocess
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
-
-
+from scipy.special import btdtr
 import toggles
 
 @python_2_unicode_compatible
@@ -30,6 +29,14 @@ class Item(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+    def add_to_queue(self):
+        self.inQueue = True
+        self.save(update_fields=["inQueue"])
+
+    def remove_from_queue(self):
+        self.inQueue = False
+        self.save(update_fields=["inQueue"])
 
 @python_2_unicode_compatible
 class Question(models.Model):
@@ -59,7 +66,11 @@ class Predicate(models.Model):
     # lottery system variables
     num_tickets = models.IntegerField(default=1)
     num_wickets = models.IntegerField(default=0)
-    num_pending = models.IntegerField(default=0)
+
+    def _get_num_pending(self):
+        return IP_Pair.objects.filter(inQueue=True, predicate=self).count()
+
+    num_pending = property(_get_num_pending)
 
     # Queue variables
     queue_is_full = models.BooleanField(default=False)
@@ -111,14 +122,83 @@ class Predicate(models.Model):
         self.num_tickets += 1
         self.save(update_fields = ["num_tickets"])
 
-    def increment_num_pending(self):
-        self.num_pending += 1
-        self.save(update_fields = ["num_pending"])
+    def award_wicket(self):
+        self.num_wickets += 1
+        self.save(update_fields=["num_wickets"])
+
+    def add_no(self):
+        self.totalNo += 1
+        self.save(update_fields=["totalNo"])
 
     def check_queue_full(self):
-        if self.num_pending >= toggles.PENDING_QUEUE_SIZE:
+        if self.num_pending == self.queue_length:
             self.queue_is_full = True
             self.save(update_fields = ["queue_is_full"])
+        elif self.num_pending < self.queue_length:
+            self.queue_is_full = False
+            self.save(update_fields = ["queue_is_full"])
+        else:
+            raise Exception ("Queue for predicate " + str(self.id) + " is over-full")
+
+        if IP_Pair.objects.filter(inQueue=True, predicate = self).count() < self.queue_length and self.queue_is_full:
+            raise Exception ("Queue for predicate " + str(self.id) + " set to full when not")
+
+    def remove_ticket(self):
+        self.num_tickets -= 1
+        self.save(update_fields=["num_tickets"])
+
+    def add_total_task(self):
+        self.totalTasks += 1
+        self.save(update_fields=["totalTasks"])
+
+    def inc_queue_length(self):
+        self.queue_length += 1
+        self.queue_is_full = False
+        self.save(update_fields=["queue_length", "queue_is_full"])
+
+        return self.queue_length
+
+    def dec_queue_length(self):
+        """
+        decreases the queue_length value of the given predicate by one
+        raises an error if the pred was full when called
+        """
+        if (self.queue_is_full):
+            raise ValueError("Tried to decrement the queue_length of a predicate with a full queue")
+        old = self.queue_length
+        if old == 1:
+            raise ValueError("Tried to decrement queue_length to zero")
+        self.queue_length = old-1
+        self.save(update_fields=["queue_length"])
+        if self.num_pending >= (old - 1):
+            self.queue_is_full = True
+            self.save(update_fields=["queue_is_full"])
+
+        return self.queue_length
+
+    def adapt_queue_length(self):
+        '''
+        depending on adaptive queue mode, changes queue length as appropriate
+        '''
+        self.refresh_from_db()
+        # print "adapt queue length called"
+        if toggles.ADAPTIVE_QUEUE_MODE == 0:
+            # print "increase version invoked"
+            for pair in toggles.QUEUE_LENGTH_ARRAY:
+                if self.num_tickets > pair[0] and self.queue_length < pair[1]:
+                    self.inc_queue_length()
+                    break
+            return self.queue_length
+
+        if toggles.ADAPTIVE_QUEUE_MODE == 1:
+            for pair in toggles.QUEUE_LENGTH_ARRAY:
+                if self.num_tickets > pair[0] and self.queue_length < pair[1]:
+                    self.inc_queue_length()
+                    break
+                elif self.num_tickets <= pair[0] and self.queue_length >= pair[1]:
+                    self.dec_queue_length()
+                    break
+            return self.queue_length
 
 @python_2_unicode_compatible
 class IP_Pair(models.Model):
@@ -155,7 +235,8 @@ class IP_Pair(models.Model):
     def is_false(self):
         if self.isDone and (self.value < 0):
             self.item.hasFailed = True
-            self.item.save(update_fields=['hasFailed'])
+            self.item.save(update_fields=["hasFailed"])
+
         return self.item.hasFailed
 
     def _get_is_in_queue(self):
@@ -165,49 +246,77 @@ class IP_Pair(models.Model):
 
     def add_to_queue(self):
         self.inQueue = True
-        self.item.inQueue = True
         self.save(update_fields=["inQueue"])
+        if IP_Pair.objects.filter(inQueue=True, predicate=self.predicate).count() > self.predicate.queue_length:
+            raise Exception ("Too many IP pair objects in queue for predicate " + str(self.predicate.id))
+        self.item.add_to_queue()
+        self.predicate.award_ticket()
+        if not IP_Pair.objects.filter(predicate=self.predicate, inQueue=True).count() == self.predicate.num_pending:
+            print "IP objects in queue for pred " + str(self.predicate.id) + ": " + str(IP_Pair.objects.filter(predicate=self.predicate, inQueue=True).count())
+            print "Number pending for pred " + str(self.predicate.id) + ": " + str(self.predicate.num_pending)
+            raise Exception("ADD_TO_QUEUE Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
+        # checks if pred queue is now full and changes state accordingly
+        self.predicate.check_queue_full()
 
     def remove_from_queue(self):
-        self.inQueue = False
-        self.item.inQueue = False
-        self.predicate.queue_is_full = False
-        self.predicate.num_pending -= 1
-        self.save(update_fields=["inQueue"])
+        if self.should_leave_queue :
+            self.inQueue = False
+            self.save(update_fields=["inQueue"])
+            self.item.remove_from_queue()
+            self.predicate.check_queue_full()
 
     def record_vote(self, workerTask):
-        self.status_votes += 1
-        self.predicate.num_wickets += 1
-        self.save(update_fields=["status_votes"])
+        # add vote to tally only if appropriate
+        if not self.isDone:
+            self.status_votes += 1
+            self.predicate.award_wicket()
+            self.save(update_fields=["status_votes"])
 
-        if workerTask.answer:
-            self.value += 1
-            self.num_yes += 1
-            self.save(update_fields=["value", "num_yes"])
+            if workerTask.answer:
+                self.value += 1
+                self.num_yes += 1
+                self.save(update_fields=["value", "num_yes"])
 
-        elif not workerTask.answer:
-            self.value -= 1
-            self.num_no += 1
-            self.predicate.totalNo += 1
-            self.save(update_fields=["value", "num_no"])
+            elif not workerTask.answer:
+                self.value -= 1
+                self.num_no += 1
+                self.predicate.add_no()
+                self.save(update_fields=["value", "num_no"])
 
-        self.predicate.updateSelectivity()
-        self.predicate.update_cost()
+            self.predicate.update_selectivity()
+            self.predicate.update_cost()
+            # TODO @ Mahlet add your update rank and stuff here!
 
-    def set_done_if_done():
+            self.set_done_if_done()
+
+    def set_done_if_done(self):
+
         if self.status_votes == toggles.NUM_CERTAIN_VOTES:
 
-            if found_consensus():
+            if self.found_consensus():
                 self.isDone = True
-                self.save(update_fields["isDone"])
+                self.save(update_fields=["isDone"])
 
                 if not self.is_false() and self.predicate.num_tickets > 1:
-                    self.predicate.num_tickets -= 1
+                    self.predicate.remove_ticket()
+
+                if self.is_false():
+                    IP_Pair.objects.filter(item__hasFailed=True).update(isDone=True)
+
+                # helpful print statements
+                if toggles.DEBUG_FLAG:
+                    print "*"*96
+                    print "Completed IP Pair: " + str(self.id)
+                    print "Total votes: " + str(self.num_yes+self.num_no) + " | Total yes: " + str(self.num_yes) + " |  Total no: " + str(self.num_no)
+                    print "Total votes: " + str(self.num_yes+self.num_no)
+                    print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
+                    print "*"*96
+
             else:
                 self.status_votes -= 2
                 self.save(update_fields=["status_votes"])
 
-    def found_consensus():
+    def found_consensus(self):
         if self.value > 0:
             uncertLevel = btdtr(self.num_yes+1, self.num_no+1, toggles.DECISION_THRESHOLD)
         else:
@@ -227,7 +336,7 @@ class IP_Pair(models.Model):
 
     def collect_task(self):
         self.tasks_out -= 1
-        self.predicate.totalTasks += 1
+        self.predicate.add_total_task()
         self.save(update_fields = ["tasks_out"])
 
     def start(self):
@@ -244,11 +353,26 @@ class Task(models.Model):
     workerID = models.CharField(db_index=True, max_length=15)
 
     #used for simulating task completion having DURATION
-    startTime = models.IntegerField(default=0)
-    endTime = models.IntegerField(default=0)
+    start_time = models.IntegerField(default=0)
+    end_time = models.IntegerField(default=0)
 
     # a text field for workers to give feedback on the task
     feedback = models.CharField(max_length=500, blank=True)
 
     def __str__(self):
         return "Task from worker " + str(self.workerID) + " for IP Pair " + str(self.ip_pair)
+
+@python_2_unicode_compatible
+class DummyTask(models.Model):
+    """
+    Model representing a task that will be distributed that isn't associated w/ IP Pair
+    """
+    ip_pair = None
+    answer = None
+    workerID = models.CharField(db_index=True, max_length=15)
+
+    start_time = models.IntegerField(default=0)
+    end_time = models.IntegerField(default=0)
+
+    def __str__(self):
+        return "Placeholder task from worker " + str(self.workerID)

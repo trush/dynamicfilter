@@ -3,7 +3,8 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'Triangle' #+ "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'dummyTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+
 ITEM_TYPE = "Restaurant"
 
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
@@ -78,7 +79,7 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 40
 
-ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
@@ -92,6 +93,12 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 #############################################################################
 
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
+
+
+DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tasks
+                   # to do" and will track the number of times this happens
+DUMMY_TASK_OPTION = 0
+# 0 gives a complete placeholder task
 
 GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
@@ -137,13 +144,14 @@ RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 NUM_SIM = 50 # how many simulations to run?
 
+
 TIME_SIMS = False # track the computer runtime of simulations
 
 SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
-MAX_TASKS_OUT = 7
+MAX_TASKS_OUT = 5
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
@@ -178,7 +186,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'NUM_CERTAIN_VOTES','UNCERTAINTY_THRESHOLD','FALSE_THRESHOLD','DECISION_THRESHOLD',
             'CUT_OFF','NUM_WORKERS','DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
-            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA','GEN_GRAPHS',
+            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS', 'DUMMY_TASK_OPTION','GEN_GRAPHS',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',

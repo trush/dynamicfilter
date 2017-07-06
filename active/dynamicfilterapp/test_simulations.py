@@ -158,41 +158,65 @@ class SimulationTest(TransactionTestCase):
 		"""
 		Simulates the vote of a worker on a ip_pair from real data
 		"""
-		chosenIP.refresh_from_db()
 		start = time.time()
 		#if chosenIP is not None:
 
 		# simulated worker votes
 		#print chosenIP
-		value = choice(dictionary[chosenIP])
-		if not toggles.RESPONSE_SAMPLING_REPLACEMENT:
-			#print len(dictionary[chosenIP])
-			dictionary[chosenIP].remove(value)
-		if toggles.SIMULATE_TIME:
-			if value :
-				#worker said true, take from true distribution
-				work_time = choice(toggles.TRUE_TIMES)
+
+		# TODO be able to do the right thing when IP Pair is none:
+		#		create a dummy task with IP_Pair = None, answer = None,
+		# 		workerID is the worker it's been assigned to
+		#		duration should be a random choice from TRUE_TIMEs concatenated with FALSE_TIMES
+		if chosenIP is None:
+			if toggles.SIMULATE_TIME:
+				# TODO
+				# this task is going to be as long as any task can be?
+				# or delay workers by a fixed amount of time?
+				work_time = choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
+				start_task = time_clock + toggles.BUFFER_TIME
+				end_task = start_task + work_time
 			else:
-				#worker said false, take from false distribution
-				work_time = choice(toggles.FALSE_TIMES)
+				start_task = 0
+				end_task = 0
 
-			start_task = time_clock + toggles.BUFFER_TIME
-			end_task = start_task + work_time
+			t = DummyTask(workerID = workerID, start_time = start_task, end_time = end_task)
+			t.save()
+
+
 		else:
-			start_task = 0
-			end_task = 0
-
-		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
-				startTime=start_task, endTime=end_task)
-		t.save()
-
-		if not toggles.SIMULATE_TIME:
-			updateCounts(t, chosenIP)
-			t.refresh_from_db()
 			chosenIP.refresh_from_db()
+			value = choice(dictionary[chosenIP])
+			if not RESPONSE_SAMPLING_REPLACEMENT:
+				#print len(dictionary[chosenIP])
+				dictionary[chosenIP].remove(value)
+			if SIMULATE_TIME:
+				if value :
+					#worker said true, take from true distribution
+					work_time = choice(TRUE_TIMES)
+				else:
+					#worker said false, take from false distribution
+					work_time = choice(FALSE_TIMES)
+
+				start_task = time_clock + BUFFER_TIME
+				end_task = start_task + work_time
+			else:
+				start_task = 0
+				end_task = 0
+
+			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+					start_time=start_task, end_time=end_task)
+			t.save()
+
+			if not toggles.SIMULATE_TIME:
+				updateCounts(t, chosenIP)
+				t.refresh_from_db()
+				chosenIP.refresh_from_db()
+
 
 		end = time.time()
 		runTime = end - start
+
 		return t, runTime
 
 	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks):
@@ -202,7 +226,21 @@ class SimulationTest(TransactionTestCase):
 		chosenIP.refresh_from_db()
 		start = time.time()
 		if chosenIP is None:
-			t = None
+			if SIMULATE_TIME:
+				# TODO
+				# this task is going to be as long as any task can be?
+				# or delay workers by a fixed amount of time?
+				work_time = choice(TRUE_TIMES + FALSE_TIMES)
+				start_task = time_clock + BUFFER_TIME
+				end_task = start_task + work_time
+			else:
+				start_task = 0
+				end_task = 0
+
+			t = DummyTask(workerID = workerID,
+				start_time = start_task, end_time = end_task)
+			t.save()
+
 		else:
 			value = syn_answer(chosenIP, switch)
 			if toggles.SIMULATE_TIME:
@@ -219,15 +257,16 @@ class SimulationTest(TransactionTestCase):
 				start_task = 0
 				end_task = 0
 
-		t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
-				startTime=start_task, endTime=end_task)
-		t.save()
-		t.refresh_from_db()
 
-		if not toggles.SIMULATE_TIME:
-			updateCounts(t, chosenIP)
-			t.refresh_from_db()
-			chosenIP.refresh_from_db()
+			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+					start_time=start_task, end_time=end_task)
+			t.save()
+
+			if not toggles.SIMULATE_TIME:
+				updateCounts(t, chosenIP)
+				t.refresh_from_db()
+				chosenIP.refresh_from_db()
+
 		end = time.time()
 		runTime = end - start
 		return t, runTime
@@ -286,8 +325,9 @@ class SimulationTest(TransactionTestCase):
 		SAMPLING_ARRAY = []
 		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
 		Task.objects.all().delete()
-		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_pending=0, num_ip_complete=0,
+		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_ip_complete=0,
 			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False,queue_length=toggles.PENDING_QUEUE_SIZE)
+
 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
 		end = time.time()
 		reset_time = end - start
@@ -366,10 +406,6 @@ class SimulationTest(TransactionTestCase):
 			yL.append(ty)
 		multi_line_graph_gen(xL,yL,['t','n','f'],toggles.OUTPUT_PATH+toggles.RUN_NAME+"Grid.png",scatter=True)
 
-
-
-
-
 	def issueTask(self, active_tasks, b_workers, time_clock, dictionary):
 		"""
 		Used in simulations with time. Given the status of active tasks and
@@ -383,33 +419,46 @@ class SimulationTest(TransactionTestCase):
 		workerDone = True
 		a_num = toggles.NUM_WORKERS - len(b_workers)
 		triedWorkers = set()
-		# attempts = 0
-		while (workerDone and (len(triedWorkers) != a_num)):
-			# attempts += 1
-			# print "Calling pick_worker() " + str(attempts)
-			# print "Tried: " +  str(len(triedWorkers)) + " so far"
-			workerID = self.pick_worker(b_workers, triedWorkers)
-			triedWorkers.add(workerID)
-			workerDone, workerDoneTime = worker_done(workerID)
+		# TODO add a way to keep track of the number of "placeholder" tasks we distribute and how much cumulative worker time we spend on this
+		# TODO be able to compare cumulative work time that workers spent on the whole project and cumulative work time on placeholders -- maybe with a ratio?
 
-			if workerDone:
+		if not DUMMY_TASKS:
+			while (workerDone and (len(triedWorkers) != a_num)):
+
+				workerID = self.pick_worker(b_workers, triedWorkers)
+				triedWorkers.add(workerID)
+				workerDone, workerDoneTime = worker_done(workerID)
+
+				if workerDone:
+					workerID = None
+					worker_no_tasks += 1
+
+			if workerID is not None:
+				# select a task to assign to this person
+				ip_pair, eddy_time = give_task(active_tasks, workerID)
+				ip_pair.refresh_from_db()
+
+				if REAL_DATA:
+					task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
+				else:
+					task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
+				task.refresh_from_db()
+			else:
+				# TODO if in mode where we give placeholder tasks, the task should never be None
+				task = None
 				workerID = None
-				worker_no_tasks += 1
-			# reset b_workers (to exclude tried workers) -- prevents the list from needlessly expanding a lot each iteration
-		if workerID is not None:
-			# select a task to assign to this person
+				eddy_time = None
+				task_time = None
+
+		else:
+			workerID = self.pick_worker(b_workers, [])
 			ip_pair, eddy_time = give_task(active_tasks, workerID)
 			ip_pair.refresh_from_db()
+
 			if toggles.REAL_DATA:
 				task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 			else:
-				task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
-			task.refresh_from_db()
-		else:
-			task = None
-			workerID = None
-			eddy_time = None
-			task_time = None
+				task, task_time, self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
 
 		return task, workerID, eddy_time, task_time, worker_no_tasks
 
@@ -539,103 +588,119 @@ class SimulationTest(TransactionTestCase):
 			prev_time = 0
 
 			while (IP_Pair.objects.filter(isDone=False).exists() or active_tasks) :
-				# IP_Pair.objects.all().refresh_from_db()
 
 				if toggles.DEBUG_FLAG:
-					if (time_clock % 10 == 0) or (time_clock - prev_time > 1):
-						print "$"*41 + " t =  " + str(time_clock) + " " + "$"*41
+					if (time_clock % 60 == 0) or (time_clock - prev_time > 1):
+						print "$"*43 + " t = " + str(time_clock) + " " + "$"*(47-len(str(time_clock)))
+
 						print "$"*96
 
-						print "There are still " + str(IP_Pair.objects.filter(isDone=False).count()) +  " incomplete IP pairs"
-						print "number of tasks completed is: " + str(num_tasks)
-
+						print "Incomplete IP Pairs: " + str(IP_Pair.objects.filter(isDone=False).count()) + " | Tasks completed: " + str(num_tasks)
+						print ""
 						for ip in IP_Pair.objects.filter(inQueue=True):
-							print "IP pair with id " + str(ip.pk) +  " has " + str(ip.tasks_out) + " tasks out. Num yes: " + str(ip.num_yes) + " Num no: " + str(ip.num_no) + " and isDone = " + str(ip.isDone)
+							print "IP Pair " + str(ip.pk) + " |  Predicate: " + str(ip.predicate.id) +  " ||| Tasks out: " +  str(ip.tasks_out) + " | Num yes: " + str(ip.num_yes) + " | Num no: " + str(ip.num_no) + " | isDone: " + str(ip.isDone)
 
-						print "IP pairs in queue: " + str(IP_Pair.objects.filter(inQueue=True).count())
+							if ip.num_no + ip.num_yes > toggles.CUT_OFF:
+								print "Total votes: " + str(ip.num_no+ip.num_yes)
+								raise Exception ("Too many votes cast for IP Pair " + str(ip.id))
 
-						for p in Predicate.objects.filter(queue_is_full=True) :
-							print "Predicate with id " +  str(p.pk) + " queue is full"
+						placeholders = 0
+						for task in active_tasks:
+							if task.ip_pair == None:
+								placeholders += 1
+						print ""
+						if len(active_tasks) == 0:
+							print "Active tasks is empty."
+						else:
+							print "Active tasks: " + str(len(active_tasks)) + " | Placeholders: " + str(placeholders)
+
+							print "IP pairs in queue: " + str(IP_Pair.objects.filter(inQueue=True).count())
+						print ""
+						for p in Predicate.objects.filter(pk__in=[pred+1 for pred in CHOSEN_PREDS]) :
+							print "Predicate " +  str(p.pk) + " |||  Queue full: " + str(p.queue_is_full) + " | Queue length: " + str(p.queue_length) + " | Tickets: " + str(p.num_tickets)
 
 						print "$"*96
 
-					if len(active_tasks) == 0:
-						print "active tasks is empty"
 
-				# some assertions for debugging purposes
-				if not (Item.objects.filter(inQueue=True).count() <= toggles.PENDING_QUEUE_SIZE*len(toggles.CHOSEN_PREDS)):
-					raise Exception("Too many things in the queue")
+
+
+				# throw some errors for debugging purposes
 				if not (Item.objects.filter(inQueue=True).count() == IP_Pair.objects.filter(inQueue=True).count()):
+					print "inQueue items: " + str(Item.objects.filter(inQueue=True).count())
+					print "inQueue IPs: " + str(IP_Pair.objects.filter(inQueue=True).count())
 					raise Exception("IP and item mismatch")
 
-				inFullQueue = IP_Pair.objects.filter(predicate__queue_is_full=True, inQueue=True).count()
-				fullQueueSpots = Predicate.objects.filter(queue_is_full=True).count()*toggles.PENDING_QUEUE_SIZE
-				if not (inFullQueue == fullQueueSpots):
-					raise Exception("Queue isn't actually full")
+				for p in Predicate.objects.filter(queue_is_full = True):
+					if not p.num_pending >= p.queue_length:
+						raise Exception ("Queue for predicate " + str(p.id) + " isn't actually full")
+
+					if IP_Pair.objects.filter(predicate=p, inQueue=True).count() < p.queue_length:
+						raise Exception ("Not enough IP_Pairs in queue for predicate " + str(p.id) + " for it to be full")
+
+					if IP_Pair.objects.filter(predicate=p, inQueue=True).count() > p.queue_length:
+						raise Exception("The queue for predicate " + str(p.id) + " is over-full")
+
+					if not IP_Pair.objects.filter(predicate=p, inQueue=True).count() == p.num_pending:
+						print "IP objects in queue for pred " + str(p.id) + ": " + str(IP_Pair.objects.filter(predicate=p, inQueue=True).count())
+						print "Number pending for pred " + str(p.id) + ": " + str(p.num_pending)
+						raise Exception("WHEN REMOVING Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
 
 				prev_time = time_clock
 				endTimes = []
 				# check if any tasks have reached completion, update bookkeeping
 				for task in active_tasks:
-					if (task.endTime <= time_clock):
+					if (task.end_time <= time_clock):
 						updateCounts(task, task.ip_pair)
 						task.refresh_from_db()
-						task.ip_pair.refresh_from_db()
-						task.ip_pair.item.refresh_from_db()
-						task.ip_pair.predicate.refresh_from_db()
+						if task.ip_pair is not None:
+							task.ip_pair.refresh_from_db()
+							task.ip_pair.item.refresh_from_db()
+							task.ip_pair.predicate.refresh_from_db()
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
 						num_tasks += 1
 
-						if toggles.ADAPTIVE_QUEUE:
-							pred = task.ip_pair.predicate
-							tickets = pred.num_tickets
-							qlength = pred.queue_length
-							if toggles.ADAPTIVE_QUEUE_MODE == 0:
-								for pair in toggles.QUEUE_LENGTH_ARRAY:
-									if tickets>pair[0] and qlength<pair[1]:
-										inc_queue_length(pred)
-										pred.refresh_from_db()
-										break
-							if toggles.ADAPTIVE_QUEUE_MODE == 1:
-								for pair in toggles.QUEUE_LENGTH_ARRAY:
-									if tickets>pair[0] and qlength<pair[1]:
-										inc_queue_length(pred)
-										break
-									elif tickets<= pair[0] and qlength>=pair[1]:
-										dec_queue_length(pred)
-										pred.refresh_from_db()
-										break
+						if task.ip_pair is not None:
+							if not IP_Pair.objects.filter(predicate=task.ip_pair.predicate, inQueue=True).count() == task.ip_pair.predicate.num_pending:
+								print "IP objects in queue for pred " + str(task.ip_pair.predicate.id) + ": " + str(IP_Pair.objects.filter(predicate=task.ip_pair.predicate, inQueue=True).count())
+								print "Number pending for pred " + str(task.ip_pair.predicate.id) + ": " + str(task.ip_pair.predicate.num_pending)
+								raise Exception("WHEN REMOVING Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
+
 
 						if toggles.TRACK_IP_PAIRS_DONE:
 							itemsDoneArray.append(IP_Pair.objects.filter(isDone=True).count())
 
-						if toggles.DEBUG_FLAG:
-							print "IP pair with id " + str(task.ip_pair.pk) + " now has " + str(task.ip_pair.tasks_out) + " tasks out"
-							print "number of active tasks is: " +  str(len(active_tasks))
-							print "number of tasks completed is: " + str(num_tasks)
 
+						if DEBUG_FLAG:
+							if task.ip_pair is None:
+								print "Task removed ||| Placeholder"
+							else:
+								print "Task removed ||| Item: " + str(task.ip_pair.item.id) + " | Predicate: " + str(task.ip_pair.predicate.id) + " | IP Pair: " + str(task.ip_pair.id)
 
 					else:
-						endTimes.append(task.endTime)
+						endTimes.append(task.end_time)
 				# fill the active task array with new tasks as long as some IPs need eval
 				if IP_Pair.objects.filter(isDone=False).exists():
 
 					while (len(active_tasks) != toggles.MAX_TASKS):
 						task, worker, eddy_t, task_t, worker_no_tasks = self.issueTask(active_tasks, b_workers, time_clock, dictionary)
+
 						if task is not None:
-							task.ip_pair.refresh_from_db()
-							task.ip_pair.predicate.refresh_from_db()
-							task.ip_pair.item.refresh_from_db()
+							# TODO if we're in "placeholder task" mode, task should never be None
+							if task.ip_pair is not None:
+								task.ip_pair.refresh_from_db()
+								task.ip_pair.predicate.refresh_from_db()
+								task.ip_pair.item.refresh_from_db()
 							active_tasks.append(task)
 							b_workers.append(worker)
 							eddyTimes.append(eddy_t)
 							taskTimes.append(task_t)
+
 							if toggles.DEBUG_FLAG:
-								print "task added - Item: " + str(task.ip_pair.item.id) + " Predicate: " + str(task.ip_pair.predicate.id) + " IP Pair: " + str(task.ip_pair.id)
-								print "number of active tasks is: " +  str(len(active_tasks))
-								for p in Predicate.objects.filter(queue_is_full=True) :
-									print "Queue is full for predicate " + str(p.pk)
+								if task.ip_pair is None:
+									print "Task added   ||| Placeholder"
+								else:
+									print "Task added   ||| Item: " + str(task.ip_pair.item.id) + " | Predicate: " + str(task.ip_pair.predicate.id) + " | IP Pair: " + str(task.ip_pair.id)
 
 							# ITEM ROUTING DATA COLLECTION
 							# If we should be running a routing test
@@ -643,16 +708,19 @@ class SimulationTest(TransactionTestCase):
 							# item_routing test and this is the first time we've run
 							# run_sim or 2) we're runing multiple routing tests, and
 							# so should take this data every time we run.
-							if (toggles.RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or toggles.RUN_MULTI_ROUTING:
-								# if this is a "new" item
-								if task.ip_pair.item.item_ID not in seenItems:
-									seenItems.add(task.ip_pair.item.item_ID)
-									# increment the count of that item's predicate
-									for i in range(len(predicates)):
-										if task.ip_pair.predicate == predicates[i]:
-											routingC[i]+=1
-										# and add this "timestep" to the running list
-										routingL[i].append(routingC[i])
+
+							if task.ip_pair is not None:
+								if (RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or RUN_MULTI_ROUTING:
+									# if this is a "new" item
+									if task.ip_pair.item.item_ID not in seenItems:
+										seenItems.add(task.ip_pair.item.item_ID)
+										# increment the count of that item's predicate
+										for i in range(len(predicates)):
+											if task.ip_pair.predicate == predicates[i]:
+												routingC[i]+=1
+											# and add this "timestep" to the running list
+											routingL[i].append(routingC[i])
+
 						else:
 							# we couldn't give ANYONE a task; fast-forward to next task expiry
 							no_tasks_to_give += 1
@@ -676,8 +744,9 @@ class SimulationTest(TransactionTestCase):
 						for count in range(NUM_QUESTIONS):
 							predicate = Predicate.objects.get(pk=count+1)
 							ticketNums[count].append(predicate.num_tickets)
+
 			if toggles.DEBUG_FLAG:
-				print "Simulaton completed. Simulated time = " + str(time_clock) + ", number of tasks: " + str(num_tasks)
+				print "Simulaton completed ||| Simulated time = " + str(time_clock) + " | number of tasks: " + str(num_tasks)
 
 		else:
 			while(ip_pair != None):
@@ -835,7 +904,8 @@ class SimulationTest(TransactionTestCase):
 
 		sim_end = time.time()
 		sim_time = sim_end - sim_start
-		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes, time_clock
+		placeholders = DummyTask.objects.all().count()
+		return num_tasks, sim_time, eddyTimes, taskTimes, workerDoneTimes, time_clock, placeholders
 
 
 	###___HELPERS THAT WRITE OUT STATS___###
@@ -1065,7 +1135,7 @@ class SimulationTest(TransactionTestCase):
 		workerDoneTimes = []
 		for i in range(toggles.NUM_SIM):
 			print "Timing simulation " + str(i+1)
-			num_tasks, sim_time, eddy_times, task_times, worker_done_t, time_clock = self.run_sim(data)
+			num_tasks, sim_time, eddy_times, task_times, worker_done_t, time_clock, placeholders = self.run_sim(data)
 
 			simTimes.append(sim_time)
 			eddyTimes.append(np.sum(eddy_times))
@@ -1174,7 +1244,7 @@ class SimulationTest(TransactionTestCase):
 		i.save()
 		q = Question(question_ID = 1, question_text = "blah")
 		q.save()
-		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_pending = 1)
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True)
 		p.save()
 		# create a predicate
 		ip = IP_Pair(item = i, predicate = p, inQueue = True)
@@ -1207,7 +1277,7 @@ class SimulationTest(TransactionTestCase):
 		i.save()
 		q = Question(question_ID = 1, question_text = "blah")
 		q.save()
-		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_pending = 1, totalTasks = 1)
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, totalTasks = 1)
 		p.save()
 		ip = IP_Pair(item = i, predicate = p, inQueue = True)
 		ip.save()
@@ -1278,31 +1348,182 @@ class SimulationTest(TransactionTestCase):
 		print "p2 " + str(p2.num_wickets) + ", " + str(p2.num_tickets)
 
 	def awardTicketTest(self):
-		pass
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
+		i.save()
+		q = Question(question_ID = 10, question_text = "blah")
+		q.save()
+		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0)
+		p1.save()
+		ip = IP_Pair(predicate = p1, item = i)
+
+		print "after init"
+		print "num_tickets: " + str(p1.num_tickets)
+		print "num_pending: " + str(p1.num_pending)
+
+		ip.predicate.award_ticket()
+
+		print "without refresh"
+		print "num_tickets: " + str(ip.predicate.num_tickets)
+		print "num_pending: " + str(ip.predicate.num_pending)
+
+		print p1.num_pending == 6
+		print p1.num_tickets == 1
 
 	def checkQueueFullTest(self):
-		pass
+		q = Question(question_ID = 10, question_text = "blah")
+		q.save()
+		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full = True, num_wickets = LIFETIME)
+		p1.save()
+		p2 = Predicate(predicate_ID = 10, question = q, queue_is_full=False, num_wickets = LIFETIME)
+		p2.save()
+
+		print "after init"
+		print "p1 " + str(p1.queue_is_full)
+		print "p2 " + str(p2.queue_is_full)
+
+		p2.award_ticket()
+		p1.check_queue_full()
+		p2.check_queue_full()
+
+		print "no refresh"
+		print "p1 " + str(p1.queue_is_full)
+		print "p2 " + str(p2.queue_is_full)
 
 	def shouldLeaveQueueTest(self):
-		pass
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
+		i.save()
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True)
+		p.save()
+		# create a predicate
+		ip1 = IP_Pair(item = i, predicate = p, inQueue = True, isDone=True, tasks_out = 0)
+		ip1.save()
+
+		ip2 = IP_Pair(item = i, predicate = p, inQueue = True, isDone=False, tasks_out = 0)
+		ip2.save()
+
+		ip3 = IP_Pair(item = i, predicate = p, inQueue = True, isDone=True, tasks_out = 1)
+		ip3.save()
+
+		ip4 = IP_Pair(item = i, predicate = p, inQueue = True, isDone=False, tasks_out = 1)
+		ip4.save()
+
+		print "after init"
+		print "ip1: " + str(ip1.should_leave_queue == True)
+		print "ip2: " + str(ip2.should_leave_queue == False)
+		print "ip3: " + str(ip3.should_leave_queue == False)
+		print "ip4: " + str(ip4.should_leave_queue == False)
 
 	def addToQueueTest(self):
-		pass
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i.save()
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True)
+		p.save()
+		# create a predicate
+		ip1 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0)
+		ip1.save()
+
+		print "after init"
+		print str(ip1.item.inQueue == False)
+		print str(ip1.inQueue == False)
+
+		ip1.add_to_queue()
+
+		print "after func called"
+		print str(ip1.item.inQueue == True)
+		print str(ip1.inQueue == True)
 
 	def setDoneTest(self):
-		pass
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i.save()
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_tickets = 5)
+		p.save()
+		# create a predicate
+		ip1 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 5,
+					num_no = 0, num_yes = 5, value = 5)
+		ip1.save()
 
-	def foundConsensusTest(self):
-		pass
+		ip2 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 5,
+					num_no = 5, num_yes = 0, value = -5)
+		ip2.save()
+
+		ip3 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 3,
+					num_no = 0, num_yes = 3, value = 3)
+		ip3.save()
+
+		ip4 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 5,
+					num_no = 2, num_yes = 3, value = 1)
+		ip4.save()
+
+
+		print "after init"
+		print str(ip1.isDone == False)
+		print str(ip2.isDone == False)
+		print str(ip3.isDone == False)
+		print str(ip4.isDone == False)
+
+		ip1.set_done_if_done()
+		ip2.set_done_if_done()
+		ip3.set_done_if_done()
+		ip4.set_done_if_done()
+
+		print "after funcs called"
+		print str(ip1.isDone == True)
+		print str(ip1.predicate.num_tickets == 4)
+		print str(ip2.isDone == True)
+		print str(ip2.predicate.num_tickets == 4)
+		print str(ip3.isDone == False)
+		print str(ip3.predicate.num_tickets == 4)
+		print str(ip4.isDone == False)
+		print str(ip4.status_votes == 3)
+		print str(ip4.predicate.num_tickets == 4)
 
 	def distributeTaskTest(self):
-		pass
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i.save()
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_tickets = 5)
+		p.save()
+		# create a predicate
+		ip1 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 5,
+					num_no = 0, num_yes = 5, value = 5)
+		ip1.save()
+		print "after init"
+		print ip1.tasks_out
+
+		ip1.distribute_task()
+
+		print "after init"
+		print str(ip1.tasks_out == 1)
 
 	def collectTaskTest(self):
-		pass
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i.save()
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+		p = Predicate(predicate_ID = 1, question = q, queue_is_full=True, num_tickets = 5)
+		p.save()
+		# create a predicate
+		ip1 = IP_Pair(item = i, predicate = p, inQueue = False, isDone=False, tasks_out = 0, status_votes = 5,
+					num_no = 0, num_yes = 5, value = 5)
+		ip1.save()
+		print "after init"
+		print ip1.tasks_out
+		print "predicate total tasks: " + str(ip1.predicate.totalTasks)
 
-	def startTest(self):
-		pass
+		ip1.distribute_task()
+		print str(ip1.tasks_out == 1)
+		ip1.collect_task()
+		print "after call"
+
+		print str(ip1.predicate.totalTasks == 1)
+		print str(ip1.tasks_out == 0)
 
 	def getConfig(self):
 		vals = []
@@ -1311,6 +1532,180 @@ class SimulationTest(TransactionTestCase):
 			vals.append(resp)
 		data = zip(toggles.VARLIST,vals)
 		return reduce(lambda x,y: x+y, map(lambda x: x[0]+" = "+x[1]+'\n',data))[:-1]
+
+	def moveWindowContextTest(self):
+		global SLIDING_WINDOW, CHOSEN_PREDS
+		SLIDING_WINDOW = True
+		# CHOSEN_PREDS = [0, 1, 2]
+		q = Question(question_ID = 1, question_text = "blah")
+		q.save()
+
+		# # wickets to 0, no loss tickets
+		# p1 = Predicate(predicate_ID = 1, question = q, num_tickets = 0, num_wickets = LIFETIME)
+		# p1.save()
+		# # wickets to 0, 1 ticket
+		# p2 = Predicate(predicate_ID = 2, question = q, num_tickets = 2, num_wickets = LIFETIME)
+		# p2.save()
+		# # wickets same, no loss tickets
+		# p3 = Predicate(predicate_ID = 3, question = q, num_tickets = 2, num_wickets = LIFETIME-1)
+		# p3.save()
+		#
+		# move_window()
+		# p1.refresh_from_db()
+		# p2.refresh_from_db()
+		# p3.refresh_from_db()
+		# assert (p1.num_wickets == 0)
+		# assert (p1.num_tickets == 0)
+		# assert (p2.num_wickets == 0)
+		# assert (p2.num_tickets == 1)
+		# assert (p3.num_wickets == LIFETIME-1)
+		# assert (p3.num_tickets == 2)
+
+		# CHOSEN_PREDS = [3, 4, 5]
+		p4 = Predicate(predicate_ID = 4, question = q, num_tickets = 0, num_wickets = LIFETIME)
+		p4.save()
+		# wickets to 0, 1 ticket
+		p5 = Predicate(predicate_ID = 5, question = q, num_tickets = 2, num_wickets = LIFETIME)
+		p5.save()
+		# wickets same, no loss tickets
+		p6 = Predicate(predicate_ID = 6, question = q, num_tickets = 2, num_wickets = LIFETIME-1)
+		p6.save()
+		print "p4" + str(p4.pk)
+		print "p5" + str(p5.pk)
+		print "p6" + str(p6.pk)
+
+		move_window1()
+
+		# p4 = Predicate.objects.get(id=1)
+		# p5 = Predicate.objects.get(id=2)
+		# p6 = Predicate.objects.get(id=3)
+		p4.refresh_from_db()
+		p5.refresh_from_db()
+		p6.refresh_from_db()
+		print p4.num_wickets
+		print p4.num_tickets
+		print p5.num_wickets
+		print p5.num_tickets
+		print p6.num_wickets
+		print p6.num_tickets
+		assert (p4.num_wickets == 0)
+		assert (p4.num_tickets == 0)
+		assert (p5.num_wickets == 0)
+		assert (p5.num_tickets == 1)
+		assert (p6.num_wickets == LIFETIME-1)
+		assert (p6.num_tickets == 2)
+
+	def give_taskContextTest(self):
+
+		tasks = []
+		workerID = 1
+
+		ip_pair = give_task(tasks, workerID)[0]
+
+		assert(ip_pair.tasks_out == 1)
+
+		ip_pair = give_task1(tasks, workerID)[0]
+
+		assert(ip_pair.tasks_out == 1)
+
+	def oldAddToQueue(self, chosenIP):
+		if chosenIP.inQueue == False:
+			chosenIP.predicate.num_tickets += 1
+			chosenIP.predicate.num_pending += 1
+			chosenIP.inQueue = True
+			chosenIP.item.inQueue = True
+			chosenIP.item.save(update_fields=["inQueue"])
+			chosenIP.predicate.save(update_fields=["num_tickets", "num_pending"])
+			chosenIP.save(update_fields=['inQueue'])
+
+		chosenIP.predicate.refresh_from_db()
+		chosenIP.refresh_from_db()
+		# if the queue is full, update the predicate
+		if chosenIP.predicate.num_pending >= chosenIP.predicate.queue_length:
+			chosenIP.predicate.queue_is_full = True
+
+
+	def add_to_queueTest(self):
+		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i.save()
+		i2 = Item(item_ID = 2, name = "item1", item_type = "test", address = "blah", inQueue = False)
+		i2.save()
+		q = Question(question_ID = 10, question_text = "blah")
+		q.save()
+		p1 = Predicate(predicate_ID = 10, question = q, queue_is_full=False, num_tickets = 0)
+		p1.save()
+		p2 = Predicate(predicate_ID = 11, question = q, queue_is_full=False, num_tickets = 0)
+		p2.save()
+		ip = IP_Pair(predicate = p1, item = i, inQueue = False)
+		ip.save()
+
+		self.oldAddToQueue(ip)
+
+		ip.refresh_from_db()
+
+		ip2 = IP_Pair(predicate = p2, item = i2, inQueue = False)
+		ip2.save()
+
+		if not ip2.is_in_queue:
+			ip2.add_to_queue()
+
+		assert(ip.inQueue == ip2.inQueue)
+		assert(ip.is_in_queue == ip2.is_in_queue)
+		assert(ip.item.inQueue == ip2.item.inQueue)
+		assert(ip.predicate.num_pending == ip2.predicate.num_pending)
+		assert(ip.predicate.num_tickets == ip2.predicate.num_tickets)
+		assert(ip.predicate.queue_is_full == ip2.predicate.queue_is_full)
+
+	def updateCountsTest(self):
+		q = Question(question_ID = 10, question_text = "blah")
+		q.save()
+
+		i_0_0 = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
+		i_0_0.save()
+		i_0_1 = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
+		i_0_1.save()
+		p_0_0 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0)
+		p_0_0.save()
+		p_0_1 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 0)
+		p_0_1.save()
+		ip_0_0 = IP_Pair (item = i_0_0, predicate = p_0_0, status_votes = NUM_CERTAIN_VOTES-1, num_yes = 0, num_no = 4, tasks_out = 2)
+		ip_0_0.save()
+		ip_0_1 = IP_Pair (item = i_0_1, predicate = p_0_1, status_votes = NUM_CERTAIN_VOTES-1, num_yes = 0, num_no = 4, tasks_out = 2)
+		ip_0_1.save()
+		t_0_0 = Task(ip_pair = ip_0_0, answer = False, workerID = 1)
+		t_0_0.save()
+		t_0_1 = Task(ip_pair = ip_0_1, answer = False, workerID = 1)
+		t_0_1.save()
+
+		updateCounts(t_0_0, ip_0_0)
+
+		updateCounts1(t_0_1, ip_0_1)
+
+		ip_0_0.refresh_from_db()
+		ip_0_1.refresh_from_db()
+		assert(ip_0_0.inQueue == ip_0_1.inQueue)
+		assert(ip_0_0.item.inQueue == ip_0_1.item.inQueue)
+		assert(ip_0_0.tasks_out == ip_0_1.tasks_out)
+		assert(ip_0_0.predicate.totalTasks == ip_0_1.predicate.totalTasks)
+		assert(ip_0_0.predicate.queue_is_full == ip_0_1.predicate.queue_is_full)
+		assert(ip_0_0.isDone == ip_0_1.isDone)
+		assert(ip_0_0.status_votes == ip_0_1.status_votes)
+		assert(ip_0_0.num_yes == ip_0_1.num_yes)
+		assert(ip_0_0.num_no == ip_0_1.num_no)
+		assert(ip_0_0.value == ip_0_1.value)
+
+	def taskTest(self):
+		# construct a task that looks like the kind simulate_task would make
+		# make sure things work Properly
+
+		work_time = choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
+		t = DummyTask(workerID = 10, start_time = 0, end_time = work_time)
+		t.save()
+
+		print t.workerID
+		print t.end_time
+		if t.ip_pair == None:
+			print "IP is none"
 
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
@@ -1537,25 +1932,5 @@ class SimulationTest(TransactionTestCase):
 		if toggles.RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
 
-		self.remFromQueueTest()
-		self.recordVoteTest()
-
-		self.load_data()
-
-		self.moveWindowTest()
-
-		self.awardTicketTest()
-
-		self.checkQueueFullTest()
-
-		self.shouldLeaveQueueTest()
-
-		self.addToQueueTest()
-
-		self.setDoneTest()
-
-		self.foundConsensusTest()
-
-		self.distributeTaskTest()
-
-		self.collectTaskTest()
+	# def test_dummy(self):
+	# 	self.taskTest()
