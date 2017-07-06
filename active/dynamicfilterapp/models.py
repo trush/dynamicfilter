@@ -282,7 +282,7 @@ class IP_Pair(models.Model):
                 self.predicate.add_no()
                 self.save(update_fields=["value", "num_no"])
 
-            self.predicate.update_selectivity()
+            self.predicate.updateSelectivity()
             self.predicate.update_cost()
             # TODO @ Mahlet add your update rank and stuff here!
 
