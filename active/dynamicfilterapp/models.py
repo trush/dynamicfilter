@@ -236,7 +236,6 @@ class IP_Pair(models.Model):
         if self.isDone and (self.value < 0):
             self.item.hasFailed = True
             self.item.save(update_fields=["hasFailed"])
-
         return self.item.hasFailed
 
     def _get_is_in_queue(self):
@@ -283,7 +282,7 @@ class IP_Pair(models.Model):
                 self.predicate.add_no()
                 self.save(update_fields=["value", "num_no"])
 
-            self.predicate.update_selectivity()
+            self.predicate.updateSelectivity()
             self.predicate.update_cost()
             # TODO @ Mahlet add your update rank and stuff here!
 
