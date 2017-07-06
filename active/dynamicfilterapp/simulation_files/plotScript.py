@@ -49,12 +49,13 @@ def generic_csv_read(filename):
     toRead = open(filename,'r')
     reader = csv.reader(toRead)
     for row in reader:
+        isFloat=False
         if len(row) > 0:
             try:
                 float(row[0])
                 isFloat=True
             except ValueError:
-                isInt=False
+                isFloat=False
         if isFloat:
             retArray.append(map(float, row))
         else:
@@ -90,12 +91,12 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothne
     try:
         for i in range(len(dataList)):
         	sns.distplot(dataList[i], hist=(not smoothness), kde_kws={"shade": False}, ax=ax, label=legendList[i])
-    except:
+    except Exception as e:
         if Suppress:
-            print "Something went wrong. Plotting skipped"
+            print "When plotting " + dest + " encountered "+str(e)
             return
         else:
-            raise ValueError("Something went wrong")
+            raise e
     ax.set_xlabel(labels[0])
     ax.set_ylabel(labels[1])
     ax.set_title(title)
@@ -156,12 +157,12 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
                 ax.scatter(x, y, label=legendList[i],alpha=alph)
             else:
                 ax.plot(x, y, label=legendList[i])
-    except:
+    except Exception as e:
         if Suppress:
-            print "Something went wrong. Plotting skipped"
+            print "When plotting " + dest + " encountered "+str(e)
             return
         else:
-            raise ValueError("Something went wrong")
+            raise e
     # Label the axes
     plt.xlabel(labels[0])
     plt.ylabel(labels[1])
@@ -193,12 +194,12 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
     pos = np.arange(len(data))
     try:
         plt.bar(pos, data, align='center', alpha = 0.5, yerr = stderr)
-    except:
+    except Exception as e:
         if Suppress:
-            print "Something went wrong. Plotting skipped"
+            print "When plotting " + dest + " encountered "+str(e)
             return
         else:
-            raise ValueError("Something went wrong")
+            raise e
     plt.xticks(pos,legend)
 
     # Label the axes
@@ -230,12 +231,12 @@ def split_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = '',split=
             for i in range(1,len(dataL)):
                 ind = pos + (i*width)
                 plt.bar(pos,dataL[i],width,bottom=dataL[i-1])
-    except:
+    except Exception as e:
         if Suppress:
-            print "Something went wrong. Plotting skipped"
+            print "When plotting " + dest + " encountered "+str(e)
             return
         else:
-            raise ValueError("Something went wrong")
+            raise e
     plt.xticks(pos,legend)
 
     # Label the axes

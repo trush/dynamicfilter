@@ -17,20 +17,27 @@ IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
-DEBUG_FLAG = True # useful print statements turned on
+DEBUG_FLAG = False # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-# NUM_CERTAIN_VOTES = 3
-# UNCERTAINTY_THRESHOLD = 0.2
-# FALSE_THRESHOLD = 0.2
-# DECISION_THRESHOLD = 0.7
-# CUT_OFF = 23
+UNCERTAINTY_THRESHOLD = 0.05     # maximum acceptable proability area
+FALSE_THRESHOLD = 0.05           # Used for ALMOST_FALSE TODO better docs
+DECISION_THRESHOLD = 0.9        # Upper bound of integration
+NUM_CERTAIN_VOTES = 5           # number of votes to gather no matter the results
+CUT_OFF = 21                    # Maximum number of votes to ask for before using Majority Vote as backup metric
+SINGLE_VOTE_CUTOFF = 21#int(1+math.ceil(CUT_OFF/2.0)+1-(CUT_OFF%2))    # Number of votes for a single result (Y/N) before calling that the winner
+# Our consensus metric is Complicated. For each IP pair chosen, we do the following
+# We gather (NUM_CERTAIN_VOTES) votes on the chosen IP pair
+# To take "consensus" we generate a beta distribution from the number of (y/n) votes
+#   then intigrate over it from zero to (DECISION_THRESHOLD)
+#   if the probability area is less than (UNCERTAINTY_THRESHOLD) then we have consensus
+#   else we gather more votes
+# This is repeated until one of several conditions is met
+#   1 - We reach consensus (naturally)
+#   2 - The total number of gathered votes is equal to (CUT_OFF)
+#   3 - The number of either (yes)s or (no)s on their own is equal to (SINGLE_VOTE_CUTOFF)
+# If either cond. (2|3) we take a simple majority vote
 
-NUM_CERTAIN_VOTES = 5
-UNCERTAINTY_THRESHOLD = 0.2
-FALSE_THRESHOLD = 0.2
-DECISION_THRESHOLD = 0.5
-CUT_OFF = 21
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
@@ -77,7 +84,7 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 20
 
-ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
@@ -91,6 +98,12 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 #############################################################################
 
 REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
+
+
+DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tasks
+                   # to do" and will track the number of times this happens
+DUMMY_TASK_OPTION = 0
+# 0 gives a complete placeholder task
 
 GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
@@ -143,7 +156,7 @@ SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
-MAX_TASKS_OUT = 7
+MAX_TASKS_OUT = 5
 
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
@@ -152,15 +165,18 @@ TRACK_IP_PAIRS_DONE = False
 TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-TEST_ACCURACY = False
-
+TEST_ACCURACY = True
+ACCURACY_COUNT = True
 
 OUTPUT_SELECTIVITIES = False
 
-RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
+RUN_CONSENSUS_COUNT = True # keeps track of the number of tasks needed before consensus for each IP
 
-NO_TASKS_COUNT = False # keeps track of the number of times the next worker has no possible task
-VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
+CONSENSUS_LOCATION_STATS = True
+
+VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
+
+IDEAL_GRID = True #draws the vote grid rules for our consensus metric
 
 TEST_ACCURACY = False
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
@@ -180,7 +196,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'NUM_CERTAIN_VOTES','UNCERTAINTY_THRESHOLD','FALSE_THRESHOLD','DECISION_THRESHOLD',
             'CUT_OFF','NUM_WORKERS','DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
-            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA','GEN_GRAPHS',
+            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS', 'DUMMY_TASK_OPTION','GEN_GRAPHS',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','PRED_RANK_COUNT', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
