@@ -231,7 +231,7 @@ def inc_queue_length(pred):
 	increase the queue_length value of the given predicate by one
 	also takes care of fullness
 	"""
-	pred.queue_length = F('queue_length') + 1
+	pred.queue_length = F('queue_length') + 1            
 	pred.queue_is_full = False
 	pred.save()
 	return pred.queue_length
@@ -460,8 +460,7 @@ def updateCounts(workerTask, chosenIP):
 		chosenIP.predicate.update_cost()
 		chosenIP.predicate.updateRank()
 		
-		print chosenIP.predicate
-		print str(chosenIP.predicate.rank)
+		print chosenIP.predicate.predicate_ID , str(chosenIP.predicate.calculatedSelectivity)
 
 		# if we've arrived at the right number of votes collected, evaluate consensus
 		#print "IP pair " + str(chosenIP.id) + " status votes: " + str(chosenIP.status_votes)
@@ -558,8 +557,8 @@ def output_cost(run_name):
 	for p in CHOSEN_PREDS:
 		pred = Predicate.objects.all().get(pk=p+1)
 		f.write(pred.question.question_text + '\n')
-		avg_cost = 0.0;
-		num_finished = 0.0;
+		avg_cost = 0.0
+		num_finished = 0.0
 
 		for ip in IP_Pair.objects.filter(predicate=pred, status_votes=5):
 			cost = ip.num_yes + ip.num_no

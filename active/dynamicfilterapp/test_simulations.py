@@ -224,10 +224,10 @@ class SimulationTest(TransactionTestCase):
 		t.refresh_from_db()
 
 		if not SIMULATE_TIME:
+			print "in syn_simulate_task before updateCount: ", str(chosenIP.predicate.calculatedSelectivity)
 			updateCounts(t, chosenIP)
-			chosenIP.save()
-			print "in syn_simulate_task: ", str(chosenIP.predicate.rank)
 			t.refresh_from_db()
+			print "in syn_simulate_task after updateCount: ", str(chosenIP.predicate.calculatedSelectivity)
 			chosenIP.refresh_from_db()
 		end = time.time()
 		runTime = end - start
@@ -696,17 +696,7 @@ class SimulationTest(TransactionTestCase):
 						print "worker has no tasks to do"
 
 				else:
-					if (EDDY_SYS == 4):
-						try:
-							#test to see if ip_pair is the dummy or not
-							ipExists = IP_Pair.objects.get(pk=ip_pair.pk)
-							if(ip_pair.isDone == True):
-								ip_pair = pending_eddy(workerID)
-						except:
-							ip_pair = pending_eddy(workerID)
-							#print "here"
-					else:
-						ip_pair = pending_eddy(workerID)
+					ip_pair = pending_eddy(workerID)
 
 					# If we should be running a routing test
 					# this is true in two cases: 1) we hope to run a single
@@ -823,18 +813,18 @@ class SimulationTest(TransactionTestCase):
 		
 		if PRED_SCORE_COUNT:
 			predScoreLegend = []
-			dest = OUTPUT_PATH+RUN_NAME+'_pred_score'
+			dest = OUTPUT_PATH+RUN_NAME+'_pred_score_'+'eddy'+str(EDDY_SYS)
 			title = RUN_NAME + ' pred score'
-			dataToWrite = [scores]
+			dataToWrite = scores
 			generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
 			if REAL_DATA:
 				numPreds = len(CHOSEN_PREDS)
 				for predNum in range(numPreds):
-					predScoreLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+					predScoreLegend.append("Pred " + str(CHOSEN_PREDS[predNum]) +' eddy ' + str(EDDY_SYS))
 			else:
 				numPreds = NUM_QUESTIONS
 				for predNum in range(numPreds):
-					predScoreLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
+					predScoreLegend.append("Pred " + str(CHOSEN_PREDS[predNum]) + ' eddy ' + str(EDDY_SYS))
 			multi_line_graph_gen([range(num_tasks)]*numPreds, scores, predScoreLegend,
 								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "predScore.png",
 								labels = ("Number of tasks", "score"))
@@ -1010,7 +1000,7 @@ class SimulationTest(TransactionTestCase):
 					ip.num_yes += 1
 				elif value == False:
 					ip.value -= 1
-					ip.num_no +=1
+					ip.num_no += 1
 
 				ip.status_votes += 1
 
@@ -1258,27 +1248,27 @@ class SimulationTest(TransactionTestCase):
 		ip = IP_Pair(item = i, predicate = p, inQueue = True)
 		ip.save()
 
-		print "&&&& after init &&&&"
-		print "pred queue is full? " + str(ip.predicate.queue_is_full)
-		print "num_pending: " + str(ip.predicate.num_pending)
-		print "item in queue? " + str(ip.item.inQueue)
-		print "IP pair in queue? " + str(ip.inQueue)
+		# print "&&&& after init &&&&"
+		# print "pred queue is full? " + str(ip.predicate.queue_is_full)
+		# print "num_pending: " + str(ip.predicate.num_pending)
+		# print "item in queue? " + str(ip.item.inQueue)
+		# print "IP pair in queue? " + str(ip.inQueue)
 
 		ip.remove_from_queue()
 
-		print "&&&& before refresh &&&&"
-		print "pred queue is full? " + str(ip.predicate.queue_is_full)
-		print "num_pending: " + str(ip.predicate.num_pending)
-		print "item in queue? " + str(ip.item.inQueue)
-		print "IP pair in queue? " + str(ip.inQueue)
+		# print "&&&& before refresh &&&&"
+		# print "pred queue is full? " + str(ip.predicate.queue_is_full)
+		# print "num_pending: " + str(ip.predicate.num_pending)
+		# print "item in queue? " + str(ip.item.inQueue)
+		# print "IP pair in queue? " + str(ip.inQueue)
 
 		ip.refresh_from_db()
 
-		print "&&&& after refresh &&&&"
-		print "pred queue is full? " + str(ip.predicate.queue_is_full)
-		print "num_pending: " + str(ip.predicate.num_pending)
-		print "item in queue? " + str(ip.item.inQueue)
-		print "IP pair in queue? " + str(ip.inQueue)
+		# print "&&&& after refresh &&&&"
+		# print "pred queue is full? " + str(ip.predicate.queue_is_full)
+		# print "num_pending: " + str(ip.predicate.num_pending)
+		# print "item in queue? " + str(ip.item.inQueue)
+		# print "IP pair in queue? " + str(ip.inQueue)
 
 	def recordVoteTest(self):
 		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
@@ -1295,39 +1285,39 @@ class SimulationTest(TransactionTestCase):
 		falseVote = Task(ip_pair = ip, answer = False, workerID = 2)
 		falseVote.save()
 
-		print "&&&& after init &&&&"
-		print "ip num_no? " + str(ip.num_no)
-		print "num_yes? " + str(ip.num_yes)
-		print "pred selectivity: " + str(ip.predicate.selectivity)
-		print "pred cost: " + str(ip.predicate.cost)
-		print "pred total no: " + str(ip.predicate.totalNo)
-		print "pred num_wickets: " + str(ip.predicate.num_wickets)
-		print "IP value: " + str(ip.value)
-		print "IP status votes: " + str(ip.status_votes)
+		# print "&&&& after init &&&&"
+		# print "ip num_no? " + str(ip.num_no)
+		# print "num_yes? " + str(ip.num_yes)
+		# print "pred selectivity: " + str(ip.predicate.selectivity)
+		# print "pred cost: " + str(ip.predicate.cost)
+		# print "pred total no: " + str(ip.predicate.totalNo)
+		# print "pred num_wickets: " + str(ip.predicate.num_wickets)
+		# print "IP value: " + str(ip.value)
+		# print "IP status votes: " + str(ip.status_votes)
 
 		ip.record_vote(trueVote)
 
-		print "&&&& before refresh, true Vote &&&&"
-		print "ip num_no? " + str(ip.num_no)
-		print "num_yes? " + str(ip.num_yes)
-		print "pred selectivity" + str(ip.predicate.selectivity)
-		print "pred cost " + str(ip.predicate.cost)
-		print "pred total no: " + str(ip.predicate.totalNo)
-		print "pred num_wickets: " + str(ip.predicate.num_wickets)
-		print "IP value: " + str(ip.value)
-		print "IP status votes: " + str(ip.status_votes)
+		# print "&&&& before refresh, true Vote &&&&"
+		# print "ip num_no? " + str(ip.num_no)
+		# print "num_yes? " + str(ip.num_yes)
+		# print "pred selectivity" + str(ip.predicate.selectivity)
+		# print "pred cost " + str(ip.predicate.cost)
+		# print "pred total no: " + str(ip.predicate.totalNo)
+		# print "pred num_wickets: " + str(ip.predicate.num_wickets)
+		# print "IP value: " + str(ip.value)
+		# print "IP status votes: " + str(ip.status_votes)
 
 		ip.refresh_from_db()
 
-		print "&&&& after refresh, true vote &&&&"
-		print "ip num_no? " + str(ip.num_no)
-		print "num_yes? " + str(ip.num_yes)
-		print "pred selectivity" + str(ip.predicate.selectivity)
-		print "pred cost " + str(ip.predicate.cost)
-		print "pred total no: " + str(ip.predicate.totalNo)
-		print "pred num_wickets: " + str(ip.predicate.num_wickets)
-		print "IP value: " + str(ip.value)
-		print "IP status votes: " + str(ip.status_votes)
+		# print "&&&& after refresh, true vote &&&&"
+		# print "ip num_no? " + str(ip.num_no)
+		# print "num_yes? " + str(ip.num_yes)
+		# print "pred selectivity" + str(ip.predicate.selectivity)
+		# print "pred cost " + str(ip.predicate.cost)
+		# print "pred total no: " + str(ip.predicate.totalNo)
+		# print "pred num_wickets: " + str(ip.predicate.num_wickets)
+		# print "IP value: " + str(ip.value)
+		# print "IP status votes: " + str(ip.status_votes)
 
 	def moveWindowTest(self):
 		q = Question(question_ID = 10, question_text = "blah")
@@ -1337,23 +1327,23 @@ class SimulationTest(TransactionTestCase):
 		p2 = Predicate(predicate_ID = 10, question = q, queue_is_full=True, num_tickets = 5, num_wickets = LIFETIME)
 		p2.save()
 
-		print "after init"
-		print "p1 " + str(p1.num_wickets) + ", " + str(p1.num_tickets)
-		print "p2 " + str(p2.num_wickets) + ", " + str(p2.num_tickets)
+		# print "after init"
+		# print "p1 " + str(p1.num_wickets) + ", " + str(p1.num_tickets)
+		# print "p2 " + str(p2.num_wickets) + ", " + str(p2.num_tickets)
 
 		p1.move_window()
 		p2.move_window()
 
-		print "before refresh"
-		print "p1 " + str(p1.num_wickets) + ", " + str(p1.num_tickets)
-		print "p2 " + str(p2.num_wickets) + ", " + str(p2.num_tickets)
+		# print "before refresh"
+		# print "p1 " + str(p1.num_wickets) + ", " + str(p1.num_tickets)
+		# print "p2 " + str(p2.num_wickets) + ", " + str(p2.num_tickets)
 
 		p1.refresh_from_db()
 		p2.refresh_from_db()
 
-		print "after refresh"
-		print "p1 " + str(p1.num_wickets) + ", " + str(p1.num_tickets)
-		print "p2 " + str(p2.num_wickets) + ", " + str(p2.num_tickets)
+		# print "after refresh"
+		# print "p1 " + str(p1.num_wickets) + ", " + str(p1.num_tickets)
+		# print "p2 " + str(p2.num_wickets) + ", " + str(p2.num_tickets)
 
 	def awardTicketTest(self):
 		pass
