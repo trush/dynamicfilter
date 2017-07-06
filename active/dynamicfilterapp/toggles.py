@@ -3,7 +3,7 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'dummyTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'aa_functionalityTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Restaurant"
 
@@ -13,15 +13,15 @@ IP_PAIR_DATA_FILE = 'real_data1.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
-DEBUG_FLAG = False # useful print statements turned on
+DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
-UNCERTAINTY_THRESHOLD = 0.05     # maximum acceptable proability area
+UNCERTAINTY_THRESHOLD = 0.1    # maximum acceptable proability area
 FALSE_THRESHOLD = 0.05           # Used for ALMOST_FALSE TODO better docs
-DECISION_THRESHOLD = 0.9        # Upper bound of integration
+DECISION_THRESHOLD = 0.5        # Upper bound of integration
 NUM_CERTAIN_VOTES = 5           # number of votes to gather no matter the results
 CUT_OFF = 21                    # Maximum number of votes to ask for before using Majority Vote as backup metric
-SINGLE_VOTE_CUTOFF = 21#int(1+math.ceil(CUT_OFF/2.0)+1-(CUT_OFF%2))    # Number of votes for a single result (Y/N) before calling that the winner
+SINGLE_VOTE_CUTOFF = int(1+math.ceil(CUT_OFF/2.0))    # Number of votes for a single result (Y/N) before calling that the winner
 # Our consensus metric is Complicated. For each IP pair chosen, we do the following
 # We gather (NUM_CERTAIN_VOTES) votes on the chosen IP pair
 # To take "consensus" we generate a beta distribution from the number of (y/n) votes
@@ -76,7 +76,7 @@ ITEM_SYS = 0
 # 1 - item-started system
 # 2 - item-almost-false system
 
-SLIDING_WINDOW = False
+SLIDING_WINDOW = True
 LIFETIME = 40
 
 ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
@@ -95,12 +95,12 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
 
 
-DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tasks
+DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
                    # to do" and will track the number of times this happens
 DUMMY_TASK_OPTION = 0
 # 0 gives a complete placeholder task
 
-GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
@@ -119,7 +119,7 @@ switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (400, ((SIN, .1, 300, .05, .6), 0.
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response data with or without replacement
+RESPONSE_SAMPLING_REPLACEMENT = True # decides if we should sample our response data with or without replacement
 
 RUN_ABSTRACT_SIM = False
 
@@ -127,7 +127,7 @@ ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [.1, .2, .3]
 
 #produces ticket count graph for 1 simulation
-COUNT_TICKETS = False
+COUNT_TICKETS = True
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 100
@@ -135,29 +135,29 @@ COST_SAMPLES = 100
 RUN_SINGLE_PAIR = False
 SINGLE_PAIR_RUNS = 50
 
-RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
+RUN_ITEM_ROUTING = True # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
 RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 50 # how many simulations to run?
+NUM_SIM = 2 # how many simulations to run?
 
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = False # simulate time passing/concurrency
-MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
+SIMULATE_TIME = True # simulate time passing/concurrency
+MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 MAX_TASKS_OUT = 5
 
 RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
-TRACK_IP_PAIRS_DONE = False
+TRACK_IP_PAIRS_DONE = True
 
-TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
+TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = True
@@ -178,6 +178,11 @@ OUTPUT_COST = False
 
 PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
 
+if GEN_GRAPHS:
+    print ''
+    reply = raw_input("GEN_GRAPHS is turned on. Do you actually want graphs? Enter y for yes, n for no.  ")
+    if reply == "n":
+        raise Exception ("Set GEN_GRAPHS to False and try again!")
 
 # List of toggles for debug printing and Config.ini generation
             ##### PLEASE UPDATE AS NEW TOGGLES ADDED #####
@@ -192,6 +197,6 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
             'MAX_TASKS','BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
-            'TRACK_NO_TASKS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
+            'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
             'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST'
 ]
