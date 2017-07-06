@@ -838,8 +838,9 @@ class SimulationTest(TransactionTestCase):
 							#print "here"
 					else:
 						ip_pair, eddy_time = pending_eddy(workerID)
+						self.pending_eddy_time += eddy_time
 
-					eddyTimes.append(eddy_time)
+
 
 					# If we should be running a routing test
 					# this is true in two cases: 1) we hope to run a single
@@ -1254,25 +1255,25 @@ class SimulationTest(TransactionTestCase):
 			print "Wrote file: " +  toggles.OUTPUT_PATH + "timingSimulationsOut.csv"
 
 		if toggles.GEN_GRAPHS:
-			line_graph_gen(range(0, toggles.NUM_SIM), simTimes,
+			line_graph_gen(range(0, toggles.NUM_SIM), self.run_sim_time_array,
 							toggles.OUTPUT_PATH + toggles.RUN_NAME + "simTimes.png",
 							labels = ("Number of simulations run", "Simulation runtime"))
 
-			line_graph_gen(range(0, toggles.NUM_SIM), eddyTimes,
+			line_graph_gen(range(0, toggles.NUM_SIM), self.pending_eddy_time_array,
 							toggles.OUTPUT_PATH + toggles.RUN_NAME + "eddyTimes.png",
 							labels = ("Number of simulations run", "Total pending_eddy() runtime per sim"))
 
-			line_graph_gen(range(0, toggles.NUM_SIM), taskTimes,
+			line_graph_gen(range(0, toggles.NUM_SIM), self.sim_task_time_array,
 							toggles.OUTPUT_PATH + toggles.RUN_NAME + "taskTimes.png",
 							labels = ("Number of simulations run", "Total simulate_task() runtime per sim"))
 
-			line_graph_gen(range(0, toggles.NUM_SIM), workerDoneTimes,
+			line_graph_gen(range(0, toggles.NUM_SIM), self.worker_done_time_array,
 							toggles.OUTPUT_PATH + toggles.RUN_NAME + "workerDoneTimes.png",
 							labels = ("Number of simulations run", "Total worker_done() runtime per sim"))
 
 
 			xL = [range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM)]
-			yL = [simTimes, eddyTimes, taskTimes, workerDoneTimes]
+			yL = [self.run_sim_time_array, self.pending_eddy_time_array, self.sim_task_time_array, self.worker_done_time_array]
 
 			legends = ["run_sim()", "pending_eddy()", "simulate_task()", "worker_done()"]
 			multi_line_graph_gen(xL, yL, legends,
