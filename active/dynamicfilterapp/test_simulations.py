@@ -43,6 +43,9 @@ class SimulationTest(TransactionTestCase):
 	num_placeholders = 0
 	num_placeholders_array = []
 
+	num_real_tasks = 0
+	num_real_tasks_array = []
+
 	no_tasks_to_give = 0
 	no_tasks_to_give_array = []
 
@@ -321,7 +324,7 @@ class SimulationTest(TransactionTestCase):
 
 		end = time.time()
 		runTime = end - start
-		sim_task_time += runTime
+		self.sim_task_time += runTime
 		return t
 
 	def pick_worker(self, busyWorkers, triedWorkers):
@@ -599,6 +602,7 @@ class SimulationTest(TransactionTestCase):
 		passedItems = []
 		itemsDoneArray = [0]
 		switch = 0
+		time_proxy = 0
 
 		if toggles.SELECTIVITY_GRAPH:
 			for count in range(toggles.NUM_QUESTIONS):
@@ -619,7 +623,7 @@ class SimulationTest(TransactionTestCase):
 				for predNum in range(len(toggles.CHOSEN_PREDS)):
 					self.ticketNums.append([])
 			else:
-				for count in range(NUM_QUESTIONS):
+				for count in range(toggles.NUM_QUESTIONS):
 					self.ticketNums.append([])
 
 		# If running Item_routing, setup needed values
@@ -716,11 +720,11 @@ class SimulationTest(TransactionTestCase):
 							if toggles.REAL_DATA:
 								for predNum in range(len(toggles.CHOSEN_PREDS)):
 									predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
-									ticketNums[predNum].append(predicate.num_tickets)
+									self.ticketNums[predNum].append(predicate.num_tickets)
 							else:
 								for count in range(toggles.NUM_QUESTIONS):
 									predicate = Predicate.objects.get(pk=count+1)
-									ticketNums[count].append(predicate.num_tickets)
+									self.ticketNums[count].append(predicate.num_tickets)
 
 						if toggles.TRACK_IP_PAIRS_DONE:
 							self.ips_done_array.append(IP_Pair.objects.filter(isDone=True).count())
@@ -739,7 +743,7 @@ class SimulationTest(TransactionTestCase):
 
 					while (len(active_tasks) != toggles.MAX_TASKS):
 
-						task, worker = self.issueTask(active_tasks, b_workers, time_clock, dictionary)
+						task, worker = self.issueTask(active_tasks, b_workers, time_clock, dictionary, switch)
 
 						if task is not None:
 
@@ -801,7 +805,6 @@ class SimulationTest(TransactionTestCase):
 				#so we need index 0 of the tuple to get the time at which the switch should occur
 				if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] >= time_clock:
 					switch += 1
-				print "time clock: ", str(time_clock)
 
 			if toggles.DEBUG_FLAG:
 				print "Simulaton completed ||| Simulated time = " + str(time_clock) + " | number of tasks: " + str(self.num_tasks)
@@ -858,7 +861,7 @@ class SimulationTest(TransactionTestCase):
 					if toggles.REAL_DATA :
 						task = self.simulate_task(ip_pair, workerID, 0, dictionary)
 					else:
-						task = self.syn_simulate_task(ip_pair, workerID, 0, switch, num_tasks)
+						task = self.syn_simulate_task(ip_pair, workerID, 0, switch, self.num_tasks)
 
 					move_window()
 					self.num_tasks += 1
@@ -882,11 +885,40 @@ class SimulationTest(TransactionTestCase):
 
 					#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 					#so we need index 0 of the tuple to get the time at which the switch should occur
-					if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] == num_tasks:
+					if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] == self.num_tasks:
 						switch += 1
 
 		if toggles.SIMULATE_TIME:
 			self.simulated_time = time_clock
+
+		if toggles.DUMMY_TASKS:
+			self.num_placeholders = DummyTask.objects.all().count()
+
+		# TODO add cumulative work time and cumulative placeholder time separately
+		# TODO make sure all graphs use appropriate information -- new data members
+		# TODO change return stuff of run_sim to be none of the things it is now
+
+		# save relevant values
+		self.num_tasks_array.append(self.num_tasks)
+
+		if toggles.SIMULATE_TIME:
+			self.simulated_time_array.append(self.simulated_time)
+			self.cum_work_time_array.append(self.cum_work_time)
+			self.cum_placeholder_time_array.append(self.cum_placeholder_time)
+
+		if toggles.TRACK_PLACEHOLDERS:
+			self.num_placeholders_array.append(self.num_placeholders)
+
+		if toggles.TIME_SIMS:
+			self.run_sim_time_array.append(self.run_sim_time)
+			self.pending_eddy_time_array.append(self.pending_eddy_time)
+			self.sim_task_time_array.append(self.sim_task_time)
+			self.worker_done_time_array.append(self.worker_done_time)
+
+		if toggles.TEST_ACCURACY:
+			self.get_incorrects()
+			self.num_incorrect_array.append(self.num_incorrect)
+
 		if toggles.TRACK_IP_PAIRS_DONE:
 			dest = toggles.OUTPUT_PATH + "ip_done_vs_tasks"
 			dataToWrite = [range(0, self.num_tasks+1), self.ips_done_array]
@@ -929,7 +961,7 @@ class SimulationTest(TransactionTestCase):
 			if toggles.REAL_DATA:
 				xMultiplier = len(toggles.CHOSEN_PREDS)
 				for predNum in toggles.CHOSEN_PREDS:
-					ticketCountsLegend.append("Pred " + str(predNum)
+					ticketCountsLegend.append("Pred " + str(predNum))
 
 			else:
 				xMultiplier = toggles.NUM_QUESTIONS
@@ -971,38 +1003,9 @@ class SimulationTest(TransactionTestCase):
 		if toggles.RUN_MULTI_ROUTING:
 			ROUTING_ARRAY.append(routingC) #add the new counts to our running list of counts
 
-		if toggles.DUMMY_TASKS:
-			self.num_placeholders = DummyTask.objects.all().count()
-
 		sim_end = time.time()
 		sim_time = sim_end - sim_start
 		self.run_sim_time = sim_time
-
-		# TODO add cumulative work time and cumulative placeholder time separately
-		# TODO make sure all graphs use appropriate information -- new data members
-		# TODO change return stuff of run_sim to be none of the things it is now
-
-		# save relevant values
-		self.num_tasks_array.append(self.num_tasks)
-
-		if toggles.SIMULATE_TIME:
-			self.simulated_time_array.append(self.simulated_time)
-			self.cum_work_time_array.append(self.cum_work_time)
-			self.cum_placeholder_time_array.append(self.cum_placeholder_time)
-
-		if toggles.TRACK_PLACEHOLDERS:
-			self.num_placeholders_array.append(self.num_placeholders)
-
-		if toggles.TIME_SIMS:
-			self.run_sim_time_array.append(self.run_sim_time)
-			self.pending_eddy_time_array.append(self.pending_eddy_time)
-			self.sim_task_time_array.append(self.sim_task_time)
-			self.worker_done_time_array.append(self.worker_done_time)
-
-		if toggles.TEST_ACCURACY:
-			self.get_incorrects()
-			self.num_incorrect_array.append(self.num_incorrect)
-
 		return
 
 
@@ -1801,6 +1804,19 @@ class SimulationTest(TransactionTestCase):
 		if t.ip_pair == None:
 			print "IP is none"
 
+	def placeholderActiveTest(self, data):
+		if not toggles.TRACK_PLACEHOLDERS:
+			raise Exception("Turn on TRACK_PLACEHOLDERS for this to work correctly")
+
+		for run in range(NUM_SIM):
+			self.run_sim(data)
+			self.cum_work_time # find out if this is everything or just real
+			self.num_placeholders
+			self.num_real_tasks
+		# run multiple simulations and keep track of the number of placeholders
+		# and the number of real tasks
+		# generate appropriate CSVs
+
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
 		"""
@@ -2020,5 +2036,69 @@ class SimulationTest(TransactionTestCase):
 		if toggles.RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
 
-	# def test_dummy(self):
-	# 	self.taskTest()
+	def test_placeholders(self):
+		print "Simulation is being tested"
+
+		if toggles.DEBUG_FLAG:
+			print "Debug Flag Set!"
+			print self.getConfig()
+
+		if toggles.PACKING:
+			toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
+			packageMaker(toggles.OUTPUT_PATH,self.getConfig())
+		if toggles.IDEAL_GRID:
+			self.consensusGrid()
+
+		if toggles.REAL_DATA:
+			sampleData = self.load_data()
+			if toggles.RUN_DATA_STATS:
+				self.output_data_stats(sampleData)
+				self.reset_database()
+			if toggles.RUN_AVERAGE_COST:
+				self.sim_average_cost(sampleData)
+				self.reset_database()
+			if toggles.RUN_SINGLE_PAIR:
+				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+				self.reset_database()
+		else:
+			sampleData = {}
+			syn_load_data()
+
+		if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+			if toggles.DEBUG_FLAG:
+				print "Running: item Routing"
+			self.run_sim(deepcopy(sampleData))
+			self.reset_database()
+
+		if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+			if toggles.DEBUG_FLAG:
+				print "Running: ticket counting"
+			self.run_sim(deepcopy(sampleData))
+			self.reset_database()
+
+		if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+			if toggles.DEBUG_FLAG:
+				print "Running: selectivity amounts over time"
+			self.run_sim(sampleData)
+			self.reset_database()
+
+		#____FOR LOOKING AT ACCURACY OF RUNS___#
+		if toggles.TEST_ACCURACY:
+			correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
+			passedItems = self.get_passed_items(correctAnswers)
+
+
+		if toggles.RUN_OPTIMAL_SIM:
+			countingArr=[]
+			self.reset_database()
+			for i in range(toggles.NUM_SIM):
+				print "running optimal_sim " +str(i)
+				num_tasks = self.optimal_sim(sampleData)
+				countingArr.append(num_tasks)
+				self.reset_database()
+			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
+			generic_csv_write(dest+'.csv',[countingArr])
+			if toggles.DEBUG_FLAG:
+				print "Wrote File: " + dest+'.csv'
+
+		self.placeholderActiveTest(sampleData)
