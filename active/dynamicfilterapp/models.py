@@ -39,6 +39,14 @@ class Item(models.Model):
         self.inQueue = False
         self.save(update_fields=["inQueue"])
 
+    def reset(self):
+        self.hasFailed=False
+        self.isStarted=False
+        self.almostFalse=False
+        self.inQueue=False
+        self.save(update_fields=["hasFailed","isStarted","almostFalse","inQueue"])
+
+
 @python_2_unicode_compatible
 class Question(models.Model):
     """
@@ -254,22 +262,32 @@ class Predicate(models.Model):
     ### Adaptive Consensus Methods
     def _should_change_size(self):
         lower_bound, upper_bound = toggles.CONSENSUS_STATUS_LIMITS
-        if self.consensus_status >= upper_bound and self.consensus_max < toggles.CONSENSUS_SIZE_LIMITS[1]:
-            return 1
-        elif self.consensus_status <= lower_bound and self.consensus_max > toggles.CONSENSUS_SIZE_LIMITS[0]:
-            return -1
+        if self.consensus_status >= upper_bound:
+            if self.consensus_max < toggles.CONSENSUS_SIZE_LIMITS[1]:
+                return 1
+            return 2
+        elif self.consensus_status <= lower_bound:
+            if self.consensus_max > toggles.CONSENSUS_SIZE_LIMITS[0]:
+                return -1
+            return -2
         else:
             return False
 
-    def _change_size(self, dir):
+    def _change_size(self, d):
         #TODO change hardcoded 2 to a toggleable?
-        if dir == 1:
+        if d == 1:
             self.consensus_max = self.consensus_max + 2
-        else:
+        elif d == -1:
             self.consensus_max = self.consensus_max - 2
         self.consensus_status = 0
+        if d == 2:
+            self.consensus_status = 1
+        elif d == -2:
+            self.consensus_status = -1
+        print "Size: "+str(self.consensus_max)
 
     def _update_status(self, ipPair):
+        #TODO find way to modularize this
             if ipPair.consensus_location == 1:
                 self.consensus_status = self.consensus_status - 1
             elif ipPair.consensus_location == 2:
@@ -279,13 +297,28 @@ class Predicate(models.Model):
                 self.consensus_status = self.consensus_status + 1
             elif ipPair.consensus_location == 4:
                 self.consensus_status = self.consensus_status + 3
+            print "Status: "+str(self.consensus_status)
 
 
     def update_consensus(self, ipPair):
         self._update_status(ipPair)
         # update status
-        if self._should_change_size():
-            self._change_size(self._should_change_size)
+        status = self._should_change_size()
+        if status:
+            self._change_size(status)
+
+    def reset(self):
+        self.num_tickets=1
+        self.num_wickets=0
+        self.num_ip_complete=0
+        self.selectivity=0.1
+        self.totalTasks=0
+        self.totalNo=0
+        self.queue_is_full=False
+        self.queue_length=toggles.PENDING_QUEUE_SIZE
+        self.consensus_status=0
+        self.consensus_max=toggles.CUT_OFF
+        self.save(update_fields=["num_tickets","num_wickets","num_ip_complete","selectivity","totalTasks","totalNo","queue_is_full","queue_length"])
 
 
 @python_2_unicode_compatible
@@ -417,6 +450,7 @@ class IP_Pair(models.Model):
         myPred = self.predicate
         votes_cast = self.num_yes + self.num_no
         larger = max(self.num_yes, self.num_no)
+        smaller = min(self.num_yes, self.num_no)
 
         uncertLevel = 2
         if toggles.BAYES_ENABLED:
@@ -433,9 +467,9 @@ class IP_Pair(models.Model):
             return 1
 
         elif larger >= myPred.consensus_max_single:
-            if larger < myPred.consensus_max_single*(1.0/3.0):
+            if smaller < myPred.consensus_max_single*(1.0/3.0):
                 return 1
-            elif larger < myPred.consensus_max_single*(2.0/3.0):
+            elif smaller < myPred.consensus_max_single*(2.0/3.0):
                 return 2
             else:
                 return 3
@@ -464,6 +498,15 @@ class IP_Pair(models.Model):
     def start(self):
         self.isStarted = True
         self.save(update_fields=["isStarted"])
+
+    def reset(self):
+        self.value=0
+        self.num_yes=0
+        self.num_no=0
+        self.isDone=False
+        self.status_votes=0
+        self.inQueue=False
+        self.save(update_fields=["value","num_yes","num_no","isDone","status_votes","inQueue"])
 
 @python_2_unicode_compatible
 class Task(models.Model):
