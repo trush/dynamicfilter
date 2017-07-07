@@ -828,7 +828,6 @@ class SimulationTest(TransactionTestCase):
 							#print "here"
 					else:
 						ip_pair, eddy_time = pending_eddy(workerID)
-
 						self.pending_eddy_time += eddy_time
 
 					# If we should be running a routing test

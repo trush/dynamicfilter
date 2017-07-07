@@ -5,9 +5,9 @@ from responseTimeDistribution import *
 
 
 RUN_NAME = 'SynData_Queue1_Window40_2Q_100I_50Sims_Round1' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-ITEM_TYPE = "Restaurant"
+ITEM_TYPE = "Hotel"
 
-INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
+INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
@@ -151,7 +151,7 @@ MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 MAX_TASKS_OUT = MAX_TASKS
 
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
@@ -190,6 +190,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'CUT_OFF','NUM_WORKERS','DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
             'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS', 'DUMMY_TASK_OPTION','GEN_GRAPHS',
+            'NUM_QUESTIONS', 'NUM_ITEMS', 'SELECTIVITY_GRAPH', 'switch_list',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
