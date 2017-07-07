@@ -379,13 +379,14 @@ class SimulationTest(TransactionTestCase):
 		global SAMPLING_ARRAY
 		start = time.time()
 		SAMPLING_ARRAY = []
-		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
 		Task.objects.all().delete()
 		DummyTask.objects.all().delete()
-		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_ip_complete=0,
-			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False,queue_length=toggles.PENDING_QUEUE_SIZE)
-
-		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
+		for i in Item.objects.all():
+			i.reset()
+		for p in Predicate.objects.all():
+			p.reset()
+		for ip in IP_Pair.objects.all():
+			ip.reset()
 
 		self.num_tasks, self.num_incorrect, self.num_placeholders = 0, 0, 0
 		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time = 0, 0, 0, 0
