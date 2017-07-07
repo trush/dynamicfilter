@@ -288,24 +288,53 @@ class Predicate(models.Model):
 
     def _update_status(self, ipPair):
         #TODO find way to modularize this
-            if ipPair.consensus_location == 1:
-                self.consensus_status = self.consensus_status - 1
-            elif ipPair.consensus_location == 2:
-                if self.consensus_status < 0:
-                    self.consensus_status = 0
-            elif ipPair.consensus_location == 3:
-                self.consensus_status = self.consensus_status + 1
-            elif ipPair.consensus_location == 4:
-                self.consensus_status = self.consensus_status + 3
-            print "Status: "+str(self.consensus_status)
+        if ipPair.consensus_location == 1:
+            self.consensus_status = self.consensus_status - 1
+        elif ipPair.consensus_location == 2:
+            if self.consensus_status < 0:
+                self.consensus_status = 0
+        elif ipPair.consensus_location == 3:
+            self.consensus_status = self.consensus_status + 1
+        elif ipPair.consensus_location == 4:
+            self.consensus_status = self.consensus_status + 3
+        print "Status: "+str(self.consensus_status)
 
 
     def update_consensus(self, ipPair):
-        self._update_status(ipPair)
-        # update status
-        status = self._should_change_size()
-        if status:
-            self._change_size(status)
+        mode = 2
+
+        if mode == 1:
+            ### TESTING RENO slow start method
+            loc = ipPair.consensus_location
+            if loc == 1:
+                self.consensus_status = self.consensus_status + 1
+            elif loc == 3:
+                self.consensus_status = self.consensus_status/2
+            elif loc == 4:
+                self.consensus_status = self.consensus_status/3
+            new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
+            if new_max < toggles.CONSENSUS_SIZE_LIMITS[0]:
+                new_max=toggles.CONSENSUS_SIZE_LIMITS[0]
+            print "Size: "+str(new_max)
+            self.consensus_max = new_max
+        elif mode == 2:
+            ### CUTE alg. method.
+            loc = ipPair.consensus_location
+            if loc == 1:
+                self.consensus_status = self.consensus_status + 1
+            elif (loc == 3) or (loc == 4):
+                self.consensus_status = 0
+            new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
+            if new_max < toggles.CONSENSUS_SIZE_LIMITS[0]:
+                new_max = toggles.CONSENSUS_SIZE_LIMITS[0]
+            print "Size: "+str(new_max)
+            self.consensus_max = new_max
+        elif mode == 0:
+            self._update_status(ipPair)
+            # update status
+            status = self._should_change_size()
+            if status:
+                self._change_size(status)
 
     def reset(self):
         self.num_tickets=1
