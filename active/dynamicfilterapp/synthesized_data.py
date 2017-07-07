@@ -16,8 +16,8 @@ def syn_load_data():
 	for ID in range(toggles.NUM_QUESTIONS):
 		q = Question.objects.create(question_ID=ID, question_text="question" + str(ID))
 		pred = Predicate.objects.create(predicate_ID=ID, question=q)
-		pred.setTrueSelectivity(switch_list[0][1+ID][0])
-		pred.setTrueAmbiguity(switch_list[0][1+ID][1])
+		pred.setTrueSelectivity(toggles.switch_list[0][1+ID][0])
+		pred.setTrueAmbiguity(toggles.switch_list[0][1+ID][1])
 
 	for ID in range(toggles.NUM_ITEMS):
 		i = Item.objects.create(item_ID=ID, name="item " + str(ID), item_type="syn")
@@ -36,7 +36,7 @@ def syn_answer(chosenIP, switch, numTasks):
 	# SIN tuple is of the form (SIN, amp, period, samplingFrac, trans)
 	#TODO: If trans is 0, it starts at the selectvity of the previous timestep
 
-	timeStepInfo = switch_list[switch]
+	timeStepInfo = toggles.switch_list[switch]
 
 	for predNum in range(toggles.NUM_QUESTIONS):
 

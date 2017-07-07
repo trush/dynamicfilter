@@ -5,15 +5,14 @@ from responseTimeDistribution import *
 
 RUN_NAME = 'ConsensusTests' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
-ITEM_TYPE = "Restaurant"
-
-INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
+ITEM_TYPE = "Hotel"
+INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-IP_PAIR_DATA_FILE = 'real_data1.csv'
+IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
-DEBUG_FLAG = False # useful print statements turned on
+DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
 # This desc. is old and some of the variable names may no longer match, but the
@@ -109,9 +108,9 @@ EDDY_SYS = 1
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
-PENDING_QUEUE_SIZE = 1
+PENDING_QUEUE_SIZE = 5
 
-CHOSEN_PREDS = [1,2] # predicates that will be used when run on real data
+CHOSEN_PREDS = [3,4] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
 # list of 2 predicates (for now). They will be passed items in the order
 # they appear in the list.
@@ -138,7 +137,7 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 40
 
-ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
@@ -151,7 +150,7 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 ###################### CONFIGURING TESTING ##################################
 #############################################################################
 
-REAL_DATA = True #if set to false, will use synthetic data (edit in syndata file)
+REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
 
 
 DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tasks
@@ -170,11 +169,8 @@ SELECTIVITY_GRAPH = False
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
-
-switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (400, ((SIN, .1, 300, .05, .6), 0.68), (0.6, 0.87))]
-#switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .1, 400, .05, .6), 0.68), (0.6, 0.87))]
-#switch_list = [(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), (600, (0.8, 0.68), (0.7, 0.87)), (900, (0.8, 0.68), (0.75, 0.87))]
-
+# tuples of form (task number, (select,amb), (select,amb))
+switch_list = [(0, (0.9, 0.75), (0.5, 0.75))]
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
@@ -207,36 +203,41 @@ NUM_SIM = 10 # how many simulations to run?
 TIME_SIMS = False # track the computer runtime of simulations
 
 SIMULATE_TIME = False # simulate time passing/concurrency
-MAX_TASKS = 20 # maximum number of active tasks in a simulation with time
+MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
-MAX_TASKS_OUT = 5
+MAX_TASKS_OUT = MAX_TASKS
 
-RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_NO_TASKS = False # keeps track of the number of times the next worker has no possible task
+TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
-TEST_ACCURACY = True
-ACCURACY_COUNT = True
+TEST_ACCURACY = False
+ACCURACY_COUNT = False
 
 OUTPUT_SELECTIVITIES = False
 
-RUN_CONSENSUS_COUNT = True # keeps track of the number of tasks needed before consensus for each IP
+RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
 
-CONSENSUS_LOCATION_STATS = True
+CONSENSUS_LOCATION_STATS = False
 
-VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
+VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
-IDEAL_GRID = True #draws the vote grid rules for our consensus metric
+IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
+PACKING=False # Enable for "Packing" of outputs into a folder and generation of config.ini
 
+if GEN_GRAPHS:
+    print ''
+    reply = raw_input("GEN_GRAPHS is turned on. Do you actually want graphs? Enter y for yes, n for no.  ")
+    if reply == "n":
+        raise Exception ("Set GEN_GRAPHS to False and try again!")
 
 # List of toggles for debug printing and Config.ini generation
             ##### PLEASE UPDATE AS NEW TOGGLES ADDED #####
@@ -251,6 +252,6 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
             'MAX_TASKS','BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
-            'TRACK_NO_TASKS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
+            'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
             'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST'
 ]
