@@ -9,7 +9,7 @@ from collections import defaultdict, Counter
 import os.path
 from os import makedirs
 import csv
-Suppress = True
+Suppress = False #TODO change back
 
 def dest_resolver(dest):
     """
@@ -168,6 +168,10 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     plt.xlabel(labels[0])
     plt.ylabel(labels[1])
 
+    # puff up the y axis some
+    y_max = plt.axis()[3]
+    plt.ylim(ymax=y_max*1.25)
+    
     # Title the graph
     plt.title(title)
     # Add legend
@@ -207,6 +211,10 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
     plt.xlabel(labels[0])
     plt.ylabel(labels[1])
 
+    # puff up the y axis some
+    y_max = plt.axis()[3]
+    plt.ylim(ymax=y_max*1.25)
+
     # Title the graph
     plt.title(title)
     plt.savefig(dest_resolver(dest))
@@ -228,10 +236,15 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
 
         elif split=='horizontal':
             width = 0.9
-            plt.bar(pos,dataL[0],width)
-            for i in range(1,len(dataL)):
+            plt.bar(pos,dataL[0],width, label = legend[0])
+            bottom = [0]*(len(dataL[0]))
+            for i in range(1,len(dataL)): # len(dataL)
                 ind = pos + (i*width)
-                plt.bar(pos,dataL[i],width,bottom=dataL[i-1])
+
+                for j in range(len(bottom)):
+                    bottom[j] += dataL[i-1][j]
+
+                plt.bar(pos,dataL[i],width,bottom=bottom, label = legend[i])
     except Exception as e:
         if Suppress:
             print "When plotting " + dest + " encountered "+str(e)
@@ -244,6 +257,10 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
     # Label the axes
     plt.xlabel(labels[0])
     plt.ylabel(labels[1])
+
+    # puff up the y axis some
+    y_max = plt.axis()[3]
+    plt.ylim(ymax=y_max*1.25)
 
     # Title the graph
     plt.title(title)

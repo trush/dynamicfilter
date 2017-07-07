@@ -2,7 +2,7 @@ from simulation_files.plotScript import *
 import toggles
 import numpy as np
 
-
+task_counts = [[10, 11], [3, 3], [], [3, 3], [], [3, 3], []]
 def placeholder_graphing(task_counts, task_dest, cum_times, cum_dest):
     """
     Graphing script for the placeholderActiveTest method in test_simulations
@@ -15,14 +15,15 @@ def placeholder_graphing(task_counts, task_dest, cum_times, cum_dest):
     real_avgs = task_counts[5]
     real_stds = task_counts[6]
 
-    yL = [num_tasks_avgs, real_avgs, placeholders_avgs]
+    #yL = [num_tasks_avgs, real_avgs, placeholders_avgs]
+    yL = [[3, 4], [3, 2], [3, 1], [3, 6]]
     errL = [num_tasks_stds, real_stds, placeholders_stds]
 
     xL = task_array_sizes
-    legend = ["Total tasks", "'Real' Tasks", "Placeholder Tasks"]
+    legend = ["Total tasks", "'Real' Tasks", "Placeholder Tasks", "blah"]
     title = "Average Relative Task Counts for " + str(toggles.NUM_SIM) + " Simulations"
     labels = ("Size of Active Tasks Array", "Avg. Number of Tasks During Simulations")
-    split_bar_graph_gen(yL, xL, task_dest+".png", legend, labels = labels, title = title, split = 'vertical',
+    split_bar_graph_gen(yL, xL, task_dest+".png", legend, labels = labels, title = title, split = 'horizontal',
                         stderrL = errL)
 
     if toggles.DEBUG_FLAG:
@@ -45,3 +46,5 @@ def placeholder_graphing(task_counts, task_dest, cum_times, cum_dest):
 
     if toggles.DEBUG_FLAG:
         print "Generated graph: " + cum_dest + ".png"
+
+placeholder_graphing(task_counts, "new_aa_placeholderLegend", [[10], [10], [1], [20], [1]], "new_aa_cumulative")
