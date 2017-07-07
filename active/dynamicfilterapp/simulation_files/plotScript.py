@@ -16,6 +16,7 @@ def dest_resolver(dest):
     given a filename (ending in .png) returns a version which wont overide data
     """
     if dest[-4:] != '.png' and dest[-4:] != '.csv':
+        print dest
         raise ValueError('Invalid File Extention')
     if os.path.isfile(dest):
         num = 1
@@ -210,7 +211,7 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
     plt.title(title)
     plt.savefig(dest_resolver(dest))
 
-def split_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = '',split='vertical'):
+def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',split='vertical', stderrL = None):
     knownSplits=('vertical','horizontal')
     if len(dataL)<= 1:
         raise ValueError("not enough data!")
@@ -220,10 +221,10 @@ def split_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = '',split=
     pos = np.arange(len(dataL[0]))
     try:
         if split=='vertical':
-            width = 0.9/len(dataL[0])
+            width = 0.5/len(dataL[0])
             for i in range(len(dataL)):
                 ind = pos + (i*width)
-                plt.bar(ind,dataL[i],width)
+                plt.bar(ind,dataL[i],width, yerr=stderrL[i], label = legend[i])
 
         elif split=='horizontal':
             width = 0.9
@@ -237,7 +238,8 @@ def split_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = '',split=
             return
         else:
             raise e
-    plt.xticks(pos,legend)
+    plt.xticks(pos,xL)
+    plt.legend()
 
     # Label the axes
     plt.xlabel(labels[0])
