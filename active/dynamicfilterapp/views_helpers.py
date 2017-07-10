@@ -97,9 +97,9 @@ def pending_eddy(ID):
 
 	#MAB_system
 	elif (toggles.EDDY_SYS == 4):
-		startedIPs = incompleteIP.filter(isStarted=True)
-		if len(startedIPs) != 0:
-			incompleteIP = startedIPs
+		# startedIPs = incompleteIP.filter(isStarted=True)
+		# if len(startedIPs) != 0:
+		# 	incompleteIP = startedIPs
 		predicates = [ip.predicate for ip in incompleteIP]
 		chosenPred = selectArm(predicates)
 		predIPs = incompleteIP.filter(predicate=chosenPred)
@@ -107,9 +107,9 @@ def pending_eddy(ID):
 
 	#decreasing MAB system
 	elif(toggles.EDDY_SYS == 5):
-		startedIPs = incompleteIP.filter(isStarted=True)
-		if len(startedIPs) != 0:
-			incompleteIP = startedIPs
+		# startedIPs = incompleteIP.filter(isStarted=True)
+		# if len(startedIPs) != 0:
+		# 	incompleteIP = startedIPs
 		predicates = [ip.predicate for ip in incompleteIP]
 		chosenPred = annealingSelectArm(predicates)
 		predIPs = incompleteIP.filter(predicate=chosenPred)
@@ -117,11 +117,11 @@ def pending_eddy(ID):
 
 	#rank-based MAB system
 	elif(toggles.EDDY_SYS == 6):
-		startedIPs = incompleteIP.filter(isStarted=True)
-		if len(startedIPs) != 0:
-			incompleteIP = startedIPs
+		# startedIPs = incompleteIP.filter(isStarted=True)
+		# if len(startedIPs) != 0:
+		# 	incompleteIP = startedIPs
 		predicates = [ip.predicate for ip in incompleteIP]
-		chosenPred = rankSelectArm(predicates)
+		chosenPred = annealingSelectArm(predicates)
 		predIPs = incompleteIP.filter(predicate=chosenPred)
 		chosenIP = choice(predIPs)
 
@@ -180,24 +180,24 @@ def annealingSelectArm(predList):
 		return random.choice(predList)
 
 #________RANK-BASED MAB________#
-def rankSelectArm(predList):
-	countList = np.array([(pred.count) for pred in predList])
-	countSum = sum(countList)
-	epsilon = 1 / math.log(countSum + 0.0000001)
-	rNum = random.random()
-	rankList = np.array([(pred.rank) for pred in predList])
-	maxRank = max(rankList)
+# def rankSelectArm(predList):
+# 	countList = np.array([(pred.count) for pred in predList])
+# 	countSum = sum(countList)
+# 	epsilon = 1 / math.log(countSum + 0.0000001)
+# 	rNum = random.random()
+# 	rankList = np.array([(pred.rank) for pred in predList])
+# 	maxRank = max(rankList)
 	
-	if rNum > epsilon:
-		maxPredlist = [pred for pred in predList if pred.rank == maxRank]
-		return random.choice(maxPredlist)
+# 	if rNum > epsilon:
+# 		maxPredlist = [pred for pred in predList if pred.rank == maxRank]
+# 		return random.choice(maxPredlist)
 	
-	else:
-		newPredlist = [pred for pred in predList if pred.rank != maxRank]
-		if len(newPredlist)!= 0:
-			return random.choice(newPredlist)
-		else:
-			return random.choice(predList)
+# 	else:
+# 		newPredlist = [pred for pred in predList if pred.rank != maxRank]
+# 		if len(newPredlist)!= 0:
+# 			return random.choice(newPredlist)
+# 		else:
+# 			return random.choice(predList)
 
 def give_task(active_tasks, workerID):
 	ip_pair, eddy_time = pending_eddy(workerID)
@@ -316,33 +316,40 @@ def useLottery(ipSet):
 	return chosenIP
 
 def updateCounts(workerTask, chosenIP):
-    if chosenIP is not None:
-        chosenIP.refresh_from_db()
-        workerTask.refresh_from_db()
-        # update stats counting tasks completed
-        chosenIP.collect_task()
-        chosenIP.refresh_from_db()
+	if chosenIP is not None:
+		chosenIP.refresh_from_db()
+		workerTask.refresh_from_db()
+		# update stats counting tasks completed
+		chosenIP.collect_task()
+		chosenIP.refresh_from_db()
 
-        # update stats counting numbers of votes (only if IP not completed)
-        chosenIP.record_vote(workerTask)
-        chosenIP.refresh_from_db()
+		# update stats counting numbers of votes (only if IP not completed)
+		chosenIP.record_vote(workerTask)
+		chosenIP.refresh_from_db()
+		print "pred ", str(chosenIP.predicate), "post record_vote selectivity: ", str(chosenIP.predicate.calculatedSelectivity)
+		print "pred ", str(chosenIP.predicate), "post record_vote rank: ", str(chosenIP.predicate.rank)
+		print str(chosenIP.predicate), "record vote avg_tasks per pair: ", str(chosenIP.predicate.avg_tasks_per_pair)
+		print str(chosenIP.predicate), "record vote avg_completion_time: ", str(chosenIP.predicate.avg_completion_time)
+		print str(chosenIP.predicate), "number of tasks: ", str(chosenIP.predicate.totalTasks) 
+		print str(chosenIP.predicate), "post record_vote cost: ", str(chosenIP.predicate.cost)
 
-        # if we're using queueing, remove the IP pair from the queue if appropriate
-        if toggles.EDDY_SYS == 1:
-            chosenIP.remove_from_queue()
-            chosenIP.refresh_from_db()
+		# if we're using queueing, remove the IP pair from the queue if appropriate
+		if toggles.EDDY_SYS == 1:
+			chosenIP.remove_from_queue()
+			chosenIP.refresh_from_db()
 
-        chosenIP.refresh_from_db()
-        chosenIP.predicate.refresh_from_db()
-        # change queue length accordingly if appropriate
-        if toggles.ADAPTIVE_QUEUE:
-            chosenIP.predicate.adapt_queue_length()
-            chosenIP.predicate.refresh_from_db()
+		chosenIP.refresh_from_db()
+		chosenIP.predicate.refresh_from_db()
+		# change queue length accordingly if appropriate
 
-        chosenIP.predicate.check_queue_full()
-        chosenIP.predicate.refresh_from_db()
-    else:
-        pass
+		if toggles.ADAPTIVE_QUEUE:
+			chosenIP.predicate.adapt_queue_length()
+			chosenIP.predicate.refresh_from_db()
+
+		chosenIP.predicate.check_queue_full()
+		chosenIP.predicate.refresh_from_db()
+	else:
+		pass
 
 #____________IMPORT/EXPORT CSV FILE____________#
 def output_selectivities(run_name):
@@ -365,8 +372,8 @@ def output_cost(run_name):
 	for p in toggles.CHOSEN_PREDS:
 		pred = Predicate.objects.all().get(pk=p+1)
 		f.write(pred.question.question_text + '\n')
-		avg_cost = 0.0;
-		num_finished = 0.0;
+		avg_cost = 0.0
+		num_finished = 0.0
 
 		for ip in IP_Pair.objects.filter(predicate=pred, status_votes=5):
 			cost = ip.num_yes + ip.num_no

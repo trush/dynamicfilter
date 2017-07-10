@@ -321,7 +321,7 @@ class SimulationTest(TransactionTestCase):
 
 		end = time.time()
 		runTime = end - start
-		sim_task_time += runTime
+		self.sim_task_time += runTime
 		return t
 
 	def pick_worker(self, busyWorkers, triedWorkers):
@@ -550,7 +550,7 @@ class SimulationTest(TransactionTestCase):
 					index = idD[pred]
 					sortedFalseIPs[index].append((item,pred))
 
-		num_tasks = 0
+		self.num_tasks = 0
 		# Do the false ones manually
 		# for each IP pair (in the right order)
 		for ls in sortedFalseIPs:
@@ -560,13 +560,13 @@ class SimulationTest(TransactionTestCase):
 				while not ip_pair.isDone:
 					workerID = self.pick_worker([0], [0])
 					self.simulate_task(ip_pair, workerID, dictionary)
-					num_tasks += 1
+					self.num_tasks += 1
 
 		# find the set of IP pairs still not eliminated
 		stillToDo = IP_Pair.objects.filter(isDone=False)
 		# if that list is empty, return now
 		if not stillToDo:
-			return num_tasks
+			return self.num_tasks
 
 		# else do the rest of the pairs randomly (all tasks per pair at once)
 		ip_pair = choice(stillToDo)
@@ -578,15 +578,15 @@ class SimulationTest(TransactionTestCase):
 
 			if not IP_Pair.objects.filter(isDone=False):
 				ip_pair = None
-				return num_tasks
+				return self.num_tasks
 
 			elif ip_pair.isDone:
 				ip_pair = choice(IP_Pair.objects.filter(isDone=False))
 
 			self.simulate_task(ip_pair, workerID, dictionary)
-			num_tasks += 1
+			self.num_tasks += 1
 
-		return num_tasks
+		return self.num_tasks
 
 	def run_sim(self, dictionary):
 		"""
@@ -895,7 +895,7 @@ class SimulationTest(TransactionTestCase):
 					if toggles.REAL_DATA :
 						task = self.simulate_task(ip_pair, workerID, 0, dictionary)
 					else:
-						task = self.syn_simulate_task(ip_pair, workerID, 0, switch, num_tasks)
+						task = self.syn_simulate_task(ip_pair, workerID, 0, switch, self.num_tasks)
 
 					move_window()
 					self.num_tasks += 1
@@ -911,7 +911,7 @@ class SimulationTest(TransactionTestCase):
 								ticketNums[count].append(predicate.num_tickets)
 					
 					if PRED_RANK_COUNT:
-						if REAL_DATA:
+						if toggles.REAL_DATA:
 							for predNum in range(len(CHOSEN_PREDS)):
 								predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
 								predicate.refresh_from_db()
@@ -923,7 +923,7 @@ class SimulationTest(TransactionTestCase):
 								ranks[count].append(predicate.rank)
 
 					if PRED_SCORE_COUNT:
-						if REAL_DATA:
+						if toggles.REAL_DATA:
 							for predNum in range(len(CHOSEN_PREDS)):
 								predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
 								predicate.refresh_from_db()
@@ -950,7 +950,7 @@ class SimulationTest(TransactionTestCase):
 
 					#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 					#so we need index 0 of the tuple to get the time at which the switch should occur
-					if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] == num_tasks:
+					if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] == self.num_tasks:
 						switch += 1
 
 		if toggles.SIMULATE_TIME:
@@ -993,7 +993,7 @@ class SimulationTest(TransactionTestCase):
 			title = RUN_NAME + ' pred score'
 			dataToWrite = scores
 			generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
-			if REAL_DATA:
+			if toggles.REAL_DATA:
 				numPreds = len(CHOSEN_PREDS)
 				for predNum in range(numPreds):
 					predScoreLegend.append("Pred " + str(CHOSEN_PREDS[predNum]) +' eddy ' + str(EDDY_SYS))
@@ -1001,7 +1001,7 @@ class SimulationTest(TransactionTestCase):
 				numPreds = NUM_QUESTIONS
 				for predNum in range(numPreds):
 					predScoreLegend.append("Pred " + str(CHOSEN_PREDS[predNum]) + ' eddy ' + str(EDDY_SYS))
-			multi_line_graph_gen([range(num_tasks)]*numPreds, scores, predScoreLegend,
+			multi_line_graph_gen([range(self.num_tasks)]*numPreds, scores, predScoreLegend,
 								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "predScore.png",
 								labels = ("Number of tasks", "score"))
 
@@ -1019,7 +1019,7 @@ class SimulationTest(TransactionTestCase):
 				numPreds = NUM_QUESTIONS
 				for predNum in range(numPreds):
 					predRankLegend.append("Pred " + str(predNum))
-			multi_line_graph_gen([range(num_tasks)]*numPreds, ranks, predRankLegend,
+			multi_line_graph_gen([range(self.num_tasks)]*numPreds, ranks, predRankLegend,
 								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "predRank.png",
 								labels = ("Number of tasks", "rank"))
 
@@ -1314,10 +1314,10 @@ class SimulationTest(TransactionTestCase):
 
 
 		for val in uncertainties:
-			num_tasks, incorrects = self.runSimTrackAcc(val, data)
+			self.num_tasks, incorrects = self.runSimTrackAcc(val, data)
 
-			numTasksAvgs.append(np.average(num_tasks))
-			numTasksStdDevs.append(np.std(num_tasks))
+			numTasksAvgs.append(np.average(self.num_tasks))
+			numTasksStdDevs.append(np.std(self.num_tasks))
 
 			incorrectAvgs.append(np.average(incorrects))
 			incorrectStdDevs.append(np.std(incorrects))
@@ -1981,8 +1981,8 @@ class SimulationTest(TransactionTestCase):
 			self.reset_database()
 			for i in range(toggles.NUM_SIM):
 				print "running optimal_sim " +str(i)
-				num_tasks = self.optimal_sim(sampleData)
-				countingArr.append(num_tasks)
+				self.num_tasks = self.optimal_sim(sampleData)
+				countingArr.append(self.num_tasks)
 				self.reset_database()
 			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
 			generic_csv_write(dest+'.csv',[countingArr])

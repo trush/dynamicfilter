@@ -16,7 +16,7 @@ IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
-DEBUG_FLAG = False # useful print statements turned on
+DEBUG_FLAG = True # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
 
@@ -109,7 +109,7 @@ GEN_GRAPHS = True # if true, any tests run will generate their respective graphs
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
-NUM_ITEMS = 100
+NUM_ITEMS = 90
 SIN = -1
 
 SELECTIVITY_GRAPH = False
@@ -118,7 +118,7 @@ SELECTIVITY_GRAPH = False
 # selectvity of the previous timestep
 #switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
  #(time,(selectivity,ambiguity), (...))
-switch_list = [(0, (0.8, 0.6), (0.5, 0.6)), (500, (0.5, 0.6), (0.8, 0.6)), (1500, (0.8, 0.6), (0.5, 0.6))]
+switch_list = [(0, (0.8, 0.3), (0.3, 0.3))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -184,7 +184,7 @@ OUTPUT_COST = False
 
 PRED_SCORE_COUNT = True
 
-PRED_RANK_COUNT = False
+PRED_RANK_COUNT = True
 
 PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
 
