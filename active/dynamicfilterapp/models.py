@@ -302,9 +302,11 @@ class Predicate(models.Model):
 
     def update_consensus(self, ipPair):
         mode = 2
+        old_max = self.consensus_max
+        new_max = old_max
 
+        ### TESTING RENO slow start method
         if mode == 1:
-            ### TESTING RENO slow start method
             loc = ipPair.consensus_location
             if loc == 1:
                 self.consensus_status = self.consensus_status + 1
@@ -317,8 +319,9 @@ class Predicate(models.Model):
                 new_max=toggles.CONSENSUS_SIZE_LIMITS[0]
             print "Size: "+str(new_max)
             self.consensus_max = new_max
+
+        ### CUTE alg. method.
         elif mode == 2:
-            ### CUTE alg. method.
             loc = ipPair.consensus_location
             if loc == 1:
                 self.consensus_status = self.consensus_status + 1
@@ -329,12 +332,18 @@ class Predicate(models.Model):
                 new_max = toggles.CONSENSUS_SIZE_LIMITS[0]
             print "Size: "+str(new_max)
             self.consensus_max = new_max
+
+        ## WEIRD AF mode
         elif mode == 0:
             self._update_status(ipPair)
             # update status
             status = self._should_change_size()
             if status:
                 self._change_size(status)
+
+        if new_max>old_max:
+            return True
+        return False
 
     def reset(self):
         self.num_tickets=1
@@ -507,7 +516,16 @@ class IP_Pair(models.Model):
             return 0
 
     def found_consensus(self):
-        return bool(self._consensus_finder())
+        if not toggles.ADAPTIVE_CONSENSUS:
+            return bool(self._consensus_finder())
+        if not bool(self._consensus_finder()):
+            return False
+        if self.predicate.update_consensus(self):
+            print "Saved Pair from being called too early"
+            return False
+        else:
+            return True
+
 
     #@cached_property
     @property
