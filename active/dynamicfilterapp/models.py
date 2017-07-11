@@ -115,7 +115,7 @@ class Predicate(models.Model):
 		self.save(update_fields=["trueAmbiguity"])
 
 	def update_cost(self):
-		self.cost = self.avg_tasks_per_pair * self.avg_completion_time
+		self.cost = self.avg_tasks_per_pair * (self.avg_completion_time/100)
 		return self.cost
 	
 	def update_rank(self):

@@ -3,15 +3,11 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'SynDataNEW' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'test' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
-#We have 5 questions for hotels right now, 10 for restaurants
-NUM_QUEST = 5 #used for accuracy testing
-
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
-OUTPUT_PATH = 'dynamicfilterapp/simulation_files/'
-
+OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
@@ -55,7 +51,7 @@ EDDY_SYS = 6
 # 4 - epsilon-greedy MAB
 # 5 - annealing-epsilon-greedy MAB
 
-PENDING_QUEUE_SIZE = 1
+PENDING_QUEUE_SIZE = 5
 
 CHOSEN_PREDS = [4,2] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
@@ -105,7 +101,7 @@ DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tas
 DUMMY_TASK_OPTION = 0
 # 0 gives a complete placeholder task
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
@@ -118,12 +114,12 @@ SELECTIVITY_GRAPH = False
 # selectvity of the previous timestep
 #switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
  #(time,(selectivity,ambiguity), (...))
-switch_list = [(0, (0.8, 0.3), (0.3, 0.3))]
+switch_list = [(0, (0.8, 0.3), (0.3, 0.3))]#, (800, (0.3, 0.3), (0.8, 0.3))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
-RESPONSE_SAMPLING_REPLACEMENT = True # decides if we should sample our response data with or without replacement
+RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response data with or without replacement
 
 RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "EDDY_SYS"
@@ -156,13 +152,13 @@ SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
-MAX_TASKS_OUT = 5
+MAX_TASKS_OUT = MAX_TASKS
 
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
+TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
