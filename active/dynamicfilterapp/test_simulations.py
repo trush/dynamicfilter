@@ -1920,11 +1920,15 @@ class SimulationTest(TransactionTestCase):
 					accCount.append(num_incorrect)
 				if toggles.RUN_CONSENSUS_COUNT or toggles.VOTE_GRID:
 					donePairs = IP_Pair.objects.filter(Q(num_no__gt=0)|Q(num_yes__gt=0))
-					if toggles.TEST_ACCURACY and toggles.REAL_DATA:
+					if toggles.TEST_ACCURACY:
 						goodPairs, badPairs = [], []
 						for pair in donePairs:
 							val = bool((pair.num_yes-pair.num_no)>0)
-							if (correctAnswers[(pair.item,pair.predicate)]) == val:
+							if toggles.REAL_DATA:
+								correct = ((correctAnswers[(pair.item,pair.predicate)]) == val)
+							else:
+								correct = (pair.true_answer == val)
+							if correct:
 								goodArray.append(pair.num_no+pair.num_yes)
 								goodPoints.append((pair.num_no,pair.num_yes))
 							else:
