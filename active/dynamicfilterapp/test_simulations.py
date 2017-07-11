@@ -1001,10 +1001,12 @@ class SimulationTest(TransactionTestCase):
 	###___HELPERS THAT WRITE OUT STATS___###
 	# TODO write this
 	def get_incorrects(self):
-		correct_answers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
-		should_pass = self.get_passed_items(correct_answers)
-		num_incorrect = self.final_item_mismatch(should_pass)
-
+		if toggles.REAL_DATA:
+			correct_answers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
+			should_pass = self.get_passed_items(correct_answers)
+		else:
+			should_pass = self.syn_get_passed_items()
+		self.num_incorrect = self.final_item_mismatch(should_pass)
 
 	def get_passed_items(self, correctAnswers):
 		#go through correct answers dictionary and set the "should pass" parameter to true for
@@ -1014,8 +1016,22 @@ class SimulationTest(TransactionTestCase):
 		for item in Item.objects.all():
 			if all (correctAnswers[item, predicate] == True for predicate in predicates):
 				item.shouldPass = True
-				item.save()
+				item.save(update_fields=["shouldPass"])
 		return Item.objects.filter(shouldPass = True)
+
+	def syn_get_passed_items(self):
+		for item in Item.objects.all():
+			relevant_pairs = IP_Pair.objects.filter(item=item)
+			passed = True
+			for pair in relevant_pairs:
+				if pair.true_answer== False:
+					passed=False
+			item.shouldPass=passed
+			item.save(update_fields=["shouldPass"])
+		return Item.objects.filter(shouldPass = True)
+
+
+
 
 	def final_item_mismatch(self, passedItems):
 		"""
@@ -1858,7 +1874,7 @@ class SimulationTest(TransactionTestCase):
 			self.reset_database()
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
-		if toggles.TEST_ACCURACY:
+		if toggles.TEST_ACCURACY and toggles.REAL_DATA:
 			correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
 			passedItems = self.get_passed_items(correctAnswers)
 
@@ -1899,12 +1915,12 @@ class SimulationTest(TransactionTestCase):
 				runTasksArray.append(self.num_tasks)
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
-				if toggles.TEST_ACCURACY:
+				if toggles.TEST_ACCURACY and toggles.REAL_DATA:
 					num_incorrect = self.final_item_mismatch(passedItems)
 					accCount.append(num_incorrect)
 				if toggles.RUN_CONSENSUS_COUNT or toggles.VOTE_GRID:
 					donePairs = IP_Pair.objects.filter(Q(num_no__gt=0)|Q(num_yes__gt=0))
-					if toggles.TEST_ACCURACY:
+					if toggles.TEST_ACCURACY and toggles.REAL_DATA:
 						goodPairs, badPairs = [], []
 						for pair in donePairs:
 							val = bool((pair.num_yes-pair.num_no)>0)
