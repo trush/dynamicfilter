@@ -4,9 +4,10 @@ from validator import validate_positive
 import subprocess
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
+from django.db.models import Q
 from scipy.special import btdtr
 import toggles
-import math
+import random
 
 @python_2_unicode_compatible
 class Item(models.Model):
@@ -90,7 +91,7 @@ class Predicate(models.Model):
     _consensus_status = models.IntegerField(default=0)              # used in adaptive consensus for bookeeping
     _consensus_uncertainty_threshold = models.FloatField(default=toggles.UNCERTAINTY_THRESHOLD) # used for bayes stuff (see toggles)
     _consensus_decision_threshold   = models.FloatField(default=toggles.DECISION_THRESHOLD)     # used for bayes stuff (see toggles)
-
+    consensus_max_threshold = models.IntegerField(default=toggles.W_MAX) #TODO: doccument, rename?
     @property
     def consensus_max(self):
         if not toggles.PREDICATE_SPECIFIC:
@@ -301,11 +302,12 @@ class Predicate(models.Model):
 
 
     def update_consensus(self, ipPair):
-        mode = 2
+        mode = 1
         old_max = self.consensus_max
         new_max = old_max
 
         ### TESTING RENO slow start method
+        ### NOT a perfect implimentation of reno
         if mode == 1:
             loc = ipPair.consensus_location
             if loc == 1:
@@ -327,11 +329,32 @@ class Predicate(models.Model):
                 self.consensus_status = self.consensus_status + 1
             elif (loc == 3) or (loc == 4):
                 self.consensus_status = 0
+                print "Vote: ("+str(ipPair.num_no)+","+str(ipPair.num_yes)+") caused growth"
             new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
             if new_max < toggles.CONSENSUS_SIZE_LIMITS[0]:
                 new_max = toggles.CONSENSUS_SIZE_LIMITS[0]
             print "Size: "+str(new_max)
             self.consensus_max = new_max
+
+        ### CUBIC alg.
+        elif mode == 3:
+            #TODO fix weird max=15 problem?
+            loc = ipPair.consensus_location
+            if (loc == 3) or (loc == 4):
+                self.consensus_status=0
+                self.consensus_max_threshold = (toggles.CONSENSUS_SIZE_LIMITS[1]-self.consensus_max)
+                print "Vote: ("+str(ipPair.num_no)+","+str(ipPair.num_yes)+") caused growth"
+            else:
+                self.consensus_status+=1
+            k = int(self.consensus_max_threshold*toggles.CUBIC_B/toggles.CUBIC_C)**(1.0/3.0)
+            new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - int((((self.consensus_status - k)**3)*toggles.CUBIC_C + self.consensus_max_threshold))
+            if new_max < toggles.CONSENSUS_SIZE_LIMITS[0]:
+                new_max = toggles.CONSENSUS_SIZE_LIMITS[0]
+            elif new_max > toggles.CONSENSUS_SIZE_LIMITS[1]:
+                new_max = toggles.CONSENSUS_SIZE_LIMITS[1]
+            print "Size: "+str(new_max)
+            self.consensus_max = new_max
+
 
         ## WEIRD AF mode
         elif mode == 0:
@@ -343,6 +366,15 @@ class Predicate(models.Model):
 
         if new_max>old_max:
             return True
+        elif old_max>new_max:
+            #TODO: remove this eventually
+            relevant_pairs = IP_Pair.objects.filter(predicate=self).filter(isDone=False)
+            mx_sing = self.consensus_max_single
+            OverWalls = relevant_pairs.filter(Q(num_no__gte=mx_sing)|Q(num_yes__gte=mx_sing))
+            over_max_y = relevant_pairs.filter(Q(num_no=mx_sing-1),Q(num_yes=mx_sing-2))
+            over_max_n = relevant_pairs.filter(Q(num_yes=mx_sing-1),Q(num_no=mx_sing-2))
+            totalNum = OverWalls.count() + over_max_y.count() + over_max_n.count()
+            #print "Shrinking caused " + str(totalNum) + " Pairs to be outside bounds"
         return False
 
     def reset(self):
@@ -356,7 +388,8 @@ class Predicate(models.Model):
         self.queue_length=toggles.PENDING_QUEUE_SIZE
         self.consensus_status=0
         self.consensus_max=toggles.CUT_OFF
-        self.save(update_fields=["num_tickets","num_wickets","num_ip_complete","selectivity","totalTasks","totalNo","queue_is_full","queue_length"])
+        self.consensus_max_threshold=0
+        self.save(update_fields=["num_tickets","num_wickets","num_ip_complete","selectivity","totalTasks","totalNo","queue_is_full","queue_length","consensus_max_threshold"])
 
 
 @python_2_unicode_compatible
@@ -473,7 +506,7 @@ class IP_Pair(models.Model):
                     print "*"*96
 
             else:
-                self.status_votes -= 2
+                self.status_votes -= 1
                 self.save(update_fields=["status_votes"])
 
     def _consensus_finder(self):
@@ -518,6 +551,7 @@ class IP_Pair(models.Model):
     def found_consensus(self):
         if not toggles.ADAPTIVE_CONSENSUS:
             return bool(self._consensus_finder())
+        return self._consensus_finder()
         if not bool(self._consensus_finder()):
             return False
         if self.predicate.update_consensus(self):
