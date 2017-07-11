@@ -6,6 +6,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
 from scipy.special import btdtr
 import toggles
+import random 
 
 @python_2_unicode_compatible
 class Item(models.Model):
@@ -223,6 +224,14 @@ class IP_Pair(models.Model):
 
     # for random algorithm
     isStarted = models.BooleanField(default=False)
+
+    # for synth data:
+    true_answer = models.BooleanField(default=True)
+
+    def give_true_answer(self):
+        probability = self.predicate.trueSelectivity
+        self.true_answer = (random.random() > probability)
+        self.save(update_fields=["true_answer"])
 
     def __str__(self):
         return self.item.name + "/" + self.predicate.question.question_text
