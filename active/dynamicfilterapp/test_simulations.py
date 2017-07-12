@@ -306,7 +306,7 @@ class SimulationTest(TransactionTestCase):
 					work_time = choice(toggles.FALSE_TIMES)
 
 				start_task = time_clock + toggles.BUFFER_TIME
-				end_task = start + work_time
+				end_task = start_task + work_time
 				self.cum_work_time += work_time
 			else:
 				start_task = 0
@@ -502,9 +502,9 @@ class SimulationTest(TransactionTestCase):
 
 				if toggles.REAL_DATA:
 					# TODO change return val of simulate task and syn simulate task to just task
-					task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
+					task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 				else:
-					task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
+					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
 				task.refresh_from_db()
 			else:
 				# TODO if in mode where we give placeholder tasks, the task should never be None
@@ -521,7 +521,7 @@ class SimulationTest(TransactionTestCase):
 			if toggles.REAL_DATA:
 				task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 			else:
-				task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
+				task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
 
 		return task, workerID
 
