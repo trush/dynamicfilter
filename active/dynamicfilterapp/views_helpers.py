@@ -74,7 +74,9 @@ def pending_eddy(ID):
 
 
     #random_system:
-    elif (EDDY_SYS == 2):
+    elif (toggles.EDDY_SYS == 2):
+        allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+        incompleteIP = incompleteIP.exclude(id__in=allTasksOut)
         if incompleteIP.exists():
             startedIPs = incompleteIP.filter(isStarted=True)
             if startedIPs.exists():
@@ -265,6 +267,7 @@ def updateCounts(workerTask, chosenIP):
 
         chosenIP.refresh_from_db()
         chosenIP.predicate.refresh_from_db()
+
         # change queue length accordingly if appropriate
         if toggles.ADAPTIVE_QUEUE:
             chosenIP.predicate.adapt_queue_length()

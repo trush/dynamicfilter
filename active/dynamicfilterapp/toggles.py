@@ -3,7 +3,7 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'test' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'VisualizingActiveTasks' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
@@ -12,7 +12,7 @@ IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
-DEBUG_FLAG = True # useful print statements turned on
+DEBUG_FLAG = False # useful print statements turned on
 
 ####################### CONFIGURING CONSENSUS ##############################
 
@@ -38,7 +38,7 @@ SINGLE_VOTE_CUTOFF = int(1+math.ceil(CUT_OFF/2.0))    # Number of votes for a si
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
 
-NUM_WORKERS = 301
+NUM_WORKERS = 1600
 DISTRIBUTION_TYPE = 0 # tells pick_worker how to choose workers.
 # 0  -  Uniform Distribution; (all worker equally likely)
 # 1  -  Geometric Distribution; (synthetic graph which fits out data well)
@@ -50,7 +50,7 @@ EDDY_SYS = 1
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
-PENDING_QUEUE_SIZE = 5
+PENDING_QUEUE_SIZE = 3
 
 CHOSEN_PREDS = [3,4] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
@@ -95,12 +95,12 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
 
 
-DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tasks
+DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
                    # to do" and will track the number of times this happens
 DUMMY_TASK_OPTION = 0
 # 0 gives a complete placeholder task
 
-GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
@@ -139,12 +139,12 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 2 # how many simulations to run?
+NUM_SIM = 1 # how many simulations to run?
 
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = False # simulate time passing/concurrency
+SIMULATE_TIME = True # simulate time passing/concurrency
 MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
@@ -152,9 +152,11 @@ MAX_TASKS_OUT = MAX_TASKS
 
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
-TRACK_IP_PAIRS_DONE = False
+TRACK_IP_PAIRS_DONE = True
 
-TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
+TRACK_ACTIVE_TASKS = True
+
+TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
@@ -173,13 +175,16 @@ IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PACKING=False # Enable for "Packing" of outputs into a folder and generation of config.ini
+PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
 
 if GEN_GRAPHS:
     print ''
-    reply = raw_input("GEN_GRAPHS is turned on. Do you actually want graphs? Enter y for yes, n for no.  ")
-    if reply == "n":
-        raise Exception ("Set GEN_GRAPHS to False and try again!")
+    reply = raw_input("GEN_GRAPHS is turned on. Do you actually want graphs? Enter y for yes, n for no (turns off graphs), or c to cancel. ")
+    if reply == "c":
+        raise Exception ("Change your setup and try again!")
+    elif reply == "n":
+        print "~~~~~~ Graphing turned off ~~~~~~"
+        GEN_GRAPHS = False
 
 # List of toggles for debug printing and Config.ini generation
             ##### PLEASE UPDATE AS NEW TOGGLES ADDED #####

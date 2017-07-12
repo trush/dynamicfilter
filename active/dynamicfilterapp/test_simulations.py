@@ -12,6 +12,7 @@ from synthesized_data import *
 import toggles
 from simulation_files.plotScript import *
 from responseTimeDistribution import *
+import graphGen
 
 # # Python tools
 import numpy as np
@@ -75,15 +76,27 @@ class SimulationTest(TransactionTestCase):
 	cum_placeholder_time = 0
 	cum_placeholder_time_array = []
 
+	# an array that will add an entry at every time step that is actually simulated (not those that are skipped)
+	# useful as an x axis for graphs of a simulation VS. "time"
+	time_steps_array = []
+
 	# TICKETING STATISTICS
 	ticketNums = [] # only really makes sense for a single simulation run
 
 	# COMPLETING ITEMS
-	ips_done_array = [0]
+	ips_done_array = []
+	ips_tasks_array = []
+	ips_times_array = []
 
 	# COMPUTING SELECTIVITY
 	pred_selectivities = []
 
+	# PLACEHOLDERS OVER TIME
+	placeholder_change_count = [0]
+	num_tasks_change_count = [0]
+
+	# TRACK Predicates' active tasks
+	pred_active_tasks = {}
 
 	###___HELPERS THAT LOAD IN DATA___###
 	def load_data(self):
@@ -276,7 +289,7 @@ class SimulationTest(TransactionTestCase):
 		"""
 		synthesize a task
 		"""
-		chosenIP.refresh_from_db()
+
 		start = time.time()
 		if chosenIP is None:
 			if toggles.SIMULATE_TIME:
@@ -296,6 +309,7 @@ class SimulationTest(TransactionTestCase):
 			t.save()
 
 		else:
+			chosenIP.refresh_from_db()
 			value = syn_answer(chosenIP, switch, numTasks)
 			if toggles.SIMULATE_TIME:
 				if value :
@@ -306,7 +320,7 @@ class SimulationTest(TransactionTestCase):
 					work_time = choice(toggles.FALSE_TIMES)
 
 				start_task = time_clock + toggles.BUFFER_TIME
-				end_task = start + work_time
+				end_task = start_task + work_time
 				self.cum_work_time += work_time
 			else:
 				start_task = 0
@@ -390,12 +404,22 @@ class SimulationTest(TransactionTestCase):
 		self.num_tasks, self.num_incorrect, self.num_placeholders = 0, 0, 0
 		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time = 0, 0, 0, 0
 		self.simulated_time, self.cum_work_time, self.cum_placeholder_time = 0, 0, 0
-		self.ticketNums, self.ips_done_array = [], [0]
-		self.no_tasks_to_give = 0
+		self.ticketNums, self.ips_done_array, self.ips_tasks_array = [], [], []
+		self.no_tasks_to_give, self.ips_times_array = 0, []
+		self.placeholder_change_count, self.num_tasks_change_count = [0], [0]
+		self.pred_active_tasks, self.time_steps_array = {}, []
 
 		end = time.time()
 		reset_time = end - start
 		return reset_time
+
+	def reset_arrays(self):
+		self.run_sim_time_array, self.pending_eddy_time_array = [], []
+		self.sim_task_time_array, self.worker_done_time_array = [], []
+		self.simulated_time_array, self.cum_work_time_array = [], []
+		self.cum_placeholder_time_array, self.num_placeholders_array = [], []
+		self.num_tasks_array, self.num_real_tasks_array = [], []
+		self.num_incorrect_array = []
 
 	def abstract_sim(self, dictionary, globalVar, listOfValuesToTest):
 		"""
@@ -504,7 +528,7 @@ class SimulationTest(TransactionTestCase):
 					# TODO change return val of simulate task and syn simulate task to just task
 					task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 				else:
-					task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
+					task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
 				task.refresh_from_db()
 			else:
 				# TODO if in mode where we give placeholder tasks, the task should never be None
@@ -521,7 +545,7 @@ class SimulationTest(TransactionTestCase):
 			if toggles.REAL_DATA:
 				task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 			else:
-				task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
+				task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
 
 		return task, workerID
 
@@ -617,6 +641,18 @@ class SimulationTest(TransactionTestCase):
 		#time counter
 		time_clock = 0
 
+		# set up a dictionary to hold counts of active tasks_out
+		if toggles.REAL_DATA:
+			for pred in toggles.CHOSEN_PREDS:
+				self.pred_active_tasks[pred+1] = []
+		else:
+			for pred in range(toggles.NUM_QUESTIONS):
+				self.pred_active_tasks[pred+1] = []
+
+		# add an entry to save the numbers of placeholder tasks
+		self.pred_active_tasks[0] = []
+
+
 		#Setting up arrays to count tickets for ticketing counting graphs
 		if toggles.COUNT_TICKETS:
 			if toggles.REAL_DATA:
@@ -694,8 +730,29 @@ class SimulationTest(TransactionTestCase):
 						print "Number pending for pred " + str(p.id) + ": " + str(p.num_pending)
 						raise Exception("WHEN REMOVING Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
 
+				self.time_steps_array.append(time_clock)
+
+				if toggles.TRACK_ACTIVE_TASKS:
+					# append a new counter for the next time step
+					for pred in self.pred_active_tasks:
+						self.pred_active_tasks[pred].append(0)
+
+					for task in active_tasks:
+						if task.ip_pair is not None:
+							_id = task.ip_pair.predicate.id
+						else:
+							_id = 0
+						# add one to the most recent counter
+						self.pred_active_tasks[_id][-1] += 1
+
 				prev_time = time_clock
 				endTimes = []
+
+				if toggles.TRACK_IP_PAIRS_DONE:
+					self.ips_done_array.append(IP_Pair.objects.filter(isDone=True).count())
+					self.ips_times_array.append(time_clock)
+					self.ips_tasks_array.append(self.num_tasks)
+
 				# check if any tasks have reached completion, update bookkeeping
 				for task in active_tasks:
 					if (task.end_time <= time_clock):
@@ -726,8 +783,8 @@ class SimulationTest(TransactionTestCase):
 									predicate = Predicate.objects.get(pk=count+1)
 									self.ticketNums[count].append(predicate.num_tickets)
 
-						if toggles.TRACK_IP_PAIRS_DONE:
-							self.ips_done_array.append(IP_Pair.objects.filter(isDone=True).count())
+						# if toggles.TRACK_IP_PAIRS_DONE:
+							# self.ips_done_array.append(IP_Pair.objects.filter(isDone=True).count())
 
 
 						if toggles.DEBUG_FLAG:
@@ -738,6 +795,7 @@ class SimulationTest(TransactionTestCase):
 
 					else:
 						endTimes.append(task.end_time)
+
 				# fill the active task array with new tasks as long as some IPs need eval
 				if IP_Pair.objects.filter(isDone=False).exists():
 
@@ -789,6 +847,10 @@ class SimulationTest(TransactionTestCase):
 							break
 
 				move_window()
+
+				if toggles.TRACK_PLACEHOLDERS:
+					self.placeholder_change_count.append(DummyTask.objects.all().count())
+					self.num_tasks_change_count.append(Task.objects.all().count())
 				time_clock += 1
 
 				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
@@ -798,9 +860,17 @@ class SimulationTest(TransactionTestCase):
 
 			if toggles.DEBUG_FLAG:
 				print "Simulaton completed ||| Simulated time = " + str(time_clock) + " | number of tasks: " + str(self.num_tasks)
+				print "Time steps: " + str(len(self.time_steps_array)) + "  Length of predicate active count lists:"
+				for pred in self.pred_active_tasks:
+					print str(len(self.pred_active_tasks[pred]))
+
 
 		else:
 			while(ip_pair != None):
+
+				if toggles.TRACK_IP_PAIRS_DONE:
+					self.ips_done_array.append(IP_Pair.objects.filter(isDone=True).count())
+					self.ips_tasks_array.append(self.num_tasks)
 
 				# only increment if worker is actually doing a task
 				workerID = self.pick_worker([0], [0]) # array needed to make pick_worker run
@@ -813,6 +883,10 @@ class SimulationTest(TransactionTestCase):
 				elif (workerDone):
 					if not toggles.DUMMY_TASKS:
 						self.num_placeholders += 1
+					else:
+						d = DummyTask(workerID=workerID)
+						d.save()
+						self.num_tasks += 1
 					if toggles.DEBUG_FLAG:
 						print "worker has no tasks to do"
 
@@ -877,11 +951,9 @@ class SimulationTest(TransactionTestCase):
 					if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] == self.num_tasks:
 						switch += 1
 
-		if toggles.SIMULATE_TIME:
-			self.simulated_time = time_clock
-
 		if toggles.DUMMY_TASKS:
 			self.num_placeholders = DummyTask.objects.all().count()
+			self.num_real_tasks = self.num_tasks - self.num_placeholders
 
 		# TODO add cumulative work time and cumulative placeholder time separately
 		# TODO make sure all graphs use appropriate information -- new data members
@@ -891,11 +963,13 @@ class SimulationTest(TransactionTestCase):
 		self.num_tasks_array.append(self.num_tasks)
 
 		if toggles.SIMULATE_TIME:
+			self.simulated_time = time_clock
 			self.simulated_time_array.append(self.simulated_time)
 			self.cum_work_time_array.append(self.cum_work_time)
 			self.cum_placeholder_time_array.append(self.cum_placeholder_time)
 
 		if toggles.TRACK_PLACEHOLDERS:
+			self.num_real_tasks_array.append(self.num_real_tasks)
 			self.num_placeholders_array.append(self.num_placeholders)
 
 		if toggles.TIME_SIMS:
@@ -909,12 +983,14 @@ class SimulationTest(TransactionTestCase):
 			self.num_incorrect_array.append(self.num_incorrect)
 
 		if toggles.TRACK_IP_PAIRS_DONE:
-			dest = toggles.OUTPUT_PATH + "ip_done_vs_tasks"
-			dataToWrite = [range(0, self.num_tasks+1), self.ips_done_array]
-			generic_csv_write(dest+".csv", dataToWrite) # saves a csv
+			dest = toggles.OUTPUT_PATH + "ip_done_vs_time_proxy_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_"
+			csv_dest = dest_resolver(dest+".csv")
+
+			dataToWrite = [self.ips_tasks_array, self.ips_done_array]
+			generic_csv_write(csv_dest, dataToWrite) # saves a csv
 			if toggles.DEBUG_FLAG:
-				print "Wrote File: " + dest + ".csv"
-			if toggles.GEN_GRAPHS:
+				print "Wrote File: " + csv_dest
+			if toggles.GEN_GRAPHS and toggles.NUM_SIM == 1:
 				line_graph_gen(dataToWrite[0], dataToWrite[1], dest + ".png",
 							labels = ("Number Tasks Completed", "Number IP Pairs Completed"),
 							title = "Number IP Pairs Done vs. Number Tasks Completed")
@@ -996,7 +1072,6 @@ class SimulationTest(TransactionTestCase):
 		sim_time = sim_end - sim_start
 		self.run_sim_time = sim_time
 		return
-
 
 	###___HELPERS THAT WRITE OUT STATS___###
 	# TODO write this
@@ -1710,7 +1785,6 @@ class SimulationTest(TransactionTestCase):
 		if chosenIP.predicate.num_pending >= chosenIP.predicate.queue_length:
 			chosenIP.predicate.queue_is_full = True
 
-
 	def add_to_queueTest(self):
 		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = False)
 		i.save()
@@ -1793,18 +1867,132 @@ class SimulationTest(TransactionTestCase):
 		if t.ip_pair == None:
 			print "IP is none"
 
-	def placeholderActiveTest(self, data):
-		if not toggles.TRACK_PLACEHOLDERS:
-			raise Exception("Turn on TRACK_PLACEHOLDERS for this to work correctly")
+	def placeholderActiveTest(self, data, task_array_sizes):
+		if not (toggles.TRACK_PLACEHOLDERS and toggles.DUMMY_TASKS and toggles.TRACK_IP_PAIRS_DONE):
+			raise Exception("Turn on TRACK_PLACEHOLDERS and DUMMY_TASKS and TRACK_IP_PAIRS_DONE for this to work correctly")
 
-		for run in range(NUM_SIM):
-			self.run_sim(data)
-			self.cum_work_time # find out if this is everything or just real
-			self.num_placeholders
-			self.num_real_tasks
-		# run multiple simulations and keep track of the number of placeholders
-		# and the number of real tasks
-		# generate appropriate CSVs
+		tasks_avg_array = []
+		tasks_std_array = []
+		placeholders_avg_array = []
+		placeholders_std_array = []
+		real_avg_array = []
+		real_std_array = []
+
+		cum_work_time_avg_array = []
+		cum_work_time_std_array = []
+		cum_placeholder_time_avg_array = []
+		cum_placeholder_time_std_array = []
+
+		for size in task_array_sizes:
+			# change the size of the active tasks array
+			toggles.MAX_TASKS = size
+			toggles.MAX_TASKS_OUT = size/4
+
+			for run in range(toggles.NUM_SIM):
+
+				self.run_sim(data)
+				if run == 0:
+					timechange = [range(self.simulated_time+1), self.num_tasks_change_count, self.placeholder_change_count, self.ips_times_array, self.ips_done_array]
+					time_dest = toggles.OUTPUT_PATH + "PlaceholdersOverTime_Active_" + str(toggles.MAX_TASKS) + "_Queue_" + str(toggles.PENDING_QUEUE_SIZE)
+					generic_csv_write(time_dest+".csv", timechange)
+
+					if toggles.DEBUG_FLAG:
+						print "Wrote file: " + time_dest + ".csv"
+
+					if toggles.GEN_GRAPHS:
+						graphGen.placeholder_time_graph(timechange, time_dest)
+					# save data for graphs of placeholders over time
+				self.reset_database()
+
+			# now we have arrays full of useful info. let's do stuff with it
+			# average the number of tasks, placeholders, real tasks
+			tasks_avg_array.append(np.average(self.num_tasks_array))
+			tasks_std_array.append(np.std(self.num_tasks_array))
+
+			placeholders_avg_array.append(np.average(self.num_placeholders_array))
+			placeholders_std_array.append(np.std(self.num_placeholders_array))
+
+			real_avg_array.append(np.average(self.num_real_tasks_array))
+			real_std_array.append(np.std(self.num_real_tasks_array))
+
+			if toggles.SIMULATE_TIME:
+				cum_work_time_avg_array.append(np.average(self.cum_work_time_array))
+				cum_work_time_std_array.append(np.std(self.cum_work_time_array))
+
+				cum_placeholder_time_avg_array.append(np.average(self.cum_placeholder_time_array))
+				cum_placeholder_time_std_array.append(np.std(self.cum_placeholder_time_array))
+
+			self.reset_arrays()
+
+
+		save = [task_array_sizes, tasks_avg_array, tasks_std_array,
+				placeholders_avg_array, placeholders_std_array, real_avg_array,
+				real_std_array]
+		dest = toggles.OUTPUT_PATH + "taskPlaceholderAvgs_Active" + str(task_array_sizes) + "_Queue_" + str(toggles.PENDING_QUEUE_SIZE)
+		generic_csv_write(dest+".csv", save)
+
+		if toggles.DEBUG_FLAG:
+			print "Wrote file: " + dest + ".csv"
+
+		if toggles.SIMULATE_TIME:
+
+			save1 = [task_array_sizes, cum_work_time_avg_array, cum_work_time_std_array,
+					cum_placeholder_time_avg_array, cum_placeholder_time_std_array]
+			dest1 = toggles.OUTPUT_PATH + "cumulative_times_Active" + str(task_array_sizes) + "_Queue_" + str(toggles.PENDING_QUEUE_SIZE)
+			generic_csv_write(dest1+".csv", save1)
+
+			if toggles.DEBUG_FLAG:
+				print "Wrote file: " + dest + ".csv"
+
+		if toggles.GEN_GRAPHS:
+			graphGen.placeholder_graphing(save, dest, save1, dest1 )
+
+	def placeholderQueueChange(self, data, task_array_sizes, queue_sizes):
+		if not (toggles.TRACK_PLACEHOLDERS and toggles.DUMMY_TASKS):
+			raise Exception("Turn on TRACK_PLACEHOLDERS and DUMMY_TASKS for this to work correctly")
+
+		# iterate through various queue sizes
+		for queue in queue_sizes:
+			toggles.PENDING_QUEUE_SIZE = queue
+
+			self.placeholderActiveTest(data, task_array_sizes)
+
+	def visualizeActiveTasks(self, data):
+		if not (toggles.TRACK_ACTIVE_TASKS and toggles.SIMULATE_TIME):
+			raise Exception("Turn on TRACK_ACTIVE TASKS and SIMULATE_TIME for this to work properly.")
+
+
+		self.run_sim(data)
+
+		save = [self.time_steps_array]
+		graphData = [self.time_steps_array]
+		for pred in self.pred_active_tasks:
+			save.append([pred])
+			save.append([self.pred_active_tasks[pred]])
+			graphData.append( (pred, self.pred_active_tasks[pred]) )
+
+		dest = toggles.OUTPUT_PATH + "track_active_tasks_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.MAX_TASKS)
+
+		generic_csv_write(dest+".csv", save)
+
+		if toggles.GEN_GRAPHS:
+			graphGen.visualize_active_tasks(graphData, dest)
+
+		self.reset_database()
+
+	def visualizeMultiRuns(self, data, queueSet, activeTasksSet):
+
+		for q in queueSet:
+			toggles.PENDING_QUEUE_SIZE = q
+
+			for a in activeTasksSet:
+				toggles.MAX_TASKS = a
+				toggles.MAX_TASKS_OUT = a
+
+				self.visualizeActiveTasks(data)
+
+
+
 
 	###___MAIN TEST FUNCTION___###
 	def test_simulation(self):
@@ -2076,7 +2264,6 @@ class SimulationTest(TransactionTestCase):
 			correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
 			passedItems = self.get_passed_items(correctAnswers)
 
-
 		if toggles.RUN_OPTIMAL_SIM:
 			countingArr=[]
 			self.reset_database()
@@ -2090,4 +2277,5 @@ class SimulationTest(TransactionTestCase):
 			if toggles.DEBUG_FLAG:
 				print "Wrote File: " + dest+'.csv'
 
-		self.placeholderActiveTest(sampleData)
+		# self.placeholderQueueChange(sampleData, [20], [1, 2, 4, 8, 16, 32])
+		self.visualizeMultiRuns(sampleData, [1, 2], [10, 20])
