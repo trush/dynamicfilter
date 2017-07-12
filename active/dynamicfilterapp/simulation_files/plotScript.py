@@ -64,7 +64,7 @@ def generic_csv_read(filename):
     toRead.close()
     return retArray
 
-def hist_gen(data, dest, labels = ('',''), title='', smoothness=False, writeStats = False):
+def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats = False):
     """
     Automagically generates a Histogram for you from a given list of data and a
     destination name (ending in .png). Can additionally be passed many arguments
@@ -74,7 +74,7 @@ def hist_gen(data, dest, labels = ('',''), title='', smoothness=False, writeStat
     """
     multi_hist_gen([data], [None], dest, labels = labels, title = title,smoothness=smoothness)
 
-def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothness=False):
+def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothness=True):
     """
     Very similar to hist_gen, however takes a list of datasets and a list of
     names of your datasets and a destination name, plots all datasets on one
