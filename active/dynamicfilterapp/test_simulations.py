@@ -236,7 +236,7 @@ class SimulationTest(TransactionTestCase):
 
 
 		else:
-			chosenIP.refresh_from_db()
+			#chosenIP.refresh_from_db()
 			value = choice(dictionary[chosenIP])
 			if not toggles.RESPONSE_SAMPLING_REPLACEMENT:
 				#print len(dictionary[chosenIP])
@@ -262,8 +262,8 @@ class SimulationTest(TransactionTestCase):
 
 			if not toggles.SIMULATE_TIME:
 				updateCounts(t, chosenIP)
-				t.refresh_from_db()
-				chosenIP.refresh_from_db()
+				#t.refresh_from_db()
+				#chosenIP.refresh_from_db()
 
 
 		end = time.time()
@@ -276,7 +276,6 @@ class SimulationTest(TransactionTestCase):
 		"""
 		synthesize a task
 		"""
-		chosenIP.refresh_from_db()
 		start = time.time()
 		if chosenIP is None:
 			if toggles.SIMULATE_TIME:
@@ -296,6 +295,7 @@ class SimulationTest(TransactionTestCase):
 			t.save()
 
 		else:
+			#chosenIP.refresh_from_db()
 			value = syn_answer(chosenIP, switch, numTasks)
 			if toggles.SIMULATE_TIME:
 				if value :
@@ -319,8 +319,8 @@ class SimulationTest(TransactionTestCase):
 
 			if not toggles.SIMULATE_TIME:
 				updateCounts(t, chosenIP)
-				t.refresh_from_db()
-				chosenIP.refresh_from_db()
+				#t.refresh_from_db()
+				#chosenIP.refresh_from_db()
 
 		end = time.time()
 		runTime = end - start
@@ -497,7 +497,7 @@ class SimulationTest(TransactionTestCase):
 			if workerID is not None:
 				# select a task to assign to this person
 				ip_pair, eddy_time = give_task(active_tasks, workerID)
-				ip_pair.refresh_from_db()
+				#ip_pair.refresh_from_db()
 				self.pending_eddy_time += eddy_time
 
 				if toggles.REAL_DATA:
@@ -505,7 +505,7 @@ class SimulationTest(TransactionTestCase):
 					task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 				else:
 					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
-				task.refresh_from_db()
+				#task.refresh_from_db()
 			else:
 				# TODO if in mode where we give placeholder tasks, the task should never be None
 				task = None
@@ -515,8 +515,8 @@ class SimulationTest(TransactionTestCase):
 			workerID = self.pick_worker(b_workers, [])
 			ip_pair, eddy_time = give_task(active_tasks, workerID)
 			self.pending_eddy_time += eddy_time
-			if ip_pair is not None:
-				ip_pair.refresh_from_db()
+			#if ip_pair is not None:
+				#ip_pair.refresh_from_db()
 
 			if toggles.REAL_DATA:
 				task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
@@ -700,11 +700,7 @@ class SimulationTest(TransactionTestCase):
 				for task in active_tasks:
 					if (task.end_time <= time_clock):
 						updateCounts(task, task.ip_pair)
-						task.refresh_from_db()
-						if task.ip_pair is not None:
-							task.ip_pair.refresh_from_db()
-							task.ip_pair.item.refresh_from_db()
-							task.ip_pair.predicate.refresh_from_db()
+						#task.refresh_from_db()
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
 						self.num_tasks += 1
@@ -748,10 +744,7 @@ class SimulationTest(TransactionTestCase):
 						if task is not None:
 
 							# TODO if we're in "placeholder task" mode, task should never be None
-							if task.ip_pair is not None:
-								task.ip_pair.refresh_from_db()
-								task.ip_pair.predicate.refresh_from_db()
-								task.ip_pair.item.refresh_from_db()
+
 
 							active_tasks.append(task)
 							b_workers.append(worker)
@@ -868,7 +861,7 @@ class SimulationTest(TransactionTestCase):
 					if toggles.SELECTIVITY_GRAPH:
 						for count in range(toggles.NUM_QUESTIONS):
 							predicate = Predicate.objects.get(pk=count+1)
-							predicate.refresh_from_db()
+							predicate.refresh_from_db(fields=['trueSelectivity'])
 							#print "true selectivity: ", str(predicate.trueSelectivity)
 							self.pred_selectivities[count].append(predicate.trueSelectivity)
 
