@@ -64,7 +64,7 @@ def generic_csv_read(filename):
     toRead.close()
     return retArray
 
-def hist_gen(data, dest, labels = ('',''), title='', smoothness=False, writeStats = False):
+def hist_gen(data, dest, labels = ('',''), title='', smoothness=True, writeStats = False):
     """
     Automagically generates a Histogram for you from a given list of data and a
     destination name (ending in .png). Can additionally be passed many arguments
