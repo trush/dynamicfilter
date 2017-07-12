@@ -6,7 +6,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
 from scipy.special import btdtr
 import toggles
-import random 
+import random
 
 @python_2_unicode_compatible
 class Item(models.Model):
@@ -181,7 +181,6 @@ class Predicate(models.Model):
         '''
         depending on adaptive queue mode, changes queue length as appropriate
         '''
-        self.refresh_from_db()
         # print "adapt queue length called"
         if toggles.ADAPTIVE_QUEUE_MODE == 0:
             # print "increase version invoked"
