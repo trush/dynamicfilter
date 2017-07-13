@@ -261,7 +261,6 @@ class Predicate(models.Model):
             return self.queue_length
 
     def update_consensus(self, ipPair):
-        mode = 1
         old_max = self.consensus_max
         new_max = old_max
         loc = ipPair.consensus_location
@@ -269,12 +268,14 @@ class Predicate(models.Model):
         ### TESTING RENO slow start method
         ### NOT a "perfect" implimentation of reno
         if toggles.ADAPTIVE_CONSENSUS_MODE == 1:
-            if loc == 1:
-                self.consensus_status = self.consensus_status + 1
-            elif loc == 3:
+            if loc == 3 or loc == 4:
                 self.consensus_status = self.consensus_status/2
-            elif loc == 4:
-                self.consensus_status = self.consensus_status/3
+            else:
+                self.consensus_status = self.consensus_status + 1
+            status_needed = (toggles.CONSENSUS_SIZE_LIMITS[1]-toggles.CONSENSUS_SIZE_LIMITS[0])/2
+            if self.consensus_status > int(status_needed*toggles.RENO_BONUS_RATIO):
+                self.consensus_status = int(status_needed*toggles.RENO_BONUS_RATIO)
+
             new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
 
         ### CUTE alg. method.
@@ -283,7 +284,7 @@ class Predicate(models.Model):
                 self.consensus_status = self.consensus_status + 1
             elif (loc == 3) or (loc == 4):
                 self.consensus_status = 0
-                print "Vote: ("+str(ipPair.num_no)+","+str(ipPair.num_yes)+") caused growth"
+                #print "Vote: ("+str(ipPair.num_no)+","+str(ipPair.num_yes)+") caused growth"
             new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
 
         ### CUBIC alg.
@@ -292,7 +293,7 @@ class Predicate(models.Model):
             if (loc == 3) or (loc == 4):
                 self.consensus_status=0
                 self.consensus_max_threshold = (toggles.CONSENSUS_SIZE_LIMITS[1]-self.consensus_max)
-                print "Vote: ("+str(ipPair.num_no)+","+str(ipPair.num_yes)+") caused growth"
+                #print "Vote: ("+str(ipPair.num_no)+","+str(ipPair.num_yes)+") caused growth"
             else:
                 self.consensus_status+=1
             k = int(self.consensus_max_threshold*toggles.CUBIC_B/toggles.CUBIC_C)**(1.0/3.0)
@@ -306,7 +307,7 @@ class Predicate(models.Model):
         self.consensus_max = new_max
         if new_max>old_max:
             return True
-        elif old_max>new_max:
+        elif old_max>new_max and False:
             #TODO: remove this eventually
             relevant_pairs = IP_Pair.objects.filter(predicate=self).filter(isDone=False)
             mx_sing = self.consensus_max_single
@@ -435,8 +436,8 @@ class IP_Pair(models.Model):
             if self.found_consensus():
                 self.isDone = True
                 self.save(update_fields=["isDone"])
-                if toggles.ADAPTIVE_CONSENSUS:
-                    self.predicate.update_consensus(self)
+                #if toggles.ADAPTIVE_CONSENSUS:
+                    #self.predicate.update_consensus(self)
 
                 if not self.is_false() and self.predicate.num_tickets > 1:
                     self.predicate.remove_ticket()
@@ -486,7 +487,7 @@ class IP_Pair(models.Model):
             return 1
 
         elif larger >= myPred.consensus_max_single:
-            if smaller < myPred.consensus_max_single*(1.0/3.0):
+            if smaller < myPred.consensus_max_single*(1.0/3.0): #TODO un-hard-code this part
                 return 1
             elif smaller < myPred.consensus_max_single*(2.0/3.0):
                 return 2
@@ -499,12 +500,12 @@ class IP_Pair(models.Model):
     def found_consensus(self):
         if not toggles.ADAPTIVE_CONSENSUS:
             return bool(self._consensus_finder())
-        return self._consensus_finder()
+        #return self._consensus_finder()
         if not bool(self._consensus_finder()):
             return False
         if self.predicate.update_consensus(self):
             print "Saved Pair from being called too early"
-            return False
+            return bool(self._consensus_finder())
         else:
             return True
 

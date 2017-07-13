@@ -653,7 +653,7 @@ class SimulationTest(TransactionTestCase):
 						for ip in IP_Pair.objects.filter(inQueue=True):
 							print "IP Pair " + str(ip.pk) + " |  Predicate: " + str(ip.predicate.id) +  " ||| Tasks out: " +  str(ip.tasks_out) + " | Num yes: " + str(ip.num_yes) + " | Num no: " + str(ip.num_no) + " | isDone: " + str(ip.isDone)
 
-							if ip.num_no + ip.num_yes > toggles.CUT_OFF:
+							if ip.num_no + ip.num_yes > toggles.CONSENSUS_SIZE_LIMITS[1]:
 								print "Total votes: " + str(ip.num_no+ip.num_yes)
 								raise Exception ("Too many votes cast for IP Pair " + str(ip.id))
 
