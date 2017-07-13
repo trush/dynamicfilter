@@ -228,6 +228,8 @@ RUN_CONSENSUS_COUNT = True # keeps track of the number of tasks needed before co
 
 CONSENSUS_LOCATION_STATS = False #TODO remember to remove this for the final commit
 
+TRACK_SIZE = True
+
 VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
 IDEAL_GRID = False #draws the vote grid rules for our consensus metric

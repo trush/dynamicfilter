@@ -84,6 +84,9 @@ class SimulationTest(TransactionTestCase):
 	# COMPUTING SELECTIVITY
 	pred_selectivities = []
 
+	# CONSENSUS SIZE TRACKING
+	consensus_size = []
+
 
 	###___HELPERS THAT LOAD IN DATA___###
 	def load_data(self):
@@ -627,6 +630,15 @@ class SimulationTest(TransactionTestCase):
 				for count in range(toggles.NUM_QUESTIONS):
 					self.ticketNums.append([])
 
+		# Setting up arrays for TRACK_SIZE
+		if toggles.TRACK_SIZE:
+			if toggles.REAL_DATA:
+				for predNum in range(len(toggles.CHOSEN_PREDS)):
+					self.consensus_size.append([])
+			else:
+				for count in range(toggles.NUM_QUESTIONS):
+					self.consensus_size.append([])
+
 		# If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and toggles.RUN_ITEM_ROUTING) or toggles.RUN_MULTI_ROUTING:
 			predicates = [Predicate.objects.get(pk=pred+1) for pred in toggles.CHOSEN_PREDS]
@@ -858,6 +870,15 @@ class SimulationTest(TransactionTestCase):
 							for count in range(toggles.NUM_QUESTIONS):
 								predicate = Predicate.objects.get(pk=count+1)
 								self.ticketNums[count].append(predicate.num_tickets)
+					if toggles.TRACK_SIZE:
+						if toggles.REAL_DATA:
+							for predNum in range(len(toggles.CHOSEN_PREDS)):
+								predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
+								self.consensus_size[predNum].append(predicate.consensus_max)
+						else:
+							for count in range(toggles.NUM_QUESTIONS):
+								predicate = Predicate.objects.get(pk=count+1)
+								self.consensus_size[count].append(predicate.consensus_max)
 
 					if toggles.SELECTIVITY_GRAPH:
 						for count in range(toggles.NUM_QUESTIONS):
@@ -954,6 +975,25 @@ class SimulationTest(TransactionTestCase):
 			multi_line_graph_gen([range(time_proxy)]*xMultiplier, self.ticketNums, ticketCountsLegend,
 								toggles.OUTPUT_PATH + "ticketCounts" + str(self.sim_num) + ".png",
 								labels = ("time proxy", "Ticket counts"))
+		if toggles.TRACK_SIZE:
+			if not toggles.SIMULATE_TIME:
+				tasks = range(len(self.consensus_size[0]))
+				legend = []
+				dest = toggles.OUTPUT_PATH + "consensus_size"+str(self.sim_num)
+				if toggles.REAL_DATA:
+					for predNum in toggles.CHOSEN_PREDS:
+						legend.append("Pred " + str(predNum))
+
+				else:
+					for predNum in range(toggles.NUM_QUESTIONS):
+						legend.append("Pred " + str(predNum))
+				generic_csv_write(dest+'.csv',self.consensus_size)
+				if toggles.GEN_GRAPHS:
+					multi_line_graph_gen([tasks]*len(legend),self.consensus_size,
+						legend, dest+'.png', labels = ('Tasks','Max Num Tasks'),
+						title = "Consensus Algorithm Over Time")
+				self.consensus_size=[]
+
 
 		# TODO have this graph use the correct arrays
 		if toggles.SELECTIVITY_GRAPH:
