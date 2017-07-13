@@ -306,7 +306,7 @@ class SimulationTest(TransactionTestCase):
 					work_time = choice(toggles.FALSE_TIMES)
 
 				start_task = time_clock + toggles.BUFFER_TIME
-				end_task = start + work_time
+				end_task = start_task + work_time
 				self.cum_work_time += work_time
 			else:
 				start_task = 0
@@ -383,7 +383,9 @@ class SimulationTest(TransactionTestCase):
 		Task.objects.all().delete()
 		DummyTask.objects.all().delete()
 		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_ip_complete=0,
-			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False,queue_length=toggles.PENDING_QUEUE_SIZE)
+			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False, queue_length=toggles.PENDING_QUEUE_SIZE,
+			 rank=0.0, count=1, value=0.0, cost=1.0, total_time=0.0, avg_completion_time=1.0,
+			 avg_tasks_per_pair=1.0)
 
 		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
 
@@ -654,18 +656,13 @@ class SimulationTest(TransactionTestCase):
 		#time counter
 		time_clock = 0
 
-		#Setting up arrays to count tickets for ticketing counting graphs
-		if toggles.COUNT_TICKETS:
-			if toggles.REAL_DATA:
-				for predNum in range(len(toggles.CHOSEN_PREDS)):
-					self.ticketNums.append([])
-			else:
-				for count in range(toggles.NUM_QUESTIONS):
-					self.ticketNums.append([])
 
 		# If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and toggles.RUN_ITEM_ROUTING) or toggles.RUN_MULTI_ROUTING:
-			predicates = [Predicate.objects.get(pk=pred+1) for pred in toggles.CHOSEN_PREDS]
+			if toggles.REAL_DATA:
+				predicates = [Predicate.objects.get(pk=pred+1) for pred in toggles.CHOSEN_PREDS]
+			else:
+				predicates = [Predicate.objects.get(pk=predNum+1) for predNum in range(toggles.NUM_QUESTIONS)]
 			routingC, routingL, seenItems = [], [], set()
 			for i in range(len(predicates)):
 				routingC.append(0)
@@ -828,7 +825,7 @@ class SimulationTest(TransactionTestCase):
 				move_window()
 				time_clock += 1
 
-				if PRED_SCORE_COUNT:
+				if toggles.PRED_SCORE_COUNT:
 					if REAL_DATA:
 						for pred in range(len(toggles.CHOSEN_PREDS)):
 							predicate = Predicate.objects.get(pk=CHOSEN_PREDS[pred]+1)
@@ -911,15 +908,6 @@ class SimulationTest(TransactionTestCase):
 					move_window()
 					self.num_tasks += 1
 
-					if toggles.COUNT_TICKETS:
-						if toggles.REAL_DATA:
-							for predNum in range(len(toggles.CHOSEN_PREDS)):
-								predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
-								self.ticketNums[predNum].append(predicate.num_tickets)
-						else:
-							for count in range(toggles.NUM_QUESTIONS):
-								predicate = Predicate.objects.get(pk=count+1)
-								ticketNums[count].append(predicate.num_tickets)
 					
 					if PRED_RANK_COUNT:
 						if toggles.REAL_DATA:
@@ -933,7 +921,7 @@ class SimulationTest(TransactionTestCase):
 								predicate.refresh_from_db()
 								ranks[count].append(predicate.rank)
 
-					if PRED_SCORE_COUNT:
+					if toggles.PRED_SCORE_COUNT:
 						if toggles.REAL_DATA:
 							for predNum in range(len(CHOSEN_PREDS)):
 								predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
@@ -1027,7 +1015,7 @@ class SimulationTest(TransactionTestCase):
 		if toggles.OUTPUT_COST:
 			output_cost(toggles.RUN_NAME)
 		
-		if PRED_SCORE_COUNT:
+		if toggles.PRED_SCORE_COUNT:
 			predScoreLegend = []
 			dest = OUTPUT_PATH+RUN_NAME+'_pred_score_'+'eddy'+str(EDDY_SYS)
 			title = RUN_NAME + ' pred score'
@@ -1045,7 +1033,7 @@ class SimulationTest(TransactionTestCase):
 								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "predScore.png",
 								labels = ("Number of tasks", "score"))
 
-		if PRED_RANK_COUNT:
+		if toggles.PRED_RANK_COUNT:
 			predRankLegend = []
 			dest = OUTPUT_PATH+RUN_NAME+'_pred_ranking'
 			title = RUN_NAME + ' pred ranking'
@@ -1100,7 +1088,10 @@ class SimulationTest(TransactionTestCase):
 			# setup vars to save a csv + graph
 			dest = toggles.OUTPUT_PATH+'_item_routing'+ str(self.sim_num)
 			title = toggles.RUN_NAME + ' Item Routing'
-			labels = (str(predicates[0].question), str(predicates[1].question))
+			if toggles.REAL_DATA:
+				labels = (str(predicates[0].question), str(predicates[1].question))
+			else:
+				labels = ("question0", "question1")
 			dataToWrite = [labels,routingL[0],routingL[1]]
 			generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
 			if toggles.DEBUG_FLAG:

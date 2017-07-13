@@ -6,7 +6,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
 from scipy.special import btdtr
 import toggles
-from random import *
+import random
 
 @python_2_unicode_compatible
 class Item(models.Model):
@@ -76,9 +76,9 @@ class Predicate(models.Model):
 	# Queue variables
 	queue_is_full = models.BooleanField(default=False)
 	
-	#variables for epsilon-greedy MAB
+	#variables for MAB
 	value = models.FloatField(default=0.0)
-	count = models.IntegerField(default=0)
+	count = models.IntegerField(default=1)
 	queue_length = models.IntegerField(default=toggles.PENDING_QUEUE_SIZE)
 
 	# fields to keep track of selectivity
@@ -122,7 +122,7 @@ class Predicate(models.Model):
 		if toggles.REAL_DATA:
 			self.rank = (self.calculatedSelectivity - 1)/self.cost
 		else:
-			self.rank = (self.calculatedSelectivity - 1)*100/self.cost
+			self.rank = (self.calculatedSelectivity - 1)/self.cost
 		self.save(update_fields=["rank"])
 		return self.rank
 
@@ -182,7 +182,7 @@ class Predicate(models.Model):
 		self.save(update_fields=["totalTasks"])
 #______________________ Mahlet's changes start here ____________________#
 	def add_total_time(self):
-		self.total_time  += choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
+		self.total_time  += random.choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
 		self.save(update_fields=["total_time"])
 	
 	def update_avg_compl(self):
@@ -271,6 +271,14 @@ class IP_Pair(models.Model):
 	# for random algorithm
 	isStarted = models.BooleanField(default=False)
 
+	# for synth data:
+	true_answer = models.BooleanField(default=True)
+
+	def give_true_answer(self):
+		probability = self.predicate.trueSelectivity
+		self.true_answer = (random.random() > probability)
+
+
 	def __str__(self):
 		return self.item.name + "/" + self.predicate.question.question_text
 
@@ -331,6 +339,10 @@ class IP_Pair(models.Model):
 
 				if(toggles.EDDY_SYS == 6):
 					self.predicate.update_pred_rank(toggles.REWARD)
+
+				if (toggles.EDDY_SYS == 4 or toggles.EDDY_SYS == 5):
+					if self.is_false():
+						self.predicate.update_pred(toggles.REWARD)
 
 				self.save(update_fields=["value", "num_no"])
 

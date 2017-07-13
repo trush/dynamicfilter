@@ -96,12 +96,12 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
 
 
-DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tasks
+DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
                    # to do" and will track the number of times this happens
 DUMMY_TASK_OPTION = 0
 # 0 gives a complete placeholder task
 
-GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
@@ -114,7 +114,7 @@ SELECTIVITY_GRAPH = False
 # selectvity of the previous timestep
 #switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
  #(time,(selectivity,ambiguity), (...))
-switch_list = [(0, (0.8, 0.3), (0.3, 0.3))]#, (800, (0.3, 0.3), (0.8, 0.3))]
+switch_list = [(0, (0.9, 0.9), (0.3, 0.9))]#, (800, (0.3, 0.3), (0.8, 0.3))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -123,7 +123,7 @@ RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response
 
 RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "EDDY_SYS"
-ABSTRACT_VALUES = [1,4,5]
+ABSTRACT_VALUES = [1,6,5]
 
 #produces ticket count graph for 1 simulation
 COUNT_TICKETS = False
@@ -148,7 +148,7 @@ NUM_SIM = 2 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = False # simulate time passing/concurrency
+SIMULATE_TIME = True # simulate time passing/concurrency
 MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
@@ -158,7 +158,7 @@ RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
+TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
@@ -180,7 +180,7 @@ OUTPUT_COST = False
 
 PRED_SCORE_COUNT = True
 
-PRED_RANK_COUNT = True
+PRED_RANK_COUNT = False
 
 PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
 
@@ -197,7 +197,8 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'NUM_CERTAIN_VOTES','UNCERTAINTY_THRESHOLD','FALSE_THRESHOLD','DECISION_THRESHOLD',
             'CUT_OFF','NUM_WORKERS','DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
-            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS', 'DUMMY_TASK_OPTION','GEN_GRAPHS',
+            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'switch_list',
+            'DUMMY_TASKS', 'DUMMY_TASK_OPTION','GEN_GRAPHS',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','PRED_RANK_COUNT', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',

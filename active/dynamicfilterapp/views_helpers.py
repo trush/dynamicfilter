@@ -127,7 +127,7 @@ def pending_eddy(ID):
 
 	end = time.time()
 	runTime = end - start
-	return chosenIP
+	return chosenIP, runTime
 
 	
 def move_window():
@@ -148,7 +148,7 @@ def selectArm(predList):
 	rNum = random.random()
 	valueList = np.array([(pred.value) for pred in predList])
 	maxVal = max(valueList)
-	#The higher the epsilon, the higher the exloration probability 
+	#The higher the epsilon, the higher the exploration probability 
 	if rNum > EPSILON:
 		maxPredlist = [pred for pred in predList if pred.value == maxVal]
 		return random.choice(maxPredlist)
@@ -328,10 +328,8 @@ def updateCounts(workerTask, chosenIP):
 		chosenIP.refresh_from_db()
 		print "pred ", str(chosenIP.predicate), "post record_vote selectivity: ", str(chosenIP.predicate.calculatedSelectivity)
 		print "pred ", str(chosenIP.predicate), "post record_vote rank: ", str(chosenIP.predicate.rank)
-		print str(chosenIP.predicate), "record vote avg_tasks per pair: ", str(chosenIP.predicate.avg_tasks_per_pair)
-		print str(chosenIP.predicate), "record vote avg_completion_time: ", str(chosenIP.predicate.avg_completion_time)
-		print str(chosenIP.predicate), "number of tasks: ", str(chosenIP.predicate.totalTasks) 
 		print str(chosenIP.predicate), "post record_vote cost: ", str(chosenIP.predicate.cost)
+		print str(chosenIP.predicate), "post record_vote score: ", str(chosenIP.predicate.value)
 
 		# if we're using queueing, remove the IP pair from the queue if appropriate
 		if toggles.EDDY_SYS == 1:

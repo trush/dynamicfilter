@@ -29,6 +29,7 @@ def syn_load_data():
 		for i in itemList:
 			ip_pair = IP_Pair.objects.create(item=i, predicate=p)
 
+
 def syn_answer(chosenIP, switch, numTasks):
 	"""
 	make up a fake answer based on global variables
@@ -63,9 +64,14 @@ def syn_answer(chosenIP, switch, numTasks):
 		else:
 			pred.setTrueAmbiguity(predInfo[1])
 
+	# if this is the first time we've seen this pair, it needs a true answer
+	if ((chosenIP.num_no == 0) and (chosenIP.num_yes == 0)):
+		chosenIP.give_true_answer()
+		chosenIP.refresh_from_db(fields=["true_answer"])
+
 	# decide if the answer is going to lean towards true or false
 	# lean towards true
-	if decision(chosenIP.predicate.trueSelectivity): #index 0 is selectivity
+	if chosenIP.true_answer:
 		# decide if the answer is going to be true or false
 		value = decision(1 - chosenIP.predicate.trueAmbiguity)
 	# lean towards false
