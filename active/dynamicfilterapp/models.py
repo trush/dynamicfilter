@@ -260,56 +260,15 @@ class Predicate(models.Model):
                     break
             return self.queue_length
 
-    ### Adaptive Consensus Methods
-    def _should_change_size(self):
-        lower_bound, upper_bound = toggles.CONSENSUS_STATUS_LIMITS
-        if self.consensus_status >= upper_bound:
-            if self.consensus_max < toggles.CONSENSUS_SIZE_LIMITS[1]:
-                return 1
-            return 2
-        elif self.consensus_status <= lower_bound:
-            if self.consensus_max > toggles.CONSENSUS_SIZE_LIMITS[0]:
-                return -1
-            return -2
-        else:
-            return False
-
-    def _change_size(self, d):
-        #TODO change hardcoded 2 to a toggleable?
-        if d == 1:
-            self.consensus_max = self.consensus_max + 2
-        elif d == -1:
-            self.consensus_max = self.consensus_max - 2
-        self.consensus_status = 0
-        if d == 2:
-            self.consensus_status = 1
-        elif d == -2:
-            self.consensus_status = -1
-        print "Size: "+str(self.consensus_max)
-
-    def _update_status(self, ipPair):
-        #TODO find way to modularize this
-        if ipPair.consensus_location == 1:
-            self.consensus_status = self.consensus_status - 1
-        elif ipPair.consensus_location == 2:
-            if self.consensus_status < 0:
-                self.consensus_status = 0
-        elif ipPair.consensus_location == 3:
-            self.consensus_status = self.consensus_status + 1
-        elif ipPair.consensus_location == 4:
-            self.consensus_status = self.consensus_status + 3
-        print "Status: "+str(self.consensus_status)
-
-
     def update_consensus(self, ipPair):
         mode = 1
         old_max = self.consensus_max
         new_max = old_max
+        loc = ipPair.consensus_location
 
         ### TESTING RENO slow start method
-        ### NOT a perfect implimentation of reno
-        if mode == 1:
-            loc = ipPair.consensus_location
+        ### NOT a "perfect" implimentation of reno
+        if toggles.ADAPTIVE_CONSENSUS_MODE == 1:
             if loc == 1:
                 self.consensus_status = self.consensus_status + 1
             elif loc == 3:
@@ -317,29 +276,19 @@ class Predicate(models.Model):
             elif loc == 4:
                 self.consensus_status = self.consensus_status/3
             new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
-            if new_max < toggles.CONSENSUS_SIZE_LIMITS[0]:
-                new_max=toggles.CONSENSUS_SIZE_LIMITS[0]
-            print "Size: "+str(new_max)
-            self.consensus_max = new_max
 
         ### CUTE alg. method.
-        elif mode == 2:
-            loc = ipPair.consensus_location
+        elif toggles.ADAPTIVE_CONSENSUS_MODE == 2:
             if loc == 1:
                 self.consensus_status = self.consensus_status + 1
             elif (loc == 3) or (loc == 4):
                 self.consensus_status = 0
                 print "Vote: ("+str(ipPair.num_no)+","+str(ipPair.num_yes)+") caused growth"
             new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
-            if new_max < toggles.CONSENSUS_SIZE_LIMITS[0]:
-                new_max = toggles.CONSENSUS_SIZE_LIMITS[0]
-            print "Size: "+str(new_max)
-            self.consensus_max = new_max
 
         ### CUBIC alg.
-        elif mode == 3:
+        elif toggles.ADAPTIVE_CONSENSUS_MODE == 3:
             #TODO fix weird max=15 problem?
-            loc = ipPair.consensus_location
             if (loc == 3) or (loc == 4):
                 self.consensus_status=0
                 self.consensus_max_threshold = (toggles.CONSENSUS_SIZE_LIMITS[1]-self.consensus_max)
@@ -348,22 +297,13 @@ class Predicate(models.Model):
                 self.consensus_status+=1
             k = int(self.consensus_max_threshold*toggles.CUBIC_B/toggles.CUBIC_C)**(1.0/3.0)
             new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - int((((self.consensus_status - k)**3)*toggles.CUBIC_C + self.consensus_max_threshold))
-            if new_max < toggles.CONSENSUS_SIZE_LIMITS[0]:
-                new_max = toggles.CONSENSUS_SIZE_LIMITS[0]
-            elif new_max > toggles.CONSENSUS_SIZE_LIMITS[1]:
-                new_max = toggles.CONSENSUS_SIZE_LIMITS[1]
-            print "Size: "+str(new_max)
-            self.consensus_max = new_max
 
-
-        ## WEIRD AF mode
-        elif mode == 0:
-            self._update_status(ipPair)
-            # update status
-            status = self._should_change_size()
-            if status:
-                self._change_size(status)
-
+        if new_max < toggles.CONSENSUS_SIZE_LIMITS[0]:
+            new_max = toggles.CONSENSUS_SIZE_LIMITS[0]
+        elif new_max > toggles.CONSENSUS_SIZE_LIMITS[1]:
+            new_max = toggles.CONSENSUS_SIZE_LIMITS[1]
+        print "Size: "+str(new_max)
+        self.consensus_max = new_max
         if new_max>old_max:
             return True
         elif old_max>new_max:

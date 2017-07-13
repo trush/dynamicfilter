@@ -78,6 +78,7 @@ FALSE_THRESHOLD = 0.05          # Used for ALMOST_FALSE TODO better docs
     # much in progress and subject to much change
 
 ADAPTIVE_CONSENSUS = True  # Enables of disables the adaptive Consensus outright
+ADAPTIVE_CONSENSUS_MODE = 1
 PREDICATE_SPECIFIC = True  # Should each predicate have their own adaptive Consensus metric? or should it be one general metric
                             # Generally most useful for predicates of vastly differing ambiguity
                                 # or unkown ambiguity.
@@ -92,9 +93,6 @@ K = 8
 W_MAX = 6
 CUBIC_C = (1.0/50.0)
 CUBIC_B = (0.8)
-
-
-
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################

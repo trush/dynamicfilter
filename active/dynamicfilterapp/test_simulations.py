@@ -1932,13 +1932,6 @@ class SimulationTest(TransactionTestCase):
 						for pair in donePairs:
 							goodArray.append(pair.num_no + pair.num_yes)
 							goodPoints.append((pair.num_no,pair.num_yes))
-					if toggles.CONSENSUS_LOCATION_STATS:
-						temp = [0,0,0,0]
-						for pair in donePairs:
-							val, loc = self.voteResults(pair.num_no,pair.num_yes)
-							temp[loc]+=1
-						for i in range(4):
-							locArray[i].append(temp[i])
 
 					#print "This is number of incorrect items: ", num_incorrect
 
@@ -2026,13 +2019,6 @@ class SimulationTest(TransactionTestCase):
 							multi_line_graph_gen((gX,bX),(gY,bY),('Correct','Incorrect'),dest+'_both.png',title=title,labels=labels,scatter=True,square=True)
 							line_graph_gen(gX,gY,dest+'_good.png',title=title+" goodPoints",labels=labels,scatter=True,square=True)
 							line_graph_gen(bX,bY,dest+'_bad.png',title=title+" badPoints",labels=labels,scatter=True,square=True)
-			if toggles.CONSENSUS_LOCATION_STATS:
-				data = locArray[1:]
-				dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_consensus_location'
-				generic_csv_write(dest+'.csv',data)
-				if toggles.GEN_GRAPHS:
-					multi_hist_gen(data,('Bayes','single Cut','total Cut'),dest+'.png')
-
 		if toggles.TIME_SIMS:
 			self.timeRun(sampleData)
 
