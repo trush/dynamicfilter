@@ -265,11 +265,19 @@ class Predicate(models.Model):
         new_max = old_max
         loc = ipPair.consensus_location
 
-        ### TESTING RENO slow start method
-        ### NOT a "perfect" implimentation of reno
-        if toggles.ADAPTIVE_CONSENSUS_MODE == 1:
+        ### TCP RENO/TAHOE
+        if toggles.ADAPTIVE_CONSENSUS_MODE == 1 or toggles.ADAPTIVE_CONSENSUS_MODE == 2:
             if loc == 3 or loc == 4:
+                self.consensus_max_threshold = self.consensus_status/2
+                self.save(update_fields=["consensus_max_threshold"])
                 self.consensus_status = self.consensus_status/2
+                if toggles.ADAPTIVE_CONSENSUS_MODE == 2:
+                    self.consensus_status=0
+            elif self.consensus_status < self.consensus_max_threshold:
+                if self.consensus_status < 1:
+                    self.consensus_status = 1
+                else:
+                    self.consensus_status = self.consensus_status * 2
             else:
                 self.consensus_status = self.consensus_status + 1
             status_needed = (toggles.CONSENSUS_SIZE_LIMITS[1]-toggles.CONSENSUS_SIZE_LIMITS[0])/2
@@ -279,7 +287,7 @@ class Predicate(models.Model):
             new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
 
         ### CUTE alg. method.
-        elif toggles.ADAPTIVE_CONSENSUS_MODE == 2:
+        elif toggles.ADAPTIVE_CONSENSUS_MODE == 3:
             if loc == 1:
                 self.consensus_status = self.consensus_status + 1
             elif (loc == 3) or (loc == 4):
@@ -288,8 +296,8 @@ class Predicate(models.Model):
             new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
 
         ### CUBIC alg.
-        elif toggles.ADAPTIVE_CONSENSUS_MODE == 3:
-            #TODO fix weird max=15 problem?
+        elif toggles.ADAPTIVE_CONSENSUS_MODE == 4:
+            #TODO fix double growth problem
             if (loc == 3) or (loc == 4):
                 self.consensus_status=0
                 self.consensus_max_threshold = (toggles.CONSENSUS_SIZE_LIMITS[1]-self.consensus_max)

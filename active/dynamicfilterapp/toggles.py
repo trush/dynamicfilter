@@ -78,17 +78,18 @@ FALSE_THRESHOLD = 0.05          # Used for ALMOST_FALSE TODO better docs
     # much in progress and subject to much change
 
 ADAPTIVE_CONSENSUS = True  # Enables of disables the adaptive Consensus outright
-ADAPTIVE_CONSENSUS_MODE = 1 #Which algorithm should the adaptive consensus use?
+ADAPTIVE_CONSENSUS_MODE = 4 #Which algorithm should the adaptive consensus use?
                             # 1 - RENO:  [https://en.wikipedia.org/wiki/TCP_congestion_control#TCP_Tahoe_and_Reno]
-                            # 2 - CUTE:  [goo.gl/etdxtC]
-                            # 3 - CUBIC: [https://en.wikipedia.org/wiki/CUBIC_TCP]
+                            # 2 - TAHOE: See reno
+                            # 3 - CUTE:  [goo.gl/etdxtC]
+                            # 4 - CUBIC: [https://en.wikipedia.org/wiki/CUBIC_TCP]
 PREDICATE_SPECIFIC = True  # Should each predicate have their own adaptive Consensus metric? or should it be one general metric
                             # Generally most useful for predicates of vastly differing ambiguity
                                 # or unkown ambiguity.
                             # Recomended setting: True
 CONSENSUS_STATUS_LIMITS = (-3,3)    # The limits we need to reach before inc/dec-rementing the max votes size
                                     # format (-#, +#) for (decrement val, increment val)
-CONSENSUS_SIZE_LIMITS = (7, 45)
+CONSENSUS_SIZE_LIMITS = (7, 101)
 RENO_BONUS_RATIO = 1.5
 CONSENSUS_STATUS = 0        # Used only when PREDICATE_SPECIFIC is False.
                             # used as universal version of consensus_status
