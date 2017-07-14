@@ -138,7 +138,11 @@ class Predicate(models.Model):
             self.queue_is_full = False
             self.save(update_fields = ["queue_is_full"])
         else:
-            raise Exception ("Queue for predicate " + str(self.id) + " is over-full")
+            if toggles.EDDY_SYS != 5:
+                raise Exception ("Queue for predicate " + str(self.id) + " is over-full")
+            else:
+                self.queue_is_full = True
+                self.save(update_fields = ["queue_is_full"])
 
         if IP_Pair.objects.filter(inQueue=True, predicate = self).count() < self.queue_length and self.queue_is_full:
             raise Exception ("Queue for predicate " + str(self.id) + " set to full when not")
@@ -208,13 +212,20 @@ class IP_Pair(models.Model):
     item = models.ForeignKey(Item)
     predicate = models.ForeignKey(Predicate)
 
-    # tasks issued
+    # tasks out at a given point in time
     tasks_out = models.IntegerField(default=0)
+    # tasks that have been released overall
+    tasks_released=models.IntegerField(default=0)
     # running cumulation of votes
     value = models.FloatField(default=0.0)
     num_no = models.IntegerField(default=0)
     num_yes = models.IntegerField(default=0)
     isDone = models.BooleanField(db_index=True, default=False)
+
+    def _get_total_votes(self):
+        return self.num_no + self.num_yes
+
+    total_votes = property(_get_total_votes)
 
     # a marker for the status of the IP
     status_votes = models.IntegerField(default=0)
@@ -247,7 +258,8 @@ class IP_Pair(models.Model):
         self.inQueue = True
         self.save(update_fields=["inQueue"])
         if IP_Pair.objects.filter(inQueue=True, predicate=self.predicate).count() > self.predicate.queue_length:
-            raise Exception ("Too many IP pair objects in queue for predicate " + str(self.predicate.id))
+            if toggles.EDDY_SYS != 5:
+                raise Exception ("Too many IP pair objects in queue for predicate " + str(self.predicate.id))
         self.item.add_to_queue()
         self.predicate.award_ticket()
         if not IP_Pair.objects.filter(predicate=self.predicate, inQueue=True).count() == self.predicate.num_pending:
@@ -331,7 +343,8 @@ class IP_Pair(models.Model):
 
     def distribute_task(self):
         self.tasks_out += 1
-        self.save(update_fields = ["tasks_out"])
+        self.tasks_released += 1
+        self.save(update_fields = ["tasks_out", "tasks_released"])
 
     def collect_task(self):
         self.tasks_out -= 1

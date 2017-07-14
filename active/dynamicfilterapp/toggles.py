@@ -3,7 +3,7 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'VisualizingActiveTasks' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'Random_isStarted_TaskPerformanceComparison' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
@@ -44,13 +44,13 @@ DISTRIBUTION_TYPE = 0 # tells pick_worker how to choose workers.
 # 1  -  Geometric Distribution; (synthetic graph which fits out data well)
 # 2  -  Real Distribution (samples directly from the real data)
 
-EDDY_SYS = 1
+EDDY_SYS = 5
 # EDDY SYS KEY:
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
 
-PENDING_QUEUE_SIZE = 3
+PENDING_QUEUE_SIZE = 2
 
 CHOSEN_PREDS = [3,4] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
@@ -79,11 +79,11 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 40
 
-ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
-QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,qlength)]
+QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3), (16,4)] # settings for above mode [(#tickets,qlength)]
 
 #############################################################################
 #############################################################################
@@ -104,7 +104,7 @@ GEN_GRAPHS = True # if true, any tests run will generate their respective graphs
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
-NUM_ITEMS = 100
+NUM_ITEMS = 20
 SIN = -1
 
 SELECTIVITY_GRAPH = False
@@ -124,7 +124,8 @@ ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [.1, .2, .3]
 
 #produces ticket count graph for 1 simulation
-COUNT_TICKETS = False
+COUNT_TICKETS = True
+TRACK_QUEUES = True
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 100
@@ -139,7 +140,7 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 1 # how many simulations to run?
+NUM_SIM = 2 # how many simulations to run?
 
 
 TIME_SIMS = False # track the computer runtime of simulations
@@ -152,7 +153,7 @@ MAX_TASKS_OUT = MAX_TASKS
 
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
-TRACK_IP_PAIRS_DONE = True
+TRACK_IP_PAIRS_DONE = False
 
 TRACK_ACTIVE_TASKS = True
 
@@ -200,5 +201,5 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
             'MAX_TASKS','BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
             'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
-            'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST'
+            'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES'
 ]
