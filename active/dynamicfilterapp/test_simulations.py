@@ -252,7 +252,7 @@ class SimulationTest(TransactionTestCase):
 
 
 		else:
-			chosenIP.refresh_from_db()
+			#chosenIP.refresh_from_db()
 			value = choice(dictionary[chosenIP])
 			if not toggles.RESPONSE_SAMPLING_REPLACEMENT:
 				#print len(dictionary[chosenIP])
@@ -278,8 +278,8 @@ class SimulationTest(TransactionTestCase):
 
 			if not toggles.SIMULATE_TIME:
 				updateCounts(t, chosenIP)
-				t.refresh_from_db()
-				chosenIP.refresh_from_db()
+				#t.refresh_from_db()
+				#chosenIP.refresh_from_db()
 
 
 		end = time.time()
@@ -292,7 +292,6 @@ class SimulationTest(TransactionTestCase):
 		"""
 		synthesize a task
 		"""
-
 		start = time.time()
 		if chosenIP is None:
 			if toggles.SIMULATE_TIME:
@@ -336,8 +335,8 @@ class SimulationTest(TransactionTestCase):
 
 			if not toggles.SIMULATE_TIME:
 				updateCounts(t, chosenIP)
-				t.refresh_from_db()
-				chosenIP.refresh_from_db()
+				#t.refresh_from_db()
+				#chosenIP.refresh_from_db()
 
 		end = time.time()
 		runTime = end - start
@@ -525,15 +524,15 @@ class SimulationTest(TransactionTestCase):
 			if workerID is not None:
 				# select a task to assign to this person
 				ip_pair, eddy_time = give_task(active_tasks, workerID)
-				ip_pair.refresh_from_db()
+				#ip_pair.refresh_from_db()
 				self.pending_eddy_time += eddy_time
 
 				if toggles.REAL_DATA:
 					# TODO change return val of simulate task and syn simulate task to just task
-					task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
+					task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 				else:
-					task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
-				task.refresh_from_db()
+					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
+				#task.refresh_from_db()
 			else:
 				# TODO if in mode where we give placeholder tasks, the task should never be None
 				task = None
@@ -543,8 +542,8 @@ class SimulationTest(TransactionTestCase):
 			workerID = self.pick_worker(b_workers, [])
 			ip_pair, eddy_time = give_task(active_tasks, workerID)
 			self.pending_eddy_time += eddy_time
-			if ip_pair is not None:
-				ip_pair.refresh_from_db()
+			#if ip_pair is not None:
+				#ip_pair.refresh_from_db()
 
 			if toggles.REAL_DATA:
 				task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
@@ -782,11 +781,7 @@ class SimulationTest(TransactionTestCase):
 				for task in active_tasks:
 					if (task.end_time <= time_clock):
 						updateCounts(task, task.ip_pair)
-						task.refresh_from_db()
-						if task.ip_pair is not None:
-							task.ip_pair.refresh_from_db()
-							task.ip_pair.item.refresh_from_db()
-							task.ip_pair.predicate.refresh_from_db()
+						#task.refresh_from_db()
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
 						self.num_tasks += 1
@@ -832,10 +827,7 @@ class SimulationTest(TransactionTestCase):
 						if task is not None:
 
 							# TODO if we're in "placeholder task" mode, task should never be None
-							if task.ip_pair is not None:
-								task.ip_pair.refresh_from_db()
-								task.ip_pair.predicate.refresh_from_db()
-								task.ip_pair.item.refresh_from_db()
+
 
 							active_tasks.append(task)
 							b_workers.append(worker)
@@ -969,7 +961,7 @@ class SimulationTest(TransactionTestCase):
 					if toggles.SELECTIVITY_GRAPH:
 						for count in range(toggles.NUM_QUESTIONS):
 							predicate = Predicate.objects.get(pk=count+1)
-							predicate.refresh_from_db()
+							predicate.refresh_from_db(fields=['trueSelectivity'])
 							#print "true selectivity: ", str(predicate.trueSelectivity)
 							self.pred_selectivities[count].append(predicate.trueSelectivity)
 
@@ -1106,10 +1098,12 @@ class SimulationTest(TransactionTestCase):
 	###___HELPERS THAT WRITE OUT STATS___###
 	# TODO write this
 	def get_incorrects(self):
-		correct_answers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
-		should_pass = self.get_passed_items(correct_answers)
-		num_incorrect = self.final_item_mismatch(should_pass)
-
+		if toggles.REAL_DATA:
+			correct_answers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
+			should_pass = self.get_passed_items(correct_answers)
+		else:
+			should_pass = self.syn_get_passed_items()
+		self.num_incorrect = self.final_item_mismatch(should_pass)
 
 	def get_passed_items(self, correctAnswers):
 		#go through correct answers dictionary and set the "should pass" parameter to true for
@@ -1119,8 +1113,22 @@ class SimulationTest(TransactionTestCase):
 		for item in Item.objects.all():
 			if all (correctAnswers[item, predicate] == True for predicate in predicates):
 				item.shouldPass = True
-				item.save()
+				item.save(update_fields=["shouldPass"])
 		return Item.objects.filter(shouldPass = True)
+
+	def syn_get_passed_items(self):
+		for item in Item.objects.all():
+			relevant_pairs = IP_Pair.objects.filter(item=item)
+			passed = True
+			for pair in relevant_pairs:
+				if pair.true_answer== False:
+					passed=False
+			item.shouldPass=passed
+			item.save(update_fields=["shouldPass"])
+		return Item.objects.filter(shouldPass = True)
+
+
+
 
 	def final_item_mismatch(self, passedItems):
 		"""
@@ -1948,11 +1956,19 @@ class SimulationTest(TransactionTestCase):
 			if toggles.SIMULATE_TIME:
 				cum_work_time_avg_array.append(np.average(self.cum_work_time_array))
 				cum_work_time_std_array.append(np.std(self.cum_work_time_array))
-
 				cum_placeholder_time_avg_array.append(np.average(self.cum_placeholder_time_array))
 				cum_placeholder_time_std_array.append(np.std(self.cum_placeholder_time_array))
+		#____FOR LOOKING AT ACCURACY OF RUNS___#
+			if toggles.TEST_ACCURACY and toggles.REAL_DATA:
+				correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
+				passedItems = self.get_passed_items(correctAnswers)
 
 			self.reset_arrays()
+
+
+
+
+
 
 
 		save = [task_array_sizes, tasks_avg_array, tasks_std_array,
