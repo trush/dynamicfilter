@@ -104,7 +104,7 @@ class Predicate(models.Model):
 
 	def update_selectivity(self):
 		self.calculatedSelectivity = self.totalNo/self.totalTasks
-		return self.calculatedSelectivity
+		self.save(update_fields=["calculatedSelectivity"])
 
 	def setTrueSelectivity(self, sel):
 		self.trueSelectivity = sel
@@ -116,15 +116,14 @@ class Predicate(models.Model):
 
 	def update_cost(self):
 		self.cost = self.avg_tasks_per_pair/float(toggles.CUT_OFF)# * (self.avg_completion_time/100)
-		return self.cost
+		self.save(update_fields=["cost"])
 	
 	def update_rank(self):
-		if toggles.REAL_DATA:
-			self.rank = (self.calculatedSelectivity)/self.cost
-		else:
-			self.rank = (self.calculatedSelectivity)/self.cost
+		# if toggles.REAL_DATA:
+		# 	self.rank = (self.calculatedSelectivity)/self.cost
+		# else:
+		self.rank = (self.calculatedSelectivity)/self.cost
 		self.save(update_fields=["rank"])
-		return self.rank
 
 	def move_window(self):
 		if self.num_wickets == toggles.LIFETIME:

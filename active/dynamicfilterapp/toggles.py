@@ -146,7 +146,7 @@ RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 NUM_SIM = 2 # how many simulations to run?
 
-TIME_SIMS = True # track the computer runtime of simulations
+TIME_SIMS = False # track the computer runtime of simulations
 
 SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
@@ -182,7 +182,7 @@ PRED_SCORE_COUNT = True
 
 PRED_RANK_COUNT = True
 
-PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
+PACKING = True # Enable for "Packing" of outputs into a folder and generation of config.ini
 
 if GEN_GRAPHS:
     print ''
