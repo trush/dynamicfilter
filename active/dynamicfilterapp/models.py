@@ -88,7 +88,7 @@ class Predicate(models.Model):
 	trueAmbiguity = models.FloatField(default=0.0)
 	totalTasks = models.FloatField(default=0.0)
 	totalNo = models.FloatField(default=0.0)
-	num_ip_complete = models.IntegerField(default=0)
+	num_ip_complete = models.IntegerField(default=1)
 
 	# fields to keep track of cost
 	cost = models.FloatField(default=1.0)
@@ -115,14 +115,14 @@ class Predicate(models.Model):
 		self.save(update_fields=["trueAmbiguity"])
 
 	def update_cost(self):
-		self.cost = self.avg_tasks_per_pair * (self.avg_completion_time/100)
+		self.cost = self.avg_tasks_per_pair/float(toggles.CUT_OFF)# * (self.avg_completion_time/100)
 		return self.cost
 	
 	def update_rank(self):
 		if toggles.REAL_DATA:
-			self.rank = (self.calculatedSelectivity - 1)/self.cost
+			self.rank = (self.calculatedSelectivity)/self.cost
 		else:
-			self.rank = (self.calculatedSelectivity - 1)/self.cost
+			self.rank = (self.calculatedSelectivity)/self.cost
 		self.save(update_fields=["rank"])
 		return self.rank
 
@@ -171,7 +171,6 @@ class Predicate(models.Model):
 		new_val = ((self.count+1)/float(self.count)) * self.rank + (1/float(self.count)) * reward
 		self.value = new_val
 		self.save(update_fields = ["value"])
-		return
 	
 	def remove_ticket(self):
 		self.num_tickets -= 1
@@ -194,7 +193,10 @@ class Predicate(models.Model):
 		self.save(update_fields=["num_ip_complete"])
 	
 	def update_avg_tasks(self):
-		self.avg_tasks_per_pair = self.totalTasks / self.num_ip_complete
+		if (self.num_ip_complete == 0):
+			self.avg_tasks_per_pair = self.totalTasks
+		else:
+			self.avg_tasks_per_pair = self.totalTasks / self.num_ip_complete
 		self.save(update_fields=["avg_tasks_per_pair"]) 
 #______________________ Mahlet's changes end here ____________________#
 
@@ -227,7 +229,7 @@ class Predicate(models.Model):
 		'''
 		depending on adaptive queue mode, changes queue length as appropriate
 		'''
-		self.refresh_from_db()
+
 		# print "adapt queue length called"
 		if toggles.ADAPTIVE_QUEUE_MODE == 0:
 			# print "increase version invoked"
@@ -347,6 +349,7 @@ class IP_Pair(models.Model):
 				self.save(update_fields=["value", "num_no"])
 
 			self.predicate.update_selectivity()
+			self.predicate.update_avg_tasks()
 			self.predicate.update_cost()
 			self.predicate.update_rank()
 			# TODO @ Mahlet add your update rank and stuff here!
@@ -361,7 +364,6 @@ class IP_Pair(models.Model):
 				self.isDone = True
 				self.save(update_fields=["isDone"])
 				self.predicate.update_ip_count()
-				self.predicate.update_avg_tasks()
 
 				if (toggles.EDDY_SYS == 4 or toggles.EDDY_SYS == 5):
 					if self.is_false():

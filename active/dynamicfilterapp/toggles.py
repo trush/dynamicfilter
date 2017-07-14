@@ -105,7 +105,7 @@ GEN_GRAPHS = True # if true, any tests run will generate their respective graphs
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
-NUM_ITEMS = 90
+NUM_ITEMS = 50
 SIN = -1
 
 SELECTIVITY_GRAPH = False
@@ -114,7 +114,7 @@ SELECTIVITY_GRAPH = False
 # selectvity of the previous timestep
 #switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
  #(time,(selectivity,ambiguity), (...))
-switch_list = [(0, (0.9, 0.9), (0.3, 0.9))]#, (800, (0.3, 0.3), (0.8, 0.3))]
+switch_list = [(0, (0.9, 1.0), (0.3, 1.0))]#, (800, (0.3, 0.3), (0.8, 0.3))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -136,19 +136,19 @@ SINGLE_PAIR_RUNS = 50
 
 RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
-RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
+RUN_MULTI_ROUTING = True # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
 ##################	EPSILON GREEDY MAB OPTIONS	##################
 EPSILON = 0.7
-REWARD = 1.4
+REWARD = 1.5
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 NUM_SIM = 2 # how many simulations to run?
 
-TIME_SIMS = False # track the computer runtime of simulations
+TIME_SIMS = True # track the computer runtime of simulations
 
-SIMULATE_TIME = True # simulate time passing/concurrency
+SIMULATE_TIME = False # simulate time passing/concurrency
 MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
@@ -158,7 +158,7 @@ RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
+TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
@@ -180,7 +180,7 @@ OUTPUT_COST = False
 
 PRED_SCORE_COUNT = True
 
-PRED_RANK_COUNT = False
+PRED_RANK_COUNT = True
 
 PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
 

@@ -107,28 +107,32 @@ def pending_eddy(ID):
 
 	#decreasing MAB system
 	elif(toggles.EDDY_SYS == 5):
-		# startedIPs = incompleteIP.filter(isStarted=True)
-		# if len(startedIPs) != 0:
-		# 	incompleteIP = startedIPs
+		startedIPs = incompleteIP.filter(isStarted=True)
+		if len(startedIPs) != 0:
+		 	incompleteIP = startedIPs
 		predicates = [ip.predicate for ip in incompleteIP]
 		chosenPred = annealingSelectArm(predicates)
 		predIPs = incompleteIP.filter(predicate=chosenPred)
 		chosenIP = choice(predIPs)
+		chosenIP.start()
 
 	#rank-based MAB system
 	elif(toggles.EDDY_SYS == 6):
-		# startedIPs = incompleteIP.filter(isStarted=True)
-		# if len(startedIPs) != 0:
-		# 	incompleteIP = startedIPs
+		startedIPs = incompleteIP.filter(isStarted=True)
+		if len(startedIPs) != 0:
+		 	incompleteIP = startedIPs
 		predicates = [ip.predicate for ip in incompleteIP]
 		chosenPred = annealingSelectArm(predicates)
 		predIPs = incompleteIP.filter(predicate=chosenPred)
 		chosenIP = choice(predIPs)
+		chosenIP.start()
 
 	end = time.time()
 	runTime = end - start
-	return chosenIP, runTime
-
+	if toggles.SIMULATE_TIME:
+		return chosenIP, runTime
+	print "chosen IP is....:", chosenIP
+	return chosenIP
 	
 def move_window():
 	"""
@@ -330,6 +334,7 @@ def updateCounts(workerTask, chosenIP):
 		print "pred ", str(chosenIP.predicate), "post record_vote rank: ", str(chosenIP.predicate.rank)
 		print str(chosenIP.predicate), "post record_vote cost: ", str(chosenIP.predicate.cost)
 		print str(chosenIP.predicate), "post record_vote score: ", str(chosenIP.predicate.value)
+		print str(chosenIP.predicate), "post record_vote avg number of tasks: ", str(chosenIP.predicate.avg_tasks_per_pair)
 
 		# if we're using queueing, remove the IP pair from the queue if appropriate
 		if toggles.EDDY_SYS == 1:
