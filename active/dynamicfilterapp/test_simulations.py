@@ -403,16 +403,16 @@ class SimulationTest(TransactionTestCase):
 		"""
 		Expirimental function that runs many sims with varrying values of globalVar
 		"""
-		thismodule = sys.modules[__name__]
-		storage = getattr(thismodule, globalVar)
+		storage = getattr(toggles, globalVar)
 		counts = []
 		for i in range(len(listOfValuesToTest)):
 			if toggles.DEBUG_FLAG:
 				print "Running for: " + str(listOfValuesToTest[i])
-			setattr(thismodule, globalVar, listOfValuesToTest[i])
+			setattr(toggles, globalVar, listOfValuesToTest[i])
 			counts.append([])
 			for run in range(toggles.NUM_SIM):
-				counts[i].append(self.run_sim(dictionary)[0])
+				self.run_sim(dictionary)
+				counts[i].append(self.num_tasks)
 				self.reset_database()
 				if toggles.DEBUG_FLAG:
 					print run
@@ -434,7 +434,7 @@ class SimulationTest(TransactionTestCase):
 			elif toggles.DEBUG_FLAG:
 				print "only ran one sim, ignoring hist_gen"
 
-		setattr(thismodule, globalVar, storage)
+		setattr(toggles, globalVar, storage)
 		return
 
 	def voteResults(self,no,yes):
@@ -1102,7 +1102,7 @@ class SimulationTest(TransactionTestCase):
 			if toggles.DEBUG_FLAG:
 				print "Wrote File: "+dest+'.csv'
 			if toggles.GEN_GRAPHS:
-				line_graph_gen(routingL[0],routingL[1],dest+'.png',labels = labels,title = title, square = True) # saves a routing line graph
+				line_graph_gen(routingL[0], routingL[1],dest+'.png', labels = labels, title = title, square = True) # saves a routing line graph
 				if toggles.DEBUG_FLAG:
 					print "Wrote File: " + dest+'.png'
 
@@ -2096,8 +2096,9 @@ class SimulationTest(TransactionTestCase):
 							print "Wrote File: " + dest
 					elif toggles.DEBUG_FLAG:
 						print "only ran one sim, not running hist_gen"
+			
 			if toggles.RUN_MULTI_ROUTING:
-					dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + '_multi_routing.png'
+					dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + '_Eddy_sys_' + toggles.EDDY_SYS + '_multi_routing.png'
 					title = toggles.RUN_NAME + ' Average Predicate Routing'
 					questions = toggles.CHOSEN_PREDS
 					arrayData = []
@@ -2178,69 +2179,4 @@ class SimulationTest(TransactionTestCase):
 		if toggles.RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
 
-	# def test_placeholders(self):
-	# 	print "Simulation is being tested"
-
-	# 	if toggles.DEBUG_FLAG:
-	# 		print "Debug Flag Set!"
-	# 		print self.getConfig()
-
-	# 	if toggles.PACKING:
-	# 		toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
-	# 		packageMaker(toggles.OUTPUT_PATH,self.getConfig())
-	# 	if toggles.IDEAL_GRID:
-	# 		self.consensusGrid()
-
-	# 	if toggles.REAL_DATA:
-	# 		sampleData = self.load_data()
-	# 		if toggles.RUN_DATA_STATS:
-	# 			self.output_data_stats(sampleData)
-	# 			self.reset_database()
-	# 		if toggles.RUN_AVERAGE_COST:
-	# 			self.sim_average_cost(sampleData)
-	# 			self.reset_database()
-	# 		if toggles.RUN_SINGLE_PAIR:
-	# 			self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
-	# 			self.reset_database()
-	# 	else:
-	# 		sampleData = {}
-	# 		syn_load_data()
-
-	# 	if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-	# 		if toggles.DEBUG_FLAG:
-	# 			print "Running: item Routing"
-	# 		self.run_sim(deepcopy(sampleData))
-	# 		self.reset_database()
-
-	# 	if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-	# 		if toggles.DEBUG_FLAG:
-	# 			print "Running: ticket counting"
-	# 		self.run_sim(deepcopy(sampleData))
-	# 		self.reset_database()
-
-	# 	if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-	# 		if toggles.DEBUG_FLAG:
-	# 			print "Running: selectivity amounts over time"
-	# 		self.run_sim(sampleData)
-	# 		self.reset_database()
-
-	# 	#____FOR LOOKING AT ACCURACY OF RUNS___#
-	# 	if toggles.TEST_ACCURACY:
-	# 		correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
-	# 		passedItems = self.get_passed_items(correctAnswers)
-
-
-	# 	if toggles.RUN_OPTIMAL_SIM:
-	# 		countingArr=[]
-	# 		self.reset_database()
-	# 		for i in range(toggles.NUM_SIM):
-	# 			print "running optimal_sim " +str(i)
-	# 			num_tasks = self.optimal_sim(sampleData)
-	# 			countingArr.append(num_tasks)
-	# 			self.reset_database()
-	# 		dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
-	# 		generic_csv_write(dest+'.csv',[countingArr])
-	# 		if toggles.DEBUG_FLAG:
-	# 			print "Wrote File: " + dest+'.csv'
-
-	# 	self.placeholderActiveTest(sampleData)
+	

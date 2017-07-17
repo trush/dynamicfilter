@@ -3,7 +3,7 @@ import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
 
-RUN_NAME = 'test' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'abstract_sim_EDDY_SYS_test' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
 ITEM_TYPE = "Hotel"
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
@@ -51,7 +51,7 @@ EDDY_SYS = 6
 # 4 - epsilon-greedy MAB
 # 5 - annealing-epsilon-greedy MAB
 
-PENDING_QUEUE_SIZE = 5
+PENDING_QUEUE_SIZE = 4
 
 CHOSEN_PREDS = [4,2] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
@@ -105,7 +105,7 @@ GEN_GRAPHS = True # if true, any tests run will generate their respective graphs
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
-NUM_ITEMS = 50
+NUM_ITEMS = 150
 SIN = -1
 
 SELECTIVITY_GRAPH = False
@@ -114,16 +114,16 @@ SELECTIVITY_GRAPH = False
 # selectvity of the previous timestep
 #switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
  #(time,(selectivity,ambiguity), (...))
-switch_list = [(0, (0.9, 1.0), (0.3, 1.0))]#, (800, (0.3, 0.3), (0.8, 0.3))]
+switch_list = [(0, (0.9, 1.0), (0.2, 1.0))]#, (800, (0.3, 0.3), (0.8, 0.3))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
 RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response data with or without replacement
 
-RUN_ABSTRACT_SIM = False
+RUN_ABSTRACT_SIM = True
 ABSTRACT_VARIABLE = "EDDY_SYS"
-ABSTRACT_VALUES = [1,6,5]
+ABSTRACT_VALUES = [1,2,6]
 
 #produces ticket count graph for 1 simulation
 COUNT_TICKETS = False
@@ -140,11 +140,11 @@ RUN_MULTI_ROUTING = True # runs NUM_SIM simulations and averges the number of "f
 
 ##################	EPSILON GREEDY MAB OPTIONS	##################
 EPSILON = 0.7
-REWARD = 1.5
+REWARD = 1.7
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 2 # how many simulations to run?
+NUM_SIM = 50 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
@@ -158,7 +158,7 @@ RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
+TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
@@ -178,9 +178,9 @@ TEST_ACCURACY = False
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PRED_SCORE_COUNT = True
+PRED_SCORE_COUNT = False
 
-PRED_RANK_COUNT = True
+PRED_RANK_COUNT = False
 
 PACKING = True # Enable for "Packing" of outputs into a folder and generation of config.ini
 

@@ -97,13 +97,14 @@ def pending_eddy(ID):
 
 	#MAB_system
 	elif (toggles.EDDY_SYS == 4):
-		# startedIPs = incompleteIP.filter(isStarted=True)
-		# if len(startedIPs) != 0:
-		# 	incompleteIP = startedIPs
+		startedIPs = incompleteIP.filter(isStarted=True)
+		if len(startedIPs) != 0:
+			incompleteIP = startedIPs
 		predicates = [ip.predicate for ip in incompleteIP]
 		chosenPred = selectArm(predicates)
 		predIPs = incompleteIP.filter(predicate=chosenPred)
 		chosenIP = choice(predIPs)
+		chosenIP.start()
 
 	#decreasing MAB system
 	elif(toggles.EDDY_SYS == 5):
@@ -131,7 +132,7 @@ def pending_eddy(ID):
 	runTime = end - start
 	if toggles.SIMULATE_TIME:
 		return chosenIP, runTime
-	print "chosen IP is....:", chosenIP
+	print "chosen IP is....", chosenIP
 	return chosenIP
 	
 def move_window():
@@ -330,11 +331,13 @@ def updateCounts(workerTask, chosenIP):
 		# update stats counting numbers of votes (only if IP not completed)
 		chosenIP.record_vote(workerTask)
 		chosenIP.refresh_from_db()
-		print "pred ", str(chosenIP.predicate), "post record_vote selectivity: ", str(chosenIP.predicate.calculatedSelectivity)
-		print "pred ", str(chosenIP.predicate), "post record_vote rank: ", str(chosenIP.predicate.rank)
-		print str(chosenIP.predicate), "post record_vote cost: ", str(chosenIP.predicate.cost)
-		print str(chosenIP.predicate), "post record_vote score: ", str(chosenIP.predicate.value)
-		print str(chosenIP.predicate), "post record_vote avg number of tasks: ", str(chosenIP.predicate.avg_tasks_per_pair)
+		print "pred ", str(chosenIP.predicate), "after record_vote selectivity: ", str(chosenIP.predicate.calculatedSelectivity)
+		print str(chosenIP.predicate), "after record_vote rank: ", str(chosenIP.predicate.rank)
+		print str(chosenIP.predicate), "after record_vote cost: ", str(chosenIP.predicate.cost)
+		print str(chosenIP.predicate), "after record_vote score: ", str(chosenIP.predicate.value)
+		print "pred ", str(chosenIP.predicate), "after record_vote avg number of tasks: ", str(chosenIP.predicate.avg_tasks_per_pair)
+		print "total tasks: ", str(chosenIP.predicate.totalTasks)
+		print "total no's: ", str(chosenIP.predicate.totalNo)
 
 		# if we're using queueing, remove the IP pair from the queue if appropriate
 		if toggles.EDDY_SYS == 1:

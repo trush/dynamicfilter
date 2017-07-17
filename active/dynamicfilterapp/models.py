@@ -88,7 +88,7 @@ class Predicate(models.Model):
 	trueAmbiguity = models.FloatField(default=0.0)
 	totalTasks = models.FloatField(default=0.0)
 	totalNo = models.FloatField(default=0.0)
-	num_ip_complete = models.IntegerField(default=1)
+	num_ip_complete = models.IntegerField(default=0)
 
 	# fields to keep track of cost
 	cost = models.FloatField(default=1.0)
@@ -103,7 +103,8 @@ class Predicate(models.Model):
 		return self.question.question_text
 
 	def update_selectivity(self):
-		self.calculatedSelectivity = self.totalNo/self.totalTasks
+		self.refresh_from_db(fields=["totalNo","totalTasks"])
+		self.calculatedSelectivity = self.totalNo/float(self.totalTasks)
 		self.save(update_fields=["calculatedSelectivity"])
 
 	def setTrueSelectivity(self, sel):
@@ -115,6 +116,7 @@ class Predicate(models.Model):
 		self.save(update_fields=["trueAmbiguity"])
 
 	def update_cost(self):
+		self.refresh_from_db(fields=["avg_tasks_per_pair"])
 		self.cost = self.avg_tasks_per_pair/float(toggles.CUT_OFF)# * (self.avg_completion_time/100)
 		self.save(update_fields=["cost"])
 	
@@ -122,7 +124,8 @@ class Predicate(models.Model):
 		# if toggles.REAL_DATA:
 		# 	self.rank = (self.calculatedSelectivity)/self.cost
 		# else:
-		self.rank = (self.calculatedSelectivity)/self.cost
+		self.refresh_from_db(fields=["calculatedSelectivity","cost"])
+		self.rank = self.calculatedSelectivity/float(self.cost)
 		self.save(update_fields=["rank"])
 
 	def move_window(self):
@@ -158,18 +161,6 @@ class Predicate(models.Model):
 
 		if IP_Pair.objects.filter(inQueue=True, predicate = self).count() < self.queue_length and self.queue_is_full:
 			raise Exception ("Queue for predicate " + str(self.id) + " set to full when not")
-
-	def update_pred(self, reward):
-		self.count += 1
-		new_val = ((self.count+1)/float(self.count)) * self.value + (1/float(self.count)) * reward
-		self.value = new_val
-		self.save(update_fields = ["value"])
-
-	def update_pred_rank(self, reward):
-		self.count += 1
-		new_val = ((self.count+1)/float(self.count)) * self.rank + (1/float(self.count)) * reward
-		self.value = new_val
-		self.save(update_fields = ["value"])
 	
 	def remove_ticket(self):
 		self.num_tickets -= 1
@@ -179,6 +170,19 @@ class Predicate(models.Model):
 		self.totalTasks += 1
 		self.save(update_fields=["totalTasks"])
 #______________________ Mahlet's changes start here ____________________#
+	def update_pred(self, reward):
+		self.count += 1
+		new_val = ((self.count+1)/float(self.count)) * self.value + (1/float(self.count)) * reward
+		self.value = new_val
+		self.save(update_fields = ["value", "count"])
+
+	def update_pred_rank(self, reward):
+		self.count += 1
+		self.refresh_from_db(fields=["rank"])
+		new_val = ((self.count+1)/float(self.count)) * self.rank + (1/float(self.count)) * reward
+		self.value = new_val
+		self.save(update_fields = ["value", "count"])
+
 	def add_total_time(self):
 		self.total_time  += random.choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
 		self.save(update_fields=["total_time"])
@@ -216,7 +220,7 @@ class Predicate(models.Model):
 		old = self.queue_length
 		if old == 1:
 			raise ValueError("Tried to decrement queue_length to zero")
-		self.queue_length = old-1
+		self.queue_length = old - 1
 		self.save(update_fields=["queue_length"])
 		if self.num_pending >= (old - 1):
 			self.queue_is_full = True
@@ -278,6 +282,7 @@ class IP_Pair(models.Model):
 	def give_true_answer(self):
 		probability = self.predicate.trueSelectivity
 		self.true_answer = (random.random() > probability)
+		self.save(update_fields=["true_answer"])
 
 
 	def __str__(self):
@@ -323,6 +328,7 @@ class IP_Pair(models.Model):
 
 	def record_vote(self, workerTask):
 		# add vote to tally only if appropriate
+		print "answer = ",str(workerTask.answer)
 		if not self.isDone:
 			self.status_votes += 1
 			self.predicate.award_wicket()
