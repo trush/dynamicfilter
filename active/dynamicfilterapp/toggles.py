@@ -4,7 +4,7 @@ now = DT.datetime.now()
 from responseTimeDistribution import *
 
 
-RUN_NAME = 'SynData_Queue1_Window40_2Q_100I_50Sims_Round1' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'windowTest' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 ITEM_TYPE = "Hotel"
 
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
@@ -140,7 +140,7 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 2 # how many simulations to run?
+NUM_SIM = 50 # how many simulations to run?
 
 
 TIME_SIMS = False # track the computer runtime of simulations
@@ -174,7 +174,7 @@ IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PACKING=False # Enable for "Packing" of outputs into a folder and generation of config.ini
+PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
 
 if GEN_GRAPHS:
     print ''

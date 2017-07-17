@@ -306,7 +306,7 @@ class SimulationTest(TransactionTestCase):
 					work_time = choice(toggles.FALSE_TIMES)
 
 				start_task = time_clock + toggles.BUFFER_TIME
-				end_task = start_task + work_time
+				end_task = start + work_time
 				self.cum_work_time += work_time
 			else:
 				start_task = 0
@@ -502,9 +502,9 @@ class SimulationTest(TransactionTestCase):
 
 				if toggles.REAL_DATA:
 					# TODO change return val of simulate task and syn simulate task to just task
-					task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
+					task, task_time = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 				else:
-					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
+					task, task_time = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
 				task.refresh_from_db()
 			else:
 				# TODO if in mode where we give placeholder tasks, the task should never be None
@@ -521,7 +521,7 @@ class SimulationTest(TransactionTestCase):
 			if toggles.REAL_DATA:
 				task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 			else:
-				task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
+				task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch)
 
 		return task, workerID
 
@@ -1001,12 +1001,10 @@ class SimulationTest(TransactionTestCase):
 	###___HELPERS THAT WRITE OUT STATS___###
 	# TODO write this
 	def get_incorrects(self):
-		if toggles.REAL_DATA:
-			correct_answers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
-			should_pass = self.get_passed_items(correct_answers)
-		else:
-			should_pass = self.syn_get_passed_items()
-		self.num_incorrect = self.final_item_mismatch(should_pass)
+		correct_answers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
+		should_pass = self.get_passed_items(correct_answers)
+		num_incorrect = self.final_item_mismatch(should_pass)
+
 
 	def get_passed_items(self, correctAnswers):
 		#go through correct answers dictionary and set the "should pass" parameter to true for
@@ -1016,22 +1014,8 @@ class SimulationTest(TransactionTestCase):
 		for item in Item.objects.all():
 			if all (correctAnswers[item, predicate] == True for predicate in predicates):
 				item.shouldPass = True
-				item.save(update_fields=["shouldPass"])
+				item.save()
 		return Item.objects.filter(shouldPass = True)
-
-	def syn_get_passed_items(self):
-		for item in Item.objects.all():
-			relevant_pairs = IP_Pair.objects.filter(item=item)
-			passed = True
-			for pair in relevant_pairs:
-				if pair.true_answer== False:
-					passed=False
-			item.shouldPass=passed
-			item.save(update_fields=["shouldPass"])
-		return Item.objects.filter(shouldPass = True)
-
-
-
 
 	def final_item_mismatch(self, passedItems):
 		"""
@@ -1822,8 +1806,138 @@ class SimulationTest(TransactionTestCase):
 		# and the number of real tasks
 		# generate appropriate CSVs
 
+	def windowTest(self):
+
+		win_size_array = [10, 30, 50, 70, 90, 200]
+		switch_list_array = [[(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), (600, (0.8, 0.68), (0.7, 0.87)), (900, (0.8, 0.68), (0.75, 0.87))], 
+		[(0, (0.6, 0.68), (0.6, 0.87)), (400, ((toggles.SIN, .1, 300, .05, .6), 0.68), (0.6, 0.87))]]
+
+		winSize_compare = []
+		winSize_legend = []
+
+		if toggles.REAL_DATA:
+			sampleData = self.load_data()
+			if toggles.RUN_DATA_STATS:
+				self.output_data_stats(sampleData)
+				self.reset_database()
+			if toggles.RUN_AVERAGE_COST:
+				self.sim_average_cost(sampleData)
+				self.reset_database()
+			if toggles.RUN_SINGLE_PAIR:
+				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+				self.reset_database()
+		else:
+			sampleData = {}
+			syn_load_data()
+
+		for win_size in win_size_array:
+			# change the size of the active tasks array
+			toggles.LIFETIME = win_size
+
+			switch_compare = []
+			switch_legend = []
+
+			for system in [1,4]:
+
+				toggles.EDDY_SYS = system
+
+				for num in range(len(switch_list_array)):
+
+					switch_list = switch_list_array[num]
+
+					toggles.switch_list = switch_list
+
+					for winSwitch in ["True", "False"]:
+
+						toggles.SLIDING_WINDOW = bool(winSwitch)
+
+						toggles.RUN_NAME = "windowTest_winSize" + str(win_size) + "_Sys" + str(system) + "_Round" + str(num) + "_win" + winSwitch
+						toggles.OUTPUT_PATH = "dynamicfilterapp/simulation_files/output/"
+
+						self.simulation(sampleData)
+
+						if (num == 1):
+							winSize_compare.append(generic_csv_read('dynamicfilterapp/simulation_files/output/' + toggles.RUN_NAME + '/' + toggles.RUN_NAME +'_tasks_count.csv'))
+							winSize_legend.append(toggles.RUN_NAME)
+
+						switch_compare.append(generic_csv_read('dynamicfilterapp/simulation_files/output/' + toggles.RUN_NAME + '/' + toggles.RUN_NAME +'_tasks_count.csv'))
+						switch_legend.append(toggles.RUN_NAME)
+
+						#def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothness=True):
+						#graphGen.window_tasks_graph()
+
+						# Item.objects.all().delete()
+						# Question.objects.all().delete()
+						# Predicate.objects.all().delete()
+						# IP_Pair.objects.all().delete()
+						# WorkerID.objects.all().delete()
+						# Task.objects.all().delete()
+						# DummyTask.objects.all().delete()
+
+						#generic_csv_write(toggles.OUTPUT_PATH+toggles.RUN_NAME+'_tasks_count.csv',[runTasksArray])
+			multi_hist_gen(switch_compare, switch_legend, toggles.OUTPUT_PATH+"windowing_switch_compare.png", title='Performance difference of different window sizes on a sine selectivity curve')
+
+		multi_hist_gen(winSize_compare, winSize_legend, toggles.OUTPUT_PATH+"windowing_winSize_compare.png", title='Comparison of algs for window size of ' + str(win_size))
+
+
+
+	# def windowTestHelper(self, data, task_array_sizes):
+	# 	if not (toggles.TRACK_PLACEHOLDERS and toggles.DUMMY_TASKS and toggles.TRACK_IP_PAIRS_DONE):
+	# 		raise Exception("Turn on TRACK_PLACEHOLDERS and DUMMY_TASKS and TRACK_IP_PAIRS_DONE for this to work correctly")
+
+	# 	# self.placeholderQueueChange(sampleData, [20], [1, 2, 4, 8, 16, 32])	
+
+	# 	tasks_avg_array = []
+	# 	tasks_std_array = []
+
+	# 		for run in range(toggles.NUM_SIM):
+
+	# 			self.run_sim(data)
+	# 			if run == 0:
+	# 				timechange = [range(self.simulated_time+1), self.num_tasks_change_count, self.placeholder_change_count, self.ips_times_array, self.ips_done_array]
+	# 				time_dest = toggles.OUTPUT_PATH + "PlaceholdersOverTime_Active_" + str(toggles.MAX_TASKS) + "_Queue_" + str(toggles.PENDING_QUEUE_SIZE)
+	# 				generic_csv_write(time_dest+".csv", timechange)
+
+	# 				if toggles.DEBUG_FLAG:
+	# 					print "Wrote file: " + time_dest + ".csv"
+
+	# 				if toggles.GEN_GRAPHS:
+	# 					graphGen.placeholder_time_graph(timechange, time_dest)
+	# 				# save data for graphs of placeholders over time
+	# 			self.reset_database()
+
+	# 		# now we have arrays full of useful info. let's do stuff with it
+	# 		# average the number of tasks, placeholders, real tasks
+	# 		tasks_avg_array.append(np.average(self.num_tasks_array))
+	# 		tasks_std_array.append(np.std(self.num_tasks_array))
+
+	# 		self.reset_arrays()
+
+
+	# 	save = [task_array_sizes, tasks_avg_array, tasks_std_array,
+	# 			placeholders_avg_array, placeholders_std_array, real_avg_array,
+	# 			real_std_array]
+	# 	dest = toggles.OUTPUT_PATH + "taskPlaceholderAvgs_Active" + str(task_array_sizes) + "_Queue_" + str(toggles.PENDING_QUEUE_SIZE)
+	# 	generic_csv_write(dest+".csv", save)
+
+	# 	if toggles.DEBUG_FLAG:
+	# 		print "Wrote file: " + dest + ".csv"
+
+	# 	if toggles.SIMULATE_TIME:
+
+	# 		save1 = [task_array_sizes, cum_work_time_avg_array, cum_work_time_std_array,
+	# 				cum_placeholder_time_avg_array, cum_placeholder_time_std_array]
+	# 		dest1 = toggles.OUTPUT_PATH + "cumulative_times_Active" + str(task_array_sizes) + "_Queue_" + str(toggles.PENDING_QUEUE_SIZE)
+	# 		generic_csv_write(dest1+".csv", save1)
+
+	# 		if toggles.DEBUG_FLAG:
+	# 			print "Wrote file: " + dest + ".csv"
+
+	# 	if toggles.GEN_GRAPHS:
+	# 		graphGen.placeholder_graphing(save, dest, save1, dest1 )
+
 	###___MAIN TEST FUNCTION___###
-	def test_simulation(self):
+	def simulation(self, sampleData):
 		"""
 		Runs a simulation of real data and prints out the number of tasks
 		ran to complete the filter
@@ -1840,20 +1954,20 @@ class SimulationTest(TransactionTestCase):
 		if toggles.IDEAL_GRID:
 			self.consensusGrid()
 
-		if toggles.REAL_DATA:
-			sampleData = self.load_data()
-			if toggles.RUN_DATA_STATS:
-				self.output_data_stats(sampleData)
-				self.reset_database()
-			if toggles.RUN_AVERAGE_COST:
-				self.sim_average_cost(sampleData)
-				self.reset_database()
-			if toggles.RUN_SINGLE_PAIR:
-				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
-				self.reset_database()
-		else:
-			sampleData = {}
-			syn_load_data()
+		# if toggles.REAL_DATA:
+		# 	sampleData = self.load_data()
+		# 	if toggles.RUN_DATA_STATS:
+		# 		self.output_data_stats(sampleData)
+		# 		self.reset_database()
+		# 	if toggles.RUN_AVERAGE_COST:
+		# 		self.sim_average_cost(sampleData)
+		# 		self.reset_database()
+		# 	if toggles.RUN_SINGLE_PAIR:
+		# 		self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+		# 		self.reset_database()
+		# else:
+		# 	sampleData = {}
+		# 	syn_load_data()
 
 		if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
 			if toggles.DEBUG_FLAG:
@@ -1874,7 +1988,7 @@ class SimulationTest(TransactionTestCase):
 			self.reset_database()
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
-		if toggles.TEST_ACCURACY and toggles.REAL_DATA:
+		if toggles.TEST_ACCURACY:
 			correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
 			passedItems = self.get_passed_items(correctAnswers)
 
@@ -1915,7 +2029,7 @@ class SimulationTest(TransactionTestCase):
 				runTasksArray.append(self.num_tasks)
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
-				if toggles.TEST_ACCURACY and toggles.REAL_DATA:
+				if toggles.TEST_ACCURACY:
 					num_incorrect = self.final_item_mismatch(passedItems)
 					accCount.append(num_incorrect)
 				if toggles.RUN_CONSENSUS_COUNT or toggles.VOTE_GRID:
@@ -1924,11 +2038,7 @@ class SimulationTest(TransactionTestCase):
 						goodPairs, badPairs = [], []
 						for pair in donePairs:
 							val = bool((pair.num_yes-pair.num_no)>0)
-							if toggles.REAL_DATA:
-								correct = ((correctAnswers[(pair.item,pair.predicate)]) == val)
-							else:
-								correct = (pair.true_answer == val)
-							if correct:
+							if (correctAnswers[(pair.item,pair.predicate)]) == val:
 								goodArray.append(pair.num_no+pair.num_yes)
 								goodPoints.append((pair.num_no,pair.num_yes))
 							else:
@@ -2045,69 +2155,70 @@ class SimulationTest(TransactionTestCase):
 		if toggles.RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
 
-	def test_placeholders(self):
-		print "Simulation is being tested"
+	# def test_placeholders(self):
+	# 	print "Simulation is being tested"
 
-		if toggles.DEBUG_FLAG:
-			print "Debug Flag Set!"
-			print self.getConfig()
+	# 	if toggles.DEBUG_FLAG:
+	# 		print "Debug Flag Set!"
+	# 		print self.getConfig()
 
-		if toggles.PACKING:
-			toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
-			packageMaker(toggles.OUTPUT_PATH,self.getConfig())
-		if toggles.IDEAL_GRID:
-			self.consensusGrid()
+	# 	if toggles.PACKING:
+	# 		toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
+	# 		packageMaker(toggles.OUTPUT_PATH,self.getConfig())
+	# 	if toggles.IDEAL_GRID:
+	# 		self.consensusGrid()
 
-		if toggles.REAL_DATA:
-			sampleData = self.load_data()
-			if toggles.RUN_DATA_STATS:
-				self.output_data_stats(sampleData)
-				self.reset_database()
-			if toggles.RUN_AVERAGE_COST:
-				self.sim_average_cost(sampleData)
-				self.reset_database()
-			if toggles.RUN_SINGLE_PAIR:
-				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
-				self.reset_database()
-		else:
-			sampleData = {}
-			syn_load_data()
+	# 	if toggles.REAL_DATA:
+	# 		sampleData = self.load_data()
+	# 		if toggles.RUN_DATA_STATS:
+	# 			self.output_data_stats(sampleData)
+	# 			self.reset_database()
+	# 		if toggles.RUN_AVERAGE_COST:
+	# 			self.sim_average_cost(sampleData)
+	# 			self.reset_database()
+	# 		if toggles.RUN_SINGLE_PAIR:
+	# 			self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+	# 			self.reset_database()
+	# 	else:
+	# 		sampleData = {}
+	# 		syn_load_data()
 
-		if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-			if toggles.DEBUG_FLAG:
-				print "Running: item Routing"
-			self.run_sim(deepcopy(sampleData))
-			self.reset_database()
+	# 	if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+	# 		if toggles.DEBUG_FLAG:
+	# 			print "Running: item Routing"
+	# 		self.run_sim(deepcopy(sampleData))
+	# 		self.reset_database()
 
-		if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-			if toggles.DEBUG_FLAG:
-				print "Running: ticket counting"
-			self.run_sim(deepcopy(sampleData))
-			self.reset_database()
+	# 	if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+	# 		if toggles.DEBUG_FLAG:
+	# 			print "Running: ticket counting"
+	# 		self.run_sim(deepcopy(sampleData))
+	# 		self.reset_database()
 
-		if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-			if toggles.DEBUG_FLAG:
-				print "Running: selectivity amounts over time"
-			self.run_sim(sampleData)
-			self.reset_database()
+	# 	if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+	# 		if toggles.DEBUG_FLAG:
+	# 			print "Running: selectivity amounts over time"
+	# 		self.run_sim(sampleData)
+	# 		self.reset_database()
 
-		#____FOR LOOKING AT ACCURACY OF RUNS___#
-		if toggles.TEST_ACCURACY:
-			correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
-			passedItems = self.get_passed_items(correctAnswers)
+	# 	#____FOR LOOKING AT ACCURACY OF RUNS___#
+	# 	if toggles.TEST_ACCURACY:
+	# 		correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
+	# 		passedItems = self.get_passed_items(correctAnswers)
 
 
-		if toggles.RUN_OPTIMAL_SIM:
-			countingArr=[]
-			self.reset_database()
-			for i in range(toggles.NUM_SIM):
-				print "running optimal_sim " +str(i)
-				num_tasks = self.optimal_sim(sampleData)
-				countingArr.append(num_tasks)
-				self.reset_database()
-			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
-			generic_csv_write(dest+'.csv',[countingArr])
-			if toggles.DEBUG_FLAG:
-				print "Wrote File: " + dest+'.csv'
+	# 	if toggles.RUN_OPTIMAL_SIM:
+	# 		countingArr=[]
+	# 		self.reset_database()
+	# 		for i in range(toggles.NUM_SIM):
+	# 			print "running optimal_sim " +str(i)
+	# 			num_tasks = self.optimal_sim(sampleData)
+	# 			countingArr.append(num_tasks)
+	# 			self.reset_database()
+	# 		dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
+	# 		generic_csv_write(dest+'.csv',[countingArr])
+	# 		if toggles.DEBUG_FLAG:
+	# 			print "Wrote File: " + dest+'.csv'
 
-		self.placeholderActiveTest(sampleData)
+	def test_window_stuff(self):
+		self.windowTest()

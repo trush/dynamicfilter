@@ -74,7 +74,7 @@ def pending_eddy(ID):
 
 
     #random_system:
-    elif (EDDY_SYS == 2):
+    elif (toggles.EDDY_SYS == 2):
         if incompleteIP.exists():
             startedIPs = incompleteIP.filter(isStarted=True)
             if startedIPs.exists():
