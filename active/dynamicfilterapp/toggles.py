@@ -104,7 +104,7 @@ GEN_GRAPHS = False # if true, any tests run will generate their respective graph
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
-NUM_ITEMS = 100
+NUM_ITEMS = 10
 SIN = -1
 
 SELECTIVITY_GRAPH = False
@@ -140,7 +140,7 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 50 # how many simulations to run?
+NUM_SIM = 2 # how many simulations to run?
 
 
 TIME_SIMS = False # track the computer runtime of simulations
