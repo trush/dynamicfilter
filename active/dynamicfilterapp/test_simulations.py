@@ -84,6 +84,9 @@ class SimulationTest(TransactionTestCase):
 	# COMPUTING SELECTIVITY
 	pred_selectivities = []
 
+	# CONSENSUS SIZE TRACKING
+	consensus_size = []
+
 
 	###___HELPERS THAT LOAD IN DATA___###
 	def load_data(self):
@@ -379,13 +382,14 @@ class SimulationTest(TransactionTestCase):
 		global SAMPLING_ARRAY
 		start = time.time()
 		SAMPLING_ARRAY = []
-		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False)
 		Task.objects.all().delete()
 		DummyTask.objects.all().delete()
-		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_ip_complete=0,
-			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False,queue_length=toggles.PENDING_QUEUE_SIZE)
-
-		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
+		for i in Item.objects.all():
+			i.reset()
+		for p in Predicate.objects.all():
+			p.reset()
+		for ip in IP_Pair.objects.all():
+			ip.reset()
 
 		self.num_tasks, self.num_incorrect, self.num_placeholders = 0, 0, 0
 		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time = 0, 0, 0, 0
@@ -626,6 +630,15 @@ class SimulationTest(TransactionTestCase):
 				for count in range(toggles.NUM_QUESTIONS):
 					self.ticketNums.append([])
 
+		# Setting up arrays for TRACK_SIZE
+		if toggles.TRACK_SIZE:
+			if toggles.REAL_DATA:
+				for predNum in range(len(toggles.CHOSEN_PREDS)):
+					self.consensus_size.append([])
+			else:
+				for count in range(toggles.NUM_QUESTIONS):
+					self.consensus_size.append([])
+
 		# If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and toggles.RUN_ITEM_ROUTING) or toggles.RUN_MULTI_ROUTING:
 			predicates = [Predicate.objects.get(pk=pred+1) for pred in toggles.CHOSEN_PREDS]
@@ -652,7 +665,7 @@ class SimulationTest(TransactionTestCase):
 						for ip in IP_Pair.objects.filter(inQueue=True):
 							print "IP Pair " + str(ip.pk) + " |  Predicate: " + str(ip.predicate.id) +  " ||| Tasks out: " +  str(ip.tasks_out) + " | Num yes: " + str(ip.num_yes) + " | Num no: " + str(ip.num_no) + " | isDone: " + str(ip.isDone)
 
-							if ip.num_no + ip.num_yes > toggles.CUT_OFF:
+							if ip.num_no + ip.num_yes > toggles.CONSENSUS_SIZE_LIMITS[1]:
 								print "Total votes: " + str(ip.num_no+ip.num_yes)
 								raise Exception ("Too many votes cast for IP Pair " + str(ip.id))
 
@@ -857,6 +870,15 @@ class SimulationTest(TransactionTestCase):
 							for count in range(toggles.NUM_QUESTIONS):
 								predicate = Predicate.objects.get(pk=count+1)
 								self.ticketNums[count].append(predicate.num_tickets)
+					if toggles.TRACK_SIZE:
+						if toggles.REAL_DATA:
+							for predNum in range(len(toggles.CHOSEN_PREDS)):
+								predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
+								self.consensus_size[predNum].append(predicate.consensus_max)
+						else:
+							for count in range(toggles.NUM_QUESTIONS):
+								predicate = Predicate.objects.get(pk=count+1)
+								self.consensus_size[count].append(predicate.consensus_max)
 
 					if toggles.SELECTIVITY_GRAPH:
 						for count in range(toggles.NUM_QUESTIONS):
@@ -953,6 +975,25 @@ class SimulationTest(TransactionTestCase):
 			multi_line_graph_gen([range(time_proxy)]*xMultiplier, self.ticketNums, ticketCountsLegend,
 								toggles.OUTPUT_PATH + "ticketCounts" + str(self.sim_num) + ".png",
 								labels = ("time proxy", "Ticket counts"))
+		if toggles.TRACK_SIZE:
+			if not toggles.SIMULATE_TIME:
+				tasks = range(len(self.consensus_size[0]))
+				legend = []
+				dest = toggles.OUTPUT_PATH + "consensus_size"+str(self.sim_num)
+				if toggles.REAL_DATA:
+					for predNum in toggles.CHOSEN_PREDS:
+						legend.append("Pred " + str(predNum))
+
+				else:
+					for predNum in range(toggles.NUM_QUESTIONS):
+						legend.append("Pred " + str(predNum))
+				generic_csv_write(dest+'.csv',self.consensus_size)
+				if toggles.GEN_GRAPHS:
+					multi_line_graph_gen([tasks]*len(legend),self.consensus_size,
+						legend, dest+'.png', labels = ('Tasks','Max Num Tasks'),
+						title = "Consensus Algorithm Over Time")
+				self.consensus_size=[]
+
 
 		# TODO have this graph use the correct arrays
 		if toggles.SELECTIVITY_GRAPH:
@@ -1931,13 +1972,6 @@ class SimulationTest(TransactionTestCase):
 						for pair in donePairs:
 							goodArray.append(pair.num_no + pair.num_yes)
 							goodPoints.append((pair.num_no,pair.num_yes))
-					if toggles.CONSENSUS_LOCATION_STATS:
-						temp = [0,0,0,0]
-						for pair in donePairs:
-							val, loc = self.voteResults(pair.num_no,pair.num_yes)
-							temp[loc]+=1
-						for i in range(4):
-							locArray[i].append(temp[i])
 
 					#print "This is number of incorrect items: ", num_incorrect
 
@@ -2025,13 +2059,6 @@ class SimulationTest(TransactionTestCase):
 							multi_line_graph_gen((gX,bX),(gY,bY),('Correct','Incorrect'),dest+'_both.png',title=title,labels=labels,scatter=True,square=True)
 							line_graph_gen(gX,gY,dest+'_good.png',title=title+" goodPoints",labels=labels,scatter=True,square=True)
 							line_graph_gen(bX,bY,dest+'_bad.png',title=title+" badPoints",labels=labels,scatter=True,square=True)
-			if toggles.CONSENSUS_LOCATION_STATS:
-				data = locArray[1:]
-				dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_consensus_location'
-				generic_csv_write(dest+'.csv',data)
-				if toggles.GEN_GRAPHS:
-					multi_hist_gen(data,('Bayes','single Cut','total Cut'),dest+'.png')
-
 		if toggles.TIME_SIMS:
 			self.timeRun(sampleData)
 
