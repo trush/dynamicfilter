@@ -1808,9 +1808,13 @@ class SimulationTest(TransactionTestCase):
 
 	def windowTest(self):
 
-		win_size_array = [10, 30, 50, 70, 90, 200]
+		#win_size_array = [10, 30, 50, 70, 90, 200]
+		win_size_array = [30, 50, 70, 90, 200]
 		switch_list_array = [[(0, (0.8, 0.68), (0.6, 0.87)), (300, (0.8, 0.68), (0.65, 0.87)), (600, (0.8, 0.68), (0.7, 0.87)), (900, (0.8, 0.68), (0.75, 0.87))], 
 		[(0, (0.6, 0.68), (0.6, 0.87)), (400, ((toggles.SIN, .1, 300, .05, .6), 0.68), (0.6, 0.87))]]
+
+		winSize_graphs_info = []
+		switch_graphs_info = []
 
 		winSize_compare = []
 		winSize_legend = []
@@ -1856,11 +1860,14 @@ class SimulationTest(TransactionTestCase):
 
 						self.simulation(sampleData)
 
+						print "runName: " + str(toggles.RUN_NAME)
+
 						if (num == 1):
-							winSize_compare.append(generic_csv_read('dynamicfilterapp/simulation_files/output/' + toggles.RUN_NAME + '/' + toggles.RUN_NAME +'_tasks_count.csv'))
+							winSize_compare.append(generic_csv_read('dynamicfilterapp/simulation_files/output/' + toggles.RUN_NAME + '/' + toggles.RUN_NAME +'_tasks_count.csv')[0])
 							winSize_legend.append(toggles.RUN_NAME)
 
-						switch_compare.append(generic_csv_read('dynamicfilterapp/simulation_files/output/' + toggles.RUN_NAME + '/' + toggles.RUN_NAME +'_tasks_count.csv'))
+						print "from csv: " + str(generic_csv_read('dynamicfilterapp/simulation_files/output/' + toggles.RUN_NAME + '/' + toggles.RUN_NAME +'_tasks_count.csv')[0])
+						switch_compare.append(generic_csv_read('dynamicfilterapp/simulation_files/output/' + toggles.RUN_NAME + '/' + toggles.RUN_NAME +'_tasks_count.csv')[0])
 						switch_legend.append(toggles.RUN_NAME)
 
 						#def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothness=True):
@@ -1875,11 +1882,24 @@ class SimulationTest(TransactionTestCase):
 						# DummyTask.objects.all().delete()
 
 						#generic_csv_write(toggles.OUTPUT_PATH+toggles.RUN_NAME+'_tasks_count.csv',[runTasksArray])
-			multi_hist_gen(switch_compare, switch_legend, toggles.OUTPUT_PATH+"windowing_switch_compare.png", title='Performance difference of different window sizes on a sine selectivity curve')
+			switch_graphs_info.append([switch_compare, switch_legend])
+			#generic_csv_write('dynamicfilterapp/simulation_files/output/'+toggles.RUN_NAME+'_tasks_count.csv',[runTasksArray])
+			#multi_hist_gen(switch_compare, switch_legend, toggles.OUTPUT_PATH+"windowing_switch_compare.png", title='Performance difference of different window sizes on a sine selectivity curve')
 
-		multi_hist_gen(winSize_compare, winSize_legend, toggles.OUTPUT_PATH+"windowing_winSize_compare.png", title='Comparison of algs for window size of ' + str(win_size))
+		winSize_graphs_info.append([winSize_compare, winSize_legend])
+		#generic_csv_write(toggles.OUTPUT_PATH+toggles.RUN_NAME+'_tasks_count.csv',[runTasksArray])
+		#multi_hist_gen(winSize_compare, winSize_legend, toggles.OUTPUT_PATH+"windowing_winSize_compare.png", title='Comparison of algs for window size of ' + str(win_size))
+		print "switch csv file: " + str(switch_graphs_info)
+		generic_csv_write('dynamicfilterapp/simulation_files/output/'+'windowTest_winSize_graphs.csv', winSize_graphs_info)
+		generic_csv_write('dynamicfilterapp/simulation_files/output/'+'windowTest_switch_graphs.csv',switch_graphs_info)
 
+	def testWindowGraphs(self):
+		for graphInfo in  generic_csv_read('dynamicfilterapp/simulation_files/output/' + 'windowTest_winSize_graphs.csv'):
+			print graphInfo
+			multi_hist_gen(graphInfo[0], graphInfo[1], toggles.OUTPUT_PATH+"windowing_switch_compare.png", title='Performance difference of different window sizes on a sine selectivity curve')
 
+		for graphInfo in generic_csv_read('dynamicfilterapp/simulation_files/output/' + 'windowTest_switch_graphs.csv'):
+			multi_hist_gen(graphInfo[0], graphInfo[1], toggles.OUTPUT_PATH+"windowing_winSize_compare.png", title='Comparison of algs for window size of ' + str(win_size))
 
 	# def windowTestHelper(self, data, task_array_sizes):
 	# 	if not (toggles.TRACK_PLACEHOLDERS and toggles.DUMMY_TASKS and toggles.TRACK_IP_PAIRS_DONE):
