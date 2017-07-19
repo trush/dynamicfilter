@@ -1861,6 +1861,7 @@ class SimulationTest(TransactionTestCase):
 						self.simulation(sampleData)
 
 						print "runName: " + str(toggles.RUN_NAME)
+						print "sliding window: " + str(toggles.SLIDING_WINDOW)
 
 						if (num == 1):
 							winSize_compare.append(generic_csv_read('dynamicfilterapp/simulation_files/output/' + toggles.RUN_NAME + '/' + toggles.RUN_NAME +'_tasks_count.csv')[0])
@@ -1893,7 +1894,7 @@ class SimulationTest(TransactionTestCase):
 		generic_csv_write('dynamicfilterapp/simulation_files/output/'+'windowTest_winSize_graphs.csv', winSize_graphs_info)
 		generic_csv_write('dynamicfilterapp/simulation_files/output/'+'windowTest_switch_graphs.csv',switch_graphs_info)
 
-	def testWindowGraphs(self):
+	def windowGraphs(self):
 		for graphInfo in  generic_csv_read('dynamicfilterapp/simulation_files/output/' + 'windowTest_winSize_graphs.csv'):
 			print graphInfo
 			multi_hist_gen(graphInfo[0], graphInfo[1], toggles.OUTPUT_PATH+"windowing_switch_compare.png", title='Performance difference of different window sizes on a sine selectivity curve')
