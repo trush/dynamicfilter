@@ -2,19 +2,23 @@ import datetime as DT
 import sys
 now = DT.datetime.now()
 from responseTimeDistribution import *
-
-RUN_NAME = 'Scaling_Investigation' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-ITEM_TYPE = "Hotel"
-
-INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
-OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
-TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
-REAL_DISTRIBUTION_FILE = 'workerDist.csv'
-## Turns on useful print statements
 DEBUG_FLAG = True # useful print statements turned on
+RUN_NAME = 'Scaling_Investigation' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 
-REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
+TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+## Turns on useful print statements
+
+
+# INPUT SETTINGS
+TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+REAL_DATA = False
+#_________________ Real Data Settings ___________________#
+ITEM_TYPE = "Hotel"
+INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
+IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
+REAL_DISTRIBUTION_FILE = 'workerDist.csv'
+CHOSEN_PREDS = [3,4]
 #_________________ CONFIGURING CONSENSUS _____________________#
 
 ## Maximum acceptable probability area
@@ -52,7 +56,7 @@ EDDY_SYS = 1
 # this is a \a maximum number of IP Pairs in progress for each predicate.
 PENDING_QUEUE_SIZE = 2
 
-CHOSEN_PREDS = [3,4]
+
 
 ITEM_SYS = 0
 # ITEM SYS KEY:

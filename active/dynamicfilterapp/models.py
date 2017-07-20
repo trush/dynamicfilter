@@ -4,9 +4,11 @@ from validator import validate_positive
 import subprocess
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import ArrayField
+from django.db.models import Q
 from scipy.special import btdtr
 import toggles
 import random
+import math
 
 @python_2_unicode_compatible
 class Item(models.Model):
@@ -38,6 +40,14 @@ class Item(models.Model):
     def remove_from_queue(self):
         self.inQueue = False
         self.save(update_fields=["inQueue"])
+
+    def reset(self):
+        self.hasFailed=False
+        self.isStarted=False
+        self.almostFalse=False
+        self.inQueue=False
+        self.save(update_fields=["hasFailed","isStarted","almostFalse","inQueue"])
+
 
 @python_2_unicode_compatible
 class Question(models.Model):
@@ -76,6 +86,56 @@ class Predicate(models.Model):
     # Queue variables
     queue_is_full = models.BooleanField(default=False)
     queue_length = models.IntegerField(default=toggles.PENDING_QUEUE_SIZE)
+
+    # Consensus variables
+    _consensus_max = models.IntegerField(default=toggles.CUT_OFF)   # the max number of votes to ask for
+    _consensus_status = models.IntegerField(default=0)              # used in adaptive consensus for bookeeping
+    _consensus_uncertainty_threshold = models.FloatField(default=toggles.UNCERTAINTY_THRESHOLD) # used for bayes stuff (see toggles)
+    _consensus_decision_threshold   = models.FloatField(default=toggles.DECISION_THRESHOLD)     # used for bayes stuff (see toggles)
+    consensus_max_threshold = models.IntegerField(default=toggles.W_MAX) #TODO: doccument, rename?
+    @property
+    def consensus_max(self):
+        if not toggles.PREDICATE_SPECIFIC:
+            return toggles.CUT_OFF
+        return self._consensus_max
+
+    @consensus_max.setter
+    def consensus_max(self,value):
+        if not toggles.PREDICATE_SPECIFIC:
+            toggles.CUT_OFF = value
+        else:
+            self._consensus_max=value
+            self.save(update_fields=['_consensus_max'])
+
+    @property
+    def consensus_max_single(self):
+        return int(1+math.ceil(self.consensus_max/2.0))
+
+    @property
+    def consensus_status(self):
+        if not toggles.PREDICATE_SPECIFIC:
+            return toggles.CONSENSUS_STATUS
+        return self._consensus_status
+
+    @consensus_status.setter
+    def consensus_status(self,value):
+        if not toggles.PREDICATE_SPECIFIC:
+            toggles.CONSENSUS_STATUS = value
+        else:
+            self._consensus_status = value
+            self.save(update_fields=["_consensus_status"])
+
+    @property
+    def consensus_uncertainty_threshold(self):
+        if not toggles.PREDICATE_SPECIFIC:
+            return toggles.UNCERTAINTY_THRESHOLD
+        return self._consensus_uncertainty_threshold
+
+    @property
+    def consensus_decision_threshold(self):
+        if not toggles.PREDICATE_SPECIFIC:
+            return toggles.DECISION_THRESHOLD
+        return self._consensus_decision_threshold
 
     # fields to keep track of selectivity
     selectivity = models.FloatField(default=0.1)
@@ -204,6 +264,87 @@ class Predicate(models.Model):
                     break
             return self.queue_length
 
+    def update_consensus(self, ipPair):
+        old_max = self.consensus_max
+        new_max = old_max
+        loc = ipPair.consensus_location
+
+        ### TCP RENO/TAHOE
+        if toggles.ADAPTIVE_CONSENSUS_MODE == 1 or toggles.ADAPTIVE_CONSENSUS_MODE == 2:
+            if loc == 3 or loc == 4:
+                self.consensus_max_threshold = self.consensus_status/2
+                self.save(update_fields=["consensus_max_threshold"])
+                self.consensus_status = self.consensus_status/2
+                if toggles.ADAPTIVE_CONSENSUS_MODE == 2:
+                    self.consensus_status=0
+            elif self.consensus_status < self.consensus_max_threshold:
+                if self.consensus_status < 1:
+                    self.consensus_status = 1
+                else:
+                    self.consensus_status = self.consensus_status * 2
+            else:
+                self.consensus_status = self.consensus_status + 1
+            status_needed = (toggles.CONSENSUS_SIZE_LIMITS[1]-toggles.CONSENSUS_SIZE_LIMITS[0])/2
+            if self.consensus_status > int(status_needed*toggles.RENO_BONUS_RATIO):
+                self.consensus_status = int(status_needed*toggles.RENO_BONUS_RATIO)
+
+            new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
+
+        ### CUTE alg. method.
+        elif toggles.ADAPTIVE_CONSENSUS_MODE == 3:
+            if loc == 1:
+                self.consensus_status = self.consensus_status + 1
+            elif (loc == 3) or (loc == 4):
+                self.consensus_status = 0
+                #print "Vote: ("+str(ipPair.num_no)+","+str(ipPair.num_yes)+") caused growth"
+            new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
+
+        ### CUBIC alg.
+        elif toggles.ADAPTIVE_CONSENSUS_MODE == 4:
+            #TODO fix double growth problem
+            if (loc == 3) or (loc == 4):
+                self.consensus_status=0
+                self.consensus_max_threshold = (toggles.CONSENSUS_SIZE_LIMITS[1]-self.consensus_max)
+                #print "Vote: ("+str(ipPair.num_no)+","+str(ipPair.num_yes)+") caused growth"
+            else:
+                self.consensus_status+=1
+            k = int(self.consensus_max_threshold*toggles.CUBIC_B/toggles.CUBIC_C)**(1.0/3.0)
+            new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - int((((self.consensus_status - k)**3)*toggles.CUBIC_C + self.consensus_max_threshold))
+
+        if new_max < toggles.CONSENSUS_SIZE_LIMITS[0]:
+            new_max = toggles.CONSENSUS_SIZE_LIMITS[0]
+        elif new_max > toggles.CONSENSUS_SIZE_LIMITS[1]:
+            new_max = toggles.CONSENSUS_SIZE_LIMITS[1]
+        print "Size: "+str(new_max)
+        self.consensus_max = new_max
+        if new_max>old_max:
+            return True
+        elif old_max>new_max and False:
+            #TODO: remove this eventually
+            relevant_pairs = IP_Pair.objects.filter(predicate=self).filter(isDone=False)
+            mx_sing = self.consensus_max_single
+            OverWalls = relevant_pairs.filter(Q(num_no__gte=mx_sing)|Q(num_yes__gte=mx_sing))
+            over_max_y = relevant_pairs.filter(Q(num_no=mx_sing-1),Q(num_yes=mx_sing-2))
+            over_max_n = relevant_pairs.filter(Q(num_yes=mx_sing-1),Q(num_no=mx_sing-2))
+            totalNum = OverWalls.count() + over_max_y.count() + over_max_n.count()
+            #print "Shrinking caused " + str(totalNum) + " Pairs to be outside bounds"
+        return False
+
+    def reset(self):
+        self.num_tickets=1
+        self.num_wickets=0
+        self.num_ip_complete=0
+        self.selectivity=0.1
+        self.totalTasks=0
+        self.totalNo=0
+        self.queue_is_full=False
+        self.queue_length=toggles.PENDING_QUEUE_SIZE
+        self.consensus_status=0
+        self.consensus_max=toggles.CUT_OFF
+        self.consensus_max_threshold=0
+        self.save(update_fields=["num_tickets","num_wickets","num_ip_complete","selectivity","totalTasks","totalNo","queue_is_full","queue_length","consensus_max_threshold"])
+
+
 @python_2_unicode_compatible
 class IP_Pair(models.Model):
     """
@@ -315,6 +456,8 @@ class IP_Pair(models.Model):
             if self.found_consensus():
                 self.isDone = True
                 self.save(update_fields=["isDone"])
+                #if toggles.ADAPTIVE_CONSENSUS:
+                    #self.predicate.update_consensus(self)
 
                 if not self.is_false() and self.predicate.num_tickets > 1:
                     self.predicate.remove_ticket()
@@ -331,22 +474,66 @@ class IP_Pair(models.Model):
                     print "*"*96
 
             else:
-                self.status_votes -= 2
+                self.status_votes -= 1
                 self.save(update_fields=["status_votes"])
 
-    def found_consensus(self):
-        if self.value > 0:
-            uncertLevel = btdtr(self.num_yes+1, self.num_no+1, toggles.DECISION_THRESHOLD)
-        else:
-            uncertLevel = btdtr(self.num_no+1, self.num_yes+1, toggles.DECISION_THRESHOLD)
-
+    def _consensus_finder(self):
+        """
+        key:
+            0 - no consensus
+            1 - unAmbigous Zone
+            2 - medium ambiguity Zone
+            3 - high ambiguity zone
+            4 - most ambiguity
+        """
+        myPred = self.predicate
         votes_cast = self.num_yes + self.num_no
+        larger = max(self.num_yes, self.num_no)
+        smaller = min(self.num_yes, self.num_no)
 
-        if (uncertLevel < toggles.UNCERTAINTY_THRESHOLD) | (votes_cast >= toggles.CUT_OFF):
+        uncertLevel = 2
+        if toggles.BAYES_ENABLED:
+            if self.value > 0:
+                uncertLevel = btdtr(self.num_yes+1, self.num_no+1, myPred.consensus_decision_threshold)
+            else:
+                uncertLevel = btdtr(self.num_no+1, self.num_yes+1, myPred.consensus_decision_threshold)
+
+
+        if votes_cast >= myPred.consensus_max:
+            return 4
+
+        elif uncertLevel < myPred.consensus_uncertainty_threshold:
+            return 1
+
+        elif larger >= myPred.consensus_max_single:
+            if smaller < myPred.consensus_max_single*(1.0/3.0): #TODO un-hard-code this part
+                return 1
+            elif smaller < myPred.consensus_max_single*(2.0/3.0):
+                return 2
+            else:
+                return 3
+
+        else:
+            return 0
+
+    def found_consensus(self):
+        if not toggles.ADAPTIVE_CONSENSUS:
+            return bool(self._consensus_finder())
+        #return self._consensus_finder()
+        if not bool(self._consensus_finder()):
+            return False
+        if self.predicate.update_consensus(self):
+            print "Saved Pair from being called too early"
+            return bool(self._consensus_finder())
+        else:
             return True
 
-        else:
-            return False
+
+    #@cached_property
+    @property
+    def consensus_location(self):
+        return self._consensus_finder()
+
 
     def distribute_task(self):
         self.tasks_out += 1
@@ -362,6 +549,15 @@ class IP_Pair(models.Model):
     def start(self):
         self.isStarted = True
         self.save(update_fields=["isStarted"])
+
+    def reset(self):
+        self.value=0
+        self.num_yes=0
+        self.num_no=0
+        self.isDone=False
+        self.status_votes=0
+        self.inQueue=False
+        self.save(update_fields=["value","num_yes","num_no","isDone","status_votes","inQueue"])
 
 @python_2_unicode_compatible
 class Task(models.Model):

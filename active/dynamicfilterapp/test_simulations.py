@@ -152,6 +152,11 @@ class SimulationTest(TransactionTestCase):
 	# non-live worker data.
 	# @returns The dictionary of possible worker responses for IP Pairs. Keys are IP Pairs and values
 	# are arrays containing possible worker responses (True or False)
+	# CONSENSUS SIZE TRACKING
+	consensus_size = []
+
+
+	###___HELPERS THAT LOAD IN DATA___###
 	def load_data(self):
 		# read in the questions
 		ID = 0
@@ -471,13 +476,14 @@ class SimulationTest(TransactionTestCase):
 		global SAMPLING_ARRAY
 		start = time.time()
 		SAMPLING_ARRAY = []
-		Item.objects.all().update(hasFailed=False, isStarted=False, almostFalse=False, inQueue=False, shouldPass = False)
 		Task.objects.all().delete()
 		DummyTask.objects.all().delete()
-		Predicate.objects.all().update(num_tickets=1, num_wickets=0, num_ip_complete=0,
-			selectivity=0.1, totalTasks=0, totalNo=0, queue_is_full=False,queue_length=toggles.PENDING_QUEUE_SIZE)
-
-		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False, tasks_collected=0, tasks_out=0, isStarted=False)
+		for i in Item.objects.all():
+			i.reset()
+		for p in Predicate.objects.all():
+			p.reset()
+		for ip in IP_Pair.objects.all():
+			ip.reset()
 
 		self.num_tasks, self.num_incorrect, self.num_placeholders = 0, 0, 0
 		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time = 0, 0, 0, 0
@@ -770,6 +776,15 @@ class SimulationTest(TransactionTestCase):
 		# 		for count in range(toggles.NUM_QUESTIONS):
 		# 			self.ticketNums.append([])
 
+		# Setting up arrays for TRACK_SIZE
+		if toggles.TRACK_SIZE:
+			if toggles.REAL_DATA:
+				for predNum in range(len(toggles.CHOSEN_PREDS)):
+					self.consensus_size.append([])
+			else:
+				for count in range(toggles.NUM_QUESTIONS):
+					self.consensus_size.append([])
+
 		# If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and toggles.RUN_ITEM_ROUTING) or toggles.RUN_MULTI_ROUTING:
 			predicates = [Predicate.objects.get(pk=pred+1) for pred in toggles.CHOSEN_PREDS]
@@ -797,7 +812,7 @@ class SimulationTest(TransactionTestCase):
 						for ip in IP_Pair.objects.filter(inQueue=True):
 							print "IP Pair " + str(ip.pk) + " |  Predicate: " + str(ip.predicate.id) +  " ||| Tasks out: " +  str(ip.tasks_out) + " | Num yes: " + str(ip.num_yes) + " | Num no: " + str(ip.num_no) + " | isDone: " + str(ip.isDone)
 
-							if ip.num_no + ip.num_yes > toggles.CUT_OFF:
+							if ip.num_no + ip.num_yes > toggles.CONSENSUS_SIZE_LIMITS[1]:
 								print "Total votes: " + str(ip.num_no+ip.num_yes)
 								raise Exception ("Too many votes cast for IP Pair " + str(ip.id))
 
@@ -1064,6 +1079,15 @@ class SimulationTest(TransactionTestCase):
 							for count in range(toggles.NUM_QUESTIONS):
 								predicate = Predicate.objects.get(pk=count+1)
 								self.ticketNums[count].append(predicate.num_tickets)
+					if toggles.TRACK_SIZE:
+						if toggles.REAL_DATA:
+							for predNum in range(len(toggles.CHOSEN_PREDS)):
+								predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
+								self.consensus_size[predNum].append(predicate.consensus_max)
+						else:
+							for count in range(toggles.NUM_QUESTIONS):
+								predicate = Predicate.objects.get(pk=count+1)
+								self.consensus_size[count].append(predicate.consensus_max)
 
 					if toggles.SELECTIVITY_GRAPH:
 						for count in range(toggles.NUM_QUESTIONS):
@@ -1142,26 +1166,45 @@ class SimulationTest(TransactionTestCase):
 		if toggles.OUTPUT_COST:
 			output_cost(toggles.RUN_NAME) # TODO make sure this still works
 
-		# if toggles.COUNT_TICKETS:
-		#
-		# 	if toggles.SIMULATE_TIME:
-		# 		time_proxy = self.simulated_time
-		# 	else:
-		# 		time_proxy = self.num_tasks
-		# 	ticketCountsLegend = []
-		# 	if toggles.REAL_DATA:
-		# 		xMultiplier = len(toggles.CHOSEN_PREDS)
-		# 		for predNum in toggles.CHOSEN_PREDS:
-		# 			ticketCountsLegend.append("Pred " + str(predNum))
-		#
-		# 	else:
-		# 		xMultiplier = toggles.NUM_QUESTIONS
-		# 		for predNum in range(toggles.NUM_QUESTIONS):
-		# 			ticketCountsLegend.append("Pred " + str(predNum))
-		#
-		# 	multi_line_graph_gen([range(time_proxy)]*xMultiplier, self.ticketNums, ticketCountsLegend,
-		# 						toggles.OUTPUT_PATH + "ticketCounts" + str(self.sim_num) + ".png",
-		# 						labels = ("time proxy", "Ticket counts"))
+		if toggles.COUNT_TICKETS:
+
+			if toggles.SIMULATE_TIME:
+				time_proxy = self.simulated_time
+			else:
+				time_proxy = self.num_tasks
+			ticketCountsLegend = []
+			if toggles.REAL_DATA:
+				xMultiplier = len(toggles.CHOSEN_PREDS)
+				for predNum in toggles.CHOSEN_PREDS:
+					ticketCountsLegend.append("Pred " + str(predNum))
+
+			else:
+				xMultiplier = toggles.NUM_QUESTIONS
+				for predNum in range(toggles.NUM_QUESTIONS):
+					ticketCountsLegend.append("Pred " + str(predNum))
+
+			multi_line_graph_gen([range(time_proxy)]*xMultiplier, self.ticketNums, ticketCountsLegend,
+								toggles.OUTPUT_PATH + "ticketCounts" + str(self.sim_num) + ".png",
+								labels = ("time proxy", "Ticket counts"))
+
+		if toggles.TRACK_SIZE:
+			if not toggles.SIMULATE_TIME:
+				tasks = range(len(self.consensus_size[0]))
+				legend = []
+				dest = toggles.OUTPUT_PATH + "consensus_size"+str(self.sim_num)
+				if toggles.REAL_DATA:
+					for predNum in toggles.CHOSEN_PREDS:
+						legend.append("Pred " + str(predNum))
+
+				else:
+					for predNum in range(toggles.NUM_QUESTIONS):
+						legend.append("Pred " + str(predNum))
+				generic_csv_write(dest+'.csv',self.consensus_size)
+				if toggles.GEN_GRAPHS:
+					multi_line_graph_gen([tasks]*len(legend),self.consensus_size,
+						legend, dest+'.png', labels = ('Tasks','Max Num Tasks'),
+						title = "Consensus Algorithm Over Time")
+				self.consensus_size=[]
 
 		# TODO have this graph use the correct arrays
 		if toggles.SELECTIVITY_GRAPH:
@@ -1687,8 +1730,6 @@ class SimulationTest(TransactionTestCase):
 		if not (toggles.COUNT_TICKETS and toggles.TRACK_QUEUES):
 			raise Exception("Turn on COUNT_TICKETS and SHOW_QUEUES to get complete data")
 
-		self.run_sim(data)
-
 		save = [self.time_steps_array]
 		graphData1 = [self.time_steps_array]
 		for pred in self.pred_active_tasks:
@@ -1797,225 +1838,278 @@ class SimulationTest(TransactionTestCase):
 			graphGen.task_distributions(graph_out2, dest2, True)
 
 	#___MAIN TEST FUNCTION___#
-	## \todo write this docstring
-	# def test_simulation(self):
-	# 	"""
-	# 	Runs a simulation of real data and prints out the number of tasks
-	# 	ran to complete the filter
-	# 	"""
-	# 	print "Simulation is being tested"
-	#
-	# 	if toggles.DEBUG_FLAG:
-	# 		print "Debug Flag Set!"
-	# 		print self.getConfig()
-	#
-	# 	if toggles.PACKING:
-	# 		toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
-	# 		packageMaker(toggles.OUTPUT_PATH,self.getConfig())
-	# 	if toggles.IDEAL_GRID:
-	# 		self.consensusGrid()
-	#
-	# 	if toggles.REAL_DATA:
-	# 		sampleData = self.load_data()
-	# 		if toggles.RUN_DATA_STATS:
-	# 			self.output_data_stats(sampleData)
-	# 			self.reset_database()
-	# 		if toggles.RUN_AVERAGE_COST:
-	# 			self.sim_average_cost(sampleData)
-	# 			self.reset_database()
-	# 		if toggles.RUN_SINGLE_PAIR:
-	# 			self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
-	# 			self.reset_database()
-	# 	else:
-	# 		sampleData = {}
-	# 		syn_load_data()
-	#
-	# 	if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-	# 		if toggles.DEBUG_FLAG:
-	# 			print "Running: item Routing"
-	# 		self.run_sim(deepcopy(sampleData))
-	# 		self.reset_database()
-	#
-	# 	if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-	# 		if toggles.DEBUG_FLAG:
-	# 			print "Running: ticket counting"
-	# 		self.run_sim(deepcopy(sampleData))
-	# 		self.reset_database()
-	#
-	# 	if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-	# 		if toggles.DEBUG_FLAG:
-	# 			print "Running: selectivity amounts over time"
-	# 		self.run_sim(sampleData)
-	# 		self.reset_database()
-	#
-	# 	#____FOR LOOKING AT ACCURACY OF RUNS___#
-	# 	if toggles.TEST_ACCURACY:
-	# 		correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
-	# 		passedItems = self.get_passed_items(correctAnswers)
-	#
-	#
-	# 	if toggles.RUN_OPTIMAL_SIM:
-	# 		countingArr=[]
-	# 		self.reset_database()
-	# 		for i in range(toggles.NUM_SIM):
-	# 			print "running optimal_sim " +str(i)
-	# 			num_tasks = self.optimal_sim(sampleData)
-	# 			countingArr.append(num_tasks)
-	# 			self.reset_database()
-	# 		dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
-	# 		generic_csv_write(dest+'.csv',[countingArr])
-	# 		if toggles.DEBUG_FLAG:
-	# 			print "Wrote File: " + dest+'.csv'
-	#
-	#
-	#
-	# 	if toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING or toggles.RUN_CONSENSUS_COUNT:
-	# 		if toggles.RUN_TASKS_COUNT:
-	# 			#print "Running: task_count"
-	# 			#f = open(toggles.OUTPUT_PATH + toggles.RUN_NAME + '_tasks_count.csv', 'a')
-	# 			#f1 = open(toggles.OUTPUT_PATH + toggles.RUN_NAME + '_incorrect_count.csv', 'a')
-	#
-	# 			if toggles.GEN_GRAPHS:
-	# 				outputArray = []
-	#
-	# 		runTasksArray = []
-	# 		goodArray, badArray = [], []
-	# 		goodPoints, badPoints = [], []
-	# 		accCount = []
-	# 		locArray = [[],[],[],[]]
-	#
-	# 		for i in range(toggles.NUM_SIM):
-	# 			print "running simulation " + str(i+1)
-	# 			self.run_sim(deepcopy(sampleData))
-	# 			runTasksArray.append(self.num_tasks)
-	#
-	# 			#____FOR LOOKING AT ACCURACY OF RUNS___#
-	# 			if toggles.TEST_ACCURACY:
-	# 				num_incorrect = self.final_item_mismatch(passedItems)
-	# 				accCount.append(num_incorrect)
-	# 			if toggles.RUN_CONSENSUS_COUNT or toggles.VOTE_GRID:
-	# 				donePairs = IP_Pair.objects.filter(Q(num_no__gt=0)|Q(num_yes__gt=0))
-	# 				if toggles.TEST_ACCURACY:
-	# 					goodPairs, badPairs = [], []
-	# 					for pair in donePairs:
-	# 						val = bool((pair.num_yes-pair.num_no)>0)
-	# 						if (correctAnswers[(pair.item,pair.predicate)]) == val:
-	# 							goodArray.append(pair.num_no+pair.num_yes)
-	# 							goodPoints.append((pair.num_no,pair.num_yes))
-	# 						else:
-	# 							badArray.append(pair.num_no+pair.num_yes)
-	# 							badPoints.append((pair.num_no,pair.num_yes))
-	# 				else:
-	# 					for pair in donePairs:
-	# 						goodArray.append(pair.num_no + pair.num_yes)
-	# 						goodPoints.append((pair.num_no,pair.num_yes))
-	# 				if toggles.CONSENSUS_LOCATION_STATS:
-	# 					temp = [0,0,0,0]
-	# 					for pair in donePairs:
-	# 						val, loc = self.voteResults(pair.num_no,pair.num_yes)
-	# 						temp[loc]+=1
-	# 					for i in range(4):
-	# 						locArray[i].append(temp[i])
-	#
-	# 				#print "This is number of incorrect items: ", num_incorrect
-	#
-	# 			self.reset_database()
-	#
-	# 		if toggles.RUN_TASKS_COUNT:
-	# 			generic_csv_write(toggles.OUTPUT_PATH+toggles.RUN_NAME+'_tasks_count.csv',[runTasksArray])
-	# 			if toggles.DEBUG_FLAG:
-	# 				print "Wrote File: " + toggles.OUTPUT_PATH + toggles.RUN_NAME + '_tasks_count.csv'
-	# 			if toggles.GEN_GRAPHS:
-	# 				if len(runTasksArray)>1:
-	# 					dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + '_tasks_count.png'
-	# 					title = toggles.RUN_NAME + ' Cost distribution'
-	# 					hist_gen(runTasksArray, dest, labels = ('Cost','Frequency'), title = title)
-	# 					if toggles.DEBUG_FLAG:
-	# 						print "Wrote File: " + dest
-	# 				elif toggles.DEBUG_FLAG:
-	# 					print "only ran one sim, not running hist_gen"
-	# 		if toggles.RUN_MULTI_ROUTING:
-	# 				dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + '_multi_routing.png'
-	# 				title = toggles.RUN_NAME + ' Average Predicate Routing'
-	# 				questions = toggles.CHOSEN_PREDS
-	# 				arrayData = []
-	# 				for i in range(len(questions)):
-	# 					arrayData.append([])
-	# 				for routingL in ROUTING_ARRAY:
-	# 					for i in range(len(questions)):
-	# 						arrayData[i].append(routingL[i])
-	# 				mrsavefile = open(toggles.OUTPUT_PATH+toggles.RUN_NAME+'_multi_routing.csv','w')
-	# 				mrwriter = csv.writer(mrsavefile)
-	# 				mrwriter.writerow(questions)
-	# 				for row in arrayData:
-	# 					mrwriter.writerow(row)
-	# 				mrsavefile.close()
-	# 				if toggles.DEBUG_FLAG:
-	# 					print "Wrote File: "+toggles.OUTPUT_PATH+toggles.RUN_NAME+'_multi_routing.csv'
-	# 				if toggles.GEN_GRAPHS:
-	# 					stats_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
-	# 					if toggles.DEBUG_FLAG:
-	# 						print "Wrote File: " + toggles.OUTPUT_PATH+toggles.RUN_NAME+'_multi_routing.png'
-	# 		if toggles.ACCURACY_COUNT:
-	# 			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_acc_count'
-	# 			generic_csv_write(dest+'.csv',[accCount])
-	# 			if toggles.GEN_GRAPHS:
-	# 				hist_gen(accCount, dest+'.png')
-	#
-	# 		if toggles.RUN_CONSENSUS_COUNT:
-	# 			dest = toggles.OUTPUT_PATH + toggles.RUN_NAME+'_consensus_count'
-	# 			if len(goodArray)>1:
-	# 				if len(badArray) == 0:
-	# 					generic_csv_write(dest+'.csv',[goodArray])
-	# 					#print goodArray
-	# 				else:
-	# 					generic_csv_write(dest+'.csv',[goodArray,badArray])
-	# 					#print goodArray,badArray
-	# 				if toggles.DEBUG_FLAG:
-	# 					print "Wrote File: " + dest + '.csv'
-	# 				if toggles.GEN_GRAPHS:
-	# 					title = 'Normalized Distribution of Tasks before Consensus'
-	# 					labels = ('Number of Tasks', 'Frequency')
-	# 					if len(badArray) < 2:
-	# 						hist_gen(goodArray, dest+'.png',labels=labels,title=title)
-	# 					else:
-	# 						leg = ('Correctly Evaluated IP pairs','Incorrectly Evaluated IP pairs')
-	# 						multi_hist_gen([goodArray,badArray],leg,dest+'.png',labels=labels,title=title)
-	# 			elif toggles.DEBUG_FLAG:
-	# 				print "only ran one sim, ignoring results"
-	# 		if toggles.VOTE_GRID:
-	# 			dest = toggles.OUTPUT_PATH + toggles.RUN_NAME+'_vote_grid'
-	# 			if len(goodPoints)>1:
-	# 				if len(badPoints)==0:
-	# 					generic_csv_write(dest+'.csv',goodPoints)
-	# 				else:
-	# 					generic_csv_write(dest+'_good.csv',goodPoints)
-	# 					generic_csv_write(dest+'_bad.csv',badPoints)
-	# 				if toggles.GEN_GRAPHS:
-	# 					title = "Vote Grid Graph"
-	# 					labels = ("Number of No Votes","Number of Yes Votes")
-	# 					if len(badPoints)==0:
-	# 						xL,yL=zip(*goodPoints)
-	# 						line_graph_gen(xL,yL,dest+'.png',title=title,labels=labels,scatter=True,square=True)
-	# 					else:
-	# 						gX,gY = zip(*goodPoints)
-	# 						bX,bY = zip(*badPoints)
-	# 						multi_line_graph_gen((gX,bX),(gY,bY),('Correct','Incorrect'),dest+'_both.png',title=title,labels=labels,scatter=True,square=True)
-	# 						line_graph_gen(gX,gY,dest+'_good.png',title=title+" goodPoints",labels=labels,scatter=True,square=True)
-	# 						line_graph_gen(bX,bY,dest+'_bad.png',title=title+" badPoints",labels=labels,scatter=True,square=True)
-	# 		if toggles.CONSENSUS_LOCATION_STATS:
-	# 			data = locArray[1:]
-	# 			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_consensus_location'
-	# 			generic_csv_write(dest+'.csv',data)
-	# 			if toggles.GEN_GRAPHS:
-	# 				multi_hist_gen(data,('Bayes','single Cut','total Cut'),dest+'.png')
-	#
-	# 	if toggles.TIME_SIMS:
-	# 		self.timeRun(sampleData)
-	#
-	# 	if toggles.RUN_ABSTRACT_SIM:
-	# 		self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
-	#
+	def test_simulation(self):
+		"""
+		Runs a simulation of real data and prints out the number of tasks
+		ran to complete the filter
+		"""
+		print "Simulation is being tested"
+
+		if toggles.DEBUG_FLAG:
+			print "Debug Flag Set!"
+			print self.getConfig()
+
+		if toggles.PACKING:
+			toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
+			packageMaker(toggles.OUTPUT_PATH,self.getConfig())
+		if toggles.IDEAL_GRID:
+			self.consensusGrid()
+
+		if toggles.REAL_DATA:
+			sampleData = self.load_data()
+			if toggles.RUN_DATA_STATS:
+				self.output_data_stats(sampleData)
+				self.reset_database()
+			if toggles.RUN_AVERAGE_COST:
+				self.sim_average_cost(sampleData)
+				self.reset_database()
+			if toggles.RUN_SINGLE_PAIR:
+				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+				self.reset_database()
+		else:
+			sampleData = {}
+			syn_load_data()
+
+		if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+			if toggles.DEBUG_FLAG:
+				print "Running: item Routing"
+			self.run_sim(deepcopy(sampleData))
+			self.reset_database()
+
+		if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+			if toggles.DEBUG_FLAG:
+				print "Running: ticket counting"
+			self.run_sim(deepcopy(sampleData))
+			self.reset_database()
+
+		if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+			if toggles.DEBUG_FLAG:
+				print "Running: selectivity amounts over time"
+			self.run_sim(sampleData)
+			self.reset_database()
+
+		#____FOR LOOKING AT ACCURACY OF RUNS___#
+		if toggles.TEST_ACCURACY and toggles.REAL_DATA:
+			correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
+			passedItems = self.get_passed_items(correctAnswers)
+
+
+		if toggles.RUN_OPTIMAL_SIM:
+			countingArr=[]
+			self.reset_database()
+			for i in range(toggles.NUM_SIM):
+				print "running optimal_sim " +str(i)
+				num_tasks = self.optimal_sim(sampleData)
+				countingArr.append(num_tasks)
+				self.reset_database()
+			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
+			generic_csv_write(dest+'.csv',[countingArr])
+			if toggles.DEBUG_FLAG:
+				print "Wrote File: " + dest+'.csv'
+
+
+
+		if toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING or toggles.RUN_CONSENSUS_COUNT:
+			if toggles.RUN_TASKS_COUNT:
+				#print "Running: task_count"
+				#f = open(toggles.OUTPUT_PATH + toggles.RUN_NAME + '_tasks_count.csv', 'a')
+				#f1 = open(toggles.OUTPUT_PATH + toggles.RUN_NAME + '_incorrect_count.csv', 'a')
+
+				if toggles.GEN_GRAPHS:
+					outputArray = []
+
+			runTasksArray = []
+			goodArray, badArray = [], []
+			goodPoints, badPoints = [], []
+			accCount = []
+			locArray = [[],[],[],[]]
+
+			for i in range(toggles.NUM_SIM):
+				print "running simulation " + str(i+1)
+				self.run_sim(deepcopy(sampleData))
+				runTasksArray.append(self.num_tasks)
+
+				#____FOR LOOKING AT ACCURACY OF RUNS___#
+				if toggles.TEST_ACCURACY and toggles.REAL_DATA:
+					num_incorrect = self.final_item_mismatch(passedItems)
+					accCount.append(num_incorrect)
+				if toggles.RUN_CONSENSUS_COUNT or toggles.VOTE_GRID:
+					donePairs = IP_Pair.objects.filter(Q(num_no__gt=0)|Q(num_yes__gt=0))
+					if toggles.TEST_ACCURACY:
+						goodPairs, badPairs = [], []
+						for pair in donePairs:
+							val = bool((pair.num_yes-pair.num_no)>0)
+							if toggles.REAL_DATA:
+								correct = ((correctAnswers[(pair.item,pair.predicate)]) == val)
+							else:
+								correct = (pair.true_answer == val)
+							if correct:
+								goodArray.append(pair.num_no+pair.num_yes)
+								goodPoints.append((pair.num_no,pair.num_yes))
+							else:
+								badArray.append(pair.num_no+pair.num_yes)
+								badPoints.append((pair.num_no,pair.num_yes))
+					else:
+						for pair in donePairs:
+							goodArray.append(pair.num_no + pair.num_yes)
+							goodPoints.append((pair.num_no,pair.num_yes))
+
+					#print "This is number of incorrect items: ", num_incorrect
+
+				self.reset_database()
+
+			if toggles.RUN_TASKS_COUNT:
+				generic_csv_write(toggles.OUTPUT_PATH+toggles.RUN_NAME+'_tasks_count.csv',[runTasksArray])
+				if toggles.DEBUG_FLAG:
+					print "Wrote File: " + toggles.OUTPUT_PATH + toggles.RUN_NAME + '_tasks_count.csv'
+				if toggles.GEN_GRAPHS:
+					if len(runTasksArray)>1:
+						dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + '_tasks_count.png'
+						title = toggles.RUN_NAME + ' Cost distribution'
+						hist_gen(runTasksArray, dest, labels = ('Cost','Frequency'), title = title)
+						if toggles.DEBUG_FLAG:
+							print "Wrote File: " + dest
+					elif toggles.DEBUG_FLAG:
+						print "only ran one sim, not running hist_gen"
+			if toggles.RUN_MULTI_ROUTING:
+					dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + '_multi_routing.png'
+					title = toggles.RUN_NAME + ' Average Predicate Routing'
+					questions = toggles.CHOSEN_PREDS
+					arrayData = []
+					for i in range(len(questions)):
+						arrayData.append([])
+					for routingL in ROUTING_ARRAY:
+						for i in range(len(questions)):
+							arrayData[i].append(routingL[i])
+					mrsavefile = open(toggles.OUTPUT_PATH+toggles.RUN_NAME+'_multi_routing.csv','w')
+					mrwriter = csv.writer(mrsavefile)
+					mrwriter.writerow(questions)
+					for row in arrayData:
+						mrwriter.writerow(row)
+					mrsavefile.close()
+					if toggles.DEBUG_FLAG:
+						print "Wrote File: "+toggles.OUTPUT_PATH+toggles.RUN_NAME+'_multi_routing.csv'
+					if toggles.GEN_GRAPHS:
+						stats_bar_graph_gen(arrayData, questions, dest, labels = ('Predicate','# of Items Routed'), title = title)
+						if toggles.DEBUG_FLAG:
+							print "Wrote File: " + toggles.OUTPUT_PATH+toggles.RUN_NAME+'_multi_routing.png'
+			if toggles.ACCURACY_COUNT:
+				dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_acc_count'
+				generic_csv_write(dest+'.csv',[accCount])
+				if toggles.GEN_GRAPHS:
+					hist_gen(accCount, dest+'.png')
+
+			if toggles.RUN_CONSENSUS_COUNT:
+				dest = toggles.OUTPUT_PATH + toggles.RUN_NAME+'_consensus_count'
+				if len(goodArray)>1:
+					if len(badArray) == 0:
+						generic_csv_write(dest+'.csv',[goodArray])
+						#print goodArray
+					else:
+						generic_csv_write(dest+'.csv',[goodArray,badArray])
+						#print goodArray,badArray
+					if toggles.DEBUG_FLAG:
+						print "Wrote File: " + dest + '.csv'
+					if toggles.GEN_GRAPHS:
+						title = 'Normalized Distribution of Tasks before Consensus'
+						labels = ('Number of Tasks', 'Frequency')
+						if len(badArray) < 2:
+							hist_gen(goodArray, dest+'.png',labels=labels,title=title)
+						else:
+							leg = ('Correctly Evaluated IP pairs','Incorrectly Evaluated IP pairs')
+							multi_hist_gen([goodArray,badArray],leg,dest+'.png',labels=labels,title=title)
+				elif toggles.DEBUG_FLAG:
+					print "only ran one sim, ignoring results"
+			if toggles.VOTE_GRID:
+				dest = toggles.OUTPUT_PATH + toggles.RUN_NAME+'_vote_grid'
+				if len(goodPoints)>1:
+					if len(badPoints)==0:
+						generic_csv_write(dest+'.csv',goodPoints)
+					else:
+						generic_csv_write(dest+'_good.csv',goodPoints)
+						generic_csv_write(dest+'_bad.csv',badPoints)
+					if toggles.GEN_GRAPHS:
+						title = "Vote Grid Graph"
+						labels = ("Number of No Votes","Number of Yes Votes")
+						if len(badPoints)==0:
+							xL,yL=zip(*goodPoints)
+							line_graph_gen(xL,yL,dest+'.png',title=title,labels=labels,scatter=True,square=True)
+						else:
+							gX,gY = zip(*goodPoints)
+							bX,bY = zip(*badPoints)
+							multi_line_graph_gen((gX,bX),(gY,bY),('Correct','Incorrect'),dest+'_both.png',title=title,labels=labels,scatter=True,square=True)
+							line_graph_gen(gX,gY,dest+'_good.png',title=title+" goodPoints",labels=labels,scatter=True,square=True)
+							line_graph_gen(bX,bY,dest+'_bad.png',title=title+" badPoints",labels=labels,scatter=True,square=True)
+		if toggles.TIME_SIMS:
+			self.timeRun(sampleData)
+
+		if toggles.RUN_ABSTRACT_SIM:
+			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
+
+	def test_placeholders(self):
+		print "Simulation is being tested"
+
+		if toggles.DEBUG_FLAG:
+			print "Debug Flag Set!"
+			print self.getConfig()
+
+		if toggles.PACKING:
+			toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
+			packageMaker(toggles.OUTPUT_PATH,self.getConfig())
+		if toggles.IDEAL_GRID:
+			self.consensusGrid()
+
+		if toggles.REAL_DATA:
+			sampleData = self.load_data()
+			if toggles.RUN_DATA_STATS:
+				self.output_data_stats(sampleData)
+				self.reset_database()
+			if toggles.RUN_AVERAGE_COST:
+				self.sim_average_cost(sampleData)
+				self.reset_database()
+			if toggles.RUN_SINGLE_PAIR:
+				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+				self.reset_database()
+		else:
+			sampleData = {}
+			syn_load_data()
+
+		if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+			if toggles.DEBUG_FLAG:
+				print "Running: item Routing"
+			self.run_sim(deepcopy(sampleData))
+			self.reset_database()
+
+		if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+			if toggles.DEBUG_FLAG:
+				print "Running: ticket counting"
+			self.run_sim(deepcopy(sampleData))
+			self.reset_database()
+
+		if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+			if toggles.DEBUG_FLAG:
+				print "Running: selectivity amounts over time"
+			self.run_sim(sampleData)
+			self.reset_database()
+
+		#____FOR LOOKING AT ACCURACY OF RUNS___#
+		if toggles.TEST_ACCURACY:
+			correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
+			passedItems = self.get_passed_items(correctAnswers)
+
+
+		if toggles.RUN_OPTIMAL_SIM:
+			countingArr=[]
+			self.reset_database()
+			for i in range(toggles.NUM_SIM):
+				print "running optimal_sim " +str(i)
+				num_tasks = self.optimal_sim(sampleData)
+				countingArr.append(num_tasks)
+				self.reset_database()
+			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
+			generic_csv_write(dest+'.csv',[countingArr])
+			if toggles.DEBUG_FLAG:
+				print "Wrote File: " + dest+'.csv'
 
 	def test_placeholders(self):
 		print "Simulation is being tested"
@@ -2083,67 +2177,3 @@ class SimulationTest(TransactionTestCase):
 
 		# self.placeholderQueueChange(sampleData, [20], [1, 2, 4, 8, 16, 32])
 		self.visualizeMultiRuns(sampleData, [2], [toggles.NUM_ITEMS*toggles.NUM_QUESTIONS*.4], [2, 5])
-
-	# def test0(self):
-	# 	print "Simulation 0 is running . . ."
-	#
-	# 	# Set up values for this set of simulations
-	# 	settings = SETUP_ARRAY[0]
-	# 	toggles.NUM_ITEMS = settings[0]
-	# 	toggles.NUM_QUESTIONS = len(settings[1][0]) - 1
-	# 	toggles.ACTIVE_TASKS_SIZE = int(toggles.NUM_ITEMS*toggles.NUM_QUESTIONS*0.4)
-	# 	toggles.switch_list = settings[1][0]
-	# 	toggles.RUN_NAME = "items_" + str(toggles.NUM_ITEMS) + "_" + str(settings[0])
-	#
-	# 	if toggles.PACKING:
-	# 		toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
-	# 		packageMaker(toggles.OUTPUT_PATH,self.getConfig())
-	#
-	# 	if toggles.REAL_DATA:
-	# 		sampleData = self.load_data()
-	# 		if toggles.RUN_DATA_STATS:
-	# 			self.output_data_stats(sampleData)
-	# 			self.reset_database()
-	# 		if toggles.RUN_AVERAGE_COST:
-	# 			self.sim_average_cost(sampleData)
-	# 			self.reset_database()
-	# 		if toggles.RUN_SINGLE_PAIR:
-	# 			self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
-	# 			self.reset_database()
-	# 	else:
-	# 		sampleData = {}
-	# 		syn_load_data()
-	#
-	# 	self.visualizeMultiRuns(sampleData, [2], [toggles.ACTIVE_TASKS_SIZE], [2, 5])
-	#
-	# def test1(self):
-	# 	print "Simulation 1 is running . . ."
-	#
-	# 	# Set up values for this set of simulations
-	# 	settings = SETUP_ARRAY[1]
-	# 	toggles.NUM_ITEMS = settings[0]
-	# 	toggles.NUM_QUESTIONS = len(settings[1][0]) - 1
-	# 	toggles.ACTIVE_TASKS_SIZE = int(toggles.NUM_ITEMS*toggles.NUM_QUESTIONS*0.4)
-	# 	toggles.switch_list = settings[1]
-	# 	toggles.RUN_NAME = "items_" + str(toggles.NUM_ITEMS) + "_" + str(settings[0])
-	#
-	# 	if toggles.PACKING:
-	# 		toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
-	# 		packageMaker(toggles.OUTPUT_PATH,self.getConfig())
-	#
-	# 	if toggles.REAL_DATA:
-	# 		sampleData = self.load_data()
-	# 		if toggles.RUN_DATA_STATS:
-	# 			self.output_data_stats(sampleData)
-	# 			self.reset_database()
-	# 		if toggles.RUN_AVERAGE_COST:
-	# 			self.sim_average_cost(sampleData)
-	# 			self.reset_database()
-	# 		if toggles.RUN_SINGLE_PAIR:
-	# 			self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
-	# 			self.reset_database()
-	# 	else:
-	# 		sampleData = {}
-	# 		syn_load_data()
-	#
-	# 	self.visualizeMultiRuns(sampleData, [2], [toggles.ACTIVE_TASKS_SIZE], [2, 5])
