@@ -1,7 +1,8 @@
 import datetime as DT
 import sys
+import math
 now = DT.datetime.now()
-from responseTimeDistribution import *
+import responseTimeDistribution
 
 RUN_NAME = 'RenoUnAmbigSynth' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 
@@ -9,7 +10,7 @@ ITEM_TYPE = "Restaurant"
 INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 IP_PAIR_DATA_FILE = 'real_data1.csv'
-TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 
 DEBUG_FLAG = False # useful print statements turned on
@@ -250,16 +251,37 @@ if GEN_GRAPHS:
             ##### PLEASE UPDATE AS NEW TOGGLES ADDED #####
 VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE',
             'REAL_DISTRIBUTION_FILE','DEBUG_FLAG',
-            'NUM_CERTAIN_VOTES','UNCERTAINTY_THRESHOLD','FALSE_THRESHOLD','DECISION_THRESHOLD',
-            'CUT_OFF','NUM_WORKERS','DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
+            'NUM_CERTAIN_VOTES','CUT_OFF','SINGLE_VOTE_CUTOFF','BAYES_ENABLED',
+            'UNCERTAINTY_THRESHOLD','DECISION_THRESHOLD','FALSE_THRESHOLD',
+            'ADAPTIVE_CONSENSUS','ADAPTIVE_CONSENSUS_MODE','PREDICATE_SPECIFIC',
+            'CONSENSUS_STATUS_LIMITS','CONSENSUS_SIZE_LIMITS','RENO_BONUS_RATIO',
+            'CONSENSUS_STATUS','K','W_MAX','CUBIC_C','CUBIC_B','NUM_WORKERS',
+            'DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
-            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'switch_list',
-            'DUMMY_TASKS', 'DUMMY_TASK_OPTION','GEN_GRAPHS',
+            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS',
+            'DUMMY_TASK_OPTION','GEN_GRAPHS','NUM_QUESTIONS','NUM_ITEMS','SIN',
+            'SELECTIVITY_GRAPH','switch_list',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
-            'MAX_TASKS','BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
-            'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
-            'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST'
+            'MAX_TASKS','BUFFER_TIME','MAX_TASKS_OUT','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
+            'TRACK_PLACEHOLDERS','TEST_ACCURACY','ACCURACY_COUNT','OUTPUT_SELECTIVITIES',
+            'RUN_CONSENSUS_COUNT','TRACK_SIZE','VOTE_GRID','IDEAL_GRID','OUTPUT_COST'
 ]
+
+
+#This is a blocklist. the variables to store in config.ini is now auto-generated from this file
+    # THIS MEANS NEW VARIABLES WILL BE AUTO ADDED IN PLACE
+    # if you added a new variable and don't want it to be added to config.ini, put it's name here
+VARBLOCKLIST = ['__builtins__','__package__','__name__','__doc__',
+                'name','sys','__file__','now','DT','responseTimeDistribution',
+                'TRUE_TIMES','FALSE_TIMES','math','configDict','VARLIST',
+                'VARBLOCKLIST','CONSENSUS_LOCATION_STATS','PACKING','reply']
+
+
+
+name = ""
+for name in locals():
+    if name not in VARLIST and name not in VARBLOCKLIST:
+        raise ValueError("Toggle: " + name + " not in either VARLIST or VARBLOCKLIST... Please add it!")

@@ -9,7 +9,7 @@ from collections import defaultdict, Counter
 import os.path
 from os import makedirs
 import csv
-Suppress = False #TODO change back
+Suppress = True #TODO change back
 
 def dest_resolver(dest):
     """
