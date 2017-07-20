@@ -61,7 +61,7 @@ def placeholder_time_graph(data, dest):
     yL = [task_counts, placeholder_counts]
     legendList = ["'Real Tasks'", "Placeholders"]
     labels = ("Time Steps", "Number of tasks released")
-    title = "Real and Placeholder Task Counts Over Time - Active Tasks: " + str(toggles.MAX_TASKS) + " Queue: " + str(toggles.PENDING_QUEUE_SIZE)
+    title = "Real and Placeholder Task Counts Over Time - Active Tasks: " + str(toggles.ACTIVE_TASKS_SIZE) + " Queue: " + str(toggles.PENDING_QUEUE_SIZE)
 
     multi_line_graph_gen(xL, yL, legendList, dest+".png", labels = labels, title = title)
 
@@ -69,11 +69,11 @@ def placeholder_time_graph(data, dest):
 
 def visualize_active_tasks(data, dest):
 
-    xL = data[0][::100]
-    yL = [data[i][1][::100] for i in range(1, len(data))]
+    xL = data[0][::20]
+    yL = [data[i][1][::20] for i in range(1, len(data))]
     legendL = [data[i][0] for i in range(1, len(data))]
     labels = ("Time Steps", "Tasks in Active Array")
-    title = "Composition of Active Tasks Array over Time for Queue Size " + str(toggles.PENDING_QUEUE_SIZE) + " and Active Tasks Array " + str(toggles.MAX_TASKS)
+    title = "Composition of Active Tasks Array over Time for Queue Size " + str(toggles.PENDING_QUEUE_SIZE) + " and Active Tasks Array " + str(toggles.ACTIVE_TASKS_SIZE)
 
     split_bar_graph_gen(yL, xL, dest+".png", legendL, labels=labels, title = title, split = "horizontal", fig_size = (15, 5), tight=True)
 

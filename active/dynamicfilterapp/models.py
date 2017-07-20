@@ -215,7 +215,7 @@ class IP_Pair(models.Model):
     # tasks out at a given point in time
     tasks_out = models.IntegerField(default=0)
     # tasks that have been released overall
-    tasks_released=models.IntegerField(default=0)
+    tasks_collected=models.IntegerField(default=0)
     # running cumulation of votes
     value = models.FloatField(default=0.0)
     num_no = models.IntegerField(default=0)
@@ -327,7 +327,6 @@ class IP_Pair(models.Model):
                     print "*"*96
                     print "Completed IP Pair: " + str(self.id)
                     print "Total votes: " + str(self.num_yes+self.num_no) + " | Total yes: " + str(self.num_yes) + " |  Total no: " + str(self.num_no)
-                    print "Total votes: " + str(self.num_yes+self.num_no)
                     print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
                     print "*"*96
 
@@ -351,13 +350,14 @@ class IP_Pair(models.Model):
 
     def distribute_task(self):
         self.tasks_out += 1
-        self.tasks_released += 1
-        self.save(update_fields = ["tasks_out", "tasks_released"])
+        # self.tasks_released += 1 # TODO: get rid
+        self.save(update_fields = ["tasks_out"]) #"tasks_released"
 
     def collect_task(self):
         self.tasks_out -= 1
+        self.tasks_collected += 1
         self.predicate.add_total_task()
-        self.save(update_fields = ["tasks_out"])
+        self.save(update_fields = ["tasks_out", "tasks_collected"])
 
     def start(self):
         self.isStarted = True
