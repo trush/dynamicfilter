@@ -359,9 +359,10 @@ class IP_Pair(models.Model):
 				self.save(update_fields=["value", "num_no"])
 
 			self.predicate.update_selectivity()
-			self.predicate.update_avg_tasks()
-			self.predicate.update_cost()
-			self.predicate.update_rank()
+			if (toggles.EDDY_SYS == 6):
+				self.predicate.update_avg_tasks()
+				self.predicate.update_cost()
+				self.predicate.update_rank()
 			# TODO @ Mahlet add your update rank and stuff here!
 
 			self.set_done_if_done()

@@ -1607,6 +1607,27 @@ class SimulationTest(TransactionTestCase):
 		print "p1 " + str(p1.queue_is_full)
 		print "p2 " + str(p2.queue_is_full)
 
+	def itemRoutingTest(self):
+		systems = [1, 2, 4, 6]
+
+		if toggles.REAL_DATA:
+			sampleData = self.load_data()
+			if toggles.RUN_DATA_STATS:
+				self.outout_data_stats(sampleData)
+				self.reset_database()
+		else:
+			sampleData = {}
+			syn_load_data()
+
+		for sys in systems:
+			toggles.EDDY_SYS = sys
+			toggles.RUN_NAME = "item_routing_test_"+str(sys)
+			toggles.OUTPUT_PATH = "dynamicfilterapp/simulation_files/output/"
+
+			print "current system: ", str(sys)
+			self.test_simulation(sampleData)
+
+
 	def shouldLeaveQueueTest(self):
 		i = Item(item_ID = 1, name = "item1", item_type = "test", address = "blah", inQueue = True)
 		i.save()
@@ -1939,7 +1960,7 @@ class SimulationTest(TransactionTestCase):
 		# generate appropriate CSVs
 
 	###___MAIN TEST FUNCTION___###
-	def test_simulation(self):
+	def test_simulation(self, sampleData):
 		"""
 		Runs a simulation of real data and prints out the number of tasks
 		ran to complete the filter
@@ -1951,25 +1972,25 @@ class SimulationTest(TransactionTestCase):
 			print self.getConfig()
 
 		if toggles.PACKING:
-			toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
+			toggles.OUTPUT_PATH = toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
 			packageMaker(toggles.OUTPUT_PATH,self.getConfig())
 		if toggles.IDEAL_GRID:
 			self.consensusGrid()
 
-		if toggles.REAL_DATA:
-			sampleData = self.load_data()
-			if toggles.RUN_DATA_STATS:
-				self.output_data_stats(sampleData)
-				self.reset_database()
-			if toggles.RUN_AVERAGE_COST:
-				self.sim_average_cost(sampleData)
-				self.reset_database()
-			if toggles.RUN_SINGLE_PAIR:
-				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
-				self.reset_database()
-		else:
-			sampleData = {}
-			syn_load_data()
+		# if toggles.REAL_DATA:
+		# 	sampleData = self.load_data()
+		# 	if toggles.RUN_DATA_STATS:
+		# 		self.output_data_stats(sampleData)
+		# 		self.reset_database()
+		# 	if toggles.RUN_AVERAGE_COST:
+		# 		self.sim_average_cost(sampleData)
+		# 		self.reset_database()
+		# 	if toggles.RUN_SINGLE_PAIR:
+		# 		self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+		# 		self.reset_database()
+		# else:
+		# 	sampleData = {}
+		# 	syn_load_data()
 
 		if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
 			if toggles.DEBUG_FLAG:
@@ -2174,5 +2195,8 @@ class SimulationTest(TransactionTestCase):
 
 		if toggles.RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
+
+	def item_routing(self):
+		self.itemRoutingTest()
 
 	

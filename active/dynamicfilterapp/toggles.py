@@ -20,7 +20,7 @@ UNCERTAINTY_THRESHOLD = 0.1    # maximum acceptable proability area
 FALSE_THRESHOLD = 0.05           # Used for ALMOST_FALSE TODO better docs
 DECISION_THRESHOLD = 0.5        # Upper bound of integration
 NUM_CERTAIN_VOTES = 5           # number of votes to gather no matter the results
-CUT_OFF = 17                    # Maximum number of votes to ask for before using Majority Vote as backup metric
+CUT_OFF = 21                    # Maximum number of votes to ask for before using Majority Vote as backup metric
 SINGLE_VOTE_CUTOFF = int(1+math.ceil(CUT_OFF/2.0))    # Number of votes for a single result (Y/N) before calling that the winner
 # Our consensus metric is Complicated. For each IP pair chosen, we do the following
 # We gather (NUM_CERTAIN_VOTES) votes on the chosen IP pair
@@ -37,7 +37,7 @@ SINGLE_VOTE_CUTOFF = int(1+math.ceil(CUT_OFF/2.0))    # Number of votes for a si
 
 ################ CONFIGURING THE ALGORITHM ##################################
 #############################################################################
-NUM_WORKERS = 500
+NUM_WORKERS = 301
 DISTRIBUTION_TYPE = 0 # tells pick_worker how to choose workers.
 # 0  -  Uniform Distribution; (all worker equally likely)
 # 1  -  Geometric Distribution; (synthetic graph which fits out data well)
@@ -51,7 +51,7 @@ EDDY_SYS = 6
 # 4 - epsilon-greedy MAB
 # 5 - annealing-epsilon-greedy MAB
 
-PENDING_QUEUE_SIZE = 4
+PENDING_QUEUE_SIZE = 3
 
 CHOSEN_PREDS = [4,2] # predicates that will be used when run on real data
 # If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
@@ -114,7 +114,7 @@ SELECTIVITY_GRAPH = False
 # selectvity of the previous timestep
 #switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
  #(time,(selectivity,ambiguity), (...))
-switch_list = [(0, (0.9, 0.75), (0.5, 0.75))]#, (800, (0.3, 0.3), (0.8, 0.3))]
+switch_list = [(0, (0.9, 0.85), (0.3, 0.85))]#, (800, (0.3, 0.3), (0.8, 0.3))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -136,7 +136,7 @@ SINGLE_PAIR_RUNS = 50
 
 RUN_ITEM_ROUTING = True # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
-RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
+RUN_MULTI_ROUTING = True # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
 ##################	EPSILON GREEDY MAB OPTIONS	##################
 EPSILON = 0.7
@@ -149,10 +149,10 @@ NUM_SIM = 2 # how many simulations to run?
 TIME_SIMS = False # track the computer runtime of simulations
 
 SIMULATE_TIME = True # simulate time passing/concurrency
-MAX_TASKS = 40 # maximum number of active tasks in a simulation with time
+MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
-MAX_TASKS_OUT = 10
+MAX_TASKS_OUT = MAX_TASKS
 
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
