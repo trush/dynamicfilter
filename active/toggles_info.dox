@@ -1,0 +1,77 @@
+/*!
+\page Information Concerning "toggles.py"
+\tableofcontents
+\section input Input Settings
+REAL_DATA - Boolean; Determines whether actual worker responses will be loaded in for the simulation (from input files)
+or whether synthetic data will be generated.
+
+\subsection realdata Real Data Settings
+
+\link dynamicfilterapp.toggles.ITEM_TYPE ITEM_TYPE \endlink - "Hotel", "Restaurant" \n
+\link dynamicfilterapp.toggles.INPUT_PATH INPUT_PATH \endlink - A string pointing toward the file containing the list of items, predicates, correct answers, etc.\n
+\link dynamicfilterapp.toggles.IP_PAIR_DATA_FILE IP_PAIR_DATA_FILE \endlink - The filename of the file containing actual worker responses for the appropriate dataset. \n
+\link dynamicfilterapp.toggles.REAL_DISTRIBUTION_FILE REAL_DISTRIBUTION_FILE \endlink - The filename of the file containing data about workers' task request frequency. \n
+\link dynamicfilterapp.toggles.CHOSEN_PREDS CHOSEN_PREDS \endlink -  Gives the numbers of the predicates that
+will be applied to the set of IP Pairs. These will be read in from a csv file in the INPUT_PATH folder. If
+\link dynamicfilterapp.toggles.EDDY_SYS EDDY_SYS \endlink = 3 (controlled system), the predicates will be applied to items in
+the order they appear in this array. \n
+\n
+Hotel Predicate Guide:
+  - 0 - not selective and not ambiguous
+  - 1 - selective and not ambiguous
+  - 2 - not selective and medium ambiguity
+  - 3 - medium selectivity and ambiguous
+  - 4 - not selective and not ambiguous
+
+Restaurant Predicate Guide:
+  - 1,4,5 - three most selective
+  - 4,5,8 - least ambiguous questions
+  - 0,2,9 - most ambiguous questions
+  - 2,3,8 - least selective \n
+
+\subsection syndata Synthetic Data Settings
+\link dynamicfilterapp.toggles.NUM_QUESTIONS NUM_QUESTIONS \endlink - The number of questions/predicates that will be asked of synthetic dataset. \n
+\link dynamicfilterapp.toggles.NUM_ITEMS NUM_ITEMS \endlink - The number of items that will be filtered. \n
+\link dynamicfilterapp.toggles.switch_list switch_list \endlink - A list of tuples representing selectivity and cost of each predicate
+at different points in time/number of tasks. The appropriate format of each tuple:
+(task number, (select,amb), (select,amb)) \n
+
+\section alg Algorithm Settings
+\link dynamicfilterapp.toggles.EDDY_SYS EDDY_SYS \endlink - Selects which algorithm will be used to filter the IP Pairs. (See "Algorithm Design" for
+explanation of the workings of each algorithm.) \n
+Eddy System Guide:
+  - 1 - Pending Eddy (generation 1)
+  - 2 - Random IP Pair selection
+  - 3 - Controlled Run (for each item, evaluates first one predicate, then another)
+  - 5 - Pending Eddy (generation 2)
+  - 4 \todo add what is going on here
+
+\n
+\link dynamicfilterapp.toggles.ITEM_SYS ITEM_SYS \endlink - Selects what logic will be used to decide which \a item to send to a predicate next. \n
+Item System Guide:
+  - 0 - Randomly choose an item
+  - 1 - Item-started system (Items that have already been started will be preferred when choosing an item.)
+  - 2 - Item-almost-false system (Items that are close to being eliminated from the passing set will be preferred when choosing an item.)
+\n
+\link dynamicfilterapp.toggles.SLIDING_WINDOW SLIDING_WINDOW \endlink - Determines whether "windowing" will be turned on for a Pending Eddy algorithm. (See "Algorithm Design" for
+details on how this works and how it impacts the algorithm overall.) \n
+\link dynamicfilterapp.toggles.LIFETIME LIFETIME \endlink- Determines the "size" of the sliding window, measured in completed tasks (if in a non-time simulation) or in time steps (for a timed simulation).\n
+\n
+\link dynamicfilterapp.toggles.PENDING_QUEUE_SIZE PENDING_QUEUE_SIZE \endlink - An integer setting the length of the "queue" for a Pending Eddy system. (See "Algorithm Design" to learn about the meaning of this parameter for different algorithm setups.)\n
+\link dynamicfilterapp.toggles.ADAPTIVE_QUEUE ADAPTIVE_QUEUE \endlink - Determines whether PENDING_QUEUE_SIZE will be static throughout simulation or will vary. \n
+\link dynamicfilterapp.toggles.ADAPTIVE_QUEUE_MODE ADAPTIVE_QUEUE_MODE \endlink - \todo say stuff about this \n
+
+
+\section sim Simulation Settings
+\link dynamicfilterapp.toggles.NUM_WORKERS NUM_WORKERS \endlink- The number of unique workers that can be assigned tasks during a simulation. \n
+\link dynamicfilterapp.toggles.DISTRIBUTION_TYPE DISTRIBUTION_TYPE \endlink - Tells the function pick_worker() how to choose workers. \n
+Distribution Guide:
+  - 0  -  Uniform Distribution; (all worker equally likely)
+  - 1  -  Geometric Distribution; (synthetic graph which fits out data well)
+  - 2  -  Real Distribution (samples directly from the real data)
+\n
+\section consensus Consensus Settings
+\section output Output Settings
+\link dynamicfilterapp.toggles.OUTPUT_PATH OUTPUT_PATH \endlink - A string pointing toward the desired destination for simulation output files.\n
+\section
+*/

@@ -5,6 +5,8 @@
 *.png
 *.ini
 active/dynamicfilterapp/migrations/*
+active/html/*
+active/latex/*
 
 
 !active/dynamicfilterapp/migrations/0001_initial.py

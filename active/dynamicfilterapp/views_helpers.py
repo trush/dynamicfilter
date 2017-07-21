@@ -29,7 +29,8 @@ def worker_done(ID):
 	if (toggles.EDDY_SYS == 1):
 		outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
 		nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-		allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
+        # allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+        allTasksOut = incompleteIP.filter(tasks_collected__gte=toggles.MAX_TASKS_OUT)
 		incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
 
 	if not incompleteIP:
@@ -64,7 +65,9 @@ def pending_eddy(ID):
 		outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
 		nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
 		allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-		incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
+        maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+        # allTasksOut = incompleteIP.filter(tasks_collected__gte=toggles.MAX_TASKS_OUT)
+        incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
 		# if there are IP pairs that could be assigned to this worker
 		if incompleteIP.exists():
 			chosenIP = lotteryPendingQueue(incompleteIP)
@@ -74,6 +77,12 @@ def pending_eddy(ID):
 
 	#random_system:
 	elif (toggles.EDDY_SYS == 2):
+        if not incompleteIP.exists():
+            print "Worker has completed all IP pairs left to do"
+        # allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+        allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+        maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+        incompleteIP = incompleteIP.exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
 		if incompleteIP.exists():
 			startedIPs = incompleteIP.filter(isStarted=True)
 			if startedIPs.exists():
@@ -95,8 +104,15 @@ def pending_eddy(ID):
 		else:
 			chosenIP = None
 
+    #system that uses ticketing and finishes an IP pair once started
+    elif (toggles.EDDY_SYS == 4):
+        chosenIP = useLottery(incompleteIP)
+
+    elif (toggles.EDDY_SYS == 5):
+        chosenIP = nu_pending_eddy(incompleteIP)
+
 	#MAB_system
-	elif (toggles.EDDY_SYS == 4):
+	elif (toggles.EDDY_SYS == 6):
 		if incompleteIP.exists():
 			startedIPs = incompleteIP.filter(isStarted=True)
 			if len(startedIPs) != 0:
@@ -105,12 +121,11 @@ def pending_eddy(ID):
 			chosenPred = selectArm(predicates)
 			predIPs = incompleteIP.filter(predicate=chosenPred)
 			chosenIP = choice(predIPs)
-			chosenIP.start()
 		else:
 			chosenIP = None
 
 	#decreasing MAB system
-	elif(toggles.EDDY_SYS == 5):
+	elif(toggles.EDDY_SYS == 7):
 		if incompleteIP.exists():
 			startedIPs = incompleteIP.filter(isStarted=True)
 			if len(startedIPs) != 0:
@@ -119,12 +134,11 @@ def pending_eddy(ID):
 			chosenPred = annealingSelectArm(predicates)
 			predIPs = incompleteIP.filter(predicate=chosenPred)
 			chosenIP = choice(predIPs)
-			chosenIP.start()
 		else:
 			chosenIP = None
 
 	#rank-based MAB system
-	elif(toggles.EDDY_SYS == 6):
+	elif(toggles.EDDY_SYS == 8):
 		allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
 		incompleteIP = incompleteIP.exclude(id__in=allTasksOut)
 		if incompleteIP.exists():
@@ -139,15 +153,96 @@ def pending_eddy(ID):
 			chosenPred = annealingSelectArm(predicates)
 			predIPs = incompleteIP.filter(predicate=chosenPred)
 			chosenIP = choice(predIPs)
-			chosenIP.start()
 		else:
 			chosenIP = None
 
-	end = time.time()
-	runTime = end - start
-	if toggles.SIMULATE_TIME:
-		return chosenIP, runTime
-	return chosenIP
+
+    if chosenIP is not None:
+        chosenIP.start()
+    end = time.time()
+    runTime = end - start
+    return chosenIP, runTime
+
+def nu_pending_eddy(incompleteIP):
+    # get a predicate using the ticketing system
+    # make list of possible predicates and remove duplicates
+    ipSet = IP_Pair.objects.filter(isDone=False)
+    predicates = [ip.predicate for ip in ipSet]
+    seen = set()
+    seen_add = seen.add
+    predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
+
+    #choose the predicate
+    weightList = np.array([pred.num_tickets for pred in predicates])
+    totalTickets = np.sum(weightList)
+    probList = np.true_divide(weightList, totalTickets)
+    chosenPred = np.random.choice(predicates, p=probList)
+
+    # if the queue of the predicate is full, assign from the queue
+    allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+    maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+    pickFromFirst = incompleteIP.filter(predicate = chosenPred, inQueue = True).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+    if chosenPred.queue_is_full:
+        # print "*"*10 + " Condition 1 invoked " + "*"*10
+        # assign a task from one of the IP pairs within the queue
+        if pickFromFirst.exists():
+            # print "*"*10 + " Condition 2 invoked " + "*"*10
+            chosenIP = choice(pickFromFirst)
+            if not chosenIP.is_in_queue:
+                chosenIP.add_to_queue()
+                chosenIP.refresh_from_db()
+            return chosenIP
+
+    # print "*"*10 + " Condition 3 invoked " + "*"*10
+    # if queue is not full or we can't do anything that's in the queue
+    nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
+    # if not incompleteIP.exclude(id__in=nonUnique).exists():
+        # print "Nonunique makes incomplete empty"
+
+    # allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+    # allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT).extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+
+    # if not incompleteIP.exclude(id__in=allTasksOut).exists():
+        # print "allTasksOut makes incomplete empty"
+
+    # if not incompleteIP.filter(inQueue=False).exists():
+        # print "Nothing left to complete that isn't in the queue"
+    # if not incompleteIP.filter(predicate=chosenPred).exists():
+        # print "Nothing left for predicate " + str(chosenPred.id) + " incomplete"
+    # set of IP pairs w/ item not being worked on currently, not already in queue, not all tasks out
+    pickFrom = incompleteIP.filter(inQueue = False).exclude(id__in=nonUnique).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+
+    # find something for that predicate that isn't being worked on yet and add it
+    if pickFrom.filter(predicate = chosenPred).exists():
+        # print "*"*10 + " Condition 4 invoked " + "*"*10
+        chosenIP = choice(pickFrom.filter(predicate=chosenPred))
+        if not chosenIP.is_in_queue:
+            chosenIP.add_to_queue()
+            chosenIP.refresh_from_db()
+        return chosenIP
+
+    # if we can't refill the queue right now, do something from within the queue
+    if pickFromFirst.exists():
+        # print "*"*10 + " Condition 6 invoked " + "*"*10
+        chosenIP = choice(pickFromFirst)
+        if not chosenIP.is_in_queue:
+            chosenIP.add_to_queue()
+            chosenIP.refresh_from_db()
+        return chosenIP
+
+    # if we can't do anything in the queue for that predicate, pick a random other thing to do
+    # find something for any predicate that isn't being worked on yet
+    if pickFrom.exists():
+        chosenIP = choice(pickFrom)
+        if not chosenIP.is_in_queue:
+            chosenIP.add_to_queue()
+            chosenIP.refresh_from_db()
+        return chosenIP
+
+    # if there's literally nothing left to be done, issue a placeholder task
+    else:
+        return None
+
 	
 def move_window():
 	"""
@@ -341,39 +436,34 @@ def useLottery(ipSet):
 	return chosenIP
 
 def updateCounts(workerTask, chosenIP):
-	if chosenIP is not None:
-		chosenIP.refresh_from_db()
-		workerTask.refresh_from_db()
-		# update stats counting tasks completed
-		chosenIP.collect_task()
-		chosenIP.refresh_from_db()
+    if chosenIP is not None:
+        chosenIP.refresh_from_db()
+        workerTask.refresh_from_db()
+        # update stats counting tasks completed
+        chosenIP.collect_task()
+        chosenIP.refresh_from_db()
 
-		# update stats counting numbers of votes (only if IP not completed)
-		chosenIP.record_vote(workerTask)
-		# print "#"*30
-		# print "total number of tasks for ", str(chosenIP.predicate), " is ", str(chosenIP.predicate.totalTasks)
-		# print "started items count: ", IP_Pair.objects.filter(isStarted=True, predicate=chosenIP.predicate).count()
-		# print "pred ", str(chosenIP.predicate), "after record_vote selectivity: ", str(chosenIP.predicate.calculatedSelectivity)
-		# print str(chosenIP.predicate), "after record_vote cost: ", str(chosenIP.predicate.cost)
-		# print "pred ", str(chosenIP.predicate), "after record_vote avg number of tasks: ", str(chosenIP.predicate.avg_tasks_per_pair)
+        # update stats counting numbers of votes (only if IP not completed)
+        chosenIP.record_vote(workerTask)
+        chosenIP.refresh_from_db()
 
-		# if we're using queueing, remove the IP pair from the queue if appropriate
-		if toggles.EDDY_SYS == 1:
-			chosenIP.remove_from_queue()
-			chosenIP.refresh_from_db()
+        # if we're using queueing, remove the IP pair from the queue if appropriate
+        if toggles.EDDY_SYS == 1 or toggles.EDDY_SYS == 5:
+            chosenIP.remove_from_queue()
+            chosenIP.refresh_from_db()
 
-		chosenIP.refresh_from_db()
-		chosenIP.predicate.refresh_from_db()
-		# change queue length accordingly if appropriate
+        chosenIP.refresh_from_db()
+        chosenIP.predicate.refresh_from_db()
 
-		if toggles.ADAPTIVE_QUEUE:
-			chosenIP.predicate.adapt_queue_length()
-			chosenIP.predicate.refresh_from_db()
+        # change queue length accordingly if appropriate
+        if toggles.ADAPTIVE_QUEUE:
+            chosenIP.predicate.adapt_queue_length()
+            chosenIP.predicate.refresh_from_db()
 
-		chosenIP.predicate.check_queue_full()
-		chosenIP.predicate.refresh_from_db()
-	else:
-		pass
+        chosenIP.predicate.check_queue_full()
+        chosenIP.predicate.refresh_from_db()
+    else:
+        pass
 
 #____________IMPORT/EXPORT CSV FILE____________#
 def output_selectivities(run_name):
