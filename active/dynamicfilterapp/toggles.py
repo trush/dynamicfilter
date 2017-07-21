@@ -1,20 +1,20 @@
 import datetime as DT
 import sys
-import math
 now = DT.datetime.now()
-import responseTimeDistribution
-
-RUN_NAME = 'RenoUnAmbigSynth' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
-
-ITEM_TYPE = "Restaurant"
-INPUT_PATH = 'dynamicfilterapp/simulation_files/restaurants/'
+from responseTimeDistribution import *
+DEBUG_FLAG = True # useful print statements turned on
+RUN_NAME = 'Scaling_Investigation' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-IP_PAIR_DATA_FILE = 'real_data1.csv'
-TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+
+# INPUT SETTINGS
+TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+REAL_DATA = False
+#_________________ Real Data Settings ___________________#
+ITEM_TYPE = "Hotel"
+INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
+IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
-
-DEBUG_FLAG = False # useful print statements turned on
-
+CHOSEN_PREDS = [3,4]
 ####################### CONFIGURING CONSENSUS ##############################
 # This desc. is old and some of the variable names may no longer match, but the
 # algorithm described is still the same
@@ -98,41 +98,28 @@ K = 8
 W_MAX = 6
 CUBIC_C = (1.0/50.0)
 CUBIC_B = (0.8)
+#________________ CONFIGURING THE ALGORITHM ___________________#
 
-################ CONFIGURING THE ALGORITHM ##################################
-#############################################################################
-
-NUM_WORKERS = 301
-DISTRIBUTION_TYPE = 0 # tells pick_worker how to choose workers.
+## The number of unique worker (IDs) that a simulation can pick from
+NUM_WORKERS = 5000
+## Tells pick_worker() how to choose workers
 # 0  -  Uniform Distribution; (all worker equally likely)
 # 1  -  Geometric Distribution; (synthetic graph which fits out data well)
 # 2  -  Real Distribution (samples directly from the real data)
+DISTRIBUTION_TYPE = 0 # tells pick_worker how to choose workers.
 
-EDDY_SYS = 1
-# EDDY SYS KEY:
+## Determines which algorithm we're actually using to pick IP Pairs
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
+EDDY_SYS = 1
 
-PENDING_QUEUE_SIZE = 1
+## The size of the "queue" for each predicate. This can be made dynamic if desired.
+# For toggles.EDDY_SYS = 5, this is the \a minimum number of unique IP Pairs to be in progress at any given time for a predicate. For toggles.EDDY_SYS = 1,
+# this is a \a maximum number of IP Pairs in progress for each predicate.
+PENDING_QUEUE_SIZE = 2
 
-CHOSEN_PREDS = [2] # predicates that will be used when run on real data
-# If using EDDY_SYS 3 (controlled system), CHOSEN_PREDS should be a
-# list of 2 predicates (for now). They will be passed items in the order
-# they appear in the list.
 
-# HOTEL PREDICATE INDEX
-# 0 - not selective and not ambiguous
-# 1 - selective and not ambiguous
-# 2 - not selective and medium ambiguity
-# 3 - medium selectivity and ambiguous
-# 4 - not selective and not ambiguous
-
-# RESTAURANT PREDICATE INDEX
-# 1,4,5 - three most selective
-# 4,5,8 - least ambiguous questions
-# 0,2,9 - most ambiguous questions
-# 2,3,8 - least selective
 
 ITEM_SYS = 0
 # ITEM SYS KEY:
@@ -143,11 +130,11 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 40
 
-ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
-QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,qlength)]
+QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3), (16,4)] # settings for above mode [(#tickets,qlength)]
 
 #############################################################################
 #############################################################################
@@ -156,7 +143,7 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3)] # settings for above mode [(#tickets,ql
 ###################### CONFIGURING TESTING ##################################
 #############################################################################
 
-REAL_DATA = False #if set to false, will use synthetic data (edit in syndata file)
+
 
 
 DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
@@ -167,8 +154,8 @@ DUMMY_TASK_OPTION = 0
 GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
-NUM_QUESTIONS = 1
-NUM_ITEMS = 100
+NUM_QUESTIONS = 4
+NUM_ITEMS = 400
 SIN = -1
 
 SELECTIVITY_GRAPH = False
@@ -176,7 +163,7 @@ SELECTIVITY_GRAPH = False
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
 # tuples of form (task number, (select,amb), (select,amb))
-switch_list = [(0, (0.5, 1))]
+switch_list = [ (0, (0.9, 0.75), (0.7, 0.75), (0.5, 0.75), (0.4, 0.75)) ]
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
@@ -188,7 +175,8 @@ ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [.1, .2, .3]
 
 #produces ticket count graph for 1 simulation
-COUNT_TICKETS = False
+COUNT_TICKETS = True
+TRACK_QUEUES = True
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 100
@@ -203,22 +191,25 @@ RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 1 # how many simulations to run?
+NUM_SIM = 10 # how many simulations to run?
 
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = False # simulate time passing/concurrency
-MAX_TASKS = 25 # maximum number of active tasks in a simulation with time
+SIMULATE_TIME = True # simulate time passing/concurrency
+ACTIVE_TASKS_SIZE = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
-MAX_TASKS_OUT = MAX_TASKS
+MAX_TASKS_OUT = 10
+MAX_TASKS_COLLECTED = CUT_OFF
 
-RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
+TRACK_ACTIVE_TASKS = True
+
+TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
@@ -226,13 +217,12 @@ ACCURACY_COUNT = False
 
 OUTPUT_SELECTIVITIES = False
 
-RUN_CONSENSUS_COUNT = True # keeps track of the number of tasks needed before consensus for each IP
+RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before consensus for each IP
 
-CONSENSUS_LOCATION_STATS = False #TODO remember to remove this for the final commit
+CONSENSUS_LOCATION_STATS = False
 
 TRACK_SIZE = True
-
-VOTE_GRID = True #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
+VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
 IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 
@@ -243,33 +233,30 @@ PACKING=True # Enable for "Packing" of outputs into a folder and generation of c
 
 if GEN_GRAPHS:
     print ''
-    reply = raw_input("GEN_GRAPHS is turned on. Do you actually want graphs? Enter y for yes, n for no.  ")
-    if reply == "n":
-        raise Exception ("Set GEN_GRAPHS to False and try again!")
+    reply = raw_input("GEN_GRAPHS is turned on. Do you actually want graphs? Enter y for yes, n for no (turns off graphs), or c to cancel. ")
+    if reply == "c":
+        raise Exception ("Change your setup and try again!")
+    elif reply == "n":
+        print "~~~~~~ Graphing turned off ~~~~~~"
+        GEN_GRAPHS = False
 
 # List of toggles for debug printing and Config.ini generation
             ##### PLEASE UPDATE AS NEW TOGGLES ADDED #####
 VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE',
             'REAL_DISTRIBUTION_FILE','DEBUG_FLAG',
-            'NUM_CERTAIN_VOTES','CUT_OFF','SINGLE_VOTE_CUTOFF','BAYES_ENABLED',
-            'UNCERTAINTY_THRESHOLD','DECISION_THRESHOLD','FALSE_THRESHOLD',
-            'ADAPTIVE_CONSENSUS','ADAPTIVE_CONSENSUS_MODE','PREDICATE_SPECIFIC',
-            'CONSENSUS_STATUS_LIMITS','CONSENSUS_SIZE_LIMITS','RENO_BONUS_RATIO',
-            'CONSENSUS_STATUS','K','W_MAX','CUBIC_C','CUBIC_B','NUM_WORKERS',
-            'DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
+            'NUM_CERTAIN_VOTES','UNCERTAINTY_THRESHOLD','FALSE_THRESHOLD','DECISION_THRESHOLD',
+            'CUT_OFF','NUM_WORKERS','DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
-            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS',
-            'DUMMY_TASK_OPTION','GEN_GRAPHS','NUM_QUESTIONS','NUM_ITEMS','SIN',
-            'SELECTIVITY_GRAPH','switch_list',
+            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'switch_list',
+            'DUMMY_TASKS', 'DUMMY_TASK_OPTION','GEN_GRAPHS',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
-            'MAX_TASKS','BUFFER_TIME','MAX_TASKS_OUT','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
-            'TRACK_PLACEHOLDERS','TEST_ACCURACY','ACCURACY_COUNT','OUTPUT_SELECTIVITIES',
-            'RUN_CONSENSUS_COUNT','TRACK_SIZE','VOTE_GRID','IDEAL_GRID','OUTPUT_COST'
+            'ACTIVE_TASKS_SIZE', "MAX_TASKS_COLLECTED", "MAX_TASKS_OUT", 'BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
+            'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
+            'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES'
 ]
-
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file
     # THIS MEANS NEW VARIABLES WILL BE AUTO ADDED IN PLACE
