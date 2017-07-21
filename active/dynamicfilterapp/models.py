@@ -126,6 +126,7 @@ class Predicate(models.Model):
 		# else:
 		self.refresh_from_db(fields=["calculatedSelectivity","cost"])
 		self.rank = self.calculatedSelectivity/float(self.cost)
+		print "for pred ",self.question," cost is ",str(self.cost)
 		self.save(update_fields=["rank"])
 
 	def move_window(self):
@@ -170,18 +171,20 @@ class Predicate(models.Model):
 		self.totalTasks += 1
 		self.save(update_fields=["totalTasks"])
 #______________________ Mahlet's changes start here ____________________#
-	def update_pred(self, reward):
+	def inc_count(self):
 		self.count += 1
+		self.save(update_fields=["count"])
+
+	def update_pred(self, reward):
 		new_val = ((self.count+1)/float(self.count)) * self.value + (1/float(self.count)) * reward
 		self.value = new_val
-		self.save(update_fields = ["value", "count"])
+		self.save(update_fields = ["value"])
 
 	def update_pred_rank(self, reward):
-		self.count += 1
 		self.refresh_from_db(fields=["rank"])
 		new_val = ((self.count+1)/float(self.count)) * self.rank + (1/float(self.count)) * reward
 		self.value = new_val
-		self.save(update_fields = ["value", "count"])
+		self.save(update_fields = ["value"])
 
 	def add_total_time(self):
 		self.total_time  += random.choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
@@ -196,11 +199,13 @@ class Predicate(models.Model):
 		self.save(update_fields=["num_ip_complete"])
 	
 	def update_avg_tasks(self):
-		if (self.num_ip_complete == 0):
-			self.avg_tasks_per_pair = self.totalTasks
-		else:
-			self.avg_tasks_per_pair = self.totalTasks / self.num_ip_complete
+		# if (self.num_ip_complete== 0):
+		# 	self.avg_tasks_per_pair = self.totalTasks
+		# else:
+		self.avg_tasks_per_pair = self.totalTasks / float(IP_Pair.objects.filter(isStarted=True, predicate=self).count())
+			#self.avg_tasks_per_pair = self.totalTasks / self.num_ip_complete
 		self.save(update_fields=["avg_tasks_per_pair"]) 
+
 #______________________ Mahlet's changes end here ____________________#
 
 	def inc_queue_length(self):
@@ -328,11 +333,11 @@ class IP_Pair(models.Model):
 
 	def record_vote(self, workerTask):
 		# add vote to tally only if appropriate
-		print "answer = ",str(workerTask.answer)
 		if not self.isDone:
 			self.status_votes += 1
-			self.predicate.award_wicket()
 			self.save(update_fields=["status_votes"])
+			self.predicate.award_wicket()
+			
 
 			if workerTask.answer:
 				self.value += 1

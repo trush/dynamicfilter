@@ -75,6 +75,8 @@ class SimulationTest(TransactionTestCase):
 	cum_placeholder_time = 0
 	cum_placeholder_time_array = []
 
+	time_steps_array= []
+
 	# TICKETING STATISTICS
 	ticketNums = [] # only really makes sense for a single simulation run
 
@@ -387,7 +389,7 @@ class SimulationTest(TransactionTestCase):
 			 rank=0.0, count=1, value=0.0, cost=1.0, total_time=0.0, avg_completion_time=1.0,
 			 avg_tasks_per_pair=1.0)
 
-		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False)
+		IP_Pair.objects.all().update(value=0, num_yes=0, num_no=0, isDone=False, status_votes=0, inQueue=False, isStarted=False)
 
 		self.num_tasks, self.num_incorrect, self.num_placeholders = 0, 0, 0
 		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time = 0, 0, 0, 0
@@ -727,10 +729,22 @@ class SimulationTest(TransactionTestCase):
 						print "IP objects in queue for pred " + str(p.id) + ": " + str(IP_Pair.objects.filter(predicate=p, inQueue=True).count())
 						print "Number pending for pred " + str(p.id) + ": " + str(p.num_pending)
 						raise Exception("WHEN REMOVING Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
-
+				self.time_steps_array.append(time_clock)
 				prev_time = time_clock
 				endTimes = []
+
 				# check if any tasks have reached completion, update bookkeeping
+				if toggles.PRED_SCORE_COUNT:
+					time_proxy += 1
+					if toggles.REAL_DATA:
+						for predNum in range(len(toggles.CHOSEN_PREDS)):
+							predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
+							scores[predNum].append(predicate.value)
+					else:
+						for count in range(toggles.NUM_QUESTIONS):
+							predicate = Predicate.objects.get(pk=count+1)
+							scores[count].append(predicate.value)
+
 				for task in active_tasks:
 					if (task.end_time <= time_clock):
 						updateCounts(task, task.ip_pair)
@@ -756,16 +770,7 @@ class SimulationTest(TransactionTestCase):
 									predicate = Predicate.objects.get(pk=count+1)
 									self.ticketNums[count].append(predicate.num_tickets)
 						
-						if toggles.PRED_SCORE_COUNT:
-							time_proxy += 1
-							if toggles.REAL_DATA:
-								for predNum in range(len(toggles.CHOSEN_PREDS)):
-									predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
-									scores[predNum].append(predicate.value)
-							else:
-								for count in range(toggles.NUM_QUESTIONS):
-									predicate = Predicate.objects.get(pk=count+1)
-									scores[count].append(predicate.value)
+						
 
 						if toggles.TRACK_IP_PAIRS_DONE:
 							self.ips_done_array.append(IP_Pair.objects.filter(isDone=True).count())
@@ -829,15 +834,6 @@ class SimulationTest(TransactionTestCase):
 				move_window()
 				time_clock += 1
 
-				if toggles.PRED_SCORE_COUNT:
-					if REAL_DATA:
-						for pred in range(len(toggles.CHOSEN_PREDS)):
-							predicate = Predicate.objects.get(pk=CHOSEN_PREDS[pred]+1)
-							scores[pred].append(predicate.value)
-					else:
-						for count in range(toggles.NUM_QUESTIONS):
-							predicate = Predicate.objects.get(pk=count+1)
-							scores[count].append(predicate.value)
 				
 				if PRED_RANK_COUNT:
 					if REAL_DATA:
@@ -2098,7 +2094,7 @@ class SimulationTest(TransactionTestCase):
 						print "only ran one sim, not running hist_gen"
 			
 			if toggles.RUN_MULTI_ROUTING:
-					dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + '_Eddy_sys_' + toggles.EDDY_SYS + '_multi_routing.png'
+					dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + '_Eddy_sys_' + str(toggles.EDDY_SYS) + '_multi_routing.png'
 					title = toggles.RUN_NAME + ' Average Predicate Routing'
 					questions = toggles.CHOSEN_PREDS
 					arrayData = []

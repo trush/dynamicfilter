@@ -97,42 +97,56 @@ def pending_eddy(ID):
 
 	#MAB_system
 	elif (toggles.EDDY_SYS == 4):
-		startedIPs = incompleteIP.filter(isStarted=True)
-		if len(startedIPs) != 0:
-			incompleteIP = startedIPs
-		predicates = [ip.predicate for ip in incompleteIP]
-		chosenPred = selectArm(predicates)
-		predIPs = incompleteIP.filter(predicate=chosenPred)
-		chosenIP = choice(predIPs)
-		chosenIP.start()
+		if incompleteIP.exists():
+			startedIPs = incompleteIP.filter(isStarted=True)
+			if len(startedIPs) != 0:
+				incompleteIP = startedIPs
+			predicates = [ip.predicate for ip in incompleteIP]
+			chosenPred = selectArm(predicates)
+			predIPs = incompleteIP.filter(predicate=chosenPred)
+			chosenIP = choice(predIPs)
+			chosenIP.start()
+		else:
+			chosenIP = None
 
 	#decreasing MAB system
 	elif(toggles.EDDY_SYS == 5):
-		startedIPs = incompleteIP.filter(isStarted=True)
-		if len(startedIPs) != 0:
-		 	incompleteIP = startedIPs
-		predicates = [ip.predicate for ip in incompleteIP]
-		chosenPred = annealingSelectArm(predicates)
-		predIPs = incompleteIP.filter(predicate=chosenPred)
-		chosenIP = choice(predIPs)
-		chosenIP.start()
+		if incompleteIP.exists():
+			startedIPs = incompleteIP.filter(isStarted=True)
+			if len(startedIPs) != 0:
+				incompleteIP = startedIPs
+			predicates = [ip.predicate for ip in incompleteIP]
+			chosenPred = annealingSelectArm(predicates)
+			predIPs = incompleteIP.filter(predicate=chosenPred)
+			chosenIP = choice(predIPs)
+			chosenIP.start()
+		else:
+			chosenIP = None
 
 	#rank-based MAB system
 	elif(toggles.EDDY_SYS == 6):
-		startedIPs = incompleteIP.filter(isStarted=True)
-		if len(startedIPs) != 0:
-		 	incompleteIP = startedIPs
-		predicates = [ip.predicate for ip in incompleteIP]
-		chosenPred = annealingSelectArm(predicates)
-		predIPs = incompleteIP.filter(predicate=chosenPred)
-		chosenIP = choice(predIPs)
-		chosenIP.start()
+		allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
+		incompleteIP = incompleteIP.exclude(id__in=allTasksOut)
+		if incompleteIP.exists():
+			# startedIPs = incompleteIP.filter(isStarted=True)
+			# if len(startedIPs) != 0:
+			# 	incompleteIP = startedIPs
+		#print "number of incomplete IPs: ",incompleteIP.count()
+			predicates = [ip.predicate for ip in incompleteIP]
+			seen = set()
+			seen_add = seen.add
+			predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
+			chosenPred = annealingSelectArm(predicates)
+			predIPs = incompleteIP.filter(predicate=chosenPred)
+			chosenIP = choice(predIPs)
+			chosenIP.start()
+		else:
+			chosenIP = None
 
 	end = time.time()
 	runTime = end - start
 	if toggles.SIMULATE_TIME:
 		return chosenIP, runTime
-	print "chosen IP is....", chosenIP
 	return chosenIP
 	
 def move_window():
@@ -167,7 +181,8 @@ def selectArm(predList):
 #________ANNEALING-EPSILON-GREEDY MAB______#
 
 def annealingSelectArm(predList):
-	countList = np.array([(pred.count) for pred in predList])
+	predicates=Predicate.objects.all()
+	countList = [(pred.count) for pred in predicates]
 	countSum = sum(countList)
 	epsilon = 1 / math.log(countSum + 0.0000001)
 	rNum = random.random()
@@ -176,13 +191,18 @@ def annealingSelectArm(predList):
 	
 	if rNum > epsilon:
 		maxPredlist = [pred for pred in predList if pred.value == maxVal]
-		return random.choice(maxPredlist)
+		chosenPred = random.choice(maxPredlist)
+		chosenPred.inc_count()
+		return chosenPred
 	
 	else:
 		newPredlist = [pred for pred in predList if pred.value != maxVal]
 		if len(newPredlist)!= 0:
-			return random.choice(newPredlist)
-		return random.choice(predList)
+			chosenPred = random.choice(newPredlist)
+			chosenPred.inc_count()
+			return chosenPred
+		chosenPred = random.choice(predList)
+		return chosenPred
 
 #________RANK-BASED MAB________#
 # def rankSelectArm(predList):
@@ -330,14 +350,12 @@ def updateCounts(workerTask, chosenIP):
 
 		# update stats counting numbers of votes (only if IP not completed)
 		chosenIP.record_vote(workerTask)
-		chosenIP.refresh_from_db()
-		print "pred ", str(chosenIP.predicate), "after record_vote selectivity: ", str(chosenIP.predicate.calculatedSelectivity)
-		print str(chosenIP.predicate), "after record_vote rank: ", str(chosenIP.predicate.rank)
-		print str(chosenIP.predicate), "after record_vote cost: ", str(chosenIP.predicate.cost)
-		print str(chosenIP.predicate), "after record_vote score: ", str(chosenIP.predicate.value)
-		print "pred ", str(chosenIP.predicate), "after record_vote avg number of tasks: ", str(chosenIP.predicate.avg_tasks_per_pair)
-		print "total tasks: ", str(chosenIP.predicate.totalTasks)
-		print "total no's: ", str(chosenIP.predicate.totalNo)
+		# print "#"*30
+		# print "total number of tasks for ", str(chosenIP.predicate), " is ", str(chosenIP.predicate.totalTasks)
+		# print "started items count: ", IP_Pair.objects.filter(isStarted=True, predicate=chosenIP.predicate).count()
+		# print "pred ", str(chosenIP.predicate), "after record_vote selectivity: ", str(chosenIP.predicate.calculatedSelectivity)
+		# print str(chosenIP.predicate), "after record_vote cost: ", str(chosenIP.predicate.cost)
+		# print "pred ", str(chosenIP.predicate), "after record_vote avg number of tasks: ", str(chosenIP.predicate.avg_tasks_per_pair)
 
 		# if we're using queueing, remove the IP pair from the queue if appropriate
 		if toggles.EDDY_SYS == 1:
