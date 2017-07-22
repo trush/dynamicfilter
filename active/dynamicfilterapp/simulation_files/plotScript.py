@@ -108,7 +108,7 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothne
 def line_graph_gen(xpoints, ypoints, dest, labels = ('',''), title = '', stderr = [], square = False, scatter=False):
     """
     Generate a linegraph from a set of x and y points, optional parameters:
-        labels a touple in the format ('x-axis label', 'y-axis label')
+        labels a tuple in the format ('x-axis label', 'y-axis label')
         title, a string title of your graph
         stderr a list of standard error for adding y-error bars to data
     """
@@ -269,6 +269,38 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
     plt.title(title)
     if tight:
         fig.tight_layout()
+    plt.savefig(dest_resolver(dest))
+
+def split_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = '',split='vertical'):
+    knownSplits=('vertical','horizontal')
+    if len(dataL)<= 1:
+        raise ValueError("not enough data!")
+    if split not in knownSplits:
+        raise ValueError(str(split)+" Is not a known split")
+    fig = plt.figure()
+    pos = np.arange(len(dataL[0]))
+
+    if split=='vertical':
+        width = 0.9/len(dataL[0])
+        for i in range(len(dataL)):
+            ind = pos + (i*width)
+            plt.bar(ind,dataL[i],width)
+
+    if split=='horizontal':
+        width = 0.9
+        plt.bar(pos,dataL[0],width)
+        for i in range(1,len(dataL)):
+            ind = pos + (i*width)
+            plt.bar(pos,dataL[i],width,bottom=dataL[i-1])
+
+    plt.xticks(pos,legend)
+
+    # Label the axes
+    plt.xlabel(labels[0])
+    plt.ylabel(labels[1])
+
+    # Title the graph
+    plt.title(title)
     plt.savefig(dest_resolver(dest))
 
 def stats_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = ''):

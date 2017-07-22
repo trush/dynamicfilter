@@ -128,7 +128,7 @@ ITEM_SYS = 0
 # 2 - item-almost-false system
 
 SLIDING_WINDOW = False
-LIFETIME = 40
+LIFETIME = 20
 
 ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
@@ -145,7 +145,6 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3), (16,4)] # settings for above mode [(#ti
 
 
 
-
 DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
                    # to do" and will track the number of times this happens
 DUMMY_TASK_OPTION = 0
@@ -154,25 +153,26 @@ DUMMY_TASK_OPTION = 0
 GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
-NUM_QUESTIONS = 4
-NUM_ITEMS = 400
+NUM_QUESTIONS = 2
+NUM_ITEMS = 50
 SIN = -1
 
 SELECTIVITY_GRAPH = False
 
-# SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
+# SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the 
 # selectvity of the previous timestep
-# tuples of form (task number, (select,amb), (select,amb))
-switch_list = [ (0, (0.9, 0.75), (0.7, 0.75), (0.5, 0.75), (0.4, 0.75)) ]
+#switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
+ #(time,(selectivity,ambiguity), (...))
+switch_list = [(0, (0.9, 0.85), (0.3, 0.85))]#, (800, (0.3, 0.3), (0.8, 0.3))]
+
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
 RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response data with or without replacement
 
 RUN_ABSTRACT_SIM = False
-
-ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
-ABSTRACT_VALUES = [.1, .2, .3]
+ABSTRACT_VARIABLE = "EDDY_SYS"
+ABSTRACT_VALUES = [1,2,6]
 
 #produces ticket count graph for 1 simulation
 COUNT_TICKETS = True
@@ -184,15 +184,17 @@ COST_SAMPLES = 100
 RUN_SINGLE_PAIR = False
 SINGLE_PAIR_RUNS = 50
 
-RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
+RUN_ITEM_ROUTING = True # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
-RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
+RUN_MULTI_ROUTING = True # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
+##################	EPSILON GREEDY MAB OPTIONS	##################
+EPSILON = 0.7
+REWARD = 1.7
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
 NUM_SIM = 10 # how many simulations to run?
-
 
 TIME_SIMS = False # track the computer runtime of simulations
 
@@ -226,10 +228,15 @@ VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT o
 
 IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 
+TEST_ACCURACY = False
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
+PRED_SCORE_COUNT = True
+
+PRED_RANK_COUNT = False
+
+PACKING = True # Enable for "Packing" of outputs into a folder and generation of config.ini
 
 if GEN_GRAPHS:
     print ''
@@ -250,7 +257,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'switch_list',
             'DUMMY_TASKS', 'DUMMY_TASK_OPTION','GEN_GRAPHS',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
-            'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','RUN_AVERAGE_COST',
+            'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','PRED_RANK_COUNT', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
             'ACTIVE_TASKS_SIZE', "MAX_TASKS_COLLECTED", "MAX_TASKS_OUT", 'BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',

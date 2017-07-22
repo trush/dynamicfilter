@@ -1,6 +1,7 @@
 from models import *
 import numpy as np
 from random import randint, choice
+from toggles import * #TODO necessary?
 
 import csv
 import sys
