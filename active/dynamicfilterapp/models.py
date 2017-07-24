@@ -557,75 +557,109 @@ class IP_Pair(models.Model):
 				self.status_votes -= 1
 				self.save(update_fields=["status_votes"])
 
-    def _consensus_finder(self):
-        """
-        key:
-            0 - no consensus
-            1 - unAmbigous Zone
-            2 - medium ambiguity Zone
-            3 - high ambiguity zone
-            4 - most ambiguity
-        """
-        myPred = self.predicate
-        votes_cast = self.num_yes + self.num_no
-        larger = max(self.num_yes, self.num_no)
-        smaller = min(self.num_yes, self.num_no)
+	def _consensus_finder(self):
+		"""
+		key:
+			0 - no consensus
+			1 - unAmbigous Zone
+			2 - medium ambiguity Zone
+			3 - high ambiguity zone
+			4 - most ambiguity
+		"""
+		myPred = self.predicate
+		votes_cast = self.num_yes + self.num_no
+		larger = max(self.num_yes, self.num_no)
+		smaller = min(self.num_yes, self.num_no)
 
-        uncertLevel = 2
-        if toggles.BAYES_ENABLED:
-		if self.value > 0:
-                uncertLevel = btdtr(self.num_yes+1, self.num_no+1, myPred.consensus_decision_threshold)
-            else:
-                uncertLevel = btdtr(self.num_no+1, self.num_yes+1, myPred.consensus_decision_threshold)
-
-
-        if votes_cast >= myPred.consensus_max:
-            return 4
-
-        elif uncertLevel < myPred.consensus_uncertainty_threshold:
-            return 1
-
-        elif larger >= myPred.consensus_max_single:
-            if smaller < myPred.consensus_max_single*(1.0/3.0): #TODO un-hard-code this part
-                return 1
-            elif smaller < myPred.consensus_max_single*(2.0/3.0):
-                return 2
-            else:
-                return 3
-
-        else:
-            return 0
-
-    def found_consensus(self):
-        if not toggles.ADAPTIVE_CONSENSUS:
-            return bool(self._consensus_finder())
-        #return self._consensus_finder()
-        if not bool(self._consensus_finder()):
-            return False
-        if self.predicate.update_consensus(self):
-            print "Saved Pair from being called too early"
-            return bool(self._consensus_finder())
-        else:
-            return True
+		uncertLevel = 2
+		if toggles.BAYES_ENABLED:
+			if self.value > 0:
+				uncertLevel = btdtr(self.num_yes+1, self.num_no+1, myPred.consensus_decision_threshold)
+			else:
+				uncertLevel = btdtr(self.num_no+1, self.num_yes+1, myPred.consensus_decision_threshold)
 
 
-    #@cached_property
-    @property
-    def consensus_location(self):
-        return self._consensus_finder()
+		if votes_cast >= myPred.consensus_max:
+			return 4
+
+		elif uncertLevel < myPred.consensus_uncertainty_threshold:
+			return 1
+
+		elif larger >= myPred.consensus_max_single:
+			if smaller < myPred.consensus_max_single*(1.0/3.0): #TODO un-hard-code this part
+				return 1
+			elif smaller < myPred.consensus_max_single*(2.0/3.0):
+				return 2
+			else:
+				return 3
+
+		else:
+			return 0
+
+	def found_consensus(self):
+		if not toggles.ADAPTIVE_CONSENSUS:
+			return bool(self._consensus_finder())
+		#return self._consensus_finder()
+		if not bool(self._consensus_finder()):
+			return False
+		if self.predicate.update_consensus(self):
+			print "Saved Pair from being called too early"
+			return bool(self._consensus_finder())
+		else:
+			return True
 
 
-    def distribute_task(self):
-        self.tasks_out += 1
-        # self.tasks_released += 1 # TODO: get rid
-        self.save(update_fields = ["tasks_out"]) #"tasks_released"
+	#@cached_property
+	@property
+	def consensus_location(self):
+		return self._consensus_finder()
 
-    def collect_task(self):
-        self.tasks_out -= 1
-        self.tasks_collected += 1
-        self.predicate.add_total_task()
-        self.save(update_fields = ["tasks_out", "tasks_collected"])
 
-    def start(self):
-        self.isStarted = True
-        self.save(update_fields=["isStarted"])
+	def distribute_task(self):
+		self.tasks_out += 1
+		# self.tasks_released += 1 # TODO: get rid
+		self.save(update_fields = ["tasks_out"]) #"tasks_released"
+
+	def collect_task(self):
+		self.tasks_out -= 1
+		self.tasks_collected += 1
+		self.predicate.add_total_task()
+		self.save(update_fields = ["tasks_out", "tasks_collected"])
+
+	def start(self):
+		self.isStarted = True
+		self.save(update_fields=["isStarted"])
+
+@python_2_unicode_compatible
+class Task(models.Model):
+	"""
+	Model representing one crowd worker task. (One HIT on Mechanical Turk.)
+	"""
+	ip_pair = models.ForeignKey(IP_Pair, default=None)
+	answer = models.NullBooleanField(default=None)
+	workerID = models.CharField(db_index=True, max_length=15)
+
+	#used for simulating task completion having DURATION
+	start_time = models.IntegerField(default=0)
+	end_time = models.IntegerField(default=0)
+
+	# a text field for workers to give feedback on the task
+	feedback = models.CharField(max_length=500, blank=True)
+
+	def __str__(self):
+		return "Task from worker " + str(self.workerID) + " for IP Pair " + str(self.ip_pair)
+
+@python_2_unicode_compatible
+class DummyTask(models.Model):
+	"""
+	Model representing a task that will be distributed that isn't associated w/ IP Pair
+	"""
+	ip_pair = None
+	answer = None
+	workerID = models.CharField(db_index=True, max_length=15)
+
+	start_time = models.IntegerField(default=0)
+	end_time = models.IntegerField(default=0)
+
+	def __str__(self):
+		return "Placeholder task from worker " + str(self.workerID)

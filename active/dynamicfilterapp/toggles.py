@@ -6,15 +6,17 @@ DEBUG_FLAG = True # useful print statements turned on
 RUN_NAME = 'Scaling_Investigation' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 
-# INPUT SETTINGS
-TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
-REAL_DATA = False
+
 #_________________ Real Data Settings ___________________#
 ITEM_TYPE = "Hotel"
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 CHOSEN_PREDS = [3,4]
+
+# INPUT SETTINGS
+TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+REAL_DATA = False
 ####################### CONFIGURING CONSENSUS ##############################
 # This desc. is old and some of the variable names may no longer match, but the
 # algorithm described is still the same
@@ -101,7 +103,7 @@ CUBIC_B = (0.8)
 #________________ CONFIGURING THE ALGORITHM ___________________#
 
 ## The number of unique worker (IDs) that a simulation can pick from
-NUM_WORKERS = 5000
+NUM_WORKERS = 500
 ## Tells pick_worker() how to choose workers
 # 0  -  Uniform Distribution; (all worker equally likely)
 # 1  -  Geometric Distribution; (synthetic graph which fits out data well)
@@ -175,7 +177,7 @@ ABSTRACT_VARIABLE = "EDDY_SYS"
 ABSTRACT_VALUES = [1,2,6]
 
 #produces ticket count graph for 1 simulation
-COUNT_TICKETS = True
+COUNT_TICKETS = False
 TRACK_QUEUES = True
 
 RUN_AVERAGE_COST = False
@@ -194,7 +196,7 @@ REWARD = 1.7
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 10 # how many simulations to run?
+NUM_SIM = 30 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
@@ -205,7 +207,7 @@ BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 MAX_TASKS_OUT = 10
 MAX_TASKS_COLLECTED = CUT_OFF
 
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT =True # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
@@ -232,11 +234,11 @@ TEST_ACCURACY = False
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PRED_SCORE_COUNT = True
+PRED_SCORE_COUNT = False
 
 PRED_RANK_COUNT = False
 
-PACKING = True # Enable for "Packing" of outputs into a folder and generation of config.ini
+PACKING = False # Enable for "Packing" of outputs into a folder and generation of config.ini
 
 if GEN_GRAPHS:
     print ''
@@ -261,7 +263,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
             'ACTIVE_TASKS_SIZE', "MAX_TASKS_COLLECTED", "MAX_TASKS_OUT", 'BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
-            'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
+            'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES', 'SIN',
             'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES'
 ]
 
@@ -269,13 +271,13 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
     # THIS MEANS NEW VARIABLES WILL BE AUTO ADDED IN PLACE
     # if you added a new variable and don't want it to be added to config.ini, put it's name here
 VARBLOCKLIST = ['__builtins__','__package__','__name__','__doc__',
-                'name','sys','__file__','now','DT','responseTimeDistribution',
-                'TRUE_TIMES','FALSE_TIMES','math','configDict','VARLIST',
+                'name','sys','__file__','now','DT','responseTimeDistribution', 'hist_gen', 'line_graph_gen','pylab', 'PREDICATE_SPECIFIC',
+                'TRUE_TIMES','FALSE_TIMES','math','configDict','VARLIST', 'importResponseTimes', 'W_MAX', 'scipy',
                 'VARBLOCKLIST','CONSENSUS_LOCATION_STATS','PACKING','reply']
 
 
 
-name = ""
-for name in locals():
-    if name not in VARLIST and name not in VARBLOCKLIST:
-        raise ValueError("Toggle: " + name + " not in either VARLIST or VARBLOCKLIST... Please add it!")
+# name = ""
+# for name in locals():
+#     if name not in VARLIST and name not in VARBLOCKLIST:
+#         raise ValueError("Toggle: " + name + " not in either VARLIST or VARBLOCKLIST... Please add it!")

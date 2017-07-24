@@ -1964,8 +1964,27 @@ class SimulationTest(TransactionTestCase):
 			graphGen.simulated_time_distributions(graph_out1, dest1)
 			graphGen.task_distributions(graph_out2, dest2, True)
 
+	def itemRoutingTest(self):
+		systems = [1, 2, 5, 6, 8]
+
+		if toggles.REAL_DATA:
+			sampleData = self.load_data()
+			if toggles.RUN_DATA_STATS:
+				self.outout_data_stats(sampleData)
+ 				self.reset_database()
+		else:
+			sampleData = {}
+			syn_load_data()
+
+		for sys in systems:
+			toggles.EDDY_SYS = sys
+			toggles.RUN_NAME = "item_routing_test_"+str(sys)
+			toggles.OUTPUT_PATH = "dynamicfilterapp/simulation_files/output/"
+			print "current system: ", str(sys)
+			self.test_simulation(sampleData)
+
 	#___MAIN TEST FUNCTION___#
-	def test_simulation(self):
+	def test_simulation(self, sampleData):
 		"""
 		Runs a simulation of real data and prints out the number of tasks
 		ran to complete the filter
