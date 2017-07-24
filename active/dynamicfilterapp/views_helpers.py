@@ -29,8 +29,10 @@ def worker_done(ID):
 	if (toggles.EDDY_SYS == 1):
 		outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
 		nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
+
 		# allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
 		allTasksOut = incompleteIP.filter(tasks_collected__gte=toggles.MAX_TASKS_OUT)
+
 		incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
 
 	if not incompleteIP:
@@ -68,6 +70,7 @@ def pending_eddy(ID):
 		maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
 		# allTasksOut = incompleteIP.filter(tasks_collected__gte=toggles.MAX_TASKS_OUT)
 		incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+
 		# if there are IP pairs that could be assigned to this worker
 		if incompleteIP.exists():
 			chosenIP = lotteryPendingQueue(incompleteIP)
@@ -77,6 +80,7 @@ def pending_eddy(ID):
 
 	#random_system:
 	elif (toggles.EDDY_SYS == 2):
+
 		if not incompleteIP.exists():
 			print "Worker has completed all IP pairs left to do"
 		# allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
@@ -155,7 +159,6 @@ def pending_eddy(ID):
 			chosenIP = choice(predIPs)
 		else:
 			chosenIP = None
-
 
 	if chosenIP is not None:
 		chosenIP.start()
@@ -242,6 +245,7 @@ def nu_pending_eddy(incompleteIP):
 	# if there's literally nothing left to be done, issue a placeholder task
 	else:
 		return None
+
 
 	
 def move_window():

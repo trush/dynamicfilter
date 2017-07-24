@@ -196,7 +196,8 @@ REWARD = 1.7
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 30 # how many simulations to run?
+
+NUM_SIM = 10 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 

@@ -402,7 +402,6 @@ class Predicate(models.Model):
 		self.consensus_max_threshold=0
 		self.save(update_fields=["num_tickets","num_wickets","num_ip_complete","selectivity","totalTasks","totalNo","queue_is_full","queue_length","consensus_max_threshold"])
 
-
 @python_2_unicode_compatible
 class IP_Pair(models.Model):
 	"""
@@ -523,9 +522,7 @@ class IP_Pair(models.Model):
 			self.set_done_if_done()
 
 	def set_done_if_done(self):
-
 		if self.status_votes == toggles.NUM_CERTAIN_VOTES:
-
 			if self.found_consensus():
 				self.isDone = True
 				self.save(update_fields=["isDone"])
