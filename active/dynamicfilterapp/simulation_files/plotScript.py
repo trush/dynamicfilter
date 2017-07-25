@@ -9,7 +9,11 @@ from collections import defaultdict, Counter
 import os.path
 from os import makedirs
 import csv
+<<<<<<< HEAD
 Suppress = True #TODO change back
+=======
+Suppress = True
+>>>>>>> 93f75b9db4fb833f34f7cc7a3123ef32b8e37c08
 
 def dest_resolver(dest):
     """
@@ -171,7 +175,7 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     # puff up the y axis some
     y_max = plt.axis()[3]
     plt.ylim(ymax=y_max*1.25)
-    
+
     # Title the graph
     plt.title(title)
     # Add legend
@@ -219,13 +223,16 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
     plt.title(title)
     plt.savefig(dest_resolver(dest))
 
-def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',split='vertical', stderrL = None):
+def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',split='vertical', stderrL = None, fig_size = None, tight=False):
     knownSplits=('vertical','horizontal')
     if len(dataL)<= 1:
         raise ValueError("not enough data!")
     if split not in knownSplits:
         raise ValueError(str(split)+" Is not a known split")
-    fig = plt.figure()
+    if fig_size is not None:
+        fig = plt.figure(figsize=fig_size)
+    else:
+        fig = plt.figure()
     pos = np.arange(len(dataL[0]))
     try:
         if split=='vertical':
@@ -264,6 +271,8 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
 
     # Title the graph
     plt.title(title)
+    if tight:
+        fig.tight_layout()
     plt.savefig(dest_resolver(dest))
 
 def split_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = '',split='vertical'):
