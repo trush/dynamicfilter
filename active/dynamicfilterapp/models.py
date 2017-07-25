@@ -557,7 +557,8 @@ class IP_Pair(models.Model):
         self.isDone=False
         self.status_votes=0
         self.inQueue=False
-        self.save(update_fields=["value","num_yes","num_no","isDone","status_votes","inQueue"])
+        self.isStarted=False
+        self.save(update_fields=["value","num_yes","num_no","isDone","status_votes","inQueue", "isStarted"])
 
 @python_2_unicode_compatible
 class Task(models.Model):
