@@ -739,7 +739,7 @@ class SimulationTest(TransactionTestCase):
 		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE
 
 		if toggles.SELECTIVITY_GRAPH:
-			for count in range(toggles.NUM_QUESTIONS):
+			for count in toggles.CHOSEN_PREDS:
 				self.pred_selectivities.append([])
 
 		# array of workers who are busy
@@ -758,7 +758,7 @@ class SimulationTest(TransactionTestCase):
 				self.pred_queues[pred+1] = []
 				self.ticket_nums[pred+1] = []
 		else:
-			for pred in range(toggles.NUM_QUESTIONS):
+			for pred in toggles.CHOSEN_PREDS:
 				self.pred_active_tasks[pred+1] = []
 				self.pred_queues[pred+1] = []
 				self.ticket_nums[pred+1] = []
@@ -773,7 +773,7 @@ class SimulationTest(TransactionTestCase):
 		# 		for predNum in range(len(toggles.CHOSEN_PREDS)):
 		# 			self.ticketNums.append([])
 		# 	else:
-		# 		for count in range(toggles.NUM_QUESTIONS):
+		# 		for count in toggles.CHOSEN_PREDS:
 		# 			self.ticketNums.append([])
 
 		# Setting up arrays for TRACK_SIZE
@@ -782,7 +782,7 @@ class SimulationTest(TransactionTestCase):
 				for predNum in range(len(toggles.CHOSEN_PREDS)):
 					self.consensus_size.append([])
 			else:
-				for count in range(toggles.NUM_QUESTIONS):
+				for count in toggles.CHOSEN_PREDS:
 					self.consensus_size.append([])
 
 		# If running Item_routing, setup needed values
@@ -922,7 +922,7 @@ class SimulationTest(TransactionTestCase):
 				# 			predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
 				# 			self.ticketNums[predNum].append(predicate.num_tickets)
 				# 	else:
-				# 		for count in range(toggles.NUM_QUESTIONS):
+				# 		for count in toggles.CHOSEN_PREDS:
 				# 			predicate = Predicate.objects.get(pk=count+1)
 				# 			self.ticketNums[count].append(predicate.num_tickets)
 
@@ -1076,25 +1076,25 @@ class SimulationTest(TransactionTestCase):
 								predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
 								self.ticketNums[predNum].append(predicate.num_tickets)
 						else:
-							for count in range(toggles.NUM_QUESTIONS):
-								predicate = Predicate.objects.get(pk=count+1)
-								self.ticketNums[count].append(predicate.num_tickets)
+							for predNum in toggles.CHOSEN_PREDS:
+								predicate = Predicate.objects.get(pk=predNum+1)
+								self.ticketNums[predNum].append(predicate.num_tickets)
 					if toggles.TRACK_SIZE:
 						if toggles.REAL_DATA:
 							for predNum in range(len(toggles.CHOSEN_PREDS)):
 								predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
 								self.consensus_size[predNum].append(predicate.consensus_max)
 						else:
-							for count in range(toggles.NUM_QUESTIONS):
-								predicate = Predicate.objects.get(pk=count+1)
-								self.consensus_size[count].append(predicate.consensus_max)
+							for predNum in toggles.CHOSEN_PREDS:
+								predicate = Predicate.objects.get(pk=predNum+1)
+								self.consensus_size[predNum].append(predicate.consensus_max)
 
 					if toggles.SELECTIVITY_GRAPH:
-						for count in range(toggles.NUM_QUESTIONS):
-							predicate = Predicate.objects.get(pk=count+1)
+						for predNum in toggles.CHOSEN_PREDS:
+							predicate = Predicate.objects.get(pk=predNum+1)
 							predicate.refresh_from_db(fields=['trueSelectivity'])
 							#print "true selectivity: ", str(predicate.trueSelectivity)
-							self.pred_selectivities[count].append(predicate.trueSelectivity)
+							self.pred_selectivities[predNum].append(predicate.trueSelectivity)
 
 					#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 					#so we need index 0 of the tuple to get the time at which the switch should occur
@@ -1173,15 +1173,9 @@ class SimulationTest(TransactionTestCase):
 			else:
 				time_proxy = self.num_tasks
 			ticketCountsLegend = []
-			if toggles.REAL_DATA:
-				xMultiplier = len(toggles.CHOSEN_PREDS)
-				for predNum in toggles.CHOSEN_PREDS:
-					ticketCountsLegend.append("Pred " + str(predNum))
-
-			else:
-				xMultiplier = toggles.NUM_QUESTIONS
-				for predNum in range(toggles.NUM_QUESTIONS):
-					ticketCountsLegend.append("Pred " + str(predNum))
+			xMultiplier = len(toggles.CHOSEN_PREDS)
+			for predNum in toggles.CHOSEN_PREDS:
+				ticketCountsLegend.append("Pred " + str(predNum))
 
 			multi_line_graph_gen([range(time_proxy)]*xMultiplier, self.ticketNums, ticketCountsLegend,
 								toggles.OUTPUT_PATH + "ticketCounts" + str(self.sim_num) + ".png",
@@ -1197,7 +1191,7 @@ class SimulationTest(TransactionTestCase):
 						legend.append("Pred " + str(predNum))
 
 				else:
-					for predNum in range(toggles.NUM_QUESTIONS):
+					for predNum in toggles.CHOSEN_PREDS:
 						legend.append("Pred " + str(predNum))
 				generic_csv_write(dest+'.csv',self.consensus_size)
 				if toggles.GEN_GRAPHS:
@@ -1209,10 +1203,10 @@ class SimulationTest(TransactionTestCase):
 		# TODO have this graph use the correct arrays
 		if toggles.SELECTIVITY_GRAPH:
 			selectivitiesLegend = []
-			for predNum in range(toggles.NUM_QUESTIONS):
+			for predNum in toggles.CHOSEN_PREDS:
 				selectivitiesLegend.append("Pred " + str(predNum))
 
-			multi_line_graph_gen([range(self.num_tasks)]*toggles.NUM_QUESTIONS, self.pred_selectivities, selectivitiesLegend,
+			multi_line_graph_gen([range(self.num_tasks)]*len(toggles.CHOSEN_PREDS), self.pred_selectivities, selectivitiesLegend,
 								toggles.OUTPUT_PATH + "selectivities" + str(self.sim_num) + ".png",
 								labels = ("Number of tasks completed in single simulation", "Predicate selectivities"), scatter=True)
 
@@ -2046,134 +2040,70 @@ class SimulationTest(TransactionTestCase):
 		if toggles.RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
 
-	def test_placeholders(self):
-		print "Simulation is being tested"
+	# def test_placeholders(self):
+	# 	print "Simulation is being tested"
 
-		if toggles.DEBUG_FLAG:
-			print "Debug Flag Set!"
-			print self.getConfig()
+	# 	if toggles.DEBUG_FLAG:
+	# 		print "Debug Flag Set!"
+	# 		print self.getConfig()
 
-		if toggles.PACKING:
-			toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
-			packageMaker(toggles.OUTPUT_PATH,self.getConfig())
-		if toggles.IDEAL_GRID:
-			self.consensusGrid()
+	# 	if toggles.PACKING:
+	# 		toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
+	# 		packageMaker(toggles.OUTPUT_PATH,self.getConfig())
+	# 	if toggles.IDEAL_GRID:
+	# 		self.consensusGrid()
 
-		if toggles.REAL_DATA:
-			sampleData = self.load_data()
-			if toggles.RUN_DATA_STATS:
-				self.output_data_stats(sampleData)
-				self.reset_database()
-			if toggles.RUN_AVERAGE_COST:
-				self.sim_average_cost(sampleData)
-				self.reset_database()
-			if toggles.RUN_SINGLE_PAIR:
-				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
-				self.reset_database()
-		else:
-			sampleData = {}
-			syn_load_data()
+	# 	if toggles.REAL_DATA:
+	# 		sampleData = self.load_data()
+	# 		if toggles.RUN_DATA_STATS:
+	# 			self.output_data_stats(sampleData)
+	# 			self.reset_database()
+	# 		if toggles.RUN_AVERAGE_COST:
+	# 			self.sim_average_cost(sampleData)
+	# 			self.reset_database()
+	# 		if toggles.RUN_SINGLE_PAIR:
+	# 			self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+	# 			self.reset_database()
+	# 	else:
+	# 		sampleData = {}
+	# 		syn_load_data()
 
-		if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-			if toggles.DEBUG_FLAG:
-				print "Running: item Routing"
-			self.run_sim(deepcopy(sampleData))
-			self.reset_database()
+	# 	if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+	# 		if toggles.DEBUG_FLAG:
+	# 			print "Running: item Routing"
+	# 		self.run_sim(deepcopy(sampleData))
+	# 		self.reset_database()
 
-		if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-			if toggles.DEBUG_FLAG:
-				print "Running: ticket counting"
-			self.run_sim(deepcopy(sampleData))
-			self.reset_database()
+	# 	if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+	# 		if toggles.DEBUG_FLAG:
+	# 			print "Running: ticket counting"
+	# 		self.run_sim(deepcopy(sampleData))
+	# 		self.reset_database()
 
-		if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-			if toggles.DEBUG_FLAG:
-				print "Running: selectivity amounts over time"
-			self.run_sim(sampleData)
-			self.reset_database()
+	# 	if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
+	# 		if toggles.DEBUG_FLAG:
+	# 			print "Running: selectivity amounts over time"
+	# 		self.run_sim(sampleData)
+	# 		self.reset_database()
 
-		#____FOR LOOKING AT ACCURACY OF RUNS___#
-		if toggles.TEST_ACCURACY:
-			correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
-			passedItems = self.get_passed_items(correctAnswers)
+	# 	#____FOR LOOKING AT ACCURACY OF RUNS___#
+	# 	if toggles.TEST_ACCURACY:
+	# 		correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
+	# 		passedItems = self.get_passed_items(correctAnswers)
 
 
-		if toggles.RUN_OPTIMAL_SIM:
-			countingArr=[]
-			self.reset_database()
-			for i in range(toggles.NUM_SIM):
-				print "running optimal_sim " +str(i)
-				num_tasks = self.optimal_sim(sampleData)
-				countingArr.append(num_tasks)
-				self.reset_database()
-			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
-			generic_csv_write(dest+'.csv',[countingArr])
-			if toggles.DEBUG_FLAG:
-				print "Wrote File: " + dest+'.csv'
+	# 	if toggles.RUN_OPTIMAL_SIM:
+	# 		countingArr=[]
+	# 		self.reset_database()
+	# 		for i in range(toggles.NUM_SIM):
+	# 			print "running optimal_sim " +str(i)
+	# 			num_tasks = self.optimal_sim(sampleData)
+	# 			countingArr.append(num_tasks)
+	# 			self.reset_database()
+	# 		dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
+	# 		generic_csv_write(dest+'.csv',[countingArr])
+	# 		if toggles.DEBUG_FLAG:
+	# 			print "Wrote File: " + dest+'.csv'
 
-	def test_placeholders(self):
-		print "Simulation is being tested"
-
-		if toggles.DEBUG_FLAG:
-			print "Debug Flag Set!"
-			print self.getConfig()
-
-		if toggles.PACKING:
-			toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
-			packageMaker(toggles.OUTPUT_PATH,self.getConfig())
-		if toggles.IDEAL_GRID:
-			self.consensusGrid()
-
-		if toggles.REAL_DATA:
-			sampleData = self.load_data()
-			if toggles.RUN_DATA_STATS:
-				self.output_data_stats(sampleData)
-				self.reset_database()
-			if toggles.RUN_AVERAGE_COST:
-				self.sim_average_cost(sampleData)
-				self.reset_database()
-			if toggles.RUN_SINGLE_PAIR:
-				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
-				self.reset_database()
-		else:
-			sampleData = {}
-			syn_load_data()
-
-		if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-			if toggles.DEBUG_FLAG:
-				print "Running: item Routing"
-			self.run_sim(deepcopy(sampleData))
-			self.reset_database()
-
-		# if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-		# 	if toggles.DEBUG_FLAG:
-		# 		print "Running: ticket counting"
-		# 	self.run_sim(deepcopy(sampleData))
-		# 	self.reset_database()
-
-		if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
-			if toggles.DEBUG_FLAG:
-				print "Running: selectivity amounts over time"
-			self.run_sim(sampleData)
-			self.reset_database()
-
-		#____FOR LOOKING AT ACCURACY OF RUNS___#
-		if toggles.TEST_ACCURACY:
-			correctAnswers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
-			passedItems = self.get_passed_items(correctAnswers)
-
-		if toggles.RUN_OPTIMAL_SIM:
-			countingArr=[]
-			self.reset_database()
-			for i in range(toggles.NUM_SIM):
-				print "running optimal_sim " +str(i)
-				num_tasks = self.optimal_sim(sampleData)
-				countingArr.append(num_tasks)
-				self.reset_database()
-			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
-			generic_csv_write(dest+'.csv',[countingArr])
-			if toggles.DEBUG_FLAG:
-				print "Wrote File: " + dest+'.csv'
-
-		# self.placeholderQueueChange(sampleData, [20], [1, 2, 4, 8, 16, 32])
-		self.visualizeMultiRuns(sampleData, [2], [toggles.NUM_ITEMS*toggles.NUM_QUESTIONS*.4], [2, 5])
+	# 	# self.placeholderQueueChange(sampleData, [20], [1, 2, 4, 8, 16, 32])
+	# 	self.visualizeMultiRuns(sampleData, [2], [toggles.NUM_ITEMS*len(toggles.CHOSEN_PREDS)*.4], [2, 5])

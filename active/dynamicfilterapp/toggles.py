@@ -7,14 +7,28 @@ RUN_NAME = 'Scaling_Investigation' + "_" + str(now.date())+ "_" + str(now.time()
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 
 # INPUT SETTINGS
-TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+#TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DATA = False
+#_________________ Synthetic Data Settings ___________________#
+NUM_ITEMS = 200
+SIN = -1
+
+SELECTIVITY_GRAPH = False
+
+# SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
+# selectvity of the previous timestep
+# tuples of form (task number, (select,amb), (select,amb))
+switch_list = [ (0, (0.9, 0.75), (0.7, 0.75))]
+
 #_________________ Real Data Settings ___________________#
 ITEM_TYPE = "Hotel"
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
-CHOSEN_PREDS = [3,4]
+if REAL_DATA:
+    CHOSEN_PREDS = [3,4]
+else:
+    CHOSEN_PREDS = range(len(switch_list[0]) - 1)
 ####################### CONFIGURING CONSENSUS ##############################
 # This desc. is old and some of the variable names may no longer match, but the
 # algorithm described is still the same
@@ -78,13 +92,13 @@ FALSE_THRESHOLD = 0.05          # Used for ALMOST_FALSE TODO better docs
     # Below are the configurations the adaptability. This section is still very
     # much in progress and subject to much change
 
-ADAPTIVE_CONSENSUS = True  # Enables of disables the adaptive Consensus outright
+ADAPTIVE_CONSENSUS = False  # Enables of disables the adaptive Consensus outright
 ADAPTIVE_CONSENSUS_MODE = 4 #Which algorithm should the adaptive consensus use?
                             # 1 - RENO:  [https://en.wikipedia.org/wiki/TCP_congestion_control#TCP_Tahoe_and_Reno]
                             # 2 - TAHOE: See reno
                             # 3 - CUTE:  [goo.gl/etdxtC]
                             # 4 - CUBIC: [https://en.wikipedia.org/wiki/CUBIC_TCP]
-PREDICATE_SPECIFIC = True  # Should each predicate have their own adaptive Consensus metric? or should it be one general metric
+PREDICATE_SPECIFIC = False  # Should each predicate have their own adaptive Consensus metric? or should it be one general metric
                             # Generally most useful for predicates of vastly differing ambiguity
                                 # or unkown ambiguity.
                             # Recomended setting: True
@@ -146,24 +160,13 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3), (16,4)] # settings for above mode [(#ti
 
 
 
-DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
+DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tasks
                    # to do" and will track the number of times this happens
 DUMMY_TASK_OPTION = 0
 # 0 gives a complete placeholder task
 
-GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
 
-#################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
-NUM_QUESTIONS = 4
-NUM_ITEMS = 400
-SIN = -1
-
-SELECTIVITY_GRAPH = False
-
-# SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
-# selectvity of the previous timestep
-# tuples of form (task number, (select,amb), (select,amb))
-switch_list = [ (0, (0.9, 0.75), (0.7, 0.75), (0.5, 0.75), (0.4, 0.75)) ]
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
 
@@ -175,8 +178,8 @@ ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
 ABSTRACT_VALUES = [.1, .2, .3]
 
 #produces ticket count graph for 1 simulation
-COUNT_TICKETS = True
-TRACK_QUEUES = True
+COUNT_TICKETS = False
+TRACK_QUEUES = False
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 100
@@ -196,20 +199,20 @@ NUM_SIM = 10 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
-SIMULATE_TIME = True # simulate time passing/concurrency
+SIMULATE_TIME = False # simulate time passing/concurrency
 ACTIVE_TASKS_SIZE = 25 # maximum number of active tasks in a simulation with time
 
 BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 MAX_TASKS_OUT = 10
 MAX_TASKS_COLLECTED = CUT_OFF
 
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_ACTIVE_TASKS = True
+TRACK_ACTIVE_TASKS = False
 
-TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
+TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
@@ -221,7 +224,7 @@ RUN_CONSENSUS_COUNT = False # keeps track of the number of tasks needed before c
 
 CONSENSUS_LOCATION_STATS = False
 
-TRACK_SIZE = True
+TRACK_SIZE = False
 VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT on. works w/ accuracy
 
 IDEAL_GRID = False #draws the vote grid rules for our consensus metric
@@ -229,7 +232,7 @@ IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PACKING=True # Enable for "Packing" of outputs into a folder and generation of config.ini
+PACKING=False # Enable for "Packing" of outputs into a folder and generation of config.ini
 
 if GEN_GRAPHS:
     print ''
@@ -268,7 +271,7 @@ VARBLOCKLIST = ['__builtins__','__package__','__name__','__doc__',
 
 
 
-name = ""
-for name in locals():
-    if name not in VARLIST and name not in VARBLOCKLIST:
-        raise ValueError("Toggle: " + name + " not in either VARLIST or VARBLOCKLIST... Please add it!")
+# name = ""
+# for name in locals():
+#     if name not in VARLIST and name not in VARBLOCKLIST:
+#         raise ValueError("Toggle: " + name + " not in either VARLIST or VARBLOCKLIST... Please add it!")
