@@ -29,9 +29,10 @@ def worker_done(ID):
     if (toggles.EDDY_SYS == 1):
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-        # allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-        allTasksOut = incompleteIP.filter(tasks_collected__gte=toggles.MAX_TASKS_OUT)
-        incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
+        allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+        maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+        # allTasksOut = incompleteIP.filter(tasks_collected__gte=toggles.MAX_TASKS_OUT)
+        incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
 
     if not incompleteIP:
         end = time.time()
