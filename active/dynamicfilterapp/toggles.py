@@ -1,13 +1,13 @@
 import datetime as DT
 import sys
+import math
 now = DT.datetime.now()
-from responseTimeDistribution import *
+import responseTimeDistribution
 DEBUG_FLAG = True # useful print statements turned on
 RUN_NAME = 'Scaling_Investigation' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 
 # INPUT SETTINGS
-#TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 REAL_DATA = False
 #_________________ Synthetic Data Settings ___________________#
 NUM_ITEMS = 200
@@ -29,6 +29,8 @@ if REAL_DATA:
     CHOSEN_PREDS = [3,4]
 else:
     CHOSEN_PREDS = range(len(switch_list[0]) - 1)
+TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+
 ####################### CONFIGURING CONSENSUS ##############################
 # This desc. is old and some of the variable names may no longer match, but the
 # algorithm described is still the same
@@ -247,18 +249,25 @@ if GEN_GRAPHS:
             ##### PLEASE UPDATE AS NEW TOGGLES ADDED #####
 VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE',
             'REAL_DISTRIBUTION_FILE','DEBUG_FLAG',
-            'NUM_CERTAIN_VOTES','UNCERTAINTY_THRESHOLD','FALSE_THRESHOLD','DECISION_THRESHOLD',
-            'CUT_OFF','NUM_WORKERS','DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
+            'NUM_CERTAIN_VOTES','CUT_OFF','SINGLE_VOTE_CUTOFF','BAYES_ENABLED',
+            'UNCERTAINTY_THRESHOLD','DECISION_THRESHOLD','FALSE_THRESHOLD',
+            'ADAPTIVE_CONSENSUS','ADAPTIVE_CONSENSUS_MODE','PREDICATE_SPECIFIC',
+            'CONSENSUS_STATUS_LIMITS','CONSENSUS_SIZE_LIMITS','RENO_BONUS_RATIO',
+            'CONSENSUS_STATUS','K','W_MAX','CUBIC_C','CUBIC_B','NUM_WORKERS',
+            'DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
-            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'switch_list',
-            'DUMMY_TASKS', 'DUMMY_TASK_OPTION','GEN_GRAPHS',
+            'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS',
+            'DUMMY_TASK_OPTION','GEN_GRAPHS','NUM_ITEMS','SIN',
+            'SELECTIVITY_GRAPH','switch_list',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
-            'ACTIVE_TASKS_SIZE', "MAX_TASKS_COLLECTED", "MAX_TASKS_OUT", 'BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
-            'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
-            'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES'
+            'BUFFER_TIME','MAX_TASKS_OUT','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
+            'TRACK_PLACEHOLDERS','TEST_ACCURACY','ACCURACY_COUNT','OUTPUT_SELECTIVITIES',
+            'RUN_CONSENSUS_COUNT','TRACK_SIZE','VOTE_GRID','IDEAL_GRID','OUTPUT_COST',
+            'ACTIVE_TASKS_SIZE','TRACK_ACTIVE_TASKS','MAX_TASKS_COLLECTED','TRACK_QUEUES',
+
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file
@@ -271,7 +280,7 @@ VARBLOCKLIST = ['__builtins__','__package__','__name__','__doc__',
 
 
 
-# name = ""
-# for name in locals():
-#     if name not in VARLIST and name not in VARBLOCKLIST:
-#         raise ValueError("Toggle: " + name + " not in either VARLIST or VARBLOCKLIST... Please add it!")
+name = ""
+for name in locals():
+    if name not in VARLIST and name not in VARBLOCKLIST:
+        raise ValueError("Toggle: " + name + " not in either VARLIST or VARBLOCKLIST... Please add it!")
