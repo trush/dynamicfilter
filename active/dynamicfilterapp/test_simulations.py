@@ -711,7 +711,7 @@ class SimulationTest(TransactionTestCase):
 	## A helper function to resize the active tasks array as IP pairs are completed.
 	def set_active_size(self, ratio, orig):
 		if ratio < .75:
-			return toggles.ACTIVE_TASKS_SIZE
+			return orig
 		elif .75 <= ratio < .9:
 			return int(orig * 0.5)
 		elif 0.9 <= ratio < 0.95:
@@ -737,6 +737,7 @@ class SimulationTest(TransactionTestCase):
 		switch = 0
 		time_proxy = 0
 		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE
+		active_tasks_size = orig_active_tasks
 
 		if toggles.SELECTIVITY_GRAPH:
 			for count in toggles.CHOSEN_PREDS:
@@ -863,9 +864,10 @@ class SimulationTest(TransactionTestCase):
 						raise Exception("WHEN REMOVING Mismatch num_pending and number of IPs in queue for pred " + str(p.id))
 
 				self.time_steps_array.append(time_clock)
-
-				ratio = IP_Pair.objects.filter(isDone=True).count()/float(total_ip_pairs)
-				toggles.ACTIVE_TASKS_SIZE = self.set_active_size(ratio, orig_active_tasks)
+				
+				if toggles.RESIZE_ACTIVE_TASKS:
+					ratio = IP_Pair.objects.filter(isDone=True).count()/float(total_ip_pairs)
+					active_tasks_size = self.set_active_size(ratio, orig_active_tasks)
 
 
 				if toggles.TRACK_ACTIVE_TASKS:
@@ -942,7 +944,7 @@ class SimulationTest(TransactionTestCase):
 				# fill the active task array with new tasks as long as some IPs need eval
 				if IP_Pair.objects.filter(isDone=False).exists():
 
-					while (len(active_tasks) < toggles.ACTIVE_TASKS_SIZE) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
+					while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 
 						task, worker = self.issueTask(active_tasks, b_workers, time_clock, dictionary, switch)
 
