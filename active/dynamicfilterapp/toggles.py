@@ -1,7 +1,7 @@
 import datetime as DT
 import sys
 now = DT.datetime.now()
-from responseTimeDistribution import *
+import responseTimeDistribution
 
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
@@ -19,7 +19,7 @@ INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 ITEM_TYPE = "Hotel"                   # "Hotel" or "Restaurant"
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
-TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 
 CHOSEN_PREDS = [3,4]
 
@@ -125,7 +125,9 @@ PACKING=True
 
 if GEN_GRAPHS:
     print ''
-    reply = raw_input("GEN_GRAPHS is turned on. Do you actually want graphs? Enter y for yes, n for no (turns off graphs), or c to cancel. ")
+    reply = raw_input("GEN_GRAPHS is turned on. Do you actually want graphs?\
+                        Enter y for yes, n for no (turns off graphs), or c \
+                        to cancel. ")
     if reply == "c":
         raise Exception ("Change your setup and try again!")
     elif reply == "n":
