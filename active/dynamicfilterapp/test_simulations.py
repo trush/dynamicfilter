@@ -711,7 +711,7 @@ class SimulationTest(TransactionTestCase):
 	## A helper function to resize the active tasks array as IP pairs are completed.
 	def set_active_size(self, ratio, orig):
 		if ratio < .75:
-			return toggles.ACTIVE_TASKS_SIZE
+			return orig
 		elif .75 <= ratio < .9:
 			return int(orig * 0.5)
 		elif 0.9 <= ratio < 0.95:
@@ -736,9 +736,8 @@ class SimulationTest(TransactionTestCase):
 		itemsDoneArray = [0]
 		switch = 0
 		time_proxy = 0
-		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE
-		IP_Graph_2 = False
-		IP_Graph_5 = False
+		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE # saves the initial size of the array
+		active_tasks_size = orig_active_tasks # keeps track of the current size of the array
 
 		if toggles.SELECTIVITY_GRAPH:
 			for count in range(toggles.NUM_QUESTIONS):
@@ -866,8 +865,9 @@ class SimulationTest(TransactionTestCase):
 
 				self.time_steps_array.append(time_clock)
 
-				ratio = IP_Pair.objects.filter(isDone=True).count()/float(total_ip_pairs)
-				active_tasks_size = self.set_active_size(ratio, orig_active_tasks)
+				if toggles.RESIZE_ACTIVE_TASKS:
+					ratio = IP_Pair.objects.filter(isDone=True).count()/float(total_ip_pairs)
+					active_tasks_size = self.set_active_size(ratio, orig_active_tasks)
 
 
 				if toggles.TRACK_ACTIVE_TASKS:
