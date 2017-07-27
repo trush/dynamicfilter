@@ -27,7 +27,6 @@ CHOSEN_PREDS = [3,4]
 NUM_QUESTIONS = 4
 NUM_ITEMS = 400
 SIN = -1
-
 SELECTIVITY_GRAPH = False
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
@@ -107,6 +106,7 @@ SIMULATE_TIME = True # simulate time passing/concurrency
 
 # ___ SIMULATED TIME SETTINGS ____ #
 ACTIVE_TASKS_SIZE = 25
+RESIZE_ACTIVE_TASKS = False
 BUFFER_TIME = 5
 MAX_TASKS_OUT = 10
 MAX_TASKS_COLLECTED = CUT_OFF
