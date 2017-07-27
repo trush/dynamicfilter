@@ -6,88 +6,36 @@ DEBUG_FLAG = True # useful print statements turned on
 RUN_NAME = 'Scaling_Investigation' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 
-# INPUT SETTINGS
-TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
-REAL_DATA = False
+
 #_________________ Real Data Settings ___________________#
 ITEM_TYPE = "Hotel"
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 CHOSEN_PREDS = [3,4]
-####################### CONFIGURING CONSENSUS ##############################
-# This desc. is old and some of the variable names may no longer match, but the
-# algorithm described is still the same
-    # Our consensus metric is Complicated. For each IP pair chosen, we do the following
-    # We gather (NUM_CERTAIN_VOTES) votes on the chosen IP pair
-    # To take "consensus" we generate a beta distribution from the number of (y/n) votes
-    #   then intigrate over it from zero to (DECISION_THRESHOLD)
-    #   if the probability area is less than (UNCERTAINTY_THRESHOLD) then we have consensus
-    #   else we gather more votes
-    # This is repeated until one of several conditions is met
-    #   1 - We reach consensus (naturally(Bayes))
-    #   2 - The total number of gathered votes is equal to (CUT_OFF)
-    #   3 - The number of either (yes)s or (no)s on their own is equal to (SINGLE_VOTE_CUTOFF)
-    # If either cond. (2|3) we take a simple majority vote
 
-##General Consensus
+TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+REAL_DATA = False
 NUM_CERTAIN_VOTES = 5   # number of votes to gather no matter the results
                         # higher values leave consensus less vulnerable to initial randomness
                         # Should never go below 3 (5 is really low anyway)
                         # Recomended val: 5 (unless using agressive bayes)
 ##VoteCutOff
-CUT_OFF = 21    # Maximum number of votes to ask for before using Majority Vote as backup metric
-                # Only rather ambiguous IP pairs should ever actually reach this limit
-                # Recomended value (21 for real data) #TODO test more stuff on synth data
-SINGLE_VOTE_CUTOFF = int(1+math.ceil(CUT_OFF/2.0))  # Number of votes for a single result (Y/N) before calling that the winner #TODO remove this!
-                                                    # This should be depricated soon
-                                                    # if you're reading this, Jake forgot to take this variable out or was lazy
+CUT_OFF = 21
+                 #TODO test more stuff on synth data
+SINGLE_VOTE_CUTOFF = int(1+math.ceil(CUT_OFF/2.0))
 
-##Bayes:
-    # The Bayes portion of the alg is weird and bayesian
-    # we assume no prior knowledge of the IP pair and thus that there is an
-    # even likelyhood of it being either true or false.
-    # In the bayesian world we represent everything as a distribution of probability.
-    # We use a beta-distribution [https://en.wikipedia.org/wiki/Beta_distribution]
-    # to represent the distribution of our probability. the beta-distribution has two
-    # parameters which govern its shape, (a&b). we start with both at 1 which is a
-    # uniform flat distribution. These a and b represent the number of votes for either
-    # yes or no on a given IP pair where their values should always be 1 more than the
-    # number of votes for each catagory. To take consensus, we build our distribution
-    # and integrate over it from zero to DECISION_THRESHOLD. If the total area in that
-    # area is less than the UNCERTAINTY_THRESHOLD, we have reached consensus.
-    # The motivation is this. The integration is asking the question:
-    # "With the data we have right now, what's the probability that the true [...]
-    # probability is between 0 and (e.g.) 0.5." (Our IP pair has some true ratio of
-    # yes votes to no votes.) If the probability of the ratio being within that range
-    # is small enough, (smaller than UNCERTAINTY_THRESHOLD) we can conclude that the
-    # true ratio must be larger than that. If the probability is low enough, and the
-    # DECISION_THRESHOLD chosen correctly, we can say that we have determined the
-    # ratio, and thus know the "true" answer to our question.
-BAYES_ENABLED = False           # Should we even use bayes at all?
+BAYES_ENABLED = False
 
-UNCERTAINTY_THRESHOLD = 0.05    # maximum acceptable proability area
-                                # how likely to be wrong we're ok with being
-DECISION_THRESHOLD = 0.9        # Upper bound of integration
-                                # (how significant the ratio must be)
-FALSE_THRESHOLD = 0.05          # Used for ALMOST_FALSE TODO better docs
+UNCERTAINTY_THRESHOLD = 0.05
 
-##Adaptive Consensus
-    # Our algorithm can attempt to "Learn" what a good consensus alg. looks like
-    # by looking at the IP pairs which reach Completion (Total Number of tasks, "Location", etc.)
-    # Below are the configurations the adaptability. This section is still very
-    # much in progress and subject to much change
+DECISION_THRESHOLD = 0.9
 
-ADAPTIVE_CONSENSUS = True  # Enables of disables the adaptive Consensus outright
-ADAPTIVE_CONSENSUS_MODE = 4 #Which algorithm should the adaptive consensus use?
-                            # 1 - RENO:  [https://en.wikipedia.org/wiki/TCP_congestion_control#TCP_Tahoe_and_Reno]
-                            # 2 - TAHOE: See reno
-                            # 3 - CUTE:  [goo.gl/etdxtC]
-                            # 4 - CUBIC: [https://en.wikipedia.org/wiki/CUBIC_TCP]
-PREDICATE_SPECIFIC = True  # Should each predicate have their own adaptive Consensus metric? or should it be one general metric
-                            # Generally most useful for predicates of vastly differing ambiguity
-                                # or unkown ambiguity.
-                            # Recomended setting: True
+FALSE_THRESHOLD = 0.05
+
+ADAPTIVE_CONSENSUS = False
+ADAPTIVE_CONSENSUS_MODE = 4
+PREDICATE_SPECIFIC = True
 CONSENSUS_STATUS_LIMITS = (-3,3)    # The limits we need to reach before inc/dec-rementing the max votes size
                                     # format (-#, +#) for (decrement val, increment val)
 CONSENSUS_SIZE_LIMITS = (7, 101)
@@ -119,8 +67,6 @@ EDDY_SYS = 1
 # this is a \a maximum number of IP Pairs in progress for each predicate.
 PENDING_QUEUE_SIZE = 2
 
-
-
 ITEM_SYS = 0
 # ITEM SYS KEY:
 # 0 - randomly choose an item
@@ -130,7 +76,7 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 40
 
-ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
@@ -142,10 +88,6 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3), (16,4)] # settings for above mode [(#ti
 
 ###################### CONFIGURING TESTING ##################################
 #############################################################################
-
-
-
-
 DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
                    # to do" and will track the number of times this happens
 DUMMY_TASK_OPTION = 0
@@ -205,7 +147,7 @@ MAX_TASKS_COLLECTED = CUT_OFF
 
 RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
 
-TRACK_IP_PAIRS_DONE = False
+TRACK_IP_PAIRS_DONE = True
 
 TRACK_ACTIVE_TASKS = True
 
@@ -255,7 +197,11 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
             'ACTIVE_TASKS_SIZE', "MAX_TASKS_COLLECTED", "MAX_TASKS_OUT", 'BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
             'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
-            'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES'
+            'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES',
+            'PREDICATE_SPECIFIC', 'W_MAX', 'CUBIC_B', 'CUBIC_C', 'ADAPTIVE_CONSENSUS_MODE',
+            'IDEAL_GRID', 'K', 'CONSENSUS_STATUS', 'SINGLE_VOTE_CUTOFF', 'NUM_ITEMS', 'NUM_QUESTIONS',
+            'SELECTIVITY_GRAPH', 'CONSENSUS_STATUS_LIMITS', 'ACCURACY_COUNT', 'TRACK_SIZE',
+            'ADAPTIVE_CONSENSUS', 'CONSENSUS_SIZE_LIMITS', 'RENO_BONUS_RATIO', 'BAYES_ENABLED'
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file
@@ -264,7 +210,14 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
 VARBLOCKLIST = ['__builtins__','__package__','__name__','__doc__',
                 'name','sys','__file__','now','DT','responseTimeDistribution',
                 'TRUE_TIMES','FALSE_TIMES','math','configDict','VARLIST',
-                'VARBLOCKLIST','CONSENSUS_LOCATION_STATS','PACKING','reply']
+                'VARBLOCKLIST','CONSENSUS_LOCATION_STATS','PACKING','reply',
+                'line_graph_gen', 'pylab', 'hist_gen', 'SIN', 'importResponseTimes',
+                'scipy', 'stats_bar_graph_gen', 'multi_hist_gen', 'multi_line_graph_gen',
+                'csv', 'generic_csv_read', 'generic_csv_write', 'restaurants',
+                'bar_graph_gen', 'split_bar_graph_gen', "Suppress", 'makedirs',
+                'defaultdict', 'plt', 'Counter', 'packageMaker', 'os', 'hotels',
+                'np', 'sns', 'dest_resolver'
+                ]
 
 
 
