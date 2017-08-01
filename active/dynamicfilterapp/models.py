@@ -357,8 +357,6 @@ class IP_Pair(models.Model):
     tasks_out = models.IntegerField(default=0)
     # tasks that have been released overall
     tasks_collected=models.IntegerField(default=0)
-    # number of tasks that can be assigned during a given time step
-    tasks_remaining = models.IntegerField(default=0)
     # running cumulation of votes
     value = models.FloatField(default=0.0)
     num_no = models.IntegerField(default=0)
@@ -380,14 +378,6 @@ class IP_Pair(models.Model):
 
     # for synth data:
     true_answer = models.BooleanField(default=True)
-
-    def calc_remaining(self):
-        if self.tasks_out >= toggles.MAX_TASKS_OUT:
-            self.tasks_remaining = 0
-        else:
-            temp = toggles.MAX_TASKS_OUT - self.tasks_out
-            self.tasks_remaining = min(temp, toggles.MAX_TASKS_COLLECTED - self.tasks_collected)
-        self.save(update_fields=["tasks_remaining"])
 
     def give_true_answer(self):
         probability = self.predicate.trueSelectivity
