@@ -30,7 +30,7 @@ def worker_done(ID):
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
         # allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-        allTasksOut = incompleteIP.filter(tasks_collected__gte=toggles.MAX_TASKS_OUT)
+        allTasksOut = incompleteIP.filter(tasks_collected__gte=toggles.MAX_TASKS_COLLECTED)
         incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut)
 
     if not incompleteIP:
@@ -64,10 +64,11 @@ def pending_eddy(ID):
         # filter out the ips that are not in the queue of full predicates
         outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
         nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-        allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-        maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+        # allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+        # maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
         # allTasksOut = incompleteIP.filter(tasks_collected__gte=toggles.MAX_TASKS_OUT)
-        incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+        incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
+        #.exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
         # if there are IP pairs that could be assigned to this worker
         if incompleteIP.exists():
             chosenIP = lotteryPendingQueue(incompleteIP)
@@ -81,9 +82,9 @@ def pending_eddy(ID):
         if not incompleteIP.exists():
             print "Worker has completed all IP pairs left to do"
         # allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-        allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-        maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-        incompleteIP = incompleteIP.exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+        # allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+        # maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+        # incompleteIP = incompleteIP.exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
         if incompleteIP.exists():
             startedIPs = incompleteIP.filter(isStarted=True)
             if startedIPs.exists():

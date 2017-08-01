@@ -16,16 +16,16 @@ The Dynamic Filter works at the intersection of human computing and query proces
 
 \section consensus Aggregating Worker Votes & Evaluating Consensus
 Our consensus metric is complicated. For each IP pair chosen, we do the following:
-  - We gather (NUM_CERTAIN_VOTES) votes on the chosen IP pair
+  - We gather (\link dynamicfilterapp.toggles.NUM_CERTAIN_VOTES NUM_CERTAIN_VOTES\endlink) votes on the chosen IP pair
   - To take "consensus" we generate a beta distribution from the number of (y/n) votes
-  - Then integrate over it from zero to (toggles.DECISION_THRESHOLD)
-  - If the probability area is less than (toggles.UNCERTAINTY_THRESHOLD) then we have consensus
+  - Then integrate over it from zero to (\link dynamicfilterapp.toggles.DECISION_THRESHOLD DECISION_THRESHOLD\endlink)
+  - If the probability area is less than (\link dynamicfilterapp.toggles.UNCERTAINTY_THRESHOLD UNCERTAINTY_THRESHOLD\endlink) then we have consensus
   - Else we gather more votes
 
-This is repeated until one of sevreal conditions is met:
+This is repeated until one of several conditions is met:
   1. We reach consensus (naturally)
-  2. The total number of gathered votes is equal to (toggles.CUT_OFF)
-  3. The number of either (yes)s or (no)s on their own is equal to (toggles.SINGLE_VOTE_CUTOFF)
+  2. The total number of gathered votes is equal to (\link dynamicfilterapp.toggles.CUT_OFF CUT_OFF\endlink)
+  3. The number of either (yes)s or (no)s on their own is equal to (\link dynamicfilterapp.toggles.SINGLE_VOTE_CUTOFF SINGLE_VOTE_CUTOFF\endlink)
 
 If either condition 2 or 3 we take a simple majority vote.
 

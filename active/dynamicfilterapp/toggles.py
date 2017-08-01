@@ -1,5 +1,6 @@
 import datetime as DT
 import sys
+import math
 now = DT.datetime.now()
 import responseTimeDistribution
 
@@ -24,15 +25,15 @@ TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PAT
 CHOSEN_PREDS = [3,4]
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
-NUM_QUESTIONS = 4
-NUM_ITEMS = 400
+NUM_QUESTIONS = 2
+NUM_ITEMS = 100
 SIN = -1
 SELECTIVITY_GRAPH = False
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
 # tuples of form (task number, (select,amb), (select,amb))
-switch_list = [ (0, (0.9, 0.75), (0.7, 0.75), (0.5, 0.75), (0.4, 0.75)) ]
+switch_list = [ (0, (0.9, 0.75), (0.2, 0.75))]
 
 # ************************************************************************ #
 
@@ -44,7 +45,7 @@ EDDY_SYS = 1
 ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 40
-PENDING_QUEUE_SIZE = 2
+PENDING_QUEUE_SIZE = 1
 ADAPTIVE_QUEUE = True
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
@@ -64,17 +65,17 @@ CUT_OFF = 21
                  #TODO test more stuff on synth data
 SINGLE_VOTE_CUTOFF = int(1+math.ceil(CUT_OFF/2.0))
 
-BAYES_ENABLED = False
+BAYES_ENABLED = True
 
-UNCERTAINTY_THRESHOLD = 0.05
+UNCERTAINTY_THRESHOLD = 0.1
 
-DECISION_THRESHOLD = 0.9
+DECISION_THRESHOLD = 0.7
 
 FALSE_THRESHOLD = 0.05
 
 ADAPTIVE_CONSENSUS = False
 ADAPTIVE_CONSENSUS_MODE = 4
-PREDICATE_SPECIFIC = True
+PREDICATE_SPECIFIC = False
 CONSENSUS_STATUS_LIMITS = (-3,3)    # The limits we need to reach before inc/dec-rementing the max votes size
                                     # format (-#, +#) for (decrement val, increment val)
 CONSENSUS_SIZE_LIMITS = (7, 101)
@@ -92,13 +93,13 @@ CUBIC_B = (0.8)
 # ************************** SIMULATION SETTINGS ************************* #
 # ************************************************************************ #
 
-NUM_WORKERS = 5000
+NUM_WORKERS = 700
 DISTRIBUTION_TYPE = 0               # tells pick_worker how to choose workers
 DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
-NUM_SIM = 10
+NUM_SIM = 1
 
 TIME_SIMS = False
 
@@ -108,7 +109,7 @@ SIMULATE_TIME = True # simulate time passing/concurrency
 ACTIVE_TASKS_SIZE = 25
 RESIZE_ACTIVE_TASKS = False
 BUFFER_TIME = 5
-MAX_TASKS_OUT = 10
+MAX_TASKS_OUT = 5
 MAX_TASKS_COLLECTED = CUT_OFF
 
 # ************************************************************************ #
@@ -143,7 +144,7 @@ COST_SAMPLES = 1
 RUN_SINGLE_PAIR = True
 SINGLE_PAIR_RUNS = 1
 
-RUN_ITEM_ROUTING = False
+RUN_ITEM_ROUTING = True
 RUN_MULTI_ROUTING = False
 
 RUN_OPTIMAL_SIM = False #TODO: can you do this with synthetic data?
@@ -196,7 +197,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'PREDICATE_SPECIFIC', 'W_MAX', 'CUBIC_B', 'CUBIC_C', 'ADAPTIVE_CONSENSUS_MODE',
             'IDEAL_GRID', 'K', 'CONSENSUS_STATUS', 'SINGLE_VOTE_CUTOFF', 'NUM_ITEMS', 'NUM_QUESTIONS',
             'SELECTIVITY_GRAPH', 'CONSENSUS_STATUS_LIMITS', 'ACCURACY_COUNT', 'TRACK_SIZE',
-            'ADAPTIVE_CONSENSUS', 'CONSENSUS_SIZE_LIMITS', 'RENO_BONUS_RATIO', 'BAYES_ENABLED'
+            'ADAPTIVE_CONSENSUS', 'CONSENSUS_SIZE_LIMITS', 'RENO_BONUS_RATIO', 'BAYES_ENABLED', 'RESIZE_ACTIVE_TASKS'
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file

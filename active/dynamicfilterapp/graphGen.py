@@ -130,3 +130,15 @@ def simulated_time_distributions(data, dest):
     multi_hist_gen(dataL, legendL, dest+".png", labels = labels, title=title, smoothness=True)
 
     gen_message(dest)
+
+def ips_done(data, dest, time):
+    if time:
+        num = 1
+        caption = "Time Steps"
+    else:
+        num = 2
+        caption = "Number of Tasks Completed"
+    line_graph_gen(data[0], data[num], dest + ".png",
+                labels = (caption, "Number of IP Pairs Completed"),
+                title = "Number of IP Pairs Done vs. " + caption)
+    gen_message(dest)

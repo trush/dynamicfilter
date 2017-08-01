@@ -709,6 +709,8 @@ class SimulationTest(TransactionTestCase):
 		return num_tasks
 
 	## A helper function to resize the active tasks array as IP pairs are completed.
+	# @param ratio The proportion of IP pairs that are completed
+	# @param orig The starting size of the active tasks array
 	def set_active_size(self, ratio, orig):
 		if ratio < .75:
 			return orig
@@ -720,6 +722,18 @@ class SimulationTest(TransactionTestCase):
 			return int(orig * 0.1)
 		else:
 			return int(orig * .05)
+
+
+	def set_tps(self, ratio, orig):
+		if ratio < .5:
+			return orig
+		elif 0.5 <= ratio < 0.75:
+			return orig/3.0
+		elif 0.75 <= ratio < 0.9:
+			return orig/6.0
+		else:
+			return orig/12.0
+
 	## Runs a single simulation of the process of handing out tasks to workers and filtering
 	# a database, with or without time.
 	# @param dictionary A dictionary whose keys are IP Pairs and whose values are arrays of possible worker responses
@@ -738,7 +752,8 @@ class SimulationTest(TransactionTestCase):
 		time_proxy = 0
 		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE # saves the initial size of the array
 		active_tasks_size = orig_active_tasks # keeps track of the current size of the array
-
+		tps_start = 3
+		secs = 0 # used to count time steps when tasks per second is less than 1
 		if toggles.SELECTIVITY_GRAPH:
 			for count in range(toggles.NUM_QUESTIONS):
 				self.pred_selectivities.append([])
@@ -767,7 +782,6 @@ class SimulationTest(TransactionTestCase):
 		# add an entry to save the numbers of placeholder tasks
 		self.pred_active_tasks[0] = []
 
-
 		#Setting up arrays to count tickets for ticketing counting graphs
 		# if toggles.COUNT_TICKETS:
 		# 	if toggles.REAL_DATA:
@@ -788,7 +802,10 @@ class SimulationTest(TransactionTestCase):
 
 		# If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and toggles.RUN_ITEM_ROUTING) or toggles.RUN_MULTI_ROUTING:
-			predicates = [Predicate.objects.get(pk=pred+1) for pred in toggles.CHOSEN_PREDS]
+			if toggles.REAL_DATA:
+				predicates = [Predicate.objects.get(pk=pred+1) for pred in toggles.CHOSEN_PREDS]
+			else:
+				predicates = [Predicate.objects.get(pk=pred+1) for pred in range(toggles.NUM_QUESTIONS)]
 			routingC, routingL, seenItems = [], [], set()
 			for i in range(len(predicates)):
 				routingC.append(0)
@@ -865,6 +882,11 @@ class SimulationTest(TransactionTestCase):
 
 				self.time_steps_array.append(time_clock)
 
+				# increment seconds for when tasks per second less than 1
+				secs += 1
+				ratio=IP_Pair.objects.filter(isDone=True).count()/float(total_ip_pairs)
+				tps = self.set_tps(ratio, tps_start)
+
 				if toggles.RESIZE_ACTIVE_TASKS:
 					ratio = IP_Pair.objects.filter(isDone=True).count()/float(total_ip_pairs)
 					active_tasks_size = self.set_active_size(ratio, orig_active_tasks)
@@ -901,6 +923,7 @@ class SimulationTest(TransactionTestCase):
 
 
 				# check if any tasks have reached completion, update bookkeeping
+				# print "Removing tasks"
 				for task in active_tasks:
 					if (task.end_time <= time_clock):
 						updateCounts(task, task.ip_pair)
@@ -939,13 +962,28 @@ class SimulationTest(TransactionTestCase):
 						# 		print "Task removed ||| Item: " + str(task.ip_pair.item.id) + " | Predicate: " + str(task.ip_pair.predicate.id) + " | IP Pair: " + str(task.ip_pair.id)
 
 
-
-
+				# decides whether to give out more tasks if tasks per second is less than 1
+				task_limit = tps
+				if tps < 1:
+					task_limit = 1
+					refill = False
+					if secs >= 1.0/tps:
+						refill = True
+						secs = 0
+				else:
+					refill = True
 				# fill the active task array with new tasks as long as some IPs need eval
-				if IP_Pair.objects.filter(isDone=False).exists():
-
-					while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
-
+				if refill:
+					count = 0
+					# for ip in IP_Pair.objects.filter(inQueue=True):
+					# 	ip.calc_remaining()
+					# while count less than tps and isstarted=False exists or someone can have another task,
+					# print "Adding tasks"
+					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
+					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
+					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
+						# print "count: " + str(count)
+						# print "task_limit: " + str(task_limit)
 						task, worker = self.issueTask(active_tasks, b_workers, time_clock, dictionary, switch)
 
 						if task is not None:
@@ -987,6 +1025,7 @@ class SimulationTest(TransactionTestCase):
 							if endTimes:
 								time_clock = min(endTimes) - 1
 							break
+						count += 1
 
 				move_window()
 
@@ -1014,6 +1053,14 @@ class SimulationTest(TransactionTestCase):
 				if toggles.TRACK_IP_PAIRS_DONE:
 					self.ips_done_array.append(IP_Pair.objects.filter(isDone=True).count())
 					self.ips_tasks_array.append(self.num_tasks)
+
+				if toggles.COUNT_TICKETS:
+					for pred in self.ticket_nums:
+						self.ticket_nums[pred].append(Predicate.objects.get(pk=pred).num_tickets)
+
+				if toggles.TRACK_QUEUES:
+					for pred in self.pred_queues:
+						self.pred_queues[pred].append(IP_Pair.objects.filter(predicate__id=pred, inQueue=True).count())
 
 				# only increment if worker is actually doing a task
 				workerID = self.pick_worker([0], [0]) # array needed to make pick_worker run
@@ -1102,6 +1149,8 @@ class SimulationTest(TransactionTestCase):
 					#so we need index 0 of the tuple to get the time at which the switch should occur
 					if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] == self.num_tasks:
 						switch += 1
+
+
 
 		if toggles.DUMMY_TASKS:
 			self.num_placeholders = DummyTask.objects.all().count()
@@ -1233,8 +1282,8 @@ class SimulationTest(TransactionTestCase):
 			HAS_RUN_ITEM_ROUTING = True
 
 			# setup vars to save a csv + graph
-			dest = toggles.OUTPUT_PATH+'_item_routing'+ str(self.sim_num)
-			title = toggles.RUN_NAME + ' Item Routing'
+			dest = toggles.OUTPUT_PATH+'_item_routing'+ str(toggles.SIMULATE_TIME)
+			title = "Items Routed To Predicates During One Simulation"
 			labels = (str(predicates[0].question), str(predicates[1].question))
 			dataToWrite = [labels,routingL[0],routingL[1]]
 			generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
@@ -1827,7 +1876,7 @@ class SimulationTest(TransactionTestCase):
 				toggles.PENDING_QUEUE_SIZE = q
 
 				for a in activeTasksSet:
-					toggles.MAX_TASKS_OUT = toggles.NUM_CERTAIN_VOTES+2
+					toggles.MAX_TASKS_OUT = toggles.NUM_CERTAIN_VOTES
 
 					for run in range(toggles.NUM_SIM):
 						toggles.ACTIVE_TASKS_SIZE = a
@@ -1836,6 +1885,7 @@ class SimulationTest(TransactionTestCase):
 						else:
 							self.run_sim(data)
 							self.reset_database()
+						print "Completed run: " + str(run) + "for e = " + str(e)
 					save.append([e, q, a])
 					save1.append([e, q, a])
 					save2.append([e, q, a])
@@ -1869,13 +1919,149 @@ class SimulationTest(TransactionTestCase):
 			graphGen.simulated_time_distributions(graph_out1, dest1)
 			graphGen.task_distributions(graph_out2, dest2, True)
 
-	def active_tasks_1(self, data):
+	def collect_act1_data(self, timed):
+		if timed:
+			state = "timed"
+		else:
+			state = "untimed"
+		writtenFiles = []
+		# record ticket count data
+		save = [self.ips_tasks_array]
+		graph = [self.ips_tasks_array]
+		for pred in self.ticket_nums:
+			save.append([pred])
+			save.append(self.ticket_nums[pred])
+			graph.append( (pred, self.ticket_nums[pred]) )
+
+		dest = toggles.OUTPUT_PATH + "track_tickets_" + state
+		generic_csv_write(dest+".csv", save)
+		writtenFiles.append(dest+".csv")
+
+		if toggles.GEN_GRAPHS:
+			graphGen.ticket_counts(graph, dest)
+
+		# record queue size data
+		save = [self.ips_tasks_array]
+		graph = [self.ips_tasks_array]
+		for pred in self.pred_queues:
+			save.append([pred])
+			save.append(self.pred_queues[pred])
+			graph.append( (pred, self.pred_queues[pred]) )
+
+		dest = toggles.OUTPUT_PATH + "track_queues_" + state
+		generic_csv_write(dest+'.csv', save)
+		writtenFiles.append(dest+".csv")
+
+		if toggles.GEN_GRAPHS:
+			graphGen.queue_sizes(graph, dest)
+
+		# get IPs done data
+		save = [self.ips_tasks_array, self.time_steps_array, self.ips_done_array]
+		dest = "ips_vs_tasks_" + state
+		generic_csv_write(dest+".csv", save)
+		writtenFiles.append(dest+".csv")
+
+		if toggles.GEN_GRAPHS:
+			graphGen.ips_done(save, dest, False)
+
+		return writtenFiles
+
+	def active_tasks_1(self, data, runs):
+		if not (toggles.TRACK_ACTIVE_TASKS and toggles.SIMULATE_TIME):
+			raise Exception("Turn on TRACK_ACTIVE TASKS and SIMULATE_TIME for this to work properly.")
+		if not (toggles.COUNT_TICKETS and toggles.TRACK_QUEUES):
+			raise Exception("Turn on COUNT_TICKETS and SHOW_QUEUES to get complete data")
+
+		# item routing
+		# task counts
+		toggles.EDDY_SYS = 1
 		toggles.ACTIVE_TASKS_SIZE = 1
 		toggles.RESIZE_ACTIVE_TASKS = False
-		# item routing information
-		# task counting information
-		# queue measuring information
-		# ticket counting information
+		toggles.SIMULATE_TIME = True
+		toggles.RUN_ITEM_ROUTING = True # TODO check how this works
+		toggles.TRACK_IP_PAIRS_DONE = True
+		toggles.PENDING_QUEUE_SIZE = 1
+		toggles.ADAPTIVE_QUEUE = False
+
+		# for i in range(runs):
+		# 	self.run_sim(data)
+		#
+		# 	# generate single-run data for the first run
+		# 	if i == 0:
+		# 		writtenFiles = self.collect_act1_data(True)
+		#
+		# 	self.reset_database()
+		# 	print "Run " + str(i) + " completed, timed."
+		#
+		# task_counts = self.num_tasks_array
+		# real_counts = self.num_real_tasks_array
+		# placeholder_counts = self.num_placeholders_array
+		#
+		# dest = toggles.OUTPUT_PATH + "task_counts_timed"
+		# generic_csv_write(dest+".csv", [task_counts, real_counts, placeholder_counts])
+		# writtenFiles.append(dest+".csv")
+		#
+		# for f in writtenFiles:
+		# 	print "Wrote file: " + f
+		#
+		# self.reset_arrays()
+
+		toggles.SIMULATE_TIME = False
+
+		for i in range(runs):
+			self.run_sim(data)
+
+			# generate single-run data for first run
+			if i == 0:
+				writtenFiles = self.collect_act1_data(False)
+
+			self.reset_database()
+			print "Run " + str(i) + " completed, untimed."
+
+		task_counts = self.num_tasks_array
+		real_counts = self.num_real_tasks_array
+		placeholder_counts = self.num_placeholders_array
+
+		dest = toggles.OUTPUT_PATH + "task_counts_untimed"
+		generic_csv_write(dest+".csv", [task_counts, real_counts, placeholder_counts])
+		writtenFiles.append(dest+".csv")
+
+		for f in writtenFiles:
+			print "Wrote file: " + f
+
+		self.reset_arrays()
+
+	# def test_1(self):
+	# 	print "Simulation is being tested on thread 1"
+	# 	toggles.RUN_NAME = "Active_Tasks_1_Comparison_Re-Re-do"
+	#
+	# 	if toggles.DEBUG_FLAG:
+	# 		print "Debug Flag Set!"
+	# 		print self.getConfig()
+	#
+	# 	if toggles.PACKING:
+	# 		toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
+	# 		packageMaker(toggles.OUTPUT_PATH,self.getConfig())
+	# 	if toggles.IDEAL_GRID:
+	# 		self.consensusGrid()
+	#
+	# 	if toggles.REAL_DATA:
+	# 		sampleData = self.load_data()
+	# 		if toggles.RUN_DATA_STATS:
+	# 			self.output_data_stats(sampleData)
+	# 			self.reset_database()
+	# 		if toggles.RUN_AVERAGE_COST:
+	# 			self.sim_average_cost(sampleData)
+	# 			self.reset_database()
+	# 		if toggles.RUN_SINGLE_PAIR:
+	# 			self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+	# 			self.reset_database()
+	# 	else:
+	# 		sampleData = {}
+	# 		syn_load_data()
+	#
+	# 	self.active_tasks_1(sampleData, 1)
+
 	# #___MAIN TEST FUNCTION___#
 	# def test_simulation(self):
 	# 	"""
@@ -2084,10 +2270,54 @@ class SimulationTest(TransactionTestCase):
 	#
 	# 	if toggles.RUN_ABSTRACT_SIM:
 	# 		self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
+	# def test_2(self):
+	# 	if not toggles.RUN_ITEM_ROUTING:
+	# 		raise Exception("Turn on item routing")
+	#
+	# 	print "Simulation is being tested on thread 2"
+	# 	toggles.RUN_NAME = "One_Run_Active_Tasks_Item_Routing"
+	# 	toggles.PENDING_QUEUE_SIZE = 1
+	# 	toggles.ACTIVE_TASKS_SIZE = 40
+	# 	toggles.EDDY_SYS = 1
+	# 	toggles.switch_list = [ (0, (0.9, 0.75), (0.2, 0.75))]
+	#
+	# 	if toggles.DEBUG_FLAG:
+	# 		print "Debug Flag Set!"
+	# 		print self.getConfig()
+	#
+	# 	if toggles.PACKING:
+	# 		toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
+	# 		packageMaker(toggles.OUTPUT_PATH,self.getConfig())
+	# 	if toggles.IDEAL_GRID:
+	# 		self.consensusGrid()
+	#
+	# 	if toggles.REAL_DATA:
+	# 		sampleData = self.load_data()
+	# 		if toggles.RUN_DATA_STATS:
+	# 			self.output_data_stats(sampleData)
+	# 			self.reset_database()
+	# 		if toggles.RUN_AVERAGE_COST:
+	# 			self.sim_average_cost(sampleData)
+	# 			self.reset_database()
+	# 		if toggles.RUN_SINGLE_PAIR:
+	# 			self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+	# 			self.reset_database()
+	# 	else:
+	# 		sampleData = {}
+	# 		syn_load_data()
+	#
+	# 	self.visualizeActiveTasks(sampleData)
 
-	def test_1(self):
-		print "Simulation is being tested on thread 1"
-		toggles.RUN_NAME = "Active_Tasks_1_Comparison"
+	def test_3(self):
+		if not toggles.RUN_ITEM_ROUTING:
+			raise Exception("Turn on item routing")
+
+		print "Simulation is being tested on thread 3"
+		toggles.RUN_NAME = "Rand_Sys_20Act_Test"
+		toggles.PENDING_QUEUE_SIZE = 2
+		toggles.ACTIVE_TASKS_SIZE = 40
+		toggles.NUM_SIM = 2
+		toggles.switch_list = [ (0, (0.9, 0.75), (0.2, 0.75))]
 
 		if toggles.DEBUG_FLAG:
 			print "Debug Flag Set!"
@@ -2114,38 +2344,7 @@ class SimulationTest(TransactionTestCase):
 			sampleData = {}
 			syn_load_data()
 
-		# TODO call testing function
-	def test_2(self):
-		print "Simulation is being tested on thread 2"
-		toggles.RUN_NAME = "Something here" #TODO
-
-		if toggles.DEBUG_FLAG:
-			print "Debug Flag Set!"
-			print self.getConfig()
-
-		if toggles.PACKING:
-			toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
-			packageMaker(toggles.OUTPUT_PATH,self.getConfig())
-		if toggles.IDEAL_GRID:
-			self.consensusGrid()
-
-		if toggles.REAL_DATA:
-			sampleData = self.load_data()
-			if toggles.RUN_DATA_STATS:
-				self.output_data_stats(sampleData)
-				self.reset_database()
-			if toggles.RUN_AVERAGE_COST:
-				self.sim_average_cost(sampleData)
-				self.reset_database()
-			if toggles.RUN_SINGLE_PAIR:
-				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
-				self.reset_database()
-		else:
-			sampleData = {}
-			syn_load_data()
-
-		# TODO call testing function
-
+		self.visualizeMultiRuns(sampleData,[2], [20], [2])
 	# def test_placeholders(self):
 	# 	print "Simulation is being tested"
 	#
