@@ -6,6 +6,7 @@
 *.ini
 active/dynamicfilterapp/migrations/*
 active/html/*
+active/html/search/*
 active/latex/*
 
 

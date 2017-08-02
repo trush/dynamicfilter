@@ -93,6 +93,7 @@ class Predicate(models.Model):
     _consensus_uncertainty_threshold = models.FloatField(default=toggles.UNCERTAINTY_THRESHOLD) # used for bayes stuff (see toggles)
     _consensus_decision_threshold   = models.FloatField(default=toggles.DECISION_THRESHOLD)     # used for bayes stuff (see toggles)
     consensus_max_threshold = models.IntegerField(default=toggles.W_MAX) #TODO: doccument, rename?
+
     @property
     def consensus_max(self):
         if not toggles.PREDICATE_SPECIFIC:
@@ -264,12 +265,18 @@ class Predicate(models.Model):
                     break
             return self.queue_length
 
+    ## Takes an IP-Pair into consideration for adaptive consensus metrics
+    # uses the mode set in toggles.ADAPTIVE_CONSENSUS_MODE
+    # @param ipPair an IP_Pair which has reached consensus
+    # @returns False if the pair truely has reached consensus
+    # True if the pair should recieve more votes
     def update_consensus(self, ipPair):
+
         old_max = self.consensus_max
         new_max = old_max
         loc = ipPair.consensus_location
 
-        ### TCP RENO/TAHOE
+        # TCP RENO/TAHOE
         if toggles.ADAPTIVE_CONSENSUS_MODE == 1 or toggles.ADAPTIVE_CONSENSUS_MODE == 2:
             if loc == 3 or loc == 4:
                 self.consensus_max_threshold = self.consensus_status/2
@@ -290,7 +297,7 @@ class Predicate(models.Model):
 
             new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
 
-        ### CUTE alg. method.
+        # CUTE alg. method.
         elif toggles.ADAPTIVE_CONSENSUS_MODE == 3:
             if loc == 1:
                 self.consensus_status = self.consensus_status + 1
@@ -299,7 +306,7 @@ class Predicate(models.Model):
                 #print "Vote: ("+str(ipPair.num_no)+","+str(ipPair.num_yes)+") caused growth"
             new_max = toggles.CONSENSUS_SIZE_LIMITS[1] - (self.consensus_status*2)
 
-        ### CUBIC alg.
+        # CUBIC alg.
         elif toggles.ADAPTIVE_CONSENSUS_MODE == 4:
             #TODO fix double growth problem
             if (loc == 3) or (loc == 4):
@@ -330,6 +337,8 @@ class Predicate(models.Model):
             #print "Shrinking caused " + str(totalNum) + " Pairs to be outside bounds"
         return False
 
+    ## Resets all predicate values to their defaults.
+    # is run each time the database "resets"
     def reset(self):
         self.num_tickets=1
         self.num_wickets=0
@@ -477,6 +486,14 @@ class IP_Pair(models.Model):
                 self.status_votes -= 1
                 self.save(update_fields=["status_votes"])
 
+    ## determines how the IP_Pair should describe its current consensus value
+    # @returns the "location" of the IP_Pair. Can be interpreted as a boolean
+    # (HasReachedConsensus?) or as an integer with the following key:
+    #    0 - no consensus
+    #   1 - unAmbigous Zone
+    #   2 - medium ambiguity Zone
+    #   3 - high ambiguity zone
+    #   4 - most ambiguity
     def _consensus_finder(self):
         """
         key:
@@ -516,6 +533,9 @@ class IP_Pair(models.Model):
         else:
             return 0
 
+    ## Main organizing function for IP_Pair consensus finding.
+    # If needed it calls adaptive consensus functions
+    # @returns True if the IP_Pair has reached consensus False otherwise
     def found_consensus(self):
         if not toggles.ADAPTIVE_CONSENSUS:
             return bool(self._consensus_finder())
@@ -523,7 +543,7 @@ class IP_Pair(models.Model):
         if not bool(self._consensus_finder()):
             return False
         if self.predicate.update_consensus(self):
-            print "Saved Pair from being called too early"
+            #print "Saved Pair from being called too early"
             return bool(self._consensus_finder())
         else:
             return True
