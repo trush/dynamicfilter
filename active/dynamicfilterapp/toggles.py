@@ -7,14 +7,15 @@ RUN_NAME = 'Scaling_Investigation' + "_" + str(now.date())+ "_" + str(now.time()
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 
 # INPUT SETTINGS
-TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
-REAL_DATA = False
+
 #_________________ Real Data Settings ___________________#
 ITEM_TYPE = "Hotel"
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
-CHOSEN_PREDS = [3,4]
+TRUE_TIMES, FALSE_TIMES = importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
+REAL_DATA = False
+CHOSEN_PREDS = [0,1]
 ####################### CONFIGURING CONSENSUS ##############################
 # This desc. is old and some of the variable names may no longer match, but the
 # algorithm described is still the same
@@ -78,13 +79,13 @@ FALSE_THRESHOLD = 0.05          # Used for ALMOST_FALSE TODO better docs
     # Below are the configurations the adaptability. This section is still very
     # much in progress and subject to much change
 
-ADAPTIVE_CONSENSUS = True  # Enables of disables the adaptive Consensus outright
+ADAPTIVE_CONSENSUS = False  # Enables of disables the adaptive Consensus outright
 ADAPTIVE_CONSENSUS_MODE = 4 #Which algorithm should the adaptive consensus use?
                             # 1 - RENO:  [https://en.wikipedia.org/wiki/TCP_congestion_control#TCP_Tahoe_and_Reno]
                             # 2 - TAHOE: See reno
                             # 3 - CUTE:  [goo.gl/etdxtC]
                             # 4 - CUBIC: [https://en.wikipedia.org/wiki/CUBIC_TCP]
-PREDICATE_SPECIFIC = True  # Should each predicate have their own adaptive Consensus metric? or should it be one general metric
+PREDICATE_SPECIFIC = False  # Should each predicate have their own adaptive Consensus metric? or should it be one general metric
                             # Generally most useful for predicates of vastly differing ambiguity
                                 # or unkown ambiguity.
                             # Recomended setting: True
@@ -112,7 +113,7 @@ DISTRIBUTION_TYPE = 0 # tells pick_worker how to choose workers.
 # 1 - queue pending system (uses PENDING_QUEUE_SIZE parameter)
 # 2 - random system
 # 3 - controlled system (uses CHOSEN_PREDS parameter)
-EDDY_SYS = 1
+EDDY_SYS = 7
 
 ## The size of the "queue" for each predicate. This can be made dynamic if desired.
 # For toggles.EDDY_SYS = 5, this is the \a minimum number of unique IP Pairs to be in progress at any given time for a predicate. For toggles.EDDY_SYS = 1,
@@ -130,7 +131,7 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 20
 
-ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
+ADAPTIVE_QUEUE = False # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
@@ -154,7 +155,7 @@ GEN_GRAPHS = True # if true, any tests run will generate their respective graphs
 
 #################### TESTING OPTIONS FOR SYNTHETIC DATA ############################
 NUM_QUESTIONS = 2
-NUM_ITEMS = 50
+NUM_ITEMS = 300
 SIN = -1
 
 SELECTIVITY_GRAPH = False
@@ -163,7 +164,7 @@ SELECTIVITY_GRAPH = False
 # selectvity of the previous timestep
 #switch_list = [(0, (0.6, 0.68), (0.6, 0.87)), (100, ((SIN, .2, 100, .1, 0), 0.68), (0.6, 0.87))]
  #(time,(selectivity,ambiguity), (...))
-switch_list = [(0, (0.9, 0.85), (0.3, 0.85))]#, (800, (0.3, 0.3), (0.8, 0.3))]
+switch_list = [(0, (0.9, 0.7), (0.3, 0.98))]#, (800, (0.3, 0.3), (0.8, 0.3))]
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -175,8 +176,8 @@ ABSTRACT_VARIABLE = "EDDY_SYS"
 ABSTRACT_VALUES = [1,2,6]
 
 #produces ticket count graph for 1 simulation
-COUNT_TICKETS = True
-TRACK_QUEUES = True
+COUNT_TICKETS = False
+TRACK_QUEUES = False
 
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 100
@@ -184,7 +185,7 @@ COST_SAMPLES = 100
 RUN_SINGLE_PAIR = False
 SINGLE_PAIR_RUNS = 50
 
-RUN_ITEM_ROUTING = True # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
+RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
 RUN_MULTI_ROUTING = True # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
@@ -194,7 +195,7 @@ REWARD = 1.7
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
-NUM_SIM = 10 # how many simulations to run?
+NUM_SIM = 3 # how many simulations to run?
 
 TIME_SIMS = False # track the computer runtime of simulations
 
@@ -205,13 +206,13 @@ BUFFER_TIME = 5 # amount of time steps between task selection and task starting
 MAX_TASKS_OUT = 10
 MAX_TASKS_COLLECTED = CUT_OFF
 
-RUN_TASKS_COUNT = False # actually simulate handing tasks to workers
+RUN_TASKS_COUNT = True # actually simulate handing tasks to workers
 
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_ACTIVE_TASKS = True
+TRACK_ACTIVE_TASKS = False
 
-TRACK_PLACEHOLDERS = True # keeps track of the number of times the next worker has no possible task
+TRACK_PLACEHOLDERS = False # keeps track of the number of times the next worker has no possible task
 
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 TEST_ACCURACY = False
@@ -232,7 +233,7 @@ TEST_ACCURACY = False
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PRED_SCORE_COUNT = True
+PRED_SCORE_COUNT = False
 
 PRED_RANK_COUNT = False
 
@@ -275,7 +276,7 @@ VARBLOCKLIST = ['__builtins__','__package__','__name__','__doc__',
 
 
 
-name = ""
-for name in locals():
-    if name not in VARLIST and name not in VARBLOCKLIST:
-        raise ValueError("Toggle: " + name + " not in either VARLIST or VARBLOCKLIST... Please add it!")
+# name = ""
+# for name in locals():
+#     if name not in VARLIST and name not in VARBLOCKLIST:
+#         raise ValueError("Toggle: " + name + " not in either VARLIST or VARBLOCKLIST... Please add it!")

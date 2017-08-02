@@ -87,7 +87,7 @@ class Predicate(models.Model):
 	queue_is_full = models.BooleanField(default=False)
 	
 	#variables for MAB
-	value = models.FloatField(default=0.0)
+	score = models.FloatField(default=0.0)
 	count = models.IntegerField(default=1)
 	queue_length = models.IntegerField(default=toggles.PENDING_QUEUE_SIZE)
 
@@ -187,7 +187,7 @@ class Predicate(models.Model):
 		# else:
 		self.refresh_from_db(fields=["calculatedSelectivity","cost"])
 		self.rank = self.calculatedSelectivity/float(self.cost)
-		print "for pred ",self.question," cost is ",str(self.cost)
+		# print "for pred ",self.question," cost is ",str(self.cost)
 		self.save(update_fields=["rank"])
 
 	def move_window(self):
@@ -220,10 +220,10 @@ class Predicate(models.Model):
 			self.save(update_fields = ["queue_is_full"])
 		else:
 			if toggles.EDDY_SYS != 5:
-                raise Exception ("Queue for predicate " + str(self.id) + " is over-full")
-            else:
-                self.queue_is_full = True
-                self.save(update_fields = ["queue_is_full"])
+				raise Exception ("Queue for predicate " + str(self.id) + " is over-full")
+			else:
+				self.queue_is_full = True
+				self.save(update_fields = ["queue_is_full"])
 
 		if IP_Pair.objects.filter(inQueue=True, predicate = self).count() < self.queue_length and self.queue_is_full:
 			raise Exception ("Queue for predicate " + str(self.id) + " set to full when not")
@@ -240,16 +240,17 @@ class Predicate(models.Model):
 		self.count += 1
 		self.save(update_fields=["count"])
 
+	## update_pred updates the score of each predicate.
 	def update_pred(self, reward):
-		new_val = ((self.count+1)/float(self.count)) * self.value + (1/float(self.count)) * reward
-		self.value = new_val
-		self.save(update_fields = ["value"])
+		new_val = ((self.count+1)/float(self.count)) * self.score + (1/float(self.count)) * reward
+		self.score = new_val
+		self.save(update_fields = ["score"])
 
 	def update_pred_rank(self, reward):
 		self.refresh_from_db(fields=["rank"])
 		new_val = ((self.count+1)/float(self.count)) * self.rank + (1/float(self.count)) * reward
-		self.value = new_val
-		self.save(update_fields = ["value"])
+		self.score = new_val
+		self.save(update_fields = ["score"])
 
 	def add_total_time(self):
 		self.total_time  += random.choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
@@ -393,6 +394,7 @@ class Predicate(models.Model):
 		self.num_wickets=0
 		self.num_ip_complete=0
 		self.selectivity=0.1
+		self.calculatedSelectivity=0.1
 		self.totalTasks=0
 		self.totalNo=0
 		self.queue_is_full=False
@@ -400,7 +402,15 @@ class Predicate(models.Model):
 		self.consensus_status=0
 		self.consensus_max=toggles.CUT_OFF
 		self.consensus_max_threshold=0
-		self.save(update_fields=["num_tickets","num_wickets","num_ip_complete","selectivity","totalTasks","totalNo","queue_is_full","queue_length","consensus_max_threshold"])
+		self.rank=0
+		self.score = 0.0
+		self.count = 1
+		self.cost=1.0
+		self.total_time=0.0
+		self.avg_completion_time=1.0
+		self.avg_tasks_per_pair=1.0
+
+		self.save(update_fields=["num_tickets","num_wickets","calculatedSelectivity", "num_ip_complete","selectivity","totalTasks","totalNo","queue_is_full","queue_length","consensus_max_threshold","rank","count","score","cost","total_time","avg_completion_time","avg_tasks_per_pair"])
 
 
 @python_2_unicode_compatible
@@ -504,17 +514,17 @@ class IP_Pair(models.Model):
 				self.num_no += 1
 				self.predicate.add_no()
 
-				if(toggles.EDDY_SYS == 8):
+				if(toggles.EDDY_SYS == 7):
 					self.predicate.update_pred_rank(toggles.REWARD)
 
-				if (toggles.EDDY_SYS == 6 or toggles.EDDY_SYS == 7):
+				if (toggles.EDDY_SYS == 6):
 					if self.is_false():
 						self.predicate.update_pred(toggles.REWARD)
 
 				self.save(update_fields=["value", "num_no"])
 
 			self.predicate.update_selectivity()
-			if (toggles.EDDY_SYS == 8):
+			if (toggles.EDDY_SYS == 7):
 				self.predicate.update_avg_tasks()
 				self.predicate.update_cost()
 				self.predicate.update_rank()
@@ -535,7 +545,7 @@ class IP_Pair(models.Model):
 					if self.is_false():
 						self.predicate.update_pred(toggles.REWARD)
 				
-				if(toggles.EDDY_SYS == 8):
+				if(toggles.EDDY_SYS == 7):
 					if self.is_false():
 						self.predicate.update_pred_rank(toggles.REWARD)
 
@@ -640,7 +650,9 @@ class IP_Pair(models.Model):
 		self.isDone=False
 		self.status_votes=0
 		self.inQueue=False
-		self.save(update_fields=["value","num_yes","num_no","isDone","status_votes","inQueue"])
+		self.isStarted=False
+		self.tasks_collected=0
+		self.save(update_fields=["value","num_yes","num_no","isDone","status_votes","inQueue","isStarted","tasks_collected"])
 
 @python_2_unicode_compatible
 class Task(models.Model):
