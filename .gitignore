@@ -6,10 +6,6 @@
 *.ini
 active/dynamicfilterapp/migrations/*
 active/html/*
-!active/html/cust_bcs.png
-!active/html/cust_tab_a.png
-!active/html/cust_tab.png
-
 active/latex/*
 
 
