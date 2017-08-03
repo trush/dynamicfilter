@@ -6,7 +6,7 @@ import responseTimeDistribution
 
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 # ************************************************************************ #
 
 
@@ -93,19 +93,18 @@ CUBIC_B = (0.8)
 # ************************** SIMULATION SETTINGS ************************* #
 # ************************************************************************ #
 
-NUM_WORKERS = 700
+NUM_WORKERS = 1000
 DISTRIBUTION_TYPE = 0               # tells pick_worker how to choose workers
 DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
-NUM_SIM = 1
-
-TIME_SIMS = False
+NUM_SIM = 50
 
 SIMULATE_TIME = True # simulate time passing/concurrency
 
 # ___ SIMULATED TIME SETTINGS ____ #
+TASKS_PER_SECOND = False ## \todo add to toggles_info
 ACTIVE_TASKS_SIZE = 25
 RESIZE_ACTIVE_TASKS = False
 BUFFER_TIME = 5
@@ -119,7 +118,7 @@ MAX_TASKS_COLLECTED = CUT_OFF
 # ************************************************************************ #
 
 # ___ FILE MANAGEMENT ____ #
-RUN_NAME = 'Scaling_Investigation' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'Old_Framework_Reproduce_50' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 GEN_GRAPHS = True
 PACKING=True
@@ -138,10 +137,10 @@ if GEN_GRAPHS:
 # ___ DATA COLLECTION: REAL DATA ____ #
 RUN_DATA_STATS = False
 
-RUN_AVERAGE_COST = True
+RUN_AVERAGE_COST = False
 COST_SAMPLES = 1
 
-RUN_SINGLE_PAIR = True
+RUN_SINGLE_PAIR = False
 SINGLE_PAIR_RUNS = 1
 
 RUN_ITEM_ROUTING = True
@@ -155,7 +154,7 @@ TRACK_QUEUES = True
 
 RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "NUM_WORKERS"
-ABSTRACT_VALUES = [10, 20]
+ABSTRACT_VALUES = [100, 200]
 
 RUN_TASKS_COUNT = False
 TRACK_IP_PAIRS_DONE = False
@@ -175,6 +174,8 @@ CONSENSUS_LOCATION_STATS = False
 TRACK_SIZE = False
 VOTE_GRID = False
 IDEAL_GRID = False
+
+TIME_SIMS = False # NOT turning on simulated time; counting how long function calls take
 
 # ************************************************************************ #
 
@@ -197,7 +198,8 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'PREDICATE_SPECIFIC', 'W_MAX', 'CUBIC_B', 'CUBIC_C', 'ADAPTIVE_CONSENSUS_MODE',
             'IDEAL_GRID', 'K', 'CONSENSUS_STATUS', 'SINGLE_VOTE_CUTOFF', 'NUM_ITEMS', 'NUM_QUESTIONS',
             'SELECTIVITY_GRAPH', 'CONSENSUS_STATUS_LIMITS', 'ACCURACY_COUNT', 'TRACK_SIZE',
-            'ADAPTIVE_CONSENSUS', 'CONSENSUS_SIZE_LIMITS', 'RENO_BONUS_RATIO', 'BAYES_ENABLED', 'RESIZE_ACTIVE_TASKS'
+            'ADAPTIVE_CONSENSUS', 'CONSENSUS_SIZE_LIMITS', 'RENO_BONUS_RATIO', 'BAYES_ENABLED', 'RESIZE_ACTIVE_TASKS',
+            'TASKS_PER_SECOND'
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file

@@ -3,7 +3,7 @@ from simulation_files.plotScript import *
 import numpy as np
 import csv
 import scipy
-from toggles import *
+# from toggles import *
 
 
 def importResponseTimes (filename):
@@ -28,5 +28,7 @@ restaurants = importResponseTimes("dynamicfilterapp/simulation_files/restaurants
 # multi_hist_gen([hotels[1], restaurants[1]], ["Hotels", "Restaurants"], "dynamicfilterapp/simulation_files/FalseDistributions.png",
 #                 labels = ("", "Response Times"), title = "False Response Times Distributed")
 
-# trueU, trueP = scipy.stats.mannwhitneyu(hotels[0], restaurants[0])
+# trueU, trueP = scipy.stats.mannwhitneyu(restaurants[0], restaurants[1])
+# print trueU
+# print trueP
 # falseU, falseP = scipy.stats.mannwhitneyu(hotels[1], restaurants[1])
