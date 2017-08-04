@@ -144,7 +144,7 @@ ITEM_SYS = 0
 # 2 - item-almost-false system
 
 SLIDING_WINDOW = False
-LIFETIME = 40
+LIFETIME = 20
 
 ADAPTIVE_QUEUE = True # should we try and increase the que length for good predicates
 ADAPTIVE_QUEUE_MODE = 0
@@ -161,13 +161,12 @@ QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3), (16,4)] # settings for above mode [(#ti
 
 
 
-
-DUMMY_TASKS = False # will distribute a placeholder task when "worker has no tasks
+DUMMY_TASKS = True # will distribute a placeholder task when "worker has no tasks
                    # to do" and will track the number of times this happens
 DUMMY_TASK_OPTION = 0
 # 0 gives a complete placeholder task
 
-GEN_GRAPHS = False # if true, any tests run will generate their respective graphs automatically
+GEN_GRAPHS = True # if true, any tests run will generate their respective graphs automatically
 
 #################### TESTING OPTIONS FOR REAL DATA ############################
 RUN_DATA_STATS = False
@@ -175,9 +174,8 @@ RUN_DATA_STATS = False
 RESPONSE_SAMPLING_REPLACEMENT = False # decides if we should sample our response data with or without replacement
 
 RUN_ABSTRACT_SIM = False
-
-ABSTRACT_VARIABLE = "UNCERTAINTY_THRESHOLD"
-ABSTRACT_VALUES = [.1, .2, .3]
+ABSTRACT_VARIABLE = "EDDY_SYS"
+ABSTRACT_VALUES = [1,2,6]
 
 #produces ticket count graph for 1 simulation
 COUNT_TICKETS = False
@@ -191,8 +189,11 @@ SINGLE_PAIR_RUNS = 50
 
 RUN_ITEM_ROUTING = False # runs a single test with two predicates, for a 2D graph showing which predicates were priotatized
 
-RUN_MULTI_ROUTING = False # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
+RUN_MULTI_ROUTING = True # runs NUM_SIM simulations and averges the number of "first items" given to each predicate, can auto gen a bar graph
 
+##################	EPSILON GREEDY MAB OPTIONS	##################
+EPSILON = 0.7
+REWARD = 1.7
 RUN_OPTIMAL_SIM = False # runs NUM_SIM simulations where IP pairs are completed in an optimal order. ignores worker rules
 
 ################### OPTIONS FOR REAL OR SYNTHETIC DATA ########################
@@ -232,10 +233,13 @@ VOTE_GRID = False #draws "Vote Grids" from many sims. Need RUN_CONSENSUS_COUNT o
 
 IDEAL_GRID = False #draws the vote grid rules for our consensus metric
 
+TEST_ACCURACY = False
 ## WILL ONLY RUN IF RUN_TASKS_COUNT IS TRUE ##
 OUTPUT_COST = False
 
-PACKING=False # Enable for "Packing" of outputs into a folder and generation of config.ini
+PRED_SCORE_COUNT = False
+
+PACKING = True # Enable for "Packing" of outputs into a folder and generation of config.ini
 
 if GEN_GRAPHS:
     print ''
@@ -261,7 +265,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'DUMMY_TASK_OPTION','GEN_GRAPHS','NUM_ITEMS','SIN',
             'SELECTIVITY_GRAPH','switch_list',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
-            'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS','RUN_AVERAGE_COST',
+            'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
             'BUFFER_TIME','MAX_TASKS_OUT','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
