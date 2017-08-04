@@ -26,7 +26,7 @@ CHOSEN_PREDS = [3,4]
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
 NUM_QUESTIONS = 2
-NUM_ITEMS = 100
+NUM_ITEMS = 5
 SIN = -1
 SELECTIVITY_GRAPH = False
 
@@ -99,7 +99,7 @@ DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
-NUM_SIM = 50
+NUM_SIM = 2
 
 SIMULATE_TIME = True # simulate time passing/concurrency
 
@@ -118,7 +118,7 @@ MAX_TASKS_COLLECTED = CUT_OFF
 # ************************************************************************ #
 
 # ___ FILE MANAGEMENT ____ #
-RUN_NAME = 'Old_Framework_Reproduce_50' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
+RUN_NAME = 'aaa_test' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
 GEN_GRAPHS = True
 PACKING=True
@@ -175,7 +175,7 @@ TRACK_SIZE = False
 VOTE_GRID = False
 IDEAL_GRID = False
 
-TIME_SIMS = False # NOT turning on simulated time; counting how long function calls take
+TIME_SIMS = True # NOT turning on simulated time; counting how long function calls take
 
 # ************************************************************************ #
 

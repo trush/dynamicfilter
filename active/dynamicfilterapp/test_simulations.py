@@ -485,6 +485,10 @@ class SimulationTest(TransactionTestCase):
 		for ip in IP_Pair.objects.all():
 			ip.reset()
 
+		self.pending_eddy_time_array.append(self.pending_eddy_time)
+		self.worker_done_time_array.append(self.worker_done_time)
+		self.sim_task_time_array.append(self.sim_task_time)
+		self.run_sim_time_array.append(self.run_sim_time)
 		self.num_tasks, self.num_incorrect, self.num_placeholders = 0, 0, 0
 		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time = 0, 0, 0, 0
 		self.simulated_time, self.cum_work_time, self.cum_placeholder_time = 0, 0, 0
@@ -724,7 +728,6 @@ class SimulationTest(TransactionTestCase):
 			return int(orig * 0.1)
 		else:
 			return int(orig * .05)
-
 
 	def set_tps(self, ratio, orig):
 		if ratio < .5:
@@ -1170,12 +1173,6 @@ class SimulationTest(TransactionTestCase):
 			self.num_real_tasks_array.append(self.num_real_tasks)
 			self.num_placeholders_array.append(self.num_placeholders)
 
-		if toggles.TIME_SIMS:
-			self.run_sim_time_array.append(self.run_sim_time)
-			self.pending_eddy_time_array.append(self.pending_eddy_time)
-			self.sim_task_time_array.append(self.sim_task_time)
-			self.worker_done_time_array.append(self.worker_done_time)
-
 		if toggles.TEST_ACCURACY:
 			self.get_incorrects()
 			self.num_incorrect_array.append(self.num_incorrect)
@@ -1562,11 +1559,7 @@ class SimulationTest(TransactionTestCase):
 			print "Timing simulation " + str(i+1)
 			self.run_sim(data)
 
-			self.run_sim_time_array.append(self.run_sim_time)
-			self.pending_eddy_time_array.append(self.pending_eddy_time)
-			self.sim_task_time_array.append(self.sim_task_time)
-			self.worker_done_time_array.append(self.worker_done_time)
-
+			# saves timed run data and clears database
 			reset_time = self.reset_database()
 			resetTimes.append(reset_time)
 
@@ -1581,33 +1574,32 @@ class SimulationTest(TransactionTestCase):
 			print "Wrote file: " +  toggles.OUTPUT_PATH + "timingSimulationsOut.csv"
 
 		if toggles.GEN_GRAPHS:
-			graphGen.function_timing(data, toggles.OUTPUT_PATH) # TODO clean commented section
+			# graphGen.function_timing(data, toggles.OUTPUT_PATH, toggles.SIMULATE_TIME) # TODO clean commented section
 			#
-			# line_graph_gen(range(0, toggles.NUM_SIM), self.run_sim_time_array,
-			# 				toggles.OUTPUT_PATH + toggles.RUN_NAME + "simTimes.png",
-			# 				labels = ("Number of simulations run", "Simulation runtime"))
-			#
-			# line_graph_gen(range(0, toggles.NUM_SIM), self.pending_eddy_time_array,
-			# 				toggles.OUTPUT_PATH + toggles.RUN_NAME + "eddyTimes.png",
-			# 				labels = ("Number of simulations run", "Total pending_eddy() runtime per sim"))
-			#
-			# line_graph_gen(range(0, toggles.NUM_SIM), self.sim_task_time_array,
-			# 				toggles.OUTPUT_PATH + toggles.RUN_NAME + "taskTimes.png",
-			# 				labels = ("Number of simulations run", "Total simulate_task() runtime per sim"))
-			#
-			# line_graph_gen(range(0, toggles.NUM_SIM), self.worker_done_time_array,
-			# 				toggles.OUTPUT_PATH + toggles.RUN_NAME + "workerDoneTimes.png",
-			# 				labels = ("Number of simulations run", "Total worker_done() runtime per sim"))
-			#
-			#
-			# xL = [range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM)]
-			# yL = [self.run_sim_time_array, self.pending_eddy_time_array, self.sim_task_time_array, self.worker_done_time_array]
-			#
-			# legends = ["run_sim()", "pending_eddy()", "simulate_task()", "worker_done()"]
-			# multi_line_graph_gen(xL, yL, legends,
-			# 					toggles.OUTPUT_PATH + toggles.RUN_NAME + "funcTimes.png",
-			# 					labels = ("Number simulations run", "Duration of function call (seconds)"),
-			# 					title = "Cum. Duration function calls vs. Number Simulations Run" + toggles.RUN_NAME)
+			line_graph_gen(range(0, toggles.NUM_SIM), self.run_sim_time_array,
+							toggles.OUTPUT_PATH + toggles.RUN_NAME + "simTimes.png",
+							labels = ("Number of simulations run", "Simulation runtime"))
+
+			line_graph_gen(range(0, toggles.NUM_SIM), self.pending_eddy_time_array,
+							toggles.OUTPUT_PATH + toggles.RUN_NAME + "eddyTimes.png",
+							labels = ("Number of simulations run", "Total pending_eddy() runtime per sim"))
+
+			line_graph_gen(range(0, toggles.NUM_SIM), self.sim_task_time_array,
+							toggles.OUTPUT_PATH + toggles.RUN_NAME + "taskTimes.png",
+							labels = ("Number of simulations run", "Total simulate_task() runtime per sim"))
+
+			line_graph_gen(range(0, toggles.NUM_SIM), self.worker_done_time_array,
+							toggles.OUTPUT_PATH + toggles.RUN_NAME + "workerDoneTimes.png",
+							labels = ("Number of simulations run", "Total worker_done() runtime per sim"))
+			
+			xL = [range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM)]
+			yL = [self.run_sim_time_array, self.pending_eddy_time_array, self.sim_task_time_array, self.worker_done_time_array]
+
+			legends = ["run_sim()", "pending_eddy()", "simulate_task()", "worker_done()"]
+			multi_line_graph_gen(xL, yL, legends,
+								toggles.OUTPUT_PATH + toggles.RUN_NAME + "funcTimes.png",
+								labels = ("Number simulations run", "Duration of function call (seconds)"),
+								title = "Cum. Duration function calls vs. Number Simulations Run" + toggles.RUN_NAME)
 
 	## Runs toggles.NUM_SIM simulations for uncertainties x voteSet different simulation configurations
 	# @param uncertainties An array of values that toggles.UNCERTAINTY_THRESHOLD will be set to

@@ -162,7 +162,7 @@ def single_pair_cost(data, dest):
 
     gen_message(dest)
 
-def function_timing(data, output_path):
+def function_timing(data, output_path, time):
     dest = output_path + "simTimes"
     line_graph_gen(data[0], data[1], dest+".png", labels=("Number of simulations run", "Simulation runtime") )
     gen_message(dest)
@@ -175,13 +175,17 @@ def function_timing(data, output_path):
     line_graph_gen(data[0], data[3], dest+".png", labels = ("Number of simulations run", "Total simulate_task() runtime per sim"))
     gen_message(dest)
 
-    dest = output_path + "workerDoneTimes"
-    line_graph_gen(data[0], data[4], labels=("Number of simulations run", "Total worker_done() runtime per sim") )
-    gen_message(dest)
+    if not time:
+        dest = output_path + "workerDoneTimes"
+        line_graph_gen(data[0], data[4], labels=("Number of simulations run", "Total worker_done() runtime per sim") )
+        gen_message(dest)
 
-    xL = [data[0]*(len(data)-1)]
+    xL = [data[0]*(len(data)-2)]
     yL = data[1:]
-    legends = ["run_sim()", "pending_eddy()", "simulate_task()", "worker_done()"]
+    legends = ["run_sim()", "pending_eddy()", "simulate_task()"]
+    if not time:
+        legends.append("worker_done()")
+        xL.append(data[0])
     labels = ("Number simulations run", "Duration of function call (seconds)")
     title = "Cum. Duration function calls vs. Number Simulations Run"
     dest = output_path + "funcTimes"
