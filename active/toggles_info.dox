@@ -62,12 +62,15 @@ appropriate format of each tuple: (task number, (select,amb), (select,amb)) \n
 \section alg Algorithm Settings
 \link dynamicfilterapp.toggles.EDDY_SYS EDDY_SYS \endlink - Selects which algorithm will be used
 to filter the IP Pairs. (See "Algorithm Design" for explanation of the workings of each algorithm.) \n
-Eddy System Guide:
+Algorithm Guide:
   - 1 - Pending Eddy (generation 1)
   - 2 - Random IP Pair selection
   - 3 - Controlled Run (for each item, evaluates first one predicate, then another)
-  - 5 - Pending Eddy (generation 2)
   - 4 - TODO: What is this?
+  - 5 - Pending Eddy (generation 2)
+  - 6 - Epsilon-Greedy MAB
+  - 7 - Decreasing Epsilon-Greedy MAB
+
 
 \n
 \link dynamicfilterapp.toggles.ITEM_SYS ITEM_SYS \endlink - Selects what logic will be used to decide
