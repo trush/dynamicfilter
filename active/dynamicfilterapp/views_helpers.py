@@ -89,7 +89,7 @@ def pending_eddy(ID):
 				incompleteIP = startedIPs
 			chosenIP = choice(incompleteIP)
 		else:
-			# print "Max tasks out is stopping a task from being given"
+
 			chosenIP = None
 
 
