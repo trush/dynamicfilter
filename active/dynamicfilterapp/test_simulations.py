@@ -744,7 +744,6 @@ class SimulationTest(TransactionTestCase):
 		workerDoneTimes = []
 		noTasks = 0
 		scores = []
-		ranks = []
 		ticketNums = []
 		selectivities = []
 
@@ -763,14 +762,6 @@ class SimulationTest(TransactionTestCase):
 		if toggles.SELECTIVITY_GRAPH:
 			for count in range(toggles.NUM_QUESTIONS):
 				selectivities.append([])
-
-		if toggles.PRED_RANK_COUNT:
-			if toggles.REAL_DATA:
-				for predNum in range(len(CHOSEN_PREDS)):
-					ranks.append([])
-			else:
-				for count in range(NUM_QUESTIONS):
-					ranks.append([])
 		
 		if toggles.PRED_SCORE_COUNT:
 			if toggles.REAL_DATA:
@@ -1052,16 +1043,6 @@ class SimulationTest(TransactionTestCase):
 					self.num_tasks_change_count.append(Task.objects.all().count())
 				time_clock += 1
 
-				
-				if PRED_RANK_COUNT:
-					if REAL_DATA:
-						for pred in range(len(toggles.CHOSEN_PREDS)):
-							predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[pred]+1)
-							ranks[pred].append(predicate.rank)
-					else:
-						for count in range(toggles.NUM_QUESTIONS):
-							predicate = Predicate.objects.get(pk=count+1)
-							ranks[count].append(predicate.rank)
 
 				if COUNT_TICKETS:
 					if REAL_DATA:
@@ -1140,17 +1121,6 @@ class SimulationTest(TransactionTestCase):
 					self.num_tasks += 1
 
 					
-					if PRED_RANK_COUNT:
-						if toggles.REAL_DATA:
-							for predNum in range(len(CHOSEN_PREDS)):
-								predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
-								predicate.refresh_from_db()
-								ranks[predNum].append(predicate.rank)
-						else:
-							for count in range(NUM_QUESTIONS):
-								predicate = Predicate.objects.get(pk=count+1)
-								predicate.refresh_from_db()
-								ranks[count].append(predicate.rank)
 
 					if toggles.PRED_SCORE_COUNT:
 						if toggles.REAL_DATA:
@@ -1268,23 +1238,7 @@ class SimulationTest(TransactionTestCase):
 								toggles.OUTPUT_PATH + "predScores" + str(self.sim_num) + ".png",
 								labels = ("time proxy", "scores"))
 
-		if toggles.PRED_RANK_COUNT:
-			predRankLegend = []
-			dest = OUTPUT_PATH+RUN_NAME+'_pred_ranking'
-			title = RUN_NAME + ' pred ranking'
-			dataToWrite = [ranks]
-			generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
-			if REAL_DATA:
-				numPreds = len(CHOSEN_PREDS)
-				for predNum in range(numPreds):
-					predRankLegend.append("Pred " + str(CHOSEN_PREDS[predNum]))
-			else:
-				numPreds = NUM_QUESTIONS
-				for predNum in range(numPreds):
-					predRankLegend.append("Pred " + str(predNum))
-			multi_line_graph_gen([range(self.num_tasks)]*numPreds, ranks, predRankLegend,
-								"dynamicfilterapp/simulation_files/output/graphs/" + RUN_NAME + "predRank.png",
-								labels = ("Number of tasks", "rank"))
+
 
 		if toggles.COUNT_TICKETS:
 
@@ -2026,11 +1980,6 @@ class SimulationTest(TransactionTestCase):
 			self.run_sim(sampleData)
 			self.reset_database()
 		
-		if PRED_RANK_COUNT and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
-			if DEBUG_FLAG:
-				print "Running: Rank count"
-			self.run_sim(sampleData)
-			self.reset_database()
 
 
 		if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):

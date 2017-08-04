@@ -113,13 +113,11 @@ def pending_eddy(ID):
 	elif (toggles.EDDY_SYS == 5):
 		chosenIP = nu_pending_eddy(incompleteIP)
 	
-	# standard epsilon-greedy MAB. 
-	# Chooses a predicate using selectPred.
+	else:
+	## standard epsilon-greedy MAB and decreasing epsilon-greedy MAB. 
+	# Chooses a predicate using selectPred if EDDY_SYS = 6 and annealingselectPred if EDDY_SYS = 7.
 	# chooses an IP with that predicate at random. Once IP is chosen,
 	# tasks are issued for only that IP until it passes or fails
-	elif (toggles.EDDY_SYS == 6):
-		allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
-		incompleteIP = incompleteIP.exclude(id__in=allTasksOut)
 		if incompleteIP.exists():
 			startedIPs = incompleteIP.filter(isStarted=True)
 			if len(startedIPs) != 0:
@@ -129,29 +127,12 @@ def pending_eddy(ID):
 			seen = set()
 			seen_add = seen.add
 			predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
-			chosenPred = selectPred(predicates)
-			predIPs = incompleteIP.filter(predicate=chosenPred)
-			chosenIP = choice(predIPs)
-		else:
-			chosenIP = None
-
-	# decreasing epsilon-greedy MAB system
-	# chooses a predicate using annealingSelectPred, and IP pair that has that predicate.
-	# tasks are issued for only that UP until it passes or fails.
-
-	elif(toggles.EDDY_SYS == 7):
-		allTasksOut = incompleteIP.filter(tasks_out__gte=MAX_TASKS_OUT)
-		incompleteIP = incompleteIP.exclude(id__in=allTasksOut)
-		if incompleteIP.exists():
-			startedIPs = incompleteIP.filter(isStarted=True)
-			if len(startedIPs) != 0:
-				incompleteIP = startedIPs
-			predicates = [ip.predicate for ip in incompleteIP]
-			#list of predicates are unique
-			seen = set()
-			seen_add = seen.add
-			predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
-			chosenPred = annealingSelectPred(predicates)
+			#standard epsilon-greedy MAB
+			if (toggles.EDDY_SYS == 6):
+				chosenPred = selectPred(predicates)
+			#decreasing epsilon-greedy MAB
+			if (toggles.EDDY_SYS == 7):
+				chosenPred = annealingSelectPred(predicates)
 			predIPs = incompleteIP.filter(predicate=chosenPred)
 			chosenIP = choice(predIPs)
 		else:

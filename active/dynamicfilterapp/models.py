@@ -235,17 +235,22 @@ class Predicate(models.Model):
 	def add_total_task(self):
 		self.totalTasks += 1
 		self.save(update_fields=["totalTasks"])
-#______________________ Mahlet's changes start here ____________________#
+
 	def inc_count(self):
 		self.count += 1
 		self.save(update_fields=["count"])
 
 	## update_pred updates the score of each predicate.
+	#  @param reward constant larger than than 1. A factor in how score is calculated.
+	#		  reward has no real impact on task count.
 	def update_pred(self, reward):
 		new_val = ((self.count+1)/float(self.count)) * self.score + (1/float(self.count)) * reward
 		self.score = new_val
 		self.save(update_fields = ["score"])
 
+	## update_pred_rank updates the score of each predicate using its rank.
+	#  @param reward constant larger than than 1.
+	#		  Predicates with lower rand are not scored as high
 	def update_pred_rank(self, reward):
 		self.refresh_from_db(fields=["rank"])
 		new_val = ((self.count+1)/float(self.count)) * self.rank + (1/float(self.count)) * reward
@@ -265,14 +270,9 @@ class Predicate(models.Model):
 		self.save(update_fields=["num_ip_complete"])
 	
 	def update_avg_tasks(self):
-		# if (self.num_ip_complete== 0):
-		# 	self.avg_tasks_per_pair = self.totalTasks
-		# else:
 		self.avg_tasks_per_pair = self.totalTasks / float(IP_Pair.objects.filter(isStarted=True, predicate=self).count())
-			#self.avg_tasks_per_pair = self.totalTasks / self.num_ip_complete
 		self.save(update_fields=["avg_tasks_per_pair"]) 
 
-#______________________ Mahlet's changes end here ____________________#
 
 	def inc_queue_length(self):
 		self.queue_length += 1
@@ -518,8 +518,7 @@ class IP_Pair(models.Model):
 					self.predicate.update_pred_rank(toggles.REWARD)
 
 				if (toggles.EDDY_SYS == 6):
-					if self.is_false():
-						self.predicate.update_pred(toggles.REWARD)
+					self.predicate.update_pred(toggles.REWARD)
 
 				self.save(update_fields=["value", "num_no"])
 
@@ -528,7 +527,6 @@ class IP_Pair(models.Model):
 				self.predicate.update_avg_tasks()
 				self.predicate.update_cost()
 				self.predicate.update_rank()
-			# TODO @ Mahlet add your update rank and stuff here!
 
 			self.set_done_if_done()
 
@@ -541,18 +539,15 @@ class IP_Pair(models.Model):
 				self.save(update_fields=["isDone"])
 				self.predicate.update_ip_count()
 
-				if (toggles.EDDY_SYS == 6 or toggles.EDDY_SYS == 7):
-					if self.is_false():
-						self.predicate.update_pred(toggles.REWARD)
-				
-				if(toggles.EDDY_SYS == 7):
-					if self.is_false():
-						self.predicate.update_pred_rank(toggles.REWARD)
-
 				if not self.is_false() and self.predicate.num_tickets > 1:
 					self.predicate.remove_ticket()
 
 				if self.is_false():
+					# update score when item fails 
+					if (toggles.EDDY_SYS == 6):
+						self.predicate.update_pred(toggles.REWARD)
+					if (toggles.EDDY_SYS == 7):
+						self.predicate.update_pred_rank(toggles.REWARD)
 					IP_Pair.objects.filter(item__hasFailed=True).update(isDone=True)
 
 				# helpful print statements
