@@ -251,7 +251,7 @@ class SimulationTest(TransactionTestCase):
 	# @returns A dictionary with keys that are IP pairs and values that are the "true" answer corresponding to
 	# that IP Pair.
 	def get_correct_answers(self, filename):
-	    #read in answer data
+		#read in answer data
 		raw = generic_csv_read(filename)
 		data = []
 		for row in raw:
@@ -265,8 +265,8 @@ class SimulationTest(TransactionTestCase):
 					raise ValueError("Error in correctAnswers csv file")
 			data.append(l)
 		answers = data
-	    # create an empty dictionary that we'll populate with (item, predicate) keys
-	    # and boolean correct answer values
+		# create an empty dictionary that we'll populate with (item, predicate) keys
+		# and boolean correct answer values
 		correctAnswers = {}
 
 		for line in answers:
@@ -519,16 +519,19 @@ class SimulationTest(TransactionTestCase):
 	# simulation runs, passed as a string.
 	# @param listOfValuesToTest an array of values that globalVar will be set to
 	def abstract_sim(self, dictionary, globalVar, listOfValuesToTest):
-		thismodule = sys.modules[__name__]
-		storage = getattr(thismodule, globalVar)
+		"""
+		Expirimental function that runs many sims with varrying values of globalVar
+		"""
+		storage = getattr(toggles, globalVar)
 		counts = []
 		for i in range(len(listOfValuesToTest)):
 			if toggles.DEBUG_FLAG:
 				print "Running for: " + str(listOfValuesToTest[i])
-			setattr(thismodule, globalVar, listOfValuesToTest[i])
+			setattr(toggles, globalVar, listOfValuesToTest[i])
 			counts.append([])
 			for run in range(toggles.NUM_SIM):
-				counts[i].append(self.run_sim(dictionary)[0])
+				self.run_sim(dictionary)
+				counts[i].append(self.num_tasks)
 				self.reset_database()
 				if toggles.DEBUG_FLAG:
 					print run
@@ -552,7 +555,7 @@ class SimulationTest(TransactionTestCase):
 		# 	elif toggles.DEBUG_FLAG:
 		# 		print "only ran one sim, ignoring hist_gen"
 
-		setattr(thismodule, globalVar, storage)
+		setattr(toggles, globalVar, storage)
 		return
 
 	## \todo Write a docstring for this
@@ -676,7 +679,7 @@ class SimulationTest(TransactionTestCase):
 					index = idD[pred]
 					sortedFalseIPs[index].append((item,pred))
 
-		num_tasks = 0
+		self.num_tasks = 0
 		# Do the false ones manually
 		# for each IP pair (in the right order)
 		for ls in sortedFalseIPs:
@@ -686,13 +689,13 @@ class SimulationTest(TransactionTestCase):
 				while not ip_pair.isDone:
 					workerID = self.pick_worker([0], [0])
 					self.simulate_task(ip_pair, workerID, dictionary)
-					num_tasks += 1
+					self.num_tasks += 1
 
 		# find the set of IP pairs still not eliminated
 		stillToDo = IP_Pair.objects.filter(isDone=False)
 		# if that list is empty, return now
 		if not stillToDo:
-			return num_tasks
+			return self.num_tasks
 
 		# else do the rest of the pairs randomly (all tasks per pair at once)
 		ip_pair = choice(stillToDo)
@@ -704,7 +707,7 @@ class SimulationTest(TransactionTestCase):
 
 			if not IP_Pair.objects.filter(isDone=False):
 				ip_pair = None
-				return num_tasks
+				return self.num_tasks
 
 			elif ip_pair.isDone:
 				ip_pair = choice(IP_Pair.objects.filter(isDone=False))
@@ -754,14 +757,33 @@ class SimulationTest(TransactionTestCase):
 		passedItems = []
 		itemsDoneArray = [0]
 		switch = 0
+		eddyTimes = []
+		taskTimes = []
+		workerDoneTimes = []
+		noTasks = 0
+		scores = []
+		ticketNums = []
+		selectivities = []
+
 		time_proxy = 0
 		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE # saves the initial size of the array
 		active_tasks_size = orig_active_tasks # keeps track of the current size of the array
 		tps_start = 3
 		secs = 0 # used to count time steps when tasks per second is less than 1
 		if toggles.SELECTIVITY_GRAPH:
-			for count in range(toggles.NUM_QUESTIONS):
+			for count in toggles.CHOSEN_PREDS:
 				self.pred_selectivities.append([])
+
+		if toggles.PRED_SCORE_COUNT:
+			if toggles.REAL_DATA:
+				for predNum in range(len(CHOSEN_PREDS)):
+					scores.append([])
+			else:
+				for count in range(NUM_QUESTIONS):
+					scores.append([])
+
+		totalWorkTime = 0
+		tasksArray = []
 
 		# array of workers who are busy
 		b_workers = [0]
@@ -779,7 +801,7 @@ class SimulationTest(TransactionTestCase):
 				self.pred_queues[pred+1] = []
 				self.ticket_nums[pred+1] = []
 		else:
-			for pred in range(toggles.NUM_QUESTIONS):
+			for pred in toggles.CHOSEN_PREDS:
 				self.pred_active_tasks[pred+1] = []
 				self.pred_queues[pred+1] = []
 				self.ticket_nums[pred+1] = []
@@ -793,7 +815,7 @@ class SimulationTest(TransactionTestCase):
 		# 		for predNum in range(len(toggles.CHOSEN_PREDS)):
 		# 			self.ticketNums.append([])
 		# 	else:
-		# 		for count in range(toggles.NUM_QUESTIONS):
+		# 		for count in toggles.CHOSEN_PREDS:
 		# 			self.ticketNums.append([])
 
 		# Setting up arrays for TRACK_SIZE
@@ -802,7 +824,7 @@ class SimulationTest(TransactionTestCase):
 				for predNum in range(len(toggles.CHOSEN_PREDS)):
 					self.consensus_size.append([])
 			else:
-				for count in range(toggles.NUM_QUESTIONS):
+				for count in toggles.CHOSEN_PREDS:
 					self.consensus_size.append([])
 
 		# If running Item_routing, setup needed values
@@ -1034,6 +1056,17 @@ class SimulationTest(TransactionTestCase):
 					self.num_tasks_change_count.append(Task.objects.all().count())
 				time_clock += 1
 
+
+				if COUNT_TICKETS:
+					if REAL_DATA:
+						for predNum in range(len(toggles.CHOSEN_PREDS)):
+							predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
+							ticketNums[predNum].append(predicate.num_tickets)
+					else:
+						for count in range(toggles.NUM_QUESTIONS):
+							predicate = Predicate.objects.get(pk=count+1)
+							ticketNums[count].append(predicate.num_tickets)
+
 				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 				#so we need index 0 of the tuple to get the time at which the switch should occur
 				if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] >= time_clock:
@@ -1081,18 +1114,7 @@ class SimulationTest(TransactionTestCase):
 						print "worker has no tasks to do"
 
 				else:
-					if (toggles.EDDY_SYS == 4):
-						try:
-							#test to see if ip_pair is the dummy or not
-							ipExists = IP_Pair.objects.get(pk=ip_pair.pk)
-							if(ip_pair.isDone == True):
-								ip_pair, eddy_time = pending_eddy(workerID)
-						except:
-							ip_pair, eddy_time = pending_eddy(workerID)
-							#print "here"
-					else:
-						ip_pair, eddy_time = pending_eddy(workerID)
-						self.pending_eddy_time += eddy_time
+					ip_pair = pending_eddy(workerID)
 
 					# If we should be running a routing test
 					# this is true in two cases: 1) we hope to run a single
@@ -1119,31 +1141,43 @@ class SimulationTest(TransactionTestCase):
 					move_window()
 					self.num_tasks += 1
 
-					# if toggles.COUNT_TICKETS:
-					# 	if toggles.REAL_DATA:
-					# 		for predNum in range(len(toggles.CHOSEN_PREDS)):
-					# 			predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
-					# 			self.ticketNums[predNum].append(predicate.num_tickets)
-					# 	else:
-					# 		for count in range(toggles.NUM_QUESTIONS):
-					# 			predicate = Predicate.objects.get(pk=count+1)
-					# 			self.ticketNums[count].append(predicate.num_tickets)
+
+
+					if toggles.PRED_SCORE_COUNT:
+						if toggles.REAL_DATA:
+							for predNum in range(len(CHOSEN_PREDS)):
+								predicate = Predicate.objects.get(pk=CHOSEN_PREDS[predNum]+1)
+								predicate.refresh_from_db()
+								scores[predNum].append(predicate.score)
+						else:
+							for count in range(NUM_QUESTIONS):
+								predicate = Predicate.objects.get(pk=count+1)
+								ticketNums[count].append(predicate.num_tickets)
 					if toggles.TRACK_SIZE:
 						if toggles.REAL_DATA:
 							for predNum in range(len(toggles.CHOSEN_PREDS)):
 								predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
 								self.consensus_size[predNum].append(predicate.consensus_max)
 						else:
-							for count in range(toggles.NUM_QUESTIONS):
-								predicate = Predicate.objects.get(pk=count+1)
-								self.consensus_size[count].append(predicate.consensus_max)
+							for predNum in toggles.CHOSEN_PREDS:
+								predicate = Predicate.objects.get(pk=predNum+1)
+								self.ticketNums[predNum].append(predicate.num_tickets)
+					if toggles.TRACK_SIZE:
+						if toggles.REAL_DATA:
+							for predNum in range(len(toggles.CHOSEN_PREDS)):
+								predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
+								self.consensus_size[predNum].append(predicate.consensus_max)
+						else:
+							for predNum in toggles.CHOSEN_PREDS:
+								predicate = Predicate.objects.get(pk=predNum+1)
+								self.consensus_size[predNum].append(predicate.consensus_max)
 
 					if toggles.SELECTIVITY_GRAPH:
-						for count in range(toggles.NUM_QUESTIONS):
-							predicate = Predicate.objects.get(pk=count+1)
+						for predNum in toggles.CHOSEN_PREDS:
+							predicate = Predicate.objects.get(pk=predNum+1)
 							predicate.refresh_from_db(fields=['trueSelectivity'])
 							#print "true selectivity: ", str(predicate.trueSelectivity)
-							self.pred_selectivities[count].append(predicate.trueSelectivity)
+							self.pred_selectivities[predNum].append(predicate.trueSelectivity)
 
 					#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 					#so we need index 0 of the tuple to get the time at which the switch should occur
@@ -1219,7 +1253,28 @@ class SimulationTest(TransactionTestCase):
 			output_selectivities(toggles.RUN_NAME) # TODO make sure this still works
 
 		if toggles.OUTPUT_COST:
-			output_cost(toggles.RUN_NAME) # TODO make sure this still works
+			output_cost(toggles.RUN_NAME)
+
+		if toggles.PRED_SCORE_COUNT:
+			if toggles.SIMULATE_TIME:
+				time_proxy = self.simulated_time
+			else:
+				time_proxy = self.num_tasks
+			predScoresLegend = []
+			if toggles.REAL_DATA:
+				xMultiplier = len(toggles.CHOSEN_PREDS)
+				for predNum in toggles.CHOSEN_PREDS:
+					predScoresLegend.append("Pred " + str(predNum))
+			else:
+				xMultiplier = toggles.NUM_QUESTIONS
+				for predNum in range(toggles.NUM_QUESTIONS):
+					predScoresLegend.append("Pred " + str(predNum))
+
+			multi_line_graph_gen([range(time_proxy)]*xMultiplier, scores, predScoresLegend,
+								toggles.OUTPUT_PATH + "predScores" + str(self.sim_num) + ".png",
+								labels = ("time proxy", "scores"))
+
+
 
 		if toggles.COUNT_TICKETS:
 
@@ -1228,19 +1283,13 @@ class SimulationTest(TransactionTestCase):
 			else:
 				time_proxy = self.num_tasks
 			ticketCountsLegend = []
-			if toggles.REAL_DATA:
-				xMultiplier = len(toggles.CHOSEN_PREDS)
-				for predNum in toggles.CHOSEN_PREDS:
-					ticketCountsLegend.append("Pred " + str(predNum))
+			xMultiplier = len(toggles.CHOSEN_PREDS)
+			for predNum in toggles.CHOSEN_PREDS:
+				ticketCountsLegend.append("Pred " + str(predNum))
 
-			else:
-				xMultiplier = toggles.NUM_QUESTIONS
-				for predNum in range(toggles.NUM_QUESTIONS):
-					ticketCountsLegend.append("Pred " + str(predNum))
-
-			# multi_line_graph_gen([range(time_proxy)]*xMultiplier, self.ticketNums, ticketCountsLegend,
-			# 					toggles.OUTPUT_PATH + "ticketCounts" + str(self.sim_num) + ".png",
-			# 					labels = ("time proxy", "Ticket counts"))
+			multi_line_graph_gen([range(time_proxy)]*xMultiplier, ticketNums, ticketCountsLegend,
+								toggles.OUTPUT_PATH + "ticketCounts" + str(self.sim_num) + ".png",
+								labels = ("time proxy", "Ticket counts"))
 
 		if toggles.TRACK_SIZE:
 			if not toggles.SIMULATE_TIME:
@@ -1252,7 +1301,7 @@ class SimulationTest(TransactionTestCase):
 						legend.append("Pred " + str(predNum))
 
 				else:
-					for predNum in range(toggles.NUM_QUESTIONS):
+					for predNum in toggles.CHOSEN_PREDS:
 						legend.append("Pred " + str(predNum))
 				generic_csv_write(dest+'.csv',self.consensus_size)
 				if toggles.GEN_GRAPHS:
@@ -1262,10 +1311,10 @@ class SimulationTest(TransactionTestCase):
 		# TODO have this graph use the correct arrays
 		if toggles.SELECTIVITY_GRAPH:
 			selectivitiesLegend = []
-			for predNum in range(toggles.NUM_QUESTIONS):
+			for predNum in toggles.CHOSEN_PREDS:
 				selectivitiesLegend.append("Pred " + str(predNum))
 
-			multi_line_graph_gen([range(self.num_tasks)]*toggles.NUM_QUESTIONS, self.pred_selectivities, selectivitiesLegend,
+			multi_line_graph_gen([range(self.num_tasks)]*len(toggles.CHOSEN_PREDS), self.pred_selectivities, selectivitiesLegend,
 								toggles.OUTPUT_PATH + "selectivities" + str(self.sim_num) + ".png",
 								labels = ("Number of tasks completed in single simulation", "Predicate selectivities"), scatter=True)
 
@@ -1282,6 +1331,8 @@ class SimulationTest(TransactionTestCase):
 				print "Wrote File: "+dest+'.csv'
 			if toggles.GEN_GRAPHS:
 				graphGen.item_routing(routingL[0],routingL[1], labels, dest)
+
+
 
 		# if we're multi routing
 		if toggles.RUN_MULTI_ROUTING:
@@ -1426,7 +1477,7 @@ class SimulationTest(TransactionTestCase):
 					ip.num_yes += 1
 				elif value == False:
 					ip.value -= 1
-					ip.num_no +=1
+					ip.num_no += 1
 
 				ip.status_votes += 1
 
@@ -1530,10 +1581,10 @@ class SimulationTest(TransactionTestCase):
 
 
 		for val in uncertainties:
-			num_tasks, incorrects = self.runSimTrackAcc(val, data)
+			self.num_tasks, incorrects = self.runSimTrackAcc(val, data)
 
-			numTasksAvgs.append(np.average(num_tasks))
-			numTasksStdDevs.append(np.std(num_tasks))
+			numTasksAvgs.append(np.average(self.num_tasks))
+			numTasksStdDevs.append(np.std(self.num_tasks))
 
 			incorrectAvgs.append(np.average(incorrects))
 			incorrectStdDevs.append(np.std(incorrects))
@@ -1591,7 +1642,7 @@ class SimulationTest(TransactionTestCase):
 			line_graph_gen(range(0, toggles.NUM_SIM), self.worker_done_time_array,
 							toggles.OUTPUT_PATH + toggles.RUN_NAME + "workerDoneTimes.png",
 							labels = ("Number of simulations run", "Total worker_done() runtime per sim"))
-			
+
 			xL = [range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM), range(0, toggles.NUM_SIM)]
 			yL = [self.run_sim_time_array, self.pending_eddy_time_array, self.sim_task_time_array, self.worker_done_time_array]
 
@@ -1771,6 +1822,26 @@ class SimulationTest(TransactionTestCase):
 			toggles.PENDING_QUEUE_SIZE = queue
 
 			self.placeholderActiveTest(data, task_array_sizes)
+
+	def itemRoutingTest(self):
+ 		systems = [1, 2, 5, 6, 8]
+ 		if toggles.REAL_DATA:
+ 			sampleData = self.load_data()
+ 			if toggles.RUN_DATA_STATS:
+ 				self.outout_data_stats(sampleData)
+ 				self.reset_database()
+ 		else:
+ 			sampleData = {}
+ 			syn_load_data()
+
+ 		for sys in systems:
+ 			toggles.EDDY_SYS = sys
+ 			toggles.RUN_NAME = "item_routing_test_"+str(sys)
+ 			toggles.OUTPUT_PATH = "dynamicfilterapp/simulation_files/output/"
+
+			print "current system: ", str(sys)
+			#self.test_simulation(sampleData)
+
 
 	## \todo write this docstring
 	def visualizeActiveTasks(self, data):
@@ -2034,7 +2105,7 @@ class SimulationTest(TransactionTestCase):
 			print self.getConfig()
 
 		if toggles.PACKING:
-			toggles.OUTPUT_PATH=toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
+			toggles.OUTPUT_PATH = toggles.OUTPUT_PATH+toggles.RUN_NAME+'/'
 			packageMaker(toggles.OUTPUT_PATH,self.getConfig())
 		if toggles.IDEAL_GRID:
 			self.consensusGrid()
@@ -2060,6 +2131,14 @@ class SimulationTest(TransactionTestCase):
 			self.run_sim(deepcopy(sampleData))
 			self.reset_database()
 
+		if PRED_SCORE_COUNT and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
+			if DEBUG_FLAG:
+				print "Running: Pred Score count"
+			self.run_sim(sampleData)
+			self.reset_database()
+
+
+
 		if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
 			if toggles.DEBUG_FLAG:
 				print "Running: ticket counting"
@@ -2083,8 +2162,8 @@ class SimulationTest(TransactionTestCase):
 			self.reset_database()
 			for i in range(toggles.NUM_SIM):
 				print "running optimal_sim " +str(i)
-				num_tasks = self.optimal_sim(sampleData)
-				countingArr.append(num_tasks)
+				self.num_tasks = self.optimal_sim(sampleData)
+				countingArr.append(self.num_tasks)
 				self.reset_database()
 			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
 			generic_csv_write(dest+'.csv',[countingArr])
@@ -2155,8 +2234,9 @@ class SimulationTest(TransactionTestCase):
 							print "Wrote File: " + dest
 					elif toggles.DEBUG_FLAG:
 						print "only ran one sim, not running hist_gen"
+
 			if toggles.RUN_MULTI_ROUTING:
-					dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + '_multi_routing.png'
+					dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + '_Eddy_sys_' + str(toggles.EDDY_SYS) + '_multi_routing.png'
 					title = toggles.RUN_NAME + ' Average Predicate Routing'
 					questions = toggles.CHOSEN_PREDS
 					arrayData = []

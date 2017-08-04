@@ -1,6 +1,7 @@
 from models import *
 import numpy as np
 from random import randint, choice
+from toggles import * #TODO necessary?
 
 import csv
 import sys
@@ -13,7 +14,7 @@ def syn_load_data():
 	"""
 	load in sythensized data
 	"""
-	for ID in range(toggles.NUM_QUESTIONS):
+	for ID in toggles.CHOSEN_PREDS:
 		q = Question.objects.create(question_ID=ID, question_text="question" + str(ID))
 		pred = Predicate.objects.create(predicate_ID=ID, question=q)
 		pred.setTrueSelectivity(toggles.switch_list[0][1+ID][0])
@@ -39,7 +40,7 @@ def syn_answer(chosenIP, switch, numTasks):
 
 	timeStepInfo = toggles.switch_list[switch]
 
-	for predNum in range(toggles.NUM_QUESTIONS):
+	for predNum in toggles.CHOSEN_PREDS:
 
 		pred = Predicate.objects.get(pk=predNum+1)
 		predInfo = timeStepInfo[predNum+1]
