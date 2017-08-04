@@ -4,7 +4,7 @@ import numpy as np
 
 def gen_message(dest):
     if toggles.DEBUG_FLAG:
-        print "Generated graph:" + dest+".png"
+        print "Generated graph: " + dest+".png"
 
 def placeholder_graphing(task_counts, task_dest, cum_times, cum_dest):
     """
@@ -130,3 +130,96 @@ def simulated_time_distributions(data, dest):
     multi_hist_gen(dataL, legendL, dest+".png", labels = labels, title=title, smoothness=True)
 
     gen_message(dest)
+
+def ips_done(data, dest, time):
+    if time:
+        num = 1
+        caption = "Time Steps"
+    else:
+        num = 2
+        caption = "Number of Tasks Completed"
+    labels = (caption, "Number IP Pairs Completed")
+    title = "Number IP Pairs Done vs. " + caption + " During 1 Simulation"
+    line_graph_gen(data[0], data[num], dest+".png", labels=labels, title=title)
+
+    gen_message(dest)
+
+def consensus_over_time(tasks, legend, consensus, dest):
+    multi_line_graph_gen([tasks]*len(legend), consensus, legend,
+                        dest + ".png", labels = ('Tasks','Max Num Tasks'),
+						title = "Consensus Algorithm Over Time")
+    gen_message(dest)
+
+def item_routing(data1, data2, labels, dest):
+    title = "Items Routed To Predicates During One Simulation"
+    line_graph_gen(data1, data2, dest+'.png', labels=labels, title=title, square=True)
+
+    gen_message(dest)
+
+def single_pair_cost(data, dest):
+    hist_gen(data, dest+".png", labels = ("Number of Tasks", "Frequency"),
+            title = "Distribution of Single Pair Cost", smoothness = True)
+
+    gen_message(dest)
+
+def function_timing(data, output_path, time):
+    dest = output_path + "simTimes"
+    line_graph_gen(data[0], data[1], dest+".png", labels=("Number of simulations run", "Simulation runtime") )
+    gen_message(dest)
+
+    dest = output_path + "eddyTimes"
+    line_graph_gen(data[0], data[2], dest+".png", labels=("Number of simulations run", "Total pending_eddy() runtime per sim"))
+    gen_message(dest)
+
+    dest = output_path + "taskTimes"
+    line_graph_gen(data[0], data[3], dest+".png", labels = ("Number of simulations run", "Total simulate_task() runtime per sim"))
+    gen_message(dest)
+
+    if not time:
+        dest = output_path + "workerDoneTimes"
+        line_graph_gen(data[0], data[4], labels=("Number of simulations run", "Total worker_done() runtime per sim") )
+        gen_message(dest)
+
+    xL = [data[0]*(len(data)-2)]
+    yL = data[1:]
+    legends = ["run_sim()", "pending_eddy()", "simulate_task()"]
+    if not time:
+        legends.append("worker_done()")
+        xL.append(data[0])
+    labels = ("Number simulations run", "Duration of function call (seconds)")
+    title = "Cum. Duration function calls vs. Number Simulations Run"
+    dest = output_path + "funcTimes"
+
+    multi_line_graph_gen(xL, yL, legends, dest+".png", labels=labels, title=title)
+    gen_message(dest)
+
+def accuracy_change_votes(xL, incorrList, incorrStdList, tasksList, taskStdList, legendList, output_path):
+    dest = output_path + "varyMinVotes_taskCounts"
+    labels = ("Uncertainty Threshold", "Avg. Number Tasks Per Sim")
+    title = "Average Number Tasks Per Sim Vs. Uncertainty, Varying Min. # Votes"
+    multi_line_graph_gen(xL, tasksList, legendList, dest+".png", labels=labels, title=title, stderrL=taskStdList)
+
+    gen_message(dest)
+
+    dest = output_path + "varyMinVotes_incorrectCounts"
+    labels = ("Uncertainty Threshold", "Avg. Number of Incorrect Items Per Sim")
+    title = "Average Number Incorrect Items Per Sim Vs. Uncertainty, Varying Min. # Votes"
+    multi_line_graph_gen(xL, incorrList, legendList, dest+".png",labels=labels, title=title, stderrL=incorrStdList )
+
+    gen_message(dest)
+
+def abstract_sim(globalVar, listOfValuesToTest, avgL, stdL, counts, output_path):
+    dest = output_path + "abstract_sim_"
+    labels = (str(globalVar),'Task Count')
+    title = "Impact of Varying " + str(globalVar) + " on Task Count"
+    line_graph_gen(listOfValuesToTest, avgL, dest+"_line.png", stderr=stdL, labels=labels, title=title )
+
+    gen_message(dest+"_line")
+
+    if len(counts[0]) > 1:
+        multi_hist_gen(counts, listOfValuesToTest, dest+"_hist.png", labels=labels, title=title )
+
+        gen_message(dest+"_hist")
+
+    else:
+        print "Only ran one sim, ignoring hist generation for abstract sim."

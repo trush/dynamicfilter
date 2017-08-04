@@ -112,9 +112,9 @@ def pending_eddy(ID):
 
 	elif (toggles.EDDY_SYS == 5):
 		chosenIP = nu_pending_eddy(incompleteIP)
-	
+
 	else:
-	## standard epsilon-greedy MAB and decreasing epsilon-greedy MAB. 
+	## standard epsilon-greedy MAB and decreasing epsilon-greedy MAB.
 	# Chooses a predicate using selectPred if EDDY_SYS = 6 and annealingselectPred if EDDY_SYS = 7.
 	# chooses an IP with that predicate at random. Once IP is chosen,
 	# tasks are issued for only that IP until it passes or fails
@@ -147,7 +147,7 @@ def pending_eddy(ID):
 		return chosenIP, runTime
 	return chosenIP
 
-	
+
 
 def nu_pending_eddy(incompleteIP):
 	# get a predicate using the ticketing system
@@ -246,7 +246,7 @@ def move_window():
 #______EPSILON-GREEDY MAB______#
 
 ## Function selects predicate from list of predicates
-# @param predList, a list of predicates being used in test 
+# @param predList, a list of predicates being used in test
 # If rNum is greater than EPSILON (value between 0 and 1 set in toggles file), return predicate with highest score,
 # if it is less than EPSILON, then function chooses a predicate arbitrarily.
 # implementation adapted from John Myles White's implementation from Github repository BanditsBook
@@ -257,13 +257,13 @@ def selectPred(predList):
 	rNum = random.random()
 	valueList = np.array([(pred.score) for pred in predList])
 	maxVal = max(valueList)
-	#The higher the epsilon, the higher the exploration probability 
+	#The higher the epsilon, the higher the exploration probability
 	if rNum > toggles.EPSILON:
 		maxPredlist = [pred for pred in predList if pred.score == maxVal]
 		chosenPred = random.choice(maxPredlist)
 		chosenPred.in_count()
 		return chosenPred
-	
+
 	else:
 		newPredlist = [pred for pred in predList if pred.score != maxVal]
 		if len(newPredlist)!= 0:
@@ -276,7 +276,7 @@ def selectPred(predList):
 #________ANNEALING-EPSILON-GREEDY MAB______#
 
 ## Function selects predicate from list of predicates
-# @param predList, a list of predicates being used in test 
+# @param predList, a list of predicates being used in test
 # @var epsilon, decreases over time
 # If rNum (a random number between 0 and 1) is greater than epsilon, return predicate with highest score,
 # if it is less than epsilon, then function chooses a predicate arbitrarily.
@@ -294,14 +294,14 @@ def annealingSelectPred(predList):
 	rNum = random.random()
 	valueList = np.array([(pred.score) for pred in predList])
 	maxVal = max(valueList)
-	
+
 	if rNum > epsilon:
 		#choose predicate with highest score
 		maxPredlist = [pred for pred in predList if pred.score == maxVal]
 		chosenPred = random.choice(maxPredlist)
 		chosenPred.inc_count()
 		return chosenPred
-	
+
 	else:
 		#choose random predicate that is not pred with highest score
 		newPredlist = [pred for pred in predList if pred.score != maxVal]

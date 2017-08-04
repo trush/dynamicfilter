@@ -127,6 +127,9 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothne
     ax.set_title(title)
     #ax.set_xlim(100, 320)
     ax.grid(True)
+    # puff up the y axis some
+    y_max = plt.axis()[3]
+    plt.ylim(ymax=y_max*1.25)
     plt.savefig(dest_resolver(dest))
 
 ## Generates a plot containing a line-graph
@@ -222,7 +225,7 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     # Add legend
     if len(xL) > 1:
         legend = ax.legend()
-    # save
+    # save # TODO undo this
     mx = 0
     for L in xL+yL:
         mx = max(list(L)+[mx])

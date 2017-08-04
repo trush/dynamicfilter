@@ -93,7 +93,7 @@ class Predicate(models.Model):
 
 	# Queue variables
 	queue_is_full = models.BooleanField(default=False)
-	
+
 	#variables for MAB
 	score = models.FloatField(default=0.0)
 	count = models.IntegerField(default=1)
@@ -164,7 +164,7 @@ class Predicate(models.Model):
 	total_time = models.FloatField(default=0.0)
 	avg_completion_time = models.FloatField(default=1.0)
 	avg_tasks_per_pair = models.FloatField(default=1.0)
-	
+
 	#field that stores rank of each predicate
 	rank = models.FloatField(default=0.0)
 
@@ -188,7 +188,7 @@ class Predicate(models.Model):
 		self.refresh_from_db(fields=["avg_tasks_per_pair"])
 		self.cost = self.avg_tasks_per_pair/float(toggles.CUT_OFF)# * (self.avg_completion_time/100)
 		self.save(update_fields=["cost"])
-	
+
 	def update_rank(self):
 		# if toggles.REAL_DATA:
 		# 	self.rank = (self.calculatedSelectivity)/self.cost
@@ -235,7 +235,7 @@ class Predicate(models.Model):
 
 		if IP_Pair.objects.filter(inQueue=True, predicate = self).count() < self.queue_length and self.queue_is_full:
 			raise Exception ("Queue for predicate " + str(self.id) + " set to full when not")
-	
+
 	def remove_ticket(self):
 		self.num_tickets -= 1
 		self.save(update_fields=["num_tickets"])
@@ -268,18 +268,18 @@ class Predicate(models.Model):
 	def add_total_time(self):
 		self.total_time  += random.choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
 		self.save(update_fields=["total_time"])
-	
+
 	def update_avg_compl(self):
 		self.avg_completion_time = self.total_time / self.totalTasks
 		self.save(update_fields=["avg_completion_time"])
-	
+
 	def update_ip_count(self):
 		self.num_ip_complete += 1
 		self.save(update_fields=["num_ip_complete"])
-	
+
 	def update_avg_tasks(self):
 		self.avg_tasks_per_pair = self.totalTasks / float(IP_Pair.objects.filter(isStarted=True, predicate=self).count())
-		self.save(update_fields=["avg_tasks_per_pair"]) 
+		self.save(update_fields=["avg_tasks_per_pair"])
 
 
 	def inc_queue_length(self):
@@ -331,7 +331,7 @@ class Predicate(models.Model):
 					break
 			return self.queue_length
 
-	
+
 	## Takes an IP-Pair into consideration for adaptive consensus metrics
 	# uses the mode set in toggles.ADAPTIVE_CONSENSUS_MODE
 	# @param ipPair an IP_Pair which has reached consensus
@@ -516,7 +516,7 @@ class IP_Pair(models.Model):
 			self.status_votes += 1
 			self.save(update_fields=["status_votes"])
 			self.predicate.award_wicket()
-			
+
 
 			if workerTask.answer:
 				self.value += 1
@@ -555,7 +555,7 @@ class IP_Pair(models.Model):
 					self.predicate.remove_ticket()
 
 				if self.is_false():
-					# update score when item fails 
+					# update score when item fails
 					if (toggles.EDDY_SYS == 6):
 						self.predicate.update_pred(toggles.REWARD)
 					if (toggles.EDDY_SYS == 7):
