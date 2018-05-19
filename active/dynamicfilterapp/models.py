@@ -565,8 +565,10 @@ class IP_Pair(models.Model):
 				# helpful print statements
 				if toggles.DEBUG_FLAG:
 					print "*"*96
-					print "Completed IP Pair: " + str(self.id)
+					print "Completed IP Pair: " + str(self.id) + "(Pred "+ str(self.predicate.predicate_ID) + ")"
 					print "Total votes: " + str(self.num_yes+self.num_no) + " | Total yes: " + str(self.num_yes) + " |  Total no: " + str(self.num_no)
+					if toggles.SIMULATE_TIME:
+						print "Tasks still out: " + str(self.tasks_out)
 					print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
 					print "*"*96
 
