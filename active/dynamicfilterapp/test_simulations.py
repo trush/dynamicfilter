@@ -1114,15 +1114,16 @@ class SimulationTest(TransactionTestCase):
 					# so should take this data every time we run.
 
 					if (toggles.RUN_ITEM_ROUTING and (not HAS_RUN_ITEM_ROUTING)) or toggles.RUN_MULTI_ROUTING:
-						# if this is a "new" item
-						if ip_pair.item.item_ID not in seenItems:
-							seenItems.add(ip_pair.item.item_ID)
-							# increment the count of that item's predicate
-							for i in range(len(predicates)):
-								if ip_pair.predicate == predicates[i]:
-									routingC[i]+=1
-								# and add this "timestep" to the running list
-								routingL[i].append(routingC[i])
+						if ip_pair is not None: # if this is a real ip pair
+							# if this is a "new" item
+							if ip_pair.item.item_ID not in seenItems:
+								seenItems.add(ip_pair.item.item_ID)
+								# increment the count of that item's predicate
+								for i in range(len(predicates)):
+									if ip_pair.predicate == predicates[i]:
+										routingC[i]+=1
+										# and add this "timestep" to the running list
+										routingL[i].append(routingC[i])
 
 					if toggles.REAL_DATA :
 						task = self.simulate_task(ip_pair, workerID, 0, dictionary)
