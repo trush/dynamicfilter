@@ -1523,7 +1523,7 @@ class SimulationTest(TransactionTestCase):
 		for ip in IP_Pair.objects.all():
 			#print len(dictionary[ip])
 			numTrue = sum(1 for vote in dictionary[ip] if vote)
-			numFalse = dictionary[ip].count() - numTrue
+			numFalse = len(dictionary[ip])- numTrue
 			overallVote = (numTrue > numFalse)
 			f.write(str(ip) + ', ' + str(numTrue) + ', ' + str(numFalse)
 				+ ', ' + str(overallVote) + '\n')
