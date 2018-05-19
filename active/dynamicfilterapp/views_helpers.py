@@ -215,17 +215,27 @@ def nu_pending_eddy(incompleteIP):
 			chosenIP.refresh_from_db()
 		return chosenIP
 
-	# if we can't do anything in the queue for that predicate, pick a random other thing to do
-	# find something for any predicate that isn't being worked on yet
-	if pickFrom.exists():
-		chosenIP = choice(pickFrom)
+	
+	# we can't do anything in the queue for that predicate, find something else
+	# can be for a different predicate (still can't exceed that predicate's queue length)
+	if toggles.DEBUG_FLAG:
+		print "Attempting last resort IP pick (worker can't do Pred " + str(chosenPred.predicate_ID) +")"
+	outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
+	lotteryPred = incompleteIP.filter(predicate = chosenPred)
+	lastResortPick = incompleteIP.exclude(id__in=lotteryPred).exclude(id__in=nonUnique).exclude(id__in=outOfFullQueue).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)	
+
+	if lastResortPick.exists():
+		chosenIP = choice(lastResortPick) # random choice from what's available
 		if not chosenIP.is_in_queue:
 			chosenIP.add_to_queue()
 			chosenIP.refresh_from_db()
 		return chosenIP
 
+
 	# if there's literally nothing left to be done, issue a placeholder task
 	else:
+		if toggles.DEBUG_FLAG:
+			print "Warning: no IP pair for worker"
 		return None
 
 
