@@ -1057,15 +1057,6 @@ class SimulationTest(TransactionTestCase):
 				time_clock += 1
 
 
-				if COUNT_TICKETS:
-					if REAL_DATA:
-						for predNum in range(len(toggles.CHOSEN_PREDS)):
-							predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
-							ticketNums[predNum].append(predicate.num_tickets)
-					else:
-						for count in range(toggles.NUM_QUESTIONS):
-							predicate = Predicate.objects.get(pk=count+1)
-							ticketNums[count].append(predicate.num_tickets)
 
 				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 				#so we need index 0 of the tuple to get the time at which the switch should occur
