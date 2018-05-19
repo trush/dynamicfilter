@@ -21,21 +21,24 @@ ITEM_TYPE = "Hotel"                   # "Hotel" or "Restaurant"
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
-if REAL_DATA:
-    CHOSEN_PREDS = [3,4]
-else:
-    CHOSEN_PREDS = range(len(switch_list[0]) - 1)
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
 NUM_QUESTIONS = 2
 NUM_ITEMS = 5
 SIN = -1
 SELECTIVITY_GRAPH = False
+switch_list = [ (0, (0.9, 0.75), (0.2, 0.75))]
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
 # tuples of form (task number, (select,amb), (select,amb))
-switch_list = [ (0, (0.9, 0.75), (0.2, 0.75))]
+
+# ___ PREDICATES (FOR REAL OR SYNTHETIC) ____ #
+if REAL_DATA:
+    CHOSEN_PREDS = [0,1]
+else:
+    CHOSEN_PREDS = range(len(switch_list[0]) - 1)
+
 
 # ************************************************************************ #
 
@@ -171,6 +174,7 @@ ACCURACY_COUNT = False
 
 OUTPUT_SELECTIVITIES = False
 OUTPUT_COST = False
+PRED_SCORE_COUNT = False
 
 RUN_CONSENSUS_COUNT = False
 CONSENSUS_LOCATION_STATS = False
