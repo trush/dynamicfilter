@@ -2301,7 +2301,6 @@ class SimulationTest(TransactionTestCase):
 		if toggles.RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
 
-		self.active_tasks_1(sampleData, 50)
 
 	# def test_3(self):
 	# 	if not toggles.RUN_ITEM_ROUTING:
