@@ -1,20 +1,39 @@
 /*!
-\page Information Concerning "toggles.py"
+\page toggles Information Concerning "toggles.py" File
 \tableofcontents
 \section input Input Settings
-REAL_DATA - Boolean; Determines whether actual worker responses will be loaded in for the simulation (from input files)
-or whether synthetic data will be generated.
+
+\link dynamicfilterapp.toggles.REAL_DATA REAL_DATA \endlink - Determines whether actual worker
+responses will be loaded in for the simulation (from input files) or whether synthetic data
+will be generated. \n
+
+\link dynamicfilterapp.toggles.TRUE_TIMES TRUE_TIMES \endlink - An array of times in seconds
+-- each comes from a worker task where the
+worker returned the answer "True" for an IP Pair. \n
+
+\link dynamicfilterapp.toggles.FALSE_TIMES FALSE_TIMES \endlink - An array of times in seconds
+-- each comes from a worker task where the
+worker returned the answer "False" for an IP Pair.
+
 
 \subsection realdata Real Data Settings
 
 \link dynamicfilterapp.toggles.ITEM_TYPE ITEM_TYPE \endlink - "Hotel", "Restaurant" \n
-\link dynamicfilterapp.toggles.INPUT_PATH INPUT_PATH \endlink - A string pointing toward the file containing the list of items, predicates, correct answers, etc.\n
-\link dynamicfilterapp.toggles.IP_PAIR_DATA_FILE IP_PAIR_DATA_FILE \endlink - The filename of the file containing actual worker responses for the appropriate dataset. \n
-\link dynamicfilterapp.toggles.REAL_DISTRIBUTION_FILE REAL_DISTRIBUTION_FILE \endlink - The filename of the file containing data about workers' task request frequency. \n
+
+\link dynamicfilterapp.toggles.INPUT_PATH INPUT_PATH \endlink - A string pointing toward the file
+containing the list of items, predicates, correct answers, etc.\n
+
+\link dynamicfilterapp.toggles.IP_PAIR_DATA_FILE IP_PAIR_DATA_FILE \endlink - The filename of the file
+containing actual worker responses for the appropriate dataset. \n
+
+\link dynamicfilterapp.toggles.REAL_DISTRIBUTION_FILE REAL_DISTRIBUTION_FILE \endlink - The
+filename of the file containing data about workers' task request frequency. \n
+
 \link dynamicfilterapp.toggles.CHOSEN_PREDS CHOSEN_PREDS \endlink -  Gives the numbers of the predicates that
 will be applied to the set of IP Pairs. These will be read in from a csv file in the INPUT_PATH folder. If
-\link dynamicfilterapp.toggles.EDDY_SYS EDDY_SYS \endlink = 3 (controlled system), the predicates will be applied to items in
-the order they appear in this array. \n
+
+\link dynamicfilterapp.toggles.EDDY_SYS EDDY_SYS \endlink = 3 (controlled system), the predicates
+will be applied to items in the order they appear in this array. \n
 \n
 Hotel Predicate Guide:
   - 0 - not selective and not ambiguous
@@ -30,48 +49,262 @@ Restaurant Predicate Guide:
   - 2,3,8 - least selective \n
 
 \subsection syndata Synthetic Data Settings
-\link dynamicfilterapp.toggles.NUM_QUESTIONS NUM_QUESTIONS \endlink - The number of questions/predicates that will be asked of synthetic dataset. \n
+
+\link dynamicfilterapp.toggles.NUM_QUESTIONS NUM_QUESTIONS \endlink - The number of questions/predicates
+that will be asked of synthetic dataset. \n
+
 \link dynamicfilterapp.toggles.NUM_ITEMS NUM_ITEMS \endlink - The number of items that will be filtered. \n
-\link dynamicfilterapp.toggles.switch_list switch_list \endlink - A list of tuples representing selectivity and cost of each predicate
-at different points in time/number of tasks. The appropriate format of each tuple:
-(task number, (select,amb), (select,amb)) \n
+
+\link dynamicfilterapp.toggles.switch_list switch_list \endlink - A list of tuples representing
+selectivity and cost of each predicate at different points in time/number of tasks. The
+appropriate format of each tuple: (task number, (select,amb), (select,amb)) \n
 
 \section alg Algorithm Settings
-\link dynamicfilterapp.toggles.EDDY_SYS EDDY_SYS \endlink - Selects which algorithm will be used to filter the IP Pairs. (See "Algorithm Design" for
-explanation of the workings of each algorithm.) \n
-Eddy System Guide:
+\link dynamicfilterapp.toggles.EDDY_SYS EDDY_SYS \endlink - Selects which algorithm will be used
+to filter the IP Pairs. (See "Algorithm Design" for explanation of the workings of each algorithm.) \n
+Algorithm Guide:
   - 1 - Pending Eddy (generation 1)
   - 2 - Random IP Pair selection
   - 3 - Controlled Run (for each item, evaluates first one predicate, then another)
+  - 4 - TODO: What is this?
   - 5 - Pending Eddy (generation 2)
-  - 4 \todo add what is going on here
+  - 6 - Epsilon-Greedy MAB
+  - 7 - Decreasing Epsilon-Greedy MAB
+
 
 \n
-\link dynamicfilterapp.toggles.ITEM_SYS ITEM_SYS \endlink - Selects what logic will be used to decide which \a item to send to a predicate next. \n
+\link dynamicfilterapp.toggles.ITEM_SYS ITEM_SYS \endlink - Selects what logic will be used to decide
+which \a item to send to a predicate next. \n
 Item System Guide:
   - 0 - Randomly choose an item
   - 1 - Item-started system (Items that have already been started will be preferred when choosing an item.)
-  - 2 - Item-almost-false system (Items that are close to being eliminated from the passing set will be preferred when choosing an item.)
-\n
-\link dynamicfilterapp.toggles.SLIDING_WINDOW SLIDING_WINDOW \endlink - Determines whether "windowing" will be turned on for a Pending Eddy algorithm. (See "Algorithm Design" for
-details on how this works and how it impacts the algorithm overall.) \n
-\link dynamicfilterapp.toggles.LIFETIME LIFETIME \endlink- Determines the "size" of the sliding window, measured in completed tasks (if in a non-time simulation) or in time steps (for a timed simulation).\n
-\n
-\link dynamicfilterapp.toggles.PENDING_QUEUE_SIZE PENDING_QUEUE_SIZE \endlink - An integer setting the length of the "queue" for a Pending Eddy system. (See "Algorithm Design" to learn about the meaning of this parameter for different algorithm setups.)\n
-\link dynamicfilterapp.toggles.ADAPTIVE_QUEUE ADAPTIVE_QUEUE \endlink - Determines whether PENDING_QUEUE_SIZE will be static throughout simulation or will vary. \n
-\link dynamicfilterapp.toggles.ADAPTIVE_QUEUE_MODE ADAPTIVE_QUEUE_MODE \endlink - \todo say stuff about this \n
+  - 2 - Item-almost-false system (Items that are close to being eliminated from the passing set will
+        be preferred when choosing an item.)
 
+
+\link dynamicfilterapp.toggles.SLIDING_WINDOW SLIDING_WINDOW \endlink - Determines whether "windowing"
+will be turned on for a Pending Eddy algorithm. (See "Algorithm Design" for details on how this works
+and how it impacts the algorithm overall.) \n
+
+\link dynamicfilterapp.toggles.LIFETIME LIFETIME \endlink- Determines the "size" of the sliding window, measured
+in completed tasks (if in a non-time simulation) or in time steps (for a timed simulation).\n
+\n
+\link dynamicfilterapp.toggles.PENDING_QUEUE_SIZE PENDING_QUEUE_SIZE \endlink - An integer setting the length of
+the "queue" for a Pending Eddy system. (See "Algorithm Design" to learn about the meaning of this parameter for
+different algorithm setups.)\n
+
+\link dynamicfilterapp.toggles.ADAPTIVE_QUEUE ADAPTIVE_QUEUE \endlink - Determines whether PENDING_QUEUE_SIZE
+will be static throughout simulation or will vary. \n
+
+\link dynamicfilterapp.toggles.ADAPTIVE_QUEUE_MODE ADAPTIVE_QUEUE_MODE \endlink - TODO: say stuff about this
+
+\link dynamicfilterapp.toggles.QUEUE_LENGTH_ARRAY QUEUE_LENGTH_ARRAY \endlink - A list of tuples of form
+(# tickets, queue length); when ADAPTIVE_QUEUE is turned on, the algorithm will check whether the number
+of tickets a predicate has exceeds the # tickets element of the tuple. If so, the queue length will be
+set to the second element of the tuple. \n
+
+\section voteGetting Consensus Settings
+
+\link dynamicfilterapp.toggles.NUM_CERTAIN_VOTES NUM_CERTAIN_VOTES \endlink - The number of
+worker votes collected before votes are aggregated and an answer is recorded (or more
+votes are collected). \n
+
+\link dynamicfilterapp.toggles.CUT_OFF CUT_OFF \endlink - The maximum number of worker votes
+collected before an answer is gathered from the votes by simple majority. \n
+
+\link dynamicfilterapp.toggles.SINGLE_VOTE_CUTOFF SINGLE_VOTE_CUTOFF \endlink - TODO: What
+does this do? \n
+
+\link dynamicfilterapp.toggles.BAYES_ENABLED BAYES_ENABLED \endlink - TODO: What does this do? \n
+
+\link dynamicfilterapp.toggles.UNCERTAINTY_THRESHOLD UNCERTAINTY_THRESHOLD \endlink - TODO: What
+does this do? \n
+
+\link dynamicfilterapp.toggles.FALSE_THRESHOLD FALSE_THRESHOLD \endlink - TODO: What does
+this do? \n
+
+\link dynamicfilterapp.toggles.ADAPTIVE_CONSENSUS ADAPTIVE_CONSENSUS \endlink - TODO:
+What does this do? \n
+
+\link dynamicfilterapp.toggles.ADAPTIVE_CONSENSUS_MODE ADAPTIVE_CONSENSUS_MODE \endlink -
+Selects algorithm that the adaptive consensus uses. \n
+
+Consensus Algorithm Options: \n
+  - 1 - RENO:  [https://en.wikipedia.org/wiki/TCP_congestion_control#TCP_Tahoe_and_Reno]
+  - 2 - TAHOE: See reno
+  - 3 - CUTE:  [goo.gl/etdxtC]
+  - 4 - CUBIC: [https://en.wikipedia.org/wiki/CUBIC_TCP]
+
+
+\link dynamicfilterapp.toggles.PREDICATE_SPECIFIC PREDICATE_SPECIFIC \endlink - If True, each
+predicate has its own adaptive Consensus metric. If False, same metric is used for all
+predicates. Recommended setting: True (useful when predicates' ambiguities differ from each
+other.) \n
+
+\link dynamicfilterapp.toggles.CONSENSUS_STATUS_LIMITS CONSENSUS_STATUS_LIMITS \endlink - TODO:
+What does this do? \n
+
+\link dynamicfilterapp.toggles.CONSENSUS_SIZE_LIMITS CONSENSUS_SIZE_LIMITS \endlink - TODO:
+What does this do? \n
+
+\link dynamicfilterapp.toggles.RENO_BONUS_RATIO RENO_BONUS_RATIO \endlink - TODO: What does
+this do? \n
+
+\link dynamicfilterapp.toggles.CONSENSUS_STATUS CONSENSUS_STATUS \endlink - TODO: What does
+this do? \n
+
+\link dynamicfilterapp.toggles.K K \endlink - TODO: What does this do? \n
+
+\link dynamicfilterapp.toggles.W_MAX W_MAX \endlink - TODO: What does this do? \n
+
+\link dynamicfilterapp.toggles.CUBIC_C CUBIC_C \endlink - TODO: What does this do? \n
+
+\link dynamicfilterapp.toggles.CUBIC_B CUBIC_B \endlink - TODO: What does this do? \n
 
 \section sim Simulation Settings
-\link dynamicfilterapp.toggles.NUM_WORKERS NUM_WORKERS \endlink- The number of unique workers that can be assigned tasks during a simulation. \n
-\link dynamicfilterapp.toggles.DISTRIBUTION_TYPE DISTRIBUTION_TYPE \endlink - Tells the function pick_worker() how to choose workers. \n
+
+\link dynamicfilterapp.toggles.NUM_WORKERS NUM_WORKERS \endlink - The number of unique workers
+that can be assigned tasks during a simulation. \n
+
+\link dynamicfilterapp.toggles.DISTRIBUTION_TYPE DISTRIBUTION_TYPE \endlink - Tells the function
+\link dynamicfilterapp.test_simulations.pick_worker() pick_worker() \endlink how to choose workers. \n
 Distribution Guide:
   - 0  -  Uniform Distribution; (all worker equally likely)
   - 1  -  Geometric Distribution; (synthetic graph which fits out data well)
   - 2  -  Real Distribution (samples directly from the real data)
-\n
-\section consensus Consensus Settings
+
+
+\link dynamicfilterapp.toggles.DUMMY_TASKS DUMMY_TASKS \endlink - When turned on, "placeholder"
+tasks will be handed to workers when no IP Pair is available for them to work on, according
+to the algorithm in use. When turned off, "Worker has no tasks to do" will be printed to the
+screen. \n
+
+\link dynamicfilterapp.toggles.DUMMY_TASK_OPTION DUMMY_TASK_OPTION \endlink - Not currently
+fully implemented; now, the only option for placeholders is to distribute tasks that are
+associated with no IP Pair and give no information to the algorithm. \n
+
+\link dynamicfilterapp.toggles.RESPONSE_SAMPLING_REPLACEMENT RESPONSE_SAMPLING_REPLACEMENT
+\endlink - TODO: What does this do? \n
+
+\link dynamicfilterapp.toggles.NUM_SIM NUM_SIM  \endlink - The number of repetitions of a
+simulation that will be run. \n
+
+\link dynamicfilterapp.toggles.TIME_SIMS TIME_SIMS \endlink - Turns on functionality that
+tracks the computer runtime for various functions within the algorithm run. Useful for
+identifying functions/processes that are computationally expensive. \n
+
+\link dynamicfilterapp.toggles.SIMULATE_TIME SIMULATE_TIME \endlink - Turns on ability to
+simulate time during simulations. With this turned on, multiple tasks can be released at
+each time step, and tasks take time to complete beforethey are collected. \n
+
+\link dynamicfilterapp.toggles.ACTIVE_TASKS_SIZE ACTIVE_TASKS_SIZE  \endlink - The size of the
+array that keeps track of which tasks are in progress during a simulation with simulated time.
+The larger this number, the more "traffic" our task batch is experiencing. \n
+
+\link dynamicfilterapp.toggles.BUFFER_TIME BUFFER_TIME  \endlink - The number of time steps
+between when a task is added to the active array and when it "starts". \n
+
+\link dynamicfilterapp.toggles.MAX_TASKS_OUT MAX_TASKS_OUT \endlink - The maximum number of
+tasks that an IP Pair is allowed to have in the active tasks array at any given point in
+time. \n
+
+\link dynamicfilterapp.toggles.MAX_TASKS_COLLECTED MAX_TASKS_COLLECTED \endlink - The maximum
+number of tasks that can be distributed for a given IP Pair in total. \n
+
 \section output Output Settings
-\link dynamicfilterapp.toggles.OUTPUT_PATH OUTPUT_PATH \endlink - A string pointing toward the desired destination for simulation output files.\n
-\section
+\subsection file File Management
+
+\link dynamicfilterapp.toggles.OUTPUT_PATH OUTPUT_PATH \endlink - A string pointing toward
+the desired destination for simulation output files.\n
+
+\link dynamicfilterapp.toggles.GEN_GRAPHS GEN_GRAPHS \endlink - Turn on or off the generation
+of various graphs associated with collecting various types of data. \n
+
+\link dynamicfilterapp.toggles.PACKING PACKING \endlink - If turned on, will create a folder
+named RUN_NAME that will contain any and all output files, and a file containing all of the
+settings from toggles.py as they were during the simulated runs. \n
+
+\subsection data Data Collection About Real Data
+
+\link dynamicfilterapp.toggles.RUN_DATA_STATS RUN_DATA_STATS \endlink - TODO: What does
+this do? \n
+
+\link dynamicfilterapp.toggles.RUN_AVERAGE_COST RUN_AVERAGE_COST \endlink - TODO: What does
+this do? \n
+
+\link dynamicfilterapp.toggles.COST_SAMPLES COST_SAMPLES \endlink - TODO: What does this
+do? \n
+
+\link dynamicfilterapp.toggles.RUN_SINGLE_PAIR RUN_SINGLE_PAIR \endlink - TODO: What does
+this do? \n
+
+\link dynamicfilterapp.toggles.SINGLE_PAIR_RUNS SINGLE_PAIR_RUNS \endlink - TODO: What does
+this do? \n
+
+\link dynamicfilterapp.toggles.RUN_ITEM_ROUTING RUN_ITEM_ROUTING \endlink - TODO: What does
+this do? \n
+
+\link dynamicfilterapp.toggles.RUN_MULTI_ROUTING RUN_MULTI_ROUTING \endlink - TODO: What
+does this do? \n
+
+\link dynamicfilterapp.toggles.RUN_OPTIMAL_SIM RUN_OPTIMAL_SIM \endlink - TODO: What does
+this do? \n
+
+\subsection data2 Data Collection About Real/Synthetic Data
+
+\link dynamicfilterapp.toggles.COUNT_TICKETS COUNT_TICKETS \endlink - TODO: What does
+this do?\n
+
+\link dynamicfilterapp.toggles.TRACK_QUEUES TRACK_QUEUES \endlink - TODO: What does this
+do?\n
+\link dynamicfilterapp.toggles.RUN_ABSTRACT_SIM RUN_ABSTRACT_SIM \endlink - TODO: What
+does this do? \n
+
+\link dynamicfilterapp.toggles.ABSTRACT_VARIABLE ABSTRACT_VARIABLE \endlink - TODO: What
+does this do? \n
+
+\link dynamicfilterapp.toggles.ABSTRACT_VALUES ABSTRACT_VALUES \endlink - TODO: What
+does this do? \n
+
+\link dynamicfilterapp.toggles.RUN_TASKS_COUNT RUN_TASKS_COUNT  \endlink - Simulates the
+process of distributing tasks to workers -- actually calls
+\link dynamicfilterapp.test_simulations.run_sim() run_sim() \endlink \n
+
+\link dynamicfilterapp.toggles.TRACK_IP_PAIRS_DONE TRACK_IP_PAIRS_DONE  \endlink - TODO:
+What does this do? \n
+
+\link dynamicfilterapp.toggles.TRACK_ACTIVE_TASKS TRACK_ACTIVE_TASKS  \endlink - Keeps
+track of how many tasks there are for each predicate within the active tasks array.
+If GEN_GRAPHS is turned on, this will produce a visual representation of the contents
+of the active tasks array over the course of a simulation. \n
+
+\link dynamicfilterapp.toggles.TRACK_PLACEHOLDERS TRACK_PLACEHOLDERS  \endlink - Keeps a
+running count of how many placeholder tasks are released over the course of a simulation. \n
+
+\link dynamicfilterapp.toggles.TEST_ACCURACY TEST_ACCURACY  \endlink - TODO: What
+does this do? \n
+
+\link dynamicfilterapp.toggles.ACCURACY_COUNT ACCURACY_COUNT  \endlink - TODO: What
+does this do? \n
+
+\link dynamicfilterapp.toggles.OUTPUT_SELECTIVITIES OUTPUT_SELECTIVITIES  \endlink - TODO: What
+does this do? \n
+
+\link dynamicfilterapp.toggles.OUTPUT_COST OUTPUT_COST  \endlink - TODO: What
+does this do? \n
+
+\link dynamicfilterapp.toggles.RUN_CONSENSUS_COUNT RUN_CONSENSUS_COUNT  \endlink - Keeps track
+of the number of tasks needed before consensus for each IP Pair. \n
+
+\link dynamicfilterapp.toggles.CONSENSUS_LOCATION_STATS CONSENSUS_LOCATION_STATS \endlink What
+does this do? \n
+
+\link dynamicfilterapp.toggles.TRACK_SIZE TRACK_SIZE \endlink What does this do? \n
+
+\link dynamicfilterapp.toggles.VOTE_GRID VOTE_GRID \endlink Draws "Vote Grids" from many
+simulations. RUN_CONSENSUS_COUNT must be on. Works with accuracy. TODO: What does
+that mean? \n
+
+\link dynamicfilterapp.toggles.IDEAL_GRID IDEAL_GRID \endlink What does this do? \n
+
 */
