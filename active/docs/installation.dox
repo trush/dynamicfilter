@@ -1,0 +1,230 @@
+/*!
+\page install_info Installation Guide
+\tableofcontents
+
+\section install Installation
+This part of the guide will walk you through installing the necessary software for the Dynamic Filter. which is a Django project. It will use <a href="https://virtualenv.pypa.io/en/stable/" target="blank_">`virtualenv`</a> for many of the Python packages to create an isolated environment. Using `virtualenv` is not required, but recommended. 
+
+This guide is catered for Mac OS X, but the process should be similar on other systems.
+
+\subsection prereqs Prerequisites (Python 2.7, pip)
+
+This project currently supports only Python 2.7. You likely have Python already installed if you have Mac OS 10.13, but you can check which version using this command on the command line, assuming `$>` is the prompt:
+
+    $> python --version
+
+If you see a Python 3.x version printed (or get a "command not found" error), you'll want to install Python 2.7. A helpful installation tool for Mac OS X is <a href="https://brew.sh/">Homebrew</a>. See their installation guide. You can then use `brew info` to check if you have Python 2.7 installed:
+
+    $> brew info python@2 
+
+And to install it if not:
+
+    $> brew install python@2
+    
+You will also want the python package installer called `pip`. If you installed a recent version of Python 2.7, you likely already have `pip`. You can confirm by checking its version:
+
+    $> pip --version
+    pip 10.0.1 from /Library/Python/2.7/site-packages/pip-10.0.1-py2.7.egg (python 2.7)    
+
+It's usually a good idea to make sure you're using the latest version of `pip`. To update it:
+
+    $> pip install -U pip
+
+If you don't have `pip`, check out the <a href="https://packaging.python.org/tutorials/installing-packages/" target="blank_">Python packages installation guide</a>.
+
+\subsection pg PostgreSQL Install and Setup
+
+This project uses <a href="https://www.postgresql.org/" target="blank_">PostgresQL</a> as its database backend for Django. This section will first guide you through installing PostgreSQL and starting/stopping it as <a href="https://www.postgresql.org/docs/current/static/tutorial-arch.html">a server process</a> that accepts requests from client programs, such as the Dynamic Filter Django project. The second part of this section gets a Postgres database set up to use with Dynamic Filter.
+
+\subsubsection pginstall Installation and running
+
+We recommend using Homebrew to install Postgres. This may take some time if there are dependencies that need to be installed at the same time:
+
+    $> brew install postgres
+
+At the end of the installation, Homebrew shows you the commands to start Postgres (if you missed it, you can see it again with the command `brew info postgres`). As mentioned there, one option is to start the Postgres server using the `pg_ctl` program, which would look something like this: 
+
+    $> pg_ctl -D /usr/local/var/postgres start
+
+To stop, simply replace the "start" with "stop". 
+
+If you want Postgres to start automatically every time you turn on your computer, you can ask Homebrew to run it as a service. You can first get Homebrew's services if you don't have it already:
+
+    $> brew tap homebrew/services
+
+Then tell Homebrew to start Postgres as a service:
+
+    $> brew services start postgresql
+
+\subsubsection pgconfig Database configuration
+
+The Django project for Dynamic Filter needs its own login credentials to interact with Postgres. The username and password should be the same as what is specified in the `DATABASES` configuration in `dynamicfiltersite/settings.py`. Here we'll assume a username of "webapp" with the password "dynamicfilter". To get started with the setup, use the command-line client program `psql` to open a session with Postgres:
+
+    $> psql postgres
+    psql (10.3)
+    Type "help" for help.
+
+    postgres=# 
+    
+Now you are logged in to a database called `postgres`, with a username that likely matches your computer's username. At the prompt, enter `\du` to see a list of users. You can also view a list of databases using the command `\list`.
+
+Next we'll create a user and a database to be used with the Django project. At the Postgres prompt, create the user with password:
+
+    postgres=# CREATE ROLE webapp WITH LOGIN PASSWORD 'dynamicfilter';
+
+Enter `\du` to make sure that you actually created a new user. Note that `webapp` has no permissions yet. Now we'll fix that. Enter:
+
+    postgres=# ALTER ROLE webapp CREATEDB;
+
+Enter `\du` again to make sure `webapp` actually has the ability to create databases. Then use `\q` to leave the `psql` command-line. 
+
+Next we'll login to `psql`, this time as the newly created `webapp` user:
+
+    $> psql postgres -U webapp
+    
+Finally, we need to create a database for use with the Dynamic Filter project:
+
+    postgres=# CREATE DATABASE dynamicfilter4;
+
+You can use `\list` to ensure the database shows up in the list of databases. Then use `\q` to exit `psql`.
+
+
+
+
+\subsection virtualenv Virtualenv Install and Activation
+
+A "virtual environment" is a helpful tool for keeping the dependencies required by a project isolated on your computer. For example, you can prevent the dependencies needed for a Python 2.7 project from interfering with a Python 3 project.  While not required, we recommend using it.
+
+You can install `virtualenv` using `pip`:
+
+    $> pip install virtualenv
+
+
+With `virtualenv` installed, we can now create the environment to run Dynamic Filter. We'll first create a virtual environment called `dfenv` (you can name it whatever you want) and install the dependencies needed for the project within that environment. 
+
+Creating a virtual environment using `virtualenv` will make a new directory with the same name as the environment, as well as create several subdirectories. To help prevent any confusion with the directories associated with the Dynamic Filter project, we recommend running the following command in the <i><b>parent</b></i> directory of where you cloned this Github project. For example, if you cloned into `/grandparent/parent/dynamicfilter`, we recomend running the command in `/grandparent/parent`.
+
+First we'll create the environment and explicitly state which python will be used. You should replace the path in the following command with what is right for you:
+
+    $> virtualenv -p /usr/bin/python dfenv
+    
+To "jump into" the environment, enter:
+
+    $> source dfenv/bin/activate
+    
+You should see the environment name prepended to your command prompt. Note: when you want to "jump out", you can enter: 
+
+    (dfenv) $> deactivate
+
+\subsection envsetup Environment Setup
+
+Whether or not you use `virtualenv`, you will need to install Django and the python dependencies needed for this project. 
+
+The latest version of Django that supports Python 2.7 is <a href="https://docs.djangoproject.com/en/1.11/" target="blank_">Django 1.11</a>, so we'll install that using `pip`:
+
+    (dfenv) $> pip install Django==1.11
+
+Next we will install the python packages `psycopg2`, `numpy`, `scipy`, `seaborn`, and `matplotlib`. The first package helps Python talk to Postgres. We need `numpy` and `scipy` for certain numerical tools and the rest for creating plots.
+
+You can use `pip` to install each of these packages inside your virtual environment, replacing "PACKAGE" with each of the package names:
+
+    (dfenv) $> pip install PACKAGE
+
+    
+\section running Running a Simulation
+
+
+Now that the project is installed, we can run a few simulations of Dynamic Filter to see it in action. The simulations run as part of the unit testing framework within Django. We'll be running commands from the Dynamic Filter directory that contains `manage.py` (currently called `active`); `cd` into that directory if you aren't there already.
+
+\subsection simsetup Setup
+
+Before we run simulations, you should check that Postgres has an up-to-date understanding of the Django models (described in in `models.py`). Django manages updates to its models with <i>migrations</i>, which are essentially a log of changes to the models that can be (re)played to update the models' representation in the Postgres database.
+
+First apply the initial migration to create the database tables:
+
+    (dfenv) $> python manage.py migrate
+
+Now check if Django needs to make any new migration files to reflect changes in `models.py` that have been made since the initial one:
+
+    (dfenv) $> python manage.py makemigrations dynamicfilterapp
+
+Then apply those migrations:
+
+    (dfenv) $> python manage.py migrate
+
+
+\subsection example Example: Hotels, two predicates
+
+On to simulations! The testing framework can run a variety of configurations. These settings live in the `toggles.py` file. Open `toggles.py` in a text editor so that you can make changes. We will be using the "Hotel" data set and simulating Dynamic Filter with two predicates: <i>Has a gym?</i> and <i>Costs under $80/night?</i>. As a note, more documentation on the settings in this file can be found on the \link toggles Toggles Info \endlink page.
+
+Once you have opened `toggles.py`, you can decide how you want to set the `DEBUG_FLAG`; setting it to `True` will cause debugging information to print to the console. 
+
+Next, move onto the Input Settings section and be sure you have these values:
+
+    REAL_DATA = True
+
+    INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
+    ITEM_TYPE = "Hotel"
+    IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
+    REAL_DISTRIBUTION_FILE = 'workerDist.csv'
+
+To select the two predicates we want to use, set the chosen predicates (the one for use with `REAL_DATA`):
+
+    CHOSEN_PREDS = [0,1]
+
+In the Algorithm Settings section, denote that we'll be using the "nu" pending eddy algorithm with this queue size: 
+
+    EDDY_SYS = 5
+    PENDING_QUEUE_SIZE = 1
+
+In the Consensus Settings, be sure you have:
+
+    BAYES_ENABLED = True
+
+For the simulation settings, we'll do two simulations runs:
+
+    NUM_SIM = 2
+
+Finally, for the Output Settings, we'll ask for graphs to be made, particularly the graph that shows the distribution of task counts for the simulations (note that the graphs will appear in a subdirectory denoted by `OUTPUT_PATH/RUN_NAME`):
+
+    GEN_GRAPHS = True
+    PACKING = True
+    RUN_TASKS_COUNT = True
+    
+All other true/false settings should be `False` and other numerical settings can remain as their default values. 
+
+Save and close `toggles.py` and run the simulation:
+
+    (dfenv) $> python manage.py test dynamicfilterapp.test_simulations
+
+You will be prompted to confirm that you <i>really</i> do want graphs produced, to which you can say yes. Hopefully the run succeeded and you can view the task count graph! For this configuration you should expect an average task count around 600.
+
+\subsection stats More simulation configurations
+
+Here are a few other settings you can experiment with:
+
+- You can get more plots that describe what happened during the simulations by setting these two flags: 
+
+      RUN_MULTI_ROUTING = True
+      COUNT_TICKETS = True
+
+    Turning on `RUN_MULTI_ROUTING` will yield a bar plot at the end of all simulation runs that shows for each predicate how many items were routed to that predicate <i>first</i>; these figures represent an average all simulation runs.  Turning on `COUNT_TICKETS` will yield one plot <b>per simulation run</b> that depicts how many tickets each predicate had over time during the run.
+      
+- The value of `EDDY_SYS` determines which routing algorithm to use. So far we've been using the Dynamic Filter (aka the pending eddy) algorithm. You can also try using a random routing algorithm by setting `EDDY_SYS = 2`. Or you could try an algorithm that always first routes items to the first predicate in the CHOSEN_PREDS array (use `EDDY_SYS = 3`). See the \link toggles Toggles Info \endlink page for more information. 
+
+    Note: since these comparison algorithms don't use lottery scheduling with tickets, you can set `COUNT_TICKETS = False` to avoid having pointless plots generated (no pun intended).
+    
+    
+- Instead of using the "Hotel" data set, which consists of real worker responses from Amazon's Mechanical Turk, you can use synthetic data. You should turn off `REAL_DATA` and choose how many predicates (questions) and items, e.g.,
+
+      REAL_DATA = False
+    
+      NUM_QUESTIONS = 2
+      NUM_ITEMS = 5
+      
+    You'll also need to choose the selectivity and ambiguity for each predicate and enter it into `switch_list`. The tuples are of the form `(task number, (select,amb), (select,amb))`. To keep the same selectivity and ambiguity throughout the simulation you'll just need one tuple that starts at task `0`. For example:
+   
+        switch_list = [ (0, (0.9, 0.75), (0.2, 0.75))]
+
+
+*/

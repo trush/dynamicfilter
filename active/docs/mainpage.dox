@@ -3,6 +3,9 @@
 \section intro Introduction
 The Dynamic Filter works at the intersection of human computing and query processing, to make filtering a database using Amazon's Mechanical Turk (AMT) more efficient. The Dynamic Filter uses an adaptive approach to address the problem of not knowing filter selectivity and cost \a a \a priori, without seeking to directly estimate either metric. The approach is strongly based on the algorithm described in the paper "Eddies: Continuously Adaptive Query Processing" by Avnur and Hellerstein.
 
+\section gettingstarted Getting Started
+To get the codebase set up, check out the \ref install_info "Installation Guide"
+
 \section defs Definitions
 - \b Amazon's \b Mechanical \b Turk: A service provided by Amazon, where workers can use the site to complete Human Intelligence Tasks (HITs) posted by developers/researchers like us.
 - \b Human \b Intelligence \b Task \b (HIT): A task issued on AMT to a worker/workers. Typical HITs include identifying what kinds of things are in a photo or transcribing a short audio clip. Workers are compensated with a small monetary reward (money or Amazon store credit).
