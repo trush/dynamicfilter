@@ -13,7 +13,7 @@ DEBUG_FLAG = False
 # **************************** INPUT SETTINGS **************************** #
 # ************************************************************************ #
 
-REAL_DATA = False
+REAL_DATA = True # if False, use synethic data
 
 # ______ REAL DATA SETTINGS ______ #
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
@@ -46,12 +46,12 @@ else:
 # ************************** ALGORITHM SETTINGS ************************** #
 # ************************************************************************ #
 
-EDDY_SYS = 1
+EDDY_SYS = 5
 ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 40
 PENDING_QUEUE_SIZE = 1
-ADAPTIVE_QUEUE = True
+ADAPTIVE_QUEUE = False
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
@@ -74,9 +74,9 @@ SINGLE_VOTE_CUTOFF = int(1+math.ceil(CUT_OFF/2.0))
 
 BAYES_ENABLED = True
 
-UNCERTAINTY_THRESHOLD = 0.1
+UNCERTAINTY_THRESHOLD = 0.2
 
-DECISION_THRESHOLD = 0.7
+DECISION_THRESHOLD = 0.5
 
 FALSE_THRESHOLD = 0.05
 
@@ -102,19 +102,19 @@ CUBIC_B = (0.8)
 
 NUM_WORKERS = 1000
 DISTRIBUTION_TYPE = 0               # tells pick_worker how to choose workers
-DUMMY_TASKS = True
+DUMMY_TASKS = False
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
 NUM_SIM = 2
 
-SIMULATE_TIME = True # simulate time passing/concurrency
+SIMULATE_TIME = False # simulate time passing/concurrency
 
 # ___ SIMULATED TIME SETTINGS ____ #
 TASKS_PER_SECOND = False ## \todo add to toggles_info
-ACTIVE_TASKS_SIZE = 25
+ACTIVE_TASKS_SIZE = 1
 RESIZE_ACTIVE_TASKS = False
-BUFFER_TIME = 5
+BUFFER_TIME = 0
 MAX_TASKS_OUT = 5
 MAX_TASKS_COLLECTED = CUT_OFF
 
@@ -147,27 +147,27 @@ RUN_DATA_STATS = False
 RUN_AVERAGE_COST = False
 COST_SAMPLES = 1
 
-RUN_SINGLE_PAIR = False
-SINGLE_PAIR_RUNS = 1
+RUN_SINGLE_PAIR = False # deprecated?
+SINGLE_PAIR_RUNS = 1	# deprecated?
 
-RUN_ITEM_ROUTING = True
+RUN_ITEM_ROUTING = False # deprecated?
 RUN_MULTI_ROUTING = False
 
 RUN_OPTIMAL_SIM = False #TODO: can you do this with synthetic data?
 
 # ___ DATA COLLECTION: REAL OR SYNTHETIC DATA ____ #
-COUNT_TICKETS = True
-TRACK_QUEUES = True
+COUNT_TICKETS = False
+TRACK_QUEUES = False
 
 RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "NUM_WORKERS"
 ABSTRACT_VALUES = [100, 200]
 
-RUN_TASKS_COUNT = False
+RUN_TASKS_COUNT = True
 TRACK_IP_PAIRS_DONE = False
 
-TRACK_ACTIVE_TASKS = True # Useful only for simulations with TIME
-TRACK_PLACEHOLDERS = True
+TRACK_ACTIVE_TASKS = False # Useful only for simulations with TIME
+TRACK_PLACEHOLDERS = False
 
 TEST_ACCURACY = False
 ACCURACY_COUNT = False
@@ -182,7 +182,7 @@ TRACK_SIZE = False
 VOTE_GRID = False
 IDEAL_GRID = False
 
-TIME_SIMS = True # NOT turning on simulated time; counting how long function calls take
+TIME_SIMS = False # NOT turning on simulated time; counting how long function calls take
 
 # ************************************************************************ #
 
