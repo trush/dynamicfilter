@@ -1102,7 +1102,7 @@ class SimulationTest(TransactionTestCase):
 						d.save()
 						self.num_tasks += 1
 					if toggles.DEBUG_FLAG:
-						print "worker has no tasks to do"
+						print "worker " + workerID +" has no tasks to do"
 
 				else:
 					ip_pair = pending_eddy(workerID)
