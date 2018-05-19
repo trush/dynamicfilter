@@ -1276,10 +1276,19 @@ class SimulationTest(TransactionTestCase):
 				time_proxy = self.num_tasks
 			ticketCountsLegend = []
 			xMultiplier = len(toggles.CHOSEN_PREDS)
+			
+			ticket_nums_shifted = [] # ticket_nums doesn't start at index 0, so create array to hold counts for each pred
+			for pred in self.ticket_nums:
+				lengthdiff = len(self.ticket_nums[pred]) - time_proxy # how many more entries are there in ticket counts than time proxy
+				if lengthdiff > 0:
+					if toggles.DEBUG_FLAG:
+						print "Warning: trimmed last "+ str(lengthdiff) + " entries off ticket counts, graph may not be accurate"
+					self.ticket_nums[pred] = self.ticket_nums[pred][:-lengthdiff] # trim to make lengths equal for plotting
+				ticket_nums_shifted.append(self.ticket_nums[pred]) # append in the new array
 			for predNum in toggles.CHOSEN_PREDS:
 				ticketCountsLegend.append("Pred " + str(predNum))
 
-			multi_line_graph_gen([range(time_proxy)]*xMultiplier, ticketNums, ticketCountsLegend,
+			multi_line_graph_gen([range(time_proxy)]*xMultiplier, ticket_nums_shifted, ticketCountsLegend,
 								toggles.OUTPUT_PATH + "ticketCounts" + str(self.sim_num) + ".png",
 								labels = ("time proxy", "Ticket counts"))
 
