@@ -226,5 +226,17 @@ Here are a few other settings you can experiment with:
    
         switch_list = [ (0, (0.9, 0.75), (0.2, 0.75))]
 
+\section trouble Troubleshooting
+
+If you get an error like this when trying to run a simulation:
+
+    	from matplotlib.backends import _macosx
+    RuntimeError: Python is not installed as a framework. The Mac OS X backend will not be able to function correctly...
+
+Find the file `matplotlibrc` that is inside the `matplotlib` package inside your virtual environment directory. E.g., if your environment is called `dfenv`, you may find it here:
+ 
+    dfenv/lib/python2.7/site-packages/matplotlib/mpl-data/matplotlibrc
+
+Open the file with a text editor and find the `backend` parameter. Change its value to `TkAgg` and save the file.
 
 */
