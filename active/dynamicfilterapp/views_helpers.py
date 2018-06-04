@@ -195,7 +195,8 @@ def nu_pending_eddy(incompleteIP):
 	# if not incompleteIP.filter(predicate=chosenPred).exists():
 		# print "Nothing left for predicate " + str(chosenPred.id) + " incomplete"
 	# set of IP pairs w/ item not being worked on currently, not already in queue, not all tasks out
-	pickFrom = incompleteIP.filter(inQueue = False).exclude(id__in=nonUnique).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+	#pickFrom = incompleteIP.filter(inQueue = False).exclude(id__in=nonUnique).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+	pickFrom = incompleteIP.filter(predicate = chosenPred, inQueue = False).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
 
 	# find something for that predicate that isn't being worked on yet and add it
 	if pickFrom.filter(predicate = chosenPred).exists():
@@ -222,9 +223,11 @@ def nu_pending_eddy(incompleteIP):
 		print "Attempting last resort IP pick (worker can't do Pred " + str(chosenPred.predicate_ID) +")"
 	outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
 	lotteryPred = incompleteIP.filter(predicate = chosenPred)
-	lastResortPick = incompleteIP.exclude(id__in=lotteryPred).exclude(id__in=nonUnique).exclude(id__in=outOfFullQueue).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)	
+    #lastResortPick = incompleteIP.exclude(id__in=lotteryPred).exclude(id__in=nonUnique).exclude(id__in=outOfFullQueue).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)	
+	lastResortPick = incompleteIP.exclude(predicate = chosenPred).exclude(id__in=outOfFullQueue).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
 
 	if lastResortPick.exists():
+		#nu_pending_eddy(lastResortPick)
 		chosenIP = choice(lastResortPick) # random choice from what's available
 		if not chosenIP.is_in_queue:
 			chosenIP.add_to_queue()

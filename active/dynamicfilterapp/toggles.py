@@ -6,14 +6,14 @@ import responseTimeDistribution
 
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
-DEBUG_FLAG = False
+DEBUG_FLAG = True
 # ************************************************************************ #
 
 
 # **************************** INPUT SETTINGS **************************** #
 # ************************************************************************ #
 
-REAL_DATA = True # if False, use synethic data
+REAL_DATA = False # if False, use synethic data
 
 # ______ REAL DATA SETTINGS ______ #
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
@@ -24,10 +24,10 @@ TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PAT
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
 NUM_QUESTIONS = 2
-NUM_ITEMS = 5
+NUM_ITEMS = 100
 SIN = -1
 SELECTIVITY_GRAPH = False
-switch_list = [ (0, (0.9, 0.75), (0.2, 0.75))]
+switch_list = [ (0, (0.9, 0.25), (0.2, 0.25))]
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
@@ -49,13 +49,13 @@ else:
 EDDY_SYS = 5
 ITEM_SYS = 0
 SLIDING_WINDOW = False
-LIFETIME = 40
+LIFETIME = 100
 PENDING_QUEUE_SIZE = 1
 ADAPTIVE_QUEUE = False
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
-QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3), (16,4)] # settings for above mode [(#tickets,qlength)]
+QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3),(16,4)] # settings for above mode [(#tickets,qlength)]
 
 EPSILON = 0.7
 REWARD = 1.7
@@ -106,16 +106,16 @@ DUMMY_TASKS = False
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
-NUM_SIM = 2
+NUM_SIM = 10
 
-SIMULATE_TIME = False # simulate time passing/concurrency
+SIMULATE_TIME = True # simulate time passing/concurrency
 
 # ___ SIMULATED TIME SETTINGS ____ #
 TASKS_PER_SECOND = False ## \todo add to toggles_info
 ACTIVE_TASKS_SIZE = 1
 RESIZE_ACTIVE_TASKS = False
 BUFFER_TIME = 0
-MAX_TASKS_OUT = 5
+MAX_TASKS_OUT = 1
 MAX_TASKS_COLLECTED = CUT_OFF
 
 # ************************************************************************ #
@@ -142,32 +142,32 @@ if GEN_GRAPHS:
         GEN_GRAPHS = False
 
 # ___ DATA COLLECTION: REAL DATA ____ #
-RUN_DATA_STATS = False
+RUN_DATA_STATS = True
 
-RUN_AVERAGE_COST = False
+RUN_AVERAGE_COST = True
 COST_SAMPLES = 1
 
 RUN_SINGLE_PAIR = False # deprecated?
 SINGLE_PAIR_RUNS = 1	# deprecated?
 
 RUN_ITEM_ROUTING = False # deprecated?
-RUN_MULTI_ROUTING = False
+RUN_MULTI_ROUTING = True
 
 RUN_OPTIMAL_SIM = False #TODO: can you do this with synthetic data?
 
 # ___ DATA COLLECTION: REAL OR SYNTHETIC DATA ____ #
-COUNT_TICKETS = False
-TRACK_QUEUES = False
+COUNT_TICKETS = True
+TRACK_QUEUES = True
 
 RUN_ABSTRACT_SIM = False
 ABSTRACT_VARIABLE = "NUM_WORKERS"
 ABSTRACT_VALUES = [100, 200]
 
 RUN_TASKS_COUNT = True
-TRACK_IP_PAIRS_DONE = False
+TRACK_IP_PAIRS_DONE = True
 
-TRACK_ACTIVE_TASKS = False # Useful only for simulations with TIME
-TRACK_PLACEHOLDERS = False
+TRACK_ACTIVE_TASKS = True # Useful only for simulations with TIME
+TRACK_PLACEHOLDERS = True
 
 TEST_ACCURACY = False
 ACCURACY_COUNT = False

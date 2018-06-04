@@ -887,10 +887,10 @@ class SimulationTest(TransactionTestCase):
 						print "$"*96
 
 				# throw some errors for debugging purposes
-				if not (Item.objects.filter(inQueue=True).count() == IP_Pair.objects.filter(inQueue=True).count()):
-					print "inQueue items: " + str(Item.objects.filter(inQueue=True).count())
-					print "inQueue IPs: " + str(IP_Pair.objects.filter(inQueue=True).count())
-					raise Exception("IP and item mismatch")
+				#if not (Item.objects.filter(inQueue=True).count() == IP_Pair.objects.filter(inQueue=True).count()):
+				#	print "inQueue items: " + str(Item.objects.filter(inQueue=True).count())
+				#	print "inQueue IPs: " + str(IP_Pair.objects.filter(inQueue=True).count())
+				#	raise Exception("IP and item mismatch")
 
 				for p in Predicate.objects.filter(queue_is_full = True):
 					if not p.num_pending >= p.queue_length:
@@ -993,7 +993,7 @@ class SimulationTest(TransactionTestCase):
 					count = len(active_tasks)
 					task_limit = active_tasks_size
 				# fill the active task array with new tasks as long as some IPs need eval
-				if refill:
+				if refill: #Izzy Note: Add this to the while check: and IP_Pair.objects.filter(tasks_collected__lt=toggles.MAX_TASKS_COLLECTED).exists()
 					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
