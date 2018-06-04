@@ -847,7 +847,7 @@ class SimulationTest(TransactionTestCase):
 			while (IP_Pair.objects.filter(isDone=False).exists() or active_tasks) :
 
 				if toggles.DEBUG_FLAG:
-					if (time_clock % 60 == 0) or (time_clock - prev_time > 1):
+					if (time_clock % 180 == 0) or (time_clock - prev_time > 1):
 						print "$"*43 + " t = " + str(time_clock) + " " + "$"*(47-len(str(time_clock)))
 
 						print "$"*96
@@ -994,7 +994,7 @@ class SimulationTest(TransactionTestCase):
 					task_limit = active_tasks_size
 				# fill the active task array with new tasks as long as some IPs need eval
 				if refill: #Izzy Note: Add this to the while check: and IP_Pair.objects.filter(tasks_collected__lt=toggles.MAX_TASKS_COLLECTED).exists()
-					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
+					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and IP_Pair.objects.filter(tasks_collected__lt=toggles.MAX_TASKS_COLLECTED).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 
