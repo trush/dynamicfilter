@@ -29,18 +29,22 @@ class Item(models.Model):
 	almostFalse = models.BooleanField(default=False)
 
 	inQueue = models.BooleanField(default=False)
+	# IP pairs out at a given point in time
+	pairs_out = models.IntegerField(default=0)
 
 	def __str__(self):
 		return str(self.name)
 
 	def add_to_queue(self):
+		self.pairs_out += 1
 		self.inQueue = True
-		self.save(update_fields=["inQueue"])
+		self.save(update_fields=["inQueue","pairs_out"])
 
 	def remove_from_queue(self):
+		self.pairs_out -= 1
 		if IP_Pair.objects.filter(inQueue=True, item=self).count() < 1:
 			self.inQueue = False
-			self.save(update_fields=["inQueue"])
+		self.save(update_fields=["inQueue","pairs_out"])
 
 	def reset(self):
 		self.hasFailed=False

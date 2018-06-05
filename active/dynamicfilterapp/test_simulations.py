@@ -993,8 +993,8 @@ class SimulationTest(TransactionTestCase):
 					count = len(active_tasks)
 					task_limit = active_tasks_size
 				# fill the active task array with new tasks as long as some IPs need eval
-				if refill: #Izzy Note: Add this to the while check: and IP_Pair.objects.filter(tasks_collected__lt=toggles.MAX_TASKS_COLLECTED).exists()
-					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and IP_Pair.objects.filter(tasks_collected__lt=toggles.MAX_TASKS_COLLECTED).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
+				if refill: #Izzy Note: Add this to the while check: and and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()
+					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 
@@ -1064,10 +1064,14 @@ class SimulationTest(TransactionTestCase):
 					switch += 1
 
 			if toggles.DEBUG_FLAG:
+				wasted_tasks = 0
+				for count_ip in IP_Pair.objects.all():
+					wasted_tasks += count_ip.tasks_collected - count_ip.total_votes
 				print "Simulaton completed ||| Simulated time = " + str(time_clock) + " | number of tasks: " + str(self.num_tasks)
 				print "Time steps: " + str(len(self.time_steps_array))
 				print "Predicates saved in active tasks dict: " + str(self.pred_active_tasks.keys()[1:])
 				print "Number of placeholder tasks: " + str(self.pred_active_tasks.keys()[0])
+				print "Number of wasted tasks: " + str(wasted_tasks)
 				print "Size of predicates' arrays: " + str([len(self.pred_active_tasks[key]) for key in self.pred_active_tasks])
 
 

@@ -7,7 +7,7 @@ import responseTimeDistribution
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
 DEBUG_FLAG = True
-SIM_TIME_STEP = 180
+SIM_TIME_STEP = 60
 # ************************************************************************ #
 
 
@@ -25,7 +25,7 @@ TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PAT
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
 NUM_QUESTIONS = 2
-NUM_ITEMS = 100
+NUM_ITEMS = 30
 SIN = -1
 SELECTIVITY_GRAPH = False
 switch_list = [ (0, (0.9, 0.25), (0.2, 0.25))]
@@ -52,6 +52,8 @@ ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 100
 PENDING_QUEUE_SIZE = 40
+ITEM_IP_LIMIT = 1
+ITEM_HARD_LIMIT = False
 ADAPTIVE_QUEUE = False
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
@@ -169,6 +171,7 @@ TRACK_IP_PAIRS_DONE = True
 
 TRACK_ACTIVE_TASKS = True # Useful only for simulations with TIME
 TRACK_PLACEHOLDERS = True
+TRACK_WASTE = True # Tracks tasks leftover from finished items
 
 TEST_ACCURACY = False
 ACCURACY_COUNT = False
@@ -200,11 +203,11 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
             'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS',
             'DUMMY_TASK_OPTION','GEN_GRAPHS','NUM_ITEMS','SIN',
-            'SELECTIVITY_GRAPH','switch_list',
+            'SELECTIVITY_GRAPH','switch_list', 'ITEM_IP_LIMIT', 'ITEM_HARD_LIMIT',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
-            'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM', 'SIM_TIME_STEP','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
+            'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM', 'SIM_TIME_STEP', 'TRACK_WASTE', 'NUM_SIM','TIME_SIMS','SIMULATE_TIME',
             'ACTIVE_TASKS_SIZE', "MAX_TASKS_COLLECTED", "MAX_TASKS_OUT", 'BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
             'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
             'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES',

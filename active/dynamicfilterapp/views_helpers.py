@@ -57,7 +57,9 @@ def pending_eddy(ID):
 	#filter through to find viable ip_pairs to choose from
 	completedTasks = Task.objects.filter(workerID=ID)
 	completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
-	incompleteIP = unfinishedList.exclude(id__in=completedIP)
+	incompleteIP = unfinishedList.filter(item__pairs_out__lt=toggles.ITEM_IP_LIMIT).exclude(id__in=completedIP)
+	if not incompleteIP.exists() and not toggles.ITEM_HARD_LIMIT:
+		incompleteIP = unfinishedList.exclude(id__in=completedIP)
 
 	#queue_pending_system:
 	if (toggles.EDDY_SYS == 1):
