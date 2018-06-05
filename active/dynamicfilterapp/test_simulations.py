@@ -1066,7 +1066,8 @@ class SimulationTest(TransactionTestCase):
 			if toggles.DEBUG_FLAG:
 				print "Simulaton completed ||| Simulated time = " + str(time_clock) + " | number of tasks: " + str(self.num_tasks)
 				print "Time steps: " + str(len(self.time_steps_array))
-				print "Predicates saved in active tasks dict: " + str(self.pred_active_tasks.keys())
+				print "Predicates saved in active tasks dict: " + str(self.pred_active_tasks.keys()[1:])
+				print "Number of placeholder tasks: " + str(self.pred_active_tasks.keys()[0])
 				print "Size of predicates' arrays: " + str([len(self.pred_active_tasks[key]) for key in self.pred_active_tasks])
 
 
