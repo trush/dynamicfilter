@@ -2312,6 +2312,14 @@ class SimulationTest(TransactionTestCase):
 		if toggles.RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
 
+		if toggles.TRACK_ACTIVE_TASKS:
+			# create sets for visualizeMultiRuns
+			eddySet = toggles.EDDY_SET
+			queueSet = toggles.QUEUE_SET
+			activeTasksSet = toggles.ACTIVE_TASKS_SET
+			
+			self.visualizeMultiRuns(sampleData, queueSet, activeTasksSet, eddySet)
+
 
 	# def test_3(self):
 	# 	if not toggles.RUN_ITEM_ROUTING:
