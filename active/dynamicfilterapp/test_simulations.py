@@ -1070,7 +1070,6 @@ class SimulationTest(TransactionTestCase):
 				print "Simulaton completed ||| Simulated time = " + str(time_clock) + " | number of tasks: " + str(self.num_tasks)
 				print "Time steps: " + str(len(self.time_steps_array))
 				print "Predicates saved in active tasks dict: " + str(self.pred_active_tasks.keys()[1:])
-				print "Number of placeholder tasks: " + str(self.pred_active_tasks.keys()[0])
 				print "Number of wasted tasks: " + str(wasted_tasks)
 				print "Size of predicates' arrays: " + str([len(self.pred_active_tasks[key]) for key in self.pred_active_tasks])
 
@@ -2315,6 +2314,14 @@ class SimulationTest(TransactionTestCase):
 
 		if toggles.RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
+
+		if toggles.TRACK_ACTIVE_TASKS:
+			# create sets for visualizeMultiRuns
+			eddySet = toggles.EDDY_SET
+			queueSet = toggles.QUEUE_SET
+			activeTasksSet = toggles.ACTIVE_TASKS_SET
+			
+			self.visualizeMultiRuns(sampleData, queueSet, activeTasksSet, eddySet)
 
 
 	# def test_3(self):
