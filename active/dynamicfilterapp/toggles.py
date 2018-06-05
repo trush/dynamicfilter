@@ -24,11 +24,11 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
-NUM_QUESTIONS = 4
-NUM_ITEMS = 4
+NUM_QUESTIONS = 2
+NUM_ITEMS = 100
 SIN = -1
 SELECTIVITY_GRAPH = False
-switch_list = [ (0, (0.9, 0.25), (0.2, 0.25), (.4,.25), (.6,.25))]
+switch_list = [ (0, (0.9, 0.25), (0.2, 0.25))]
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
@@ -51,7 +51,7 @@ EDDY_SYS = 5
 ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 100
-PENDING_QUEUE_SIZE = 1
+PENDING_QUEUE_SIZE = 40
 ADAPTIVE_QUEUE = False
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
@@ -103,20 +103,20 @@ CUBIC_B = (0.8)
 
 NUM_WORKERS = 1000
 DISTRIBUTION_TYPE = 0               # tells pick_worker how to choose workers
-DUMMY_TASKS = False
+DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
-NUM_SIM = 5
+NUM_SIM = 2
 
 SIMULATE_TIME = True # simulate time passing/concurrency
 
 # ___ SIMULATED TIME SETTINGS ____ #
 TASKS_PER_SECOND = False ## \todo add to toggles_info
-ACTIVE_TASKS_SIZE = 1
+ACTIVE_TASKS_SIZE = 160
 RESIZE_ACTIVE_TASKS = False
 BUFFER_TIME = 0
-MAX_TASKS_OUT = 1
+MAX_TASKS_OUT = 40
 MAX_TASKS_COLLECTED = CUT_OFF
 
 # ************************************************************************ #

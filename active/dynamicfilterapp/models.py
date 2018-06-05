@@ -39,7 +39,6 @@ class Item(models.Model):
 
 	def remove_from_queue(self):
 		if IP_Pair.objects.filter(inQueue=True, item=self).count() < 1:
-			print(IP_Pair.objects.filter(inQueue=True, item=self).count())
 			self.inQueue = False
 			self.save(update_fields=["inQueue"])
 
@@ -576,8 +575,6 @@ class IP_Pair(models.Model):
 					if toggles.SIMULATE_TIME:
 						print "Tasks still out: " + str(self.tasks_out)
 					print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
-					for IP in IP_Pair.objects.filter(isDone=False):
-						print(str(IP))
 					print "*"*96
 
 			else:
@@ -601,7 +598,7 @@ class IP_Pair(models.Model):
 			3 - high ambiguity zone
 			4 - most ambiguity
 		"""
-		print(str(self))
+		#print(str(self))
 		myPred = self.predicate
 		votes_cast = self.num_yes + self.num_no
 		larger = max(self.num_yes, self.num_no)
@@ -613,25 +610,25 @@ class IP_Pair(models.Model):
 				uncertLevel = btdtr(self.num_yes+1, self.num_no+1, myPred.consensus_decision_threshold)
 			else:
 				uncertLevel = btdtr(self.num_no+1, self.num_yes+1, myPred.consensus_decision_threshold)
-		print("Uncertainty: " + str(uncertLevel))
+		#print("Uncertainty: " + str(uncertLevel))
 
 		if votes_cast >= myPred.consensus_max:
-			print("Most ambiguity")
+			#print("Most ambiguity")
 			return 4
 
 		elif uncertLevel < myPred.consensus_uncertainty_threshold:
-			print("Unambiguous")
+			#print("Unambiguous")
 			return 1
 
 		elif larger >= myPred.consensus_max_single:
 			if smaller < myPred.consensus_max_single*(1.0/3.0): #TODO un-hard-code this part
-				print("Unambiguous+")
+				#print("Unambiguous+")
 				return 1
 			elif smaller < myPred.consensus_max_single*(2.0/3.0):
-				print("Medium ambiguity")
+				#print("Medium ambiguity")
 				return 2
 			else:
-				print("Low ambiguity")
+				#print("Low ambiguity")
 				return 3
 
 		else:
