@@ -7,6 +7,7 @@ import responseTimeDistribution
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
 DEBUG_FLAG = True
+SIM_TIME_STEP = 180
 # ************************************************************************ #
 
 
@@ -23,11 +24,11 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
-NUM_QUESTIONS = 2
-NUM_ITEMS = 100
+NUM_QUESTIONS = 4
+NUM_ITEMS = 4
 SIN = -1
 SELECTIVITY_GRAPH = False
-switch_list = [ (0, (0.9, 0.25), (0.2, 0.25))]
+switch_list = [ (0, (0.9, 0.25), (0.2, 0.25), (.4,.25), (.6,.25))]
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
@@ -106,7 +107,7 @@ DUMMY_TASKS = False
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
-NUM_SIM = 10
+NUM_SIM = 5
 
 SIMULATE_TIME = True # simulate time passing/concurrency
 
@@ -203,7 +204,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
-            'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
+            'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM', 'SIM_TIME_STEP','NUM_SIM','TIME_SIMS','SIMULATE_TIME',
             'ACTIVE_TASKS_SIZE', "MAX_TASKS_COLLECTED", "MAX_TASKS_OUT", 'BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
             'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
             'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES',

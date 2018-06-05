@@ -847,7 +847,7 @@ class SimulationTest(TransactionTestCase):
 			while (IP_Pair.objects.filter(isDone=False).exists() or active_tasks) :
 
 				if toggles.DEBUG_FLAG:
-					if (time_clock % 180 == 0) or (time_clock - prev_time > 1):
+					if (time_clock % toggles.SIM_TIME_STEP == 0) or (time_clock - prev_time > 1):
 						print "$"*43 + " t = " + str(time_clock) + " " + "$"*(47-len(str(time_clock)))
 
 						print "$"*96

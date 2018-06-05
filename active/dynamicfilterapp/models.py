@@ -38,8 +38,10 @@ class Item(models.Model):
 		self.save(update_fields=["inQueue"])
 
 	def remove_from_queue(self):
-		self.inQueue = False
-		self.save(update_fields=["inQueue"])
+		if IP_Pair.objects.filter(inQueue=True, item=self).count() < 1:
+			print(IP_Pair.objects.filter(inQueue=True, item=self).count())
+			self.inQueue = False
+			self.save(update_fields=["inQueue"])
 
 	def reset(self):
 		self.hasFailed=False
@@ -560,7 +562,11 @@ class IP_Pair(models.Model):
 						self.predicate.update_pred(toggles.REWARD)
 					if (toggles.EDDY_SYS == 7):
 						self.predicate.update_pred_rank(toggles.REWARD)
-					IP_Pair.objects.filter(item__hasFailed=True).update(isDone=True)
+					itemPairs = IP_Pair.objects.filter(item__hasFailed=True)
+					itemPairs.update(isDone=True)
+					activePairs = itemPairs.filter(inQueue=True)
+					for aPair in activePairs:
+						aPair.remove_from_queue()
 
 				# helpful print statements
 				if toggles.DEBUG_FLAG:
@@ -570,6 +576,8 @@ class IP_Pair(models.Model):
 					if toggles.SIMULATE_TIME:
 						print "Tasks still out: " + str(self.tasks_out)
 					print "There are now " + str(IP_Pair.objects.filter(isDone=False).count()) + " incomplete IP pairs"
+					for IP in IP_Pair.objects.filter(isDone=False):
+						print(str(IP))
 					print "*"*96
 
 			else:
@@ -593,6 +601,7 @@ class IP_Pair(models.Model):
 			3 - high ambiguity zone
 			4 - most ambiguity
 		"""
+		print(str(self))
 		myPred = self.predicate
 		votes_cast = self.num_yes + self.num_no
 		larger = max(self.num_yes, self.num_no)
@@ -604,20 +613,25 @@ class IP_Pair(models.Model):
 				uncertLevel = btdtr(self.num_yes+1, self.num_no+1, myPred.consensus_decision_threshold)
 			else:
 				uncertLevel = btdtr(self.num_no+1, self.num_yes+1, myPred.consensus_decision_threshold)
-
+		print("Uncertainty: " + str(uncertLevel))
 
 		if votes_cast >= myPred.consensus_max:
+			print("Most ambiguity")
 			return 4
 
 		elif uncertLevel < myPred.consensus_uncertainty_threshold:
+			print("Unambiguous")
 			return 1
 
 		elif larger >= myPred.consensus_max_single:
 			if smaller < myPred.consensus_max_single*(1.0/3.0): #TODO un-hard-code this part
+				print("Unambiguous+")
 				return 1
 			elif smaller < myPred.consensus_max_single*(2.0/3.0):
+				print("Medium ambiguity")
 				return 2
 			else:
+				print("Low ambiguity")
 				return 3
 
 		else:
