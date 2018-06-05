@@ -57,9 +57,8 @@ def pending_eddy(ID):
 	#filter through to find viable ip_pairs to choose from
 	completedTasks = Task.objects.filter(workerID=ID)
 	completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
-	incompleteIP = unfinishedList.filter(item__pairs_out__lt=toggles.ITEM_IP_LIMIT).exclude(id__in=completedIP)
-	if not incompleteIP.exists() and not toggles.ITEM_HARD_LIMIT:
-		incompleteIP = unfinishedList.exclude(id__in=completedIP)
+	#Limits the number of predicates an item is being evaluated under simultaneously
+	incompleteIP = unfinishedList.exclude(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False).exclude(id__in=completedIP)
 
 	#queue_pending_system:
 	if (toggles.EDDY_SYS == 1):
@@ -113,6 +112,13 @@ def pending_eddy(ID):
 
 	elif (toggles.EDDY_SYS == 5):
 		chosenIP = nu_pending_eddy(incompleteIP)
+		if chosenIP == None and not toggles.ITEM_HARD_LIMIT:
+			incompleteIP = unfinishedList.filter(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False).exclude(id__in=completedIP)
+			chosenIP = nu_pending_eddy(incompleteIP)
+		if chosenIP == None:
+			if toggles.DEBUG_FLAG:
+				print "Warning: no IP pair for worker"
+
 
 	else:
 	## standard epsilon-greedy MAB and decreasing epsilon-greedy MAB.
@@ -238,9 +244,9 @@ def nu_pending_eddy(incompleteIP):
 
 
 	# if there's literally nothing left to be done, issue a placeholder task
-	else:
-		if toggles.DEBUG_FLAG:
-			print "Warning: no IP pair for worker"
+	else:#Izzy Uncomment this
+		#if toggles.DEBUG_FLAG:
+		#	print "Warning: no IP pair for worker"
 		return None
 
 
