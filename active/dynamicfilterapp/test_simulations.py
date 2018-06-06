@@ -1955,7 +1955,7 @@ class SimulationTest(TransactionTestCase):
 						else:
 							self.run_sim(data)
 							self.reset_database()
-						print "Completed run: " + str(run) + " for e = " + str(e)
+						print "Completed run: " + str(run) + " for e = " + str(e) + ", q = " + str(q) + ", a = " + str(a)
 					save.append([e, q, a])
 					save1.append([e, q, a])
 					save2.append([e, q, a])
