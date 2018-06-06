@@ -281,8 +281,21 @@ of the active tasks array over the course of a simulation. \n
 \link dynamicfilterapp.toggles.TRACK_PLACEHOLDERS TRACK_PLACEHOLDERS  \endlink - Keeps a
 running count of how many placeholder tasks are released over the course of a simulation. \n
 
-\link dynamicfilterapp.toggles.TEST_ACCURACY TEST_ACCURACY  \endlink - TODO: What
-does this do? \n
+\link dynamicfilterapp.toggles.TRACK_WASTE TRACK_WASTE  \endlink - Keeps a
+running count of wasted tasks - number of active tasks that were in a queue when an item was
+completed \n
+
+\link dynamicfilterapp.toggles.EDDY_SET EDDY_SET  \endlink - List of integers (values for toggle 
+EDDY_SYS) that is taken in as an input for visualizeMultiRuns in test_simulations.py. Requires 
+TRACK_ACTIVE_TASKS to be turned on. \n
+
+\link dynamicfilterapp.toggles.QUEUE_SET QUEUE_SET  \endlink - List of integers (values for toggle 
+PENDING_QUEUE_SIZE) that is taken in as an input for visualizeMultiRuns in test_simulations.py. 
+Requires TRACK_ACTIVE_TASKS to be turned on.\n
+
+\link dynamicfilterapp.toggles.ACTIVE_TASKS_SET ACTIVE_TASKS_SET  \endlink - List of integers 
+(values for toggle ACTIVE_TASKS_SIZE) that is taken in as an input for visualizeMultiRuns 
+in test_simulations.py. Requires TRACK_ACTIVE_TASKS to be turned on.\n
 
 \link dynamicfilterapp.toggles.ACCURACY_COUNT ACCURACY_COUNT  \endlink - TODO: What
 does this do? \n
