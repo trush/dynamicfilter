@@ -920,9 +920,11 @@ class SimulationTest(TransactionTestCase):
 				# increment seconds for when tasks per second less than 1
 				secs += 1
 				ratio=IP_Pair.objects.filter(isDone=True).count()/float(total_ip_pairs)
-				if toggles.TASKS_PER_SECOND:
+				#if toggles.TASKS_PER_SECOND:
 					# change the rate of task requests
-					tps = self.set_tps(ratio, tps_start)
+					#Izzy Undo this comment
+					#tps = self.set_tps(ratio, tps_start)
+				tps = tps_start
 
 				if toggles.RESIZE_ACTIVE_TASKS:
 					ratio = IP_Pair.objects.filter(isDone=True).count()/float(total_ip_pairs)
@@ -966,7 +968,7 @@ class SimulationTest(TransactionTestCase):
 							task.ip_pair.refresh_from_db()
 							pair_complete = task.ip_pair.isDone
 							updateCounts(task, task.ip_pair)
-							if pair_complete != task.ip_pair.isDone:
+							if toggles.TRACK_WASTE and pair_complete != task.ip_pair.isDone:
 								used_tasks += task.ip_pair.tasks_collected
 						else:
 							updateCounts(task, task.ip_pair)
@@ -996,18 +998,11 @@ class SimulationTest(TransactionTestCase):
 							refill_mark = toggles.ACTIVE_TASKS_ARRAY[i][1]
 							active_tasks_size = toggles.ACTIVE_TASKS_ARRAY[i][2]
 
-				count = len(active_tasks)
 				# decides whether to give out more tasks if tasks per second is less than 1
 				if toggles.TASKS_PER_SECOND:
-					task_limit = tps
-					count = 0
-					if tps < 1:
-						task_limit = 1
-						refill = False
-						if secs >= 1.0/tps:
-							refill = True
-							secs = 0
-					else:
+					if task_limit < active_tasks_size:
+						task_limit = np.clip(task_limit+tps,0,active_tasks_size)
+						print "Task limit: " + str(task_limit)
 						refill = True
 				else:
 					# set up variables to function properly in case fixed active tasks size is being used	
@@ -1017,20 +1012,27 @@ class SimulationTest(TransactionTestCase):
 
 				if toggles.BATCH_ASSIGNMENT:
 					if batch_tasks_out >= active_tasks_size:
-						if count > refill_mark:
+						if len(active_tasks) > refill_mark:
 							refill = False
 						else:
 							refill = True
-							batch_tasks_out = count
+							batch_tasks_out = len(active_tasks)
+							if toggles.TASKS_PER_SECOND:
+								task_limit = np.clip(tps,0,active_tasks_size)
+					count = batch_tasks_out
+				else:
+					count = len(active_tasks)
 
 				# fill the active task array with new tasks as long as some IPs need eval
 				if refill: #Izzy Note: To ignore runoff placeholders, add and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()
-					while (batch_tasks_out < task_limit) and IP_Pair.objects.filter(isDone=False).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
+					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 
 						task, worker = self.issueTask(active_tasks, b_workers, time_clock, dictionary, switch)
-						batch_tasks_out += 1
+
+						if toggles.BATCH_ASSIGNMENT:
+							batch_tasks_out += 1
 
 						if task is not None:
 
@@ -1076,10 +1078,7 @@ class SimulationTest(TransactionTestCase):
 									count = len(active_tasks)
 							break
 
-						if toggles.TASKS_PER_SECOND:
-							count += 1
-						else:
-							count = len(active_tasks)
+						count = len(active_tasks)
 
 				move_window()
 
