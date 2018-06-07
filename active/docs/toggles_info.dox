@@ -109,6 +109,9 @@ still active, and will compare it with the # of active pairs in each tuple, and 
 the the second number in the tuple with the largest # of active pairs less than the current active pairs
 set to the second element of the tuple. \n
 
+\link dynamicfilterapp.toggles.BATCH_ASSIGNMENT BATCH_ASSIGNMENT \endlink - Assigns jobs in batches, then
+waits for feedback before assigning more. Number of jobs in a batch will be equal to the current max number of active tasks \n
+
 \section voteGetting Consensus Settings
 
 \link dynamicfilterapp.toggles.NUM_CERTAIN_VOTES NUM_CERTAIN_VOTES \endlink - The number of
