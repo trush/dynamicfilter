@@ -103,6 +103,12 @@ will be static throughout simulation or will vary. \n
 of tickets a predicate has exceeds the # tickets element of the tuple. If so, the queue length will be
 set to the second element of the tuple. \n
 
+\link dynamicfilterapp.toggles.ACTIVE_TASKS_ARRAY ACTIVE_TASKS_ARRAY \endlink - A list of tuples of form
+(# of active pairs, task limit); at each time loop, the algorithm will check the number of IP pairs that are
+still active, and will compare it with the # of active pairs in each tuple, and set the maximum tasks equal to
+the the second number in the tuple with the largest # of active pairs less than the current active pairs
+set to the second element of the tuple. \n
+
 \section voteGetting Consensus Settings
 
 \link dynamicfilterapp.toggles.NUM_CERTAIN_VOTES NUM_CERTAIN_VOTES \endlink - The number of
@@ -188,6 +194,9 @@ associated with no IP Pair and give no information to the algorithm. \n
 
 \link dynamicfilterapp.toggles.NUM_SIM NUM_SIM  \endlink - The number of repetitions of a
 simulation that will be run. \n
+
+\link dynamicfilterapp.toggles.NUM_GRAPH_SIM NUM_GRAPH_SIM  \endlink - The number of repetitions of the
+sim in visualizeMultiRuns that will be run. \n
 
 \link dynamicfilterapp.toggles.TIME_SIMS TIME_SIMS \endlink - Turns on functionality that
 tracks the computer runtime for various functions within the algorithm run. Useful for

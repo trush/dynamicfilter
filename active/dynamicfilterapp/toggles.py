@@ -6,7 +6,7 @@ import responseTimeDistribution
 
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 SIM_TIME_STEP = 60
 # ************************************************************************ #
 
@@ -25,7 +25,7 @@ TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PAT
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
 NUM_QUESTIONS = 2
-NUM_ITEMS = 30
+NUM_ITEMS = 40
 SIN = -1
 SELECTIVITY_GRAPH = False
 switch_list = [ (0, (0.9, 0.25), (0.2, 0.25))]
@@ -51,7 +51,7 @@ EDDY_SYS = 5
 ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 100
-PENDING_QUEUE_SIZE = 40
+PENDING_QUEUE_SIZE = 20
 ITEM_IP_LIMIT = 1
 ITEM_HARD_LIMIT = False
 ADAPTIVE_QUEUE = False
@@ -59,6 +59,7 @@ ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
 QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3),(16,4)] # settings for above mode [(#tickets,qlength)]
+ACTIVE_TASKS_ARRAY = [(0,40),(15,60),(25,80),(50,160),(100,300)]
 
 EPSILON = 0.7
 REWARD = 1.7
@@ -109,7 +110,8 @@ DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
-NUM_SIM = 2
+NUM_SIM = 1
+NUM_GRAPH_SIM = 1
 
 SIMULATE_TIME = True # simulate time passing/concurrency
 
@@ -151,7 +153,7 @@ RUN_AVERAGE_COST = True
 COST_SAMPLES = 1
 
 RUN_SINGLE_PAIR = False # deprecated?
-SINGLE_PAIR_RUNS = 1	# deprecated?
+SINGLE_PAIR_RUNS = 1    # deprecated?
 
 RUN_ITEM_ROUTING = False # deprecated?
 RUN_MULTI_ROUTING = True
@@ -173,8 +175,8 @@ TRACK_ACTIVE_TASKS = True # Useful only for simulations with TIME
 TRACK_PLACEHOLDERS = True
 TRACK_WASTE = True  # Tracks tasks leftover from finished items
 EDDY_SET = [5]       # Used only when TRACK_ACTIVE_TASKS is true   
-QUEUE_SET = [1, 2] 
-ACTIVE_TASKS_SET = [10, 20, 40]
+QUEUE_SET = [40, 80] 
+ACTIVE_TASKS_SET = [160]
 
 TEST_ACCURACY = False
 ACCURACY_COUNT = False
@@ -211,8 +213,8 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM', 'SIM_TIME_STEP', 'TRACK_WASTE', 
-            'EDDY_SET', 'QUEUE_SET', 'ACTIVE_TASKS_SET',
-            'NUM_SIM','TIME_SIMS','SIMULATE_TIME', 
+            'EDDY_SET', 'QUEUE_SET', 'ACTIVE_TASKS_SET', 'ACTIVE_TASKS_ARRAY',
+            'NUM_SIM','TIME_SIMS','SIMULATE_TIME', 'NUM_GRAPH_SIM',
             'ACTIVE_TASKS_SIZE', "MAX_TASKS_COLLECTED", "MAX_TASKS_OUT", 'BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
             'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
             'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES',

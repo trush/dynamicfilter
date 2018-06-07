@@ -60,6 +60,11 @@ class SimulationTest(TransactionTestCase):
 	## An array of placeholder task-counts for multiple simulation runs.
 	num_placeholders_array = []
 
+	## Number of wasted tasks completed during a simulation
+	num_waste = 0
+	## An array of waste task-counts for multiple simulation runs.
+	num_waste_array = []
+
 	## Number of "real" tasks completed during a simulation (i.e. tasks in which a worker
 	# evaluates an IP Pair)
 	num_real_tasks = 0
@@ -981,7 +986,13 @@ class SimulationTest(TransactionTestCase):
 					# 	else:
 					# 		print "Task removed ||| Item: " + str(task.ip_pair.item.id) + " | Predicate: " + str(task.ip_pair.predicate.id) + " | IP Pair: " + str(task.ip_pair.id)
 
+				# Redefines max tasks based on the number of IP pairs
+				if len(toggles.ACTIVE_TASKS_ARRAY) > 0:
+					for i in range(len(toggles.ACTIVE_TASKS_ARRAY)):
+						if IP_Pair.objects.filter(isDone = False).count() > toggles.ACTIVE_TASKS_ARRAY[i][0]:
+							active_tasks_size = toggles.ACTIVE_TASKS_ARRAY[i][1]
 
+				count = len(active_tasks)
 				# decides whether to give out more tasks if tasks per second is less than 1
 				if toggles.TASKS_PER_SECOND:
 					task_limit = tps
@@ -1063,7 +1074,9 @@ class SimulationTest(TransactionTestCase):
 					self.num_tasks_change_count.append(Task.objects.all().count())
 				time_clock += 1
 
-
+				# Tracks the number of tasks that weren't collected by an IP which reached consensus.
+				if toggles.TRACK_WASTE:
+					self.num_waste = self.num_tasks - used_tasks
 
 				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 				#so we need index 0 of the tuple to get the time at which the switch should occur
@@ -1072,7 +1085,7 @@ class SimulationTest(TransactionTestCase):
 
 			if toggles.DEBUG_FLAG:
 				print "Simulaton completed ||| Simulated time = " + str(time_clock) + " | number of tasks: " + str(self.num_tasks)
-				print "Number of tasks wasted: " + str(self.num_tasks - used_tasks)
+				print "Number of tasks wasted: " + str(self.num_waste)
 				print "Time steps: " + str(len(self.time_steps_array))
 				print "Predicates saved in active tasks dict: " + str(self.pred_active_tasks.keys()[1:])
 				print "Number of placeholder tasks: " + str(self.pred_active_tasks.keys()[0])
@@ -1208,6 +1221,9 @@ class SimulationTest(TransactionTestCase):
 			self.num_real_tasks_array.append(self.num_real_tasks)
 			self.num_placeholders_array.append(self.num_placeholders)
 
+		if toggles.TRACK_WASTE:
+			self.num_waste_array.append(self.num_waste)
+
 		if toggles.TEST_ACCURACY:
 			self.get_incorrects()
 			self.num_incorrect_array.append(self.num_incorrect)
@@ -1247,6 +1263,19 @@ class SimulationTest(TransactionTestCase):
 			dest = toggles.OUTPUT_PATH + "placeholderTasks.csv"
 			with open(dest, 'a') as f1:
 				f1.write(str(self.num_placeholders) + ',')
+			if toggles.DEBUG_FLAG:
+				print "Wrote file: " + dest
+
+		if toggles.TRACK_WASTE:
+			# dest = toggles.OUTPUT_PATH + "noTasks.csv"
+			# with open(dest, 'a') as f:
+			# 	f.write(str(no_tasks_to_give) + ",")
+			# if toggles.DEBUG_FLAG:
+			# 	print "Wrote file: " + dest
+
+			dest = toggles.OUTPUT_PATH + "wastedTasks.csv"
+			with open(dest, 'a') as f1:
+				f1.write(str(self.num_waste) + ',')
 			if toggles.DEBUG_FLAG:
 				print "Wrote file: " + dest
 
@@ -1948,7 +1977,7 @@ class SimulationTest(TransactionTestCase):
 				for a in activeTasksSet:
 					toggles.MAX_TASKS_OUT = toggles.NUM_CERTAIN_VOTES
 
-					for run in range(toggles.NUM_SIM):
+					for run in range(toggles.NUM_GRAPH_SIM):
 						toggles.ACTIVE_TASKS_SIZE = a
 						if run == 0:
 							self.visualizeActiveTasks(data)
