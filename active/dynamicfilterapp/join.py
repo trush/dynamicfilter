@@ -2,35 +2,45 @@ import datetime as DT
 from math import *
 from random import *
 
-#### GLOBAL VARIABLES ####
+#########################
+## GLOBAL VARIABLES #####
+#########################
 
-    ##inputs##
+## INPUTS ########################################
+
 list1 = []
 list2 = []
 
-    ##Settings##
+## Settings #######################################
+
 JOIN_SELECTIVITY = 0.1
 TIME_TO_GENERATE_TASK = 10.0
-###PJFjoin in particular
+
+    ## PJFjoin in particular
 PJF_SELECTIVITY = 0.3
-PAIRWISE_TIME_PER_TASK = 40.0 #####RENAME
+PAIRWISE_TIME_PER_TASK = 40.0 # TODO: RENAME
 TIME_TO_EVAL_PJF = 100.0
-##PWJoin in particular
+
+    ## PWJoin in particular
 BASE_FIND_MATCHES = 60.0     #Basic requirement to find some matches
 FIND_SINGLE_MATCH_TIME = 5.0 #cost per match found
 AVG_MATCHES = 15.0 #average matches per item
 STDDEV_MATCHES = 3 #standard deviation of matches
-##small predicate in particular
+
+    ## small predicate in particular
 SMALL_P_SELECTIVITY = 0.5
 TIME_TO_EVAL_SMALL_P = 30.0
 
-    #Estimates
+## Estimates ######################################
+
 PJF_selectivity_est = 0.5
 join_selectivity_est = 0.5
 PJF_cost_est = 0.0
 join_cost_est = 0.0
 PW_cost_est = 0.0
-    #Results
+
+## Results ########################################
+
 results_from_pjf_join = []
 results_from_pw_join = []
 evaluated_with_PJF = { }
@@ -38,7 +48,7 @@ evaluated_with_smallP = []
 processed_by_pw = 0
 processed_by_PJF = 0
 
-#### TOGGLES ####
+## TOGGLES ########################################
 DEBUG = True
 
 # TODO: 
