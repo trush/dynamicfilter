@@ -38,6 +38,8 @@ join_selectivity_est = 0.5
 PJF_cost_est = 0.0
 join_cost_est = 0.0
 PW_cost_est = 0.0
+small_p_cost_est = 0.0
+small_p_selectivity_est = 0.0
 
 ## Results ########################################
 
@@ -182,6 +184,38 @@ def find_costs():
     """ Finds the cost of the smallest path and returns the path number associated with that 
     path. Path 1 = PJF w/ small predicate applied early. Path 2 = PJF w/ small predicate
     applied later. Path 3 = PW on list 2. Path 4 = PW on list 1."""
+    # COST 1 CALCULATION - equation explained in written work TODO: explain eq
+    cost_1 = small_p_cost_est*len(list2) + \
+            PJF_cost_est*(small_p_selectivity_est *(len(list2)-len(evaluated_with_smallP))+(len(list1))) + \
+            join_cost_est*len(list2)*len(list1)*small_p_selectivity_est*PJF_selectivity_est
+    # COST 2 CALCULATION - equation explained in written work TODO: explain eq
+    cost_2 = PJF_cost_est*(len(list2)+len(list1)) + \
+            join_cost_est*len(list2)*len(list1)*PJF_selectivity_est+ \
+            small_p_cost_est*join_selectivity_est*len(list1)*len(list2)
+    # COST 3 CALCULATION - equation explained in written work TODO: explain eq
+    cost_3 = PW_cost_est*len(list2) + \
+            join_selectivity_est*len(list1)*len(list2)*small_p_cost_est
+    # COST 4 CALCULATION - equation explained in written work TODO: explain eq
+    cost_4 = PW_cost_est*len(list1)+ \
+            small_p_cost_est*join_selectivity_est*len(list1)*len(list2)
+
+    #### DEBUGGING ####
+    if DEBUG:
+        print "FIND COSTS -----------------"
+        print "COST 1 = " + str(cost_1)
+        print "COST 2 = " + str(cost_2)
+        print "COST 3 = " + str(cost_3)
+        print "COST 4 = " + str(cost_4)
+        print "----------------------------"
+
+    min_cost = min([cost_1, cost_2, cost_3, cost_4])
+    if min_cost == cost_1: # TODO: is there a better way to organize this? switch case?
+        return 1
+    if min_cost == cost_2:
+        return 2
+    if min_cost == cost_3:
+        return 3
+    return 4
 
 
 ###param item: the item to be evaluated
