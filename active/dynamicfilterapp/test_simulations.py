@@ -769,7 +769,7 @@ class SimulationTest(TransactionTestCase):
 		ticketNums = []
 		selectivities = []
 		used_tasks = 0
-		batch_tasks_out = 0
+		batch_tasks_out = toggles.ACTIVE_TASKS_SIZE
 		refill_mark = 0
 
 		time_proxy = 0
@@ -973,6 +973,8 @@ class SimulationTest(TransactionTestCase):
 						else:
 							updateCounts(task, task.ip_pair)
 						#task.refresh_from_db()
+						if toggles.TASKS_PER_SECOND:
+							task_limit -= 1
 						active_tasks.remove(task)
 						b_workers.remove(task.workerID)
 						self.num_tasks += 1
@@ -998,34 +1000,35 @@ class SimulationTest(TransactionTestCase):
 							refill_mark = toggles.ACTIVE_TASKS_ARRAY[i][1]
 							active_tasks_size = toggles.ACTIVE_TASKS_ARRAY[i][2]
 
-				# decides whether to give out more tasks if tasks per second is less than 1
-				if toggles.TASKS_PER_SECOND:
-					if task_limit < active_tasks_size:
-						task_limit = np.clip(task_limit+tps,0,active_tasks_size)
-						print "Task limit: " + str(task_limit)
-						refill = True
-				else:
-					# set up variables to function properly in case fixed active tasks size is being used	
-					# sets refill to true only if we're empty, to simulate "batches"
-					refill = True
-					task_limit = active_tasks_size
+				refill = True
+
+				count = len(active_tasks)
 
 				if toggles.BATCH_ASSIGNMENT:
 					if batch_tasks_out >= active_tasks_size:
 						if len(active_tasks) > refill_mark:
 							refill = False
 						else:
+							# print("New batch " + str(time_clock))
 							refill = True
 							batch_tasks_out = len(active_tasks)
-							if toggles.TASKS_PER_SECOND:
-								task_limit = np.clip(tps,0,active_tasks_size)
-					count = batch_tasks_out
+
+				# decides whether to give out more tasks if tasks per second is less than 1
+				if toggles.TASKS_PER_SECOND:
+					if task_limit < active_tasks_size and refill:
+						task_limit = np.clip(task_limit+tps,0,active_tasks_size)
+						refill = True
+					else:
+						refill = False
 				else:
-					count = len(active_tasks)
+					# set up variables to function properly in case fixed active tasks size is being used	
+					# sets refill to true only if we're empty, to simulate "batches"
+					refill = True
+					task_limit = active_tasks_size
 
 				# fill the active task array with new tasks as long as some IPs need eval
 				if refill: #Izzy Note: To ignore runoff placeholders, add and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()
-					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
+					while (count < task_limit) and (IP_Pair.objects.filter(isDone=False).exists() or batch_tasks_out < active_tasks_size): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 
@@ -1079,6 +1082,8 @@ class SimulationTest(TransactionTestCase):
 							break
 
 						count = len(active_tasks)
+
+				#print "Task limit: " + str(task_limit) + "  Active Tasks: " + str(len(active_tasks)) + " Count: " + str(count) + " Refill: " + str(refill)
 
 				move_window()
 

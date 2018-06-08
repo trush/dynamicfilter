@@ -6,7 +6,7 @@ import responseTimeDistribution
 
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 SIM_TIME_STEP = 60
 # ************************************************************************ #
 
@@ -24,11 +24,11 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
-NUM_QUESTIONS = 2
-NUM_ITEMS = 20
+NUM_QUESTIONS = 6
+NUM_ITEMS = 40
 SIN = -1
 SELECTIVITY_GRAPH = False
-switch_list = [ (0, (0.9, 0.25), (0.2, 0.25))]
+switch_list = [ (0, (0.9, 0.25), (0.2, 0.25), (0.5, 0.25), (0.5, 0.25), (0.3, 0.25), (0.7, 0.25))]
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
@@ -59,8 +59,8 @@ ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
 QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3),(16,4)] # settings for above mode [(#tickets,qlength)]
-ACTIVE_TASKS_ARRAY = [] #Only matters (atm) if batch assignment on
-BATCH_ASSIGNMENT = False
+ACTIVE_TASKS_ARRAY = [(0,1,1),(1,5,40),(15,30,60),(50,50,80),(80,120,160),(100,250,300)] #Only matters (atm) if batch assignment on
+BATCH_ASSIGNMENT = True
 
 EPSILON = 0.7
 REWARD = 1.7
@@ -117,7 +117,7 @@ NUM_GRAPH_SIM = 1
 SIMULATE_TIME = True # simulate time passing/concurrency
 
 # ___ SIMULATED TIME SETTINGS ____ #
-TASKS_PER_SECOND = False ## \todo add to toggles_info
+TASKS_PER_SECOND = True ## \todo add to toggles_info
 ACTIVE_TASKS_SIZE = 160
 RESIZE_ACTIVE_TASKS = False
 BUFFER_TIME = 0
