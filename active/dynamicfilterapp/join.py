@@ -174,6 +174,7 @@ def get_matches(item, timer):
 def main_join(predicate, item):
     """ This is the main join function. It calls PW_join(), PJF_join(), and small_pred(). Uses 
     cost estimates to determine which function to call item by item."""
+    
 
 
 #########################
@@ -181,7 +182,7 @@ def main_join(predicate, item):
 #########################
 
 def find_costs():
-    """ Finds the cost of the smallest path and returns the path number associated with that 
+    """ Finds the cost of the quickest path and returns the path number associated with that 
     path. Path 1 = PJF w/ small predicate applied early. Path 2 = PJF w/ small predicate
     applied later. Path 3 = PW on list 2. Path 4 = PW on list 1."""
     # COST 1 CALCULATION - equation explained in written work TODO: explain eq
