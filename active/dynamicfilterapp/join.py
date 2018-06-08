@@ -31,6 +31,7 @@ STDDEV_MATCHES = 3 #standard deviation of matches
 SMALL_P_SELECTIVITY = 0.5
 TIME_TO_EVAL_SMALL_P = 30.0
 
+
 ## Estimates ######################################
 
 PJF_selectivity_est = 0.5
@@ -44,12 +45,18 @@ small_p_selectivity_est = 0.0
 ## Results ########################################
 
 results_from_pjf_join = []
-results_from_pw_join = []
+results_from_pw_join = [] # TODO: why did we want these seperate again?
 evaluated_with_PJF = { }
 evaluated_with_smallP = []
 processed_by_pw = 0
 processed_by_PJF = 0
 processed_by_smallP = 0
+
+## Other Variables ################################
+
+has_2nd_list = False
+total_num_ips_processed = 0
+enumerator_est = False # TODO: read more about this and use in our code
 
 ## TOGGLES ########################################
 DEBUG = True
@@ -150,7 +157,8 @@ def PW_join(i, itemlist):
     if DEBUG_FLAG:
         print "PW AVERAGE COST: " + str(PW_cost_est)
         print "PW TOTAL COST: " + str(PW_cost_est*processed_by_pw)
-    return results_from_join
+    results_from_pw_join += results_from_join
+    results_from_pjf_join += results_from_join
 
 #########################
 ## PW Join Helpers  #####
@@ -175,6 +183,18 @@ def main_join(predicate, item):
     """ This is the main join function. It calls PW_join(), PJF_join(), and small_pred(). Uses 
     cost estimates to determine which function to call item by item."""
     
+    if not has_2nd_list:
+        if enumerator_est:
+            has_2nd_list = True
+    
+    else:
+        if total_num_ips_processed < 0.15*len(list1)*len(list2): # TODO: think more about this metric
+             if random(0,1) < 0.5:
+                 costs = find_costs()
+                 if cost[0] < cost[1]:
+                    eval_results = small_pred(item) # TODO: adjust cost and make it item from 2nd list!!
+                    PJF_join()
+        # TODO: finish main
 
 
 #########################
@@ -209,14 +229,7 @@ def find_costs():
         print "COST 4 = " + str(cost_4)
         print "----------------------------"
 
-    min_cost = min([cost_1, cost_2, cost_3, cost_4])
-    if min_cost == cost_1: # TODO: is there a better way to organize this? switch case?
-        return 1
-    if min_cost == cost_2:
-        return 2
-    if min_cost == cost_3:
-        return 3
-    return 4
+    return [cost_1, cost_2, cost_3, cost_4]
 
 
 ###param item: the item to be evaluated
@@ -226,19 +239,22 @@ def small_pred(item):
     Also adjusts the global estimates for the cost and selectivity of the small predicate."""
     #first, check if we've already evaluated this item as true
     if item in evaluated_with_smallP:
-        return True, -1
+        return True
     #if not, evaluate it with the small predicate
     else:
         #increment the number of items 
         processed_by_smallP += 1
+        # Update the cost
+        small_p_cost_est = (small_p_cost_est*(processed_by_smallP-1)+TIME_TO_EVAL_SMALL_P)/processed_by_smallP
         #for preliminary testing, we randomly choose whether or not an item passes
         eval_results = random() < SMALL_P_SELECTIVITY
+        # Update the selectivity
+        small_p_selectivity_est = (small_p_selectivity_est*(processed_by_smallP-1)+eval_results)/processed_by_smallP
         #if the item does not pass, we remove it from the list entirely
         if not eval_results:
             list2.remove(item)
         #if the item does pass, we add it to the list of things already evaluated
         else:
             evaluated_with_smallP.append[item]
-        #return both the result and the time taken
-        return eval_results, TIME_TO_EVAL_SMALL_P
+        return eval_results
     
