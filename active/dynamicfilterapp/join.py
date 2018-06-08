@@ -3,16 +3,27 @@ from math import *
 from random import *
 
 #### GLOBAL VARIABLES ####
-    #Settings
+
+    ##inputs##
+list1 = []
+list2 = []
+
+    ##Settings##
 JOIN_SELECTIVITY = 0.1
-PJF_SELECTIVITY = 0.3
-PAIRWISE_TIME_PER_TASK = 40.0
 TIME_TO_GENERATE_TASK = 10.0
+###PJFjoin in particular
+PJF_SELECTIVITY = 0.3
+PAIRWISE_TIME_PER_TASK = 40.0 #####RENAME
 TIME_TO_EVAL_PJF = 100.0
+##PWJoin in particular
 BASE_FIND_MATCHES = 60.0     #Basic requirement to find some matches
 FIND_SINGLE_MATCH_TIME = 5.0 #cost per match found
 AVG_MATCHES = 15.0 #average matches per item
 STDDEV_MATCHES = 3 #standard deviation of matches
+##small predicate in particular
+SMALL_P_SELECTIVITY = 0.5
+TIME_TO_EVAL_SMALL_P = 30.0
+
     #Estimates
 PJF_selectivity_est = 0.5
 join_selectivity_est = 0.5
@@ -162,6 +173,16 @@ def find_costs():
     applied later. Path 3 = PW on list 2. Path 4 = PW on list 1."""
 
 
+###param item: the item to be evaluated
+##return val whether the item evaluates to true, the cost of this run of small_pred
 def small_pred(item):
     """ Evaluates the small predicate, adding the results of that into a global dictionary. 
     Also adjusts the global estimates for the cost and selectivity of the small predicate."""
+    if item in evaluated_with_smallP:
+        return evaluated_with_smallP[item], -1
+    else:
+        eval_results = random() < SMALL_P_SELECTIVITY
+        if not eval_results:
+            list2.remove(item)
+        return eval_results, TIME_TO_EVAL_SMALL_P
+    
