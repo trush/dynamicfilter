@@ -2,15 +2,22 @@ import datetime as DT
 from math import *
 from random import *
 
-# GLOBAL VARIABLES
+#### GLOBAL VARIABLES ####
+    #Settings
 JOIN_SELECTIVITY = 0.1
 PJF_SELECTIVITY = 0.3
 PAIRWISE_TIME_PER_TASK = 40.0
 TIME_TO_GENERATE_TASK = 10.0
 TIME_TO_EVAL_PJF = 100.0
-
-# OTHER NECESSARY VARIABLES TODO: Decide if these go in main or remain global
+    #Estimates
+PJF_selectivity_est = 0.5
+join_selectivity_est = 0.5
+PJF_cost_est = 0.0
+join_cost_est = 0.0
+    #Results
+results_from_join = []
 evaluated_with_PJF = { }
+evaluated_with_smallP = {}
 
 DEBUG = True
 
@@ -21,40 +28,35 @@ def join(i, j):
     This retruns information about selectivity and cost."""
 
     #### INITIALIZE VARIABLES TO USE ####
-    cost_of_PJF, PJF = generate_PJF() # TODO: what are we going to do with the cost_of_PJF?
-    avg_cost = 0
-    num_pairs = 0
-    num_pairs_processed = 0
-    results_from_join = [ ]
-
-    #### INFORMATION WE WILL RETURN LATER ####
-    PJF_cost = 0
-    PJF_select = 0
-    join_cost = 0
-    join_select = 0
+    cost_of_PJF, PJF = generate_PJF() # TODO: what are we going to do with the cost_of_PJF? Move somewhere else?
 
     #### CONTROL GROUP: COMPLETELY USING PJF THEN PW JOIN ####
     timer_val = 0
     if(not i in evaluated_with_PJF):
         # save results of PJF to avoid repeated work
         evaluated_with_PJF[i],PJF_cost = evaluate(PJF,i)
+        # if the item evaluated True for the PFJ then adjust selectivity
+        PJF_selectivity_est = (PJF_selectivity_est*(len(evaluated_with_PJF)-1)+evaluated_with_PJF[i])/len(evaluated_with_PJF)
+        # adjust our cost estimates for evaluating PJF
+        PJF_cost_est = (PJF_cost_est*len(evaluated_with_PJF-1)+PJF_cost)/len(evaluated_with_PJF)
         timer_val += TIME_TO_EVAL_PJF
+
     if (not j in evaluated_with_PJF):
         # save results of PJF to avoid repeated work
-        evaluated_with_PJF[j],PJF_additional_cost = evaluate(PJF,j)
-        PJF_cost += PJF_additional_cost
+        evaluated_with_PJF[j],PJF_cost = evaluate(PJF,j)
+        # if the item evaluated True for the PFJ then adjust selectivity
+        PJF_selectivity_est = (PJF_selectivity_est*(len(evaluated_with_PJF)-1)+evaluated_with_PJF[j])/len(evaluated_with_PJF)
+        # adjust our cost estimates for evaluating PJF
+        PJF_cost_est = (PJF_cost_est*len(evaluated_with_PJF-1)+PJF_cost)/len(evaluated_with_PJF)
         timer_val += TIME_TO_EVAL_PJF
+
     if(evaluated_with_PJF[i] and evaluated_with_PJF[j]):
         # Generate task of current pair
-        join_cost = TIME_TO_GENERATE_TASK
         timer_val += TIME_TO_GENERATE_TASK
         # Choose whether to add to results_from_join
-        join_cost += PAIRWISE_TIME_PER_TASK
         timer_val += PAIRWISE_TIME_PER_TASK
-    if(random() < JOIN_SELECTIVITY):
-            results_from_join.append([i,j])
-    avg_cost=(avg_cost*num_pairs+ timer_val)/(num_pairs+1)
-    num_pairs += 1
+        # Adjust join cost with these two time costs
+        join_cost_est = (join_cost_est*len(results_from_join)+TIME_TO_GENERATE_TASK+PAIRWISE_TIME_PER_TASK)/(len(results_from_join)+1)
 
     #### DEBUGGING ####
     if DEBUG:
@@ -64,7 +66,11 @@ def join(i, j):
         print "AVERAGE COST WITHOUT PJF = " + str(PAIRWISE_TIME_PER_TASK+TIME_TO_GENERATE_TASK)
         print "PJF DICTIONARY = " + str(evaluated_with_PJF)
 
-    return results_from_join, PJF_cost, PJF_select, join_cost, join_select
+    if(random() < JOIN_SELECTIVITY):
+            return [i,j], PJF_cost, PJF_select, join_cost, join_select
+    else:
+            return [], PJF_cost, PJF_select, join_cost, join_select
+
 
 def generate_PJF():
     return (15,PJF_SELECTIVITY)
