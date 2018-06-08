@@ -3,19 +3,34 @@ from math import *
 from random import *
 import numpy
 
-#toggles
-DEBUG_FLAG = True
 
-#join settings
+#### GLOBAL VARIABLES ####
+    #Settings
 TIME_TO_GENERATE_TASK = 15.0
 BASE_FIND_MATCHES = 60.0     #Basic requirement to find some matches
 FIND_SINGLE_MATCH_TIME = 5.0 #cost per match found
 AVG_MATCHES = 15.0 #average matches per item
 STDDEV_MATCHES = 3 #standard deviation of matches
+    #Estimates
+PJF_selectivity_est = 0.5
+join_selectivity_est = 0.5
+PJF_cost_est = 0.0
+join_cost_est = 0.0
+PW_cost_est = 0.0
+    #Results
+results_from_pjf_join = []
+results_from_pw_join = []
+evaluated_with_PJF = { }
+evaluated_with_smallP = {}
+processed_by_pw = 0
+
+#toggles
+DEBUG_FLAG = True
+
 
 
 #join by items
-def PW_join(H):
+def PW_join(i, itemlist):
     '''Creates a join by taking one item at a time and finding matches
     with input from the crowd '''
     
@@ -23,23 +38,22 @@ def PW_join(H):
     avg_cost = 0
     num_items = 0
 
-    results_from_join = []
-
-    for i in H:
-        timer_val = 0
-        # Generate task with item
-        timer_val += TIME_TO_GENERATE_TASK
-        #Get results of that task
-        matches, timer_val = get_matches(i, timer_val)
-        timer_val += BASE_FIND_MATCHES
-        #Append matches to results_from_join
-        results_from_join += matches
-        if DEBUG_FLAG:
-            avg_cost = (avg_cost*num_items + timer_val)/(num_items+1)
-            num_items += 1
+    timer_val = 0
+    # Generate task with item
+    timer_val += TIME_TO_GENERATE_TASK
+    #Get results of that task
+    matches, timer_val = get_matches(i, timer_val)
+    timer_val += BASE_FIND_MATCHES
+    #recalculate average cost
+    PW_cost_est = (PW_cost_est*processed_by_pw + timer_val)/(processed_by_pw+1)
+    processed_by_pw += 1
+    #Append matches to results_from_join
+    results_from_pw_join += matches
+    #remove processed item from itemlist
+    itemlist.remove(i)
     if DEBUG_FLAG:
-        print "AVERAGE COST: " + str(avg_cost)
-        print "TOTAL COST: " + str(avg_cost*num_items)
+        print "PW AVERAGE COST: " + str(PW_cost_est)
+        print "PW TOTAL COST: " + str(PW_cost_est*processed_by_pw)
     return results_from_join
 
 def get_matches(item, timer):
