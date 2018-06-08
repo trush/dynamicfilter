@@ -49,6 +49,7 @@ evaluated_with_PJF = { }
 evaluated_with_smallP = []
 processed_by_pw = 0
 processed_by_PJF = 0
+processed_by_smallP = 0
 
 ## TOGGLES ########################################
 DEBUG = True
@@ -222,13 +223,21 @@ def find_costs():
 def small_pred(item):
     """ Evaluates the small predicate, adding the results of that into a global dictionary. 
     Also adjusts the global estimates for the cost and selectivity of the small predicate."""
+    #first, check if we've already evaluated this item as true
     if item in evaluated_with_smallP:
         return True, -1
+    #if not, evaluate it with the small predicate
     else:
+        #increment the number of items 
+        processed_by_smallP += 1
+        #for preliminary testing, we randomly choose whether or not an item passes
         eval_results = random() < SMALL_P_SELECTIVITY
+        #if the item does not pass, we remove it from the list entirely
         if not eval_results:
             list2.remove(item)
+        #if the item does pass, we add it to the list of things already evaluated
         else:
             evaluated_with_smallP.append[item]
+        #return both the result and the time taken
         return eval_results, TIME_TO_EVAL_SMALL_P
     
