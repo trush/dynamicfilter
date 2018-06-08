@@ -44,7 +44,7 @@ PW_cost_est = 0.0
 results_from_pjf_join = []
 results_from_pw_join = []
 evaluated_with_PJF = { }
-evaluated_with_smallP = {}
+evaluated_with_smallP = []
 processed_by_pw = 0
 processed_by_PJF = 0
 
@@ -189,10 +189,12 @@ def small_pred(item):
     """ Evaluates the small predicate, adding the results of that into a global dictionary. 
     Also adjusts the global estimates for the cost and selectivity of the small predicate."""
     if item in evaluated_with_smallP:
-        return evaluated_with_smallP[item], -1
+        return True, -1
     else:
         eval_results = random() < SMALL_P_SELECTIVITY
         if not eval_results:
             list2.remove(item)
+        else:
+            evaluated_with_smallP.append[item]
         return eval_results, TIME_TO_EVAL_SMALL_P
     
