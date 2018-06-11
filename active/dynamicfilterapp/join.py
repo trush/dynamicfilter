@@ -356,11 +356,8 @@ class Join:
                 print "-------------------------"
             return eval_results
 
-<<<<<<< HEAD
 my_j = Join([1,2,3],[0,1,2,3,4])
 print my_j.PW_join(1, my_j.list1)
 print my_j.PW_join(2, my_j.list1)
 print my_j.PW_join(3, my_j.list1)
 print my_j.find_costs()
-=======
->>>>>>> 6a2f075821a3b9efc95189c807640f80d471be44
