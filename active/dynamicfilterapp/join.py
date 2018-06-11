@@ -114,9 +114,9 @@ def PJF_join(i, j):
         print "PJF DICTIONARY = " + str(evaluated_with_PJF)
 
     if(random() < JOIN_SELECTIVITY):
-            return [i,j], PJF_cost, PJF_select, join_cost, join_select
-    else:
-            return [], PJF_cost, PJF_select, join_cost, join_select
+        return True
+    return False
+
 
 #########################
 ## PJF Join Helpers #####
@@ -150,15 +150,12 @@ def PW_join(i, itemlist):
     #recalculate average cost
     PW_cost_est = (PW_cost_est*processed_by_pw + timer_val)/(processed_by_pw+1)
     processed_by_pw += 1
-    #Append matches to results_from_join
-    results_from_pw_join += matches
     #remove processed item from itemlist
     itemlist.remove(i)
     if DEBUG_FLAG:
         print "PW AVERAGE COST: " + str(PW_cost_est)
         print "PW TOTAL COST: " + str(PW_cost_est*processed_by_pw)
-    results_from_pw_join += results_from_join
-    results_from_pjf_join += results_from_join
+    return matches
 
 #########################
 ## PW Join Helpers  #####
@@ -182,19 +179,51 @@ def get_matches(item, timer):
 def main_join(predicate, item):
     """ This is the main join function. It calls PW_join(), PJF_join(), and small_pred(). Uses 
     cost estimates to determine which function to call item by item."""
-    
+
     if not has_2nd_list:
         if enumerator_est:
             has_2nd_list = True
     
     else:
-        if total_num_ips_processed < 0.15*len(list1)*len(list2): # TODO: think more about this metric
-             if random(0,1) < 0.5:
-                 costs = find_costs()
-                 if cost[0] < cost[1]:
-                    eval_results = small_pred(item) # TODO: adjust cost and make it item from 2nd list!!
-                    PJF_join()
-        # TODO: finish main
+        costs = find_costs()
+
+        if total_num_ips_processed < 0.15*len(list1)*len(list2): # if still in buffer region TODO: think more about this metric
+            if random(0,1) < 0.5: # 50% chance of going to 1 or 2
+                for i in list2:
+                    if cost[0] < cost[1]: # Choose the fastest between 1 amd 2
+                        if small_pred(i):
+                            if PJF_join(i, item):
+                                results_from_pjf_join.append([item, i])
+                    else:
+                        if PJF_join(i, item):
+                            if small_pred(i):
+                                results_from_pjf_join([item, i])
+            else: # 50% chance of going to 3 or 4
+                if cost[2]<cost[3]:
+                    i = list2[0]
+                    if cost[2] < cost[4]:
+                        matches = PW_join(i, list2) # assuming list2 is not empty
+                        if small_pred(i):
+                            results_from_pw_join.append(matches)
+                            results_from_pjf_join.append(matches)
+                    else:
+                        if small_pred(i):
+                            matches = PW_join(i, list2)
+                            results_from_pw_join.append(matches)
+                            results_from_pjf_join.append(matches)
+                else if cost[3]<cost[4]:
+                    matches = PW_join(item, list1)
+                    for i in matches:
+                        if small_pred(i[1]):
+                            results_from_pw_join.append(i)
+                            results_from_pjf_join.append(i)
+                else:
+                    i = list2[0]
+                    if small_pred(i):
+                        matches = PW_join(i, list2)
+                        results_from_pw_join.append(matches)
+                        results_from_pjf_join.append(matches)
+
 
 
 #########################
@@ -219,6 +248,8 @@ def find_costs():
     # COST 4 CALCULATION - equation explained in written work TODO: explain eq
     cost_4 = PW_cost_est*len(list1)+ \
             small_p_cost_est*join_selectivity_est*len(list1)*len(list2)
+    # COST 5 CALCULATION - equation explained in written work TODO: explain eq
+    cost 5 = small_p_cost_est*len(list2)+small_p_selectivity_est*len(list2)*PW_cost_est
 
     #### DEBUGGING ####
     if DEBUG:
