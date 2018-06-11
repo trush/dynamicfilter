@@ -10,13 +10,16 @@ import numpy as np
 DEBUG = False
 GRAPHS = True
 
+#dictionary for testing    
+evaluated_with_PJF_private = {}
+
 # Only used for mass testing
 join_selectivities_to_test = [0.3,0.6,0.9]
-PJF_selectivities_to_test =  [0.3,0.6,0.9]
-pairwise_time_to_test = [10.0,20.0,40.0]
-time_to_eval_PJF_test = [10.0,20.0,40.0]
-size_l1_to_test = [5,20,50]
-size_l2_to_test = [5,20,50]
+PJF_selectivities_to_test =  [0.9,0.95,0.99]
+pairwise_time_to_test = [10.0,50.0,100.0]
+time_to_eval_PJF_test = [10.0,50.0,100.0]
+size_l1_to_test = [5,50,100]
+size_l2_to_test = [2,20,40]
 
 def join(H, M, join_settings):
     """ Assuming that we have two complete lists that need to b joined, mimicks human join
@@ -27,8 +30,9 @@ def join(H, M, join_settings):
     JOIN_SELECTIVITY       = join_settings[1]
     PJF_SELECTIVITY        = join_settings[2]
     PAIRWISE_TIME_PER_TASK = join_settings[3]
-    TIME_TO_GENERATE_TASK  = 10.0
+    TIME_TO_GENERATE_TASK  = 0.0
     TIME_TO_EVAL_PJF       = join_settings[4]
+
 
     if DEBUG:
         print 'INSIDE JOIN -----------------'
@@ -128,15 +132,24 @@ def join(H, M, join_settings):
                 run_summary[2].append(avg_cost)
                 run_summary[3].append(PAIRWISE_TIME_PER_TASK+TIME_TO_GENERATE_TASK)
     if GRAPHS:
+        if((avg_cost1*num_pairs1+avg_cost2*num_pairs2)/(num_pairs1+num_pairs2) < avg_cost):
+            adaptive_better = True
+        else:
+            adaptive_better = False
         makeCSV(run_summary,trial_number)
-        makeJoinCostPlot(run_summary,trial_number)
+        makeJoinCostPlot(run_summary,trial_number, adaptive_better)
     return results_from_join
 
 def generate_PJF(PJF_SELECTIVITY):
     return (15,PJF_SELECTIVITY)
 
 def evaluate(PJF_SELECTIVITY, prejoin, item):
-    return random()<sqrt(PJF_SELECTIVITY)
+    if(item in evaluated_with_PJF_private):
+        return evaluated_with_PJF_private[item]
+    else:
+        evaluated_with_PJF_private[item] = random()<sqrt(PJF_SELECTIVITY) 
+        return evaluated_with_PJF_private[item]
+
 
 def makeCSV(data, trial_number):
     ''' Writes a 4 by n 2D list to a CSV file called join_data.csv '''
@@ -173,13 +186,15 @@ def makeCSV_forTrialInfo(data):
         row = str(col0) + "," + str(col1) + "," + str(col2) + "," + str(col3) + "," + str(col4) + "," + str(col5) + "," + str(col6) + "\n"
         csv.write(row)
 
-def makeJoinCostPlot(data, trial_number):
+def makeJoinCostPlot(data, trial_number, adaptive_better):
     '''Make a plot of 3 lines given a 4 by n 2D list. Used to plot graphs of join costs '''
     ### PLOT COSTS ###
     plt.figure(trial_number)
     plt.plot(data[0], data[1],'r--' ) 
     plt.plot(data[0], data[2], 'b--') 
     plt.plot(data[0], data[3], 'g--') 
+
+
 
     ### ADJUST AXES AND LEGEND ###
     max_y = max( [max(data[1]),max(data[2]),max(data[3])] )
@@ -189,6 +204,11 @@ def makeJoinCostPlot(data, trial_number):
     plt.xlabel('Pairs Processed')
     plt.ylabel('Cost (time units)')
 
+    adaptive = ""
+    if adaptive_better:
+        adaptive += "Adaptive-"
+        print "adaptive"
+
     ### DEBUGGING ###
     if DEBUG:
         print "ABOUT GRAPH ---------"
@@ -197,7 +217,7 @@ def makeJoinCostPlot(data, trial_number):
 
     ### SHOW AND SAVE ###
     fig = plt.gcf()
-    fig.savefig('Cost of Various Join algorithms' + str(trial_number) + '.png')
+    fig.savefig(adaptive + 'Cost of Various Join algorithms' + str(trial_number) + '.png')
 
 def testing_join_settings():
     trial_number_info = [["Trial Number", "Join Selectivity", "PFJ Selectivity", "Pairwise time per task", 

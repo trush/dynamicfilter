@@ -1,6 +1,7 @@
 import datetime as DT
 from math import *
 from random import *
+import numpy
 
 class Join:
     """A join class for each instance of a join that occurs (perhaps across many predicates) """
@@ -33,8 +34,8 @@ class Join:
             ## PWJoin in particular
         self.BASE_FIND_MATCHES = 60.0     #Basic requirement to find some matches
         self.FIND_SINGLE_MATCH_TIME = 5.0 #cost per match found
-        self.AVG_MATCHES = 15.0 #average matches per item
-        self.STDDEV_MATCHES = 3 #standard deviation of matches
+        self.AVG_MATCHES = 2.0 #average matches per item
+        self.STDDEV_MATCHES = .5 #standard deviation of matches
 
             ## small predicate in particular
         self.SMALL_P_SELECTIVITY = 0.5
@@ -153,7 +154,7 @@ class Join:
         # Generate task with item
         timer_val += self.TIME_TO_GENERATE_TASK
         #Get results of that task
-        matches, timer_val = get_matches(i, timer_val)
+        matches, timer_val = self.get_matches(i, timer_val)
         timer_val += self.BASE_FIND_MATCHES
         #recalculate average cost
         self.PW_cost_est = (self.PW_cost_est*self.processed_by_pw + timer_val)/(self.processed_by_pw+1)
@@ -161,8 +162,10 @@ class Join:
         #remove processed item from itemlist
         itemlist.remove(i)
         if self.DEBUG:
+            print "RAN PAIRWISE JOIN ----------"
             print "PW AVERAGE COST: " + str(self.PW_cost_est)
             print "PW TOTAL COST: " + str(self.PW_cost_est*self.processed_by_pw)
+            print "----------------------------"
         return matches
 
     #########################
@@ -327,11 +330,7 @@ class Join:
             return eval_results
 
 my_j = Join([1,2,3],[0,1,2,3,4])
-print my_j.small_pred(0)
-print my_j.small_pred(1)
-print my_j.small_pred(0)
-print my_j.small_pred(0)
-print my_j.small_pred(1)
-print my_j.small_pred(0)
-
+print my_j.PW_join(1, my_j.list1)
+print my_j.PW_join(2, my_j.list1)
+print my_j.PW_join(3, my_j.list1)
 print my_j.find_costs()
