@@ -1,7 +1,7 @@
 import datetime as DT
 from math import *
 from random import *
-from numpy import *
+import numpy
 
 class Join:
     """A join class for each instance of a join that occurs (perhaps across many predicates) """
@@ -34,8 +34,8 @@ class Join:
             ## PWJoin in particular
         self.BASE_FIND_MATCHES = 60.0     #Basic requirement to find some matches
         self.FIND_SINGLE_MATCH_TIME = 5.0 #cost per match found
-        self.AVG_MATCHES = 15.0 #average matches per item
-        self.STDDEV_MATCHES = 3 #standard deviation of matches
+        self.AVG_MATCHES = 2.0 #average matches per item
+        self.STDDEV_MATCHES = .5 #standard deviation of matches
 
             ## small predicate in particular
         self.SMALL_P_SELECTIVITY = 0.5
@@ -185,8 +185,10 @@ class Join:
         #remove processed item from itemlist
         itemlist.remove(i)
         if self.DEBUG:
+            print "RAN PAIRWISE JOIN ----------"
             print "PW AVERAGE COST: " + str(self.PW_cost_est)
             print "PW TOTAL COST: " + str(self.PW_cost_est*self.processed_by_pw)
+            print "----------------------------"
         return matches
 
     #########################
