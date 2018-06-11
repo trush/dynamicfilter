@@ -775,7 +775,7 @@ class SimulationTest(TransactionTestCase):
 		time_proxy = 0
 		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE # saves the initial size of the array
 		active_tasks_size = orig_active_tasks # keeps track of the current size of the array
-		tps_start = .4
+		tps_start = 3
 		secs = 0 # used to count time steps when tasks per second is less than 1
 		if toggles.SELECTIVITY_GRAPH:
 			for count in toggles.CHOSEN_PREDS:
@@ -1028,7 +1028,7 @@ class SimulationTest(TransactionTestCase):
 
 				# fill the active task array with new tasks as long as some IPs need eval
 				if refill: #Izzy Note: To ignore runoff placeholders, add and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()
-					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
+					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 

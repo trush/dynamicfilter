@@ -57,8 +57,11 @@ def pending_eddy(ID):
 	#filter through to find viable ip_pairs to choose from
 	completedTasks = Task.objects.filter(workerID=ID)
 	completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
+	incompleteIP = unfinishedList.exclude(id__in = completedIP)
+
 	#Limits the number of predicates an item is being evaluated under simultaneously
-	incompleteIP = unfinishedList.exclude(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False).exclude(id__in=completedIP)
+	if toggles.IP_LIMIT_SYS >= 2: # hard or soft limit
+		incompleteIP = unfinishedList.exclude(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False)
 
 	#queue_pending_system:
 	if (toggles.EDDY_SYS == 1):
@@ -110,11 +113,19 @@ def pending_eddy(ID):
 	elif (toggles.EDDY_SYS == 4):
 		chosenIP = useLottery(incompleteIP)
 
+
 	elif (toggles.EDDY_SYS == 5):
 		chosenIP = nu_pending_eddy(incompleteIP)
-		if chosenIP == None and not toggles.ITEM_HARD_LIMIT:
-			incompleteIP = unfinishedList.filter(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False).exclude(id__in=completedIP)
-			chosenIP = nu_pending_eddy(incompleteIP)
+		if chosenIP == None: 
+			if toggles.IP_LIMIT_SYS == 3: # soft limit
+				# check the IP pairs, whose items have reached the ITEM_IP_LIMIT
+				incompleteIP = unfinishedList.filter(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False).exclude(id__in=completedIP)
+				chosenIP = nu_pending_eddy(incompleteIP)
+		
+		if chosenIP != None and toggles.IP_LIMIT_SYS == 1: # adaptive limit
+			chosenIP = adaptive_predicate_limit(chosenIP, incompleteIP)
+			print "Completed adaptive predicate test"
+
 		if chosenIP == None:
 			if toggles.DEBUG_FLAG:
 				print "Warning: no IP pair for worker"
@@ -154,6 +165,39 @@ def pending_eddy(ID):
 		return chosenIP, runTime
 	return chosenIP
 
+
+def adaptive_predicate_limit (chosenIP, incompleteIP):		
+	# determine whether a chosenIP has reached the adaptive predicate limit
+	# items in queue for selective predicates should have a lower limit
+	# returns the chosenIP pair if it did not reach the limit
+	# returns another chosenIP pair that did not reach the adaptive limit
+
+	currentIP = chosenIP
+
+	activeItem = currentIP.item
+	activeIP = IP_Pair.objects.filter(inQueue = True, item = activeItem)
+	activePredSet = [ip.predicate for ip in activeIP]
+
+	# use number of tickets to determine selectivity of the predicates the activeItem is in
+	ticketList = [pred.num_tickets for pred in activePredSet]
+	ticketStats = sum (ticketList)  #maxmimum, minimum, average, or sum of tickets in active predicate
+	totalTicketList = [pred.num_tickets for pred in Predicate.objects.all()]
+	totalTickets = sum(totalTicketList)
+
+	predicateLimit = 0
+	if (ticketStats > (totalTickets*3/4)):   # item is in selective predicate queues
+		predicateLimit = 2
+	elif (ticketStats > (totalTickets*2/3)) :	# item is in medium-selective predicate queues
+		predicateLimit = 3
+	else:  # item is in not selective predicate queues
+		predicateLimit = 4
+
+	
+	if activeItem.pairs_out >= predicateLimit: # if item is over predicate limit
+		currentIP = None
+	
+	return currentIP
+	
 
 
 def nu_pending_eddy(incompleteIP):

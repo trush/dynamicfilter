@@ -88,10 +88,24 @@ and how it impacts the algorithm overall.) \n
 
 \link dynamicfilterapp.toggles.LIFETIME LIFETIME \endlink- Determines the "size" of the sliding window, measured
 in completed tasks (if in a non-time simulation) or in time steps (for a timed simulation).\n
-\n
 \link dynamicfilterapp.toggles.PENDING_QUEUE_SIZE PENDING_QUEUE_SIZE \endlink - An integer setting the length of
 the "queue" for a Pending Eddy system. (See "Algorithm Design" to learn about the meaning of this parameter for
 different algorithm setups.)\n
+
+\link dynamicfilterapp.toggles.IP_LIMIT_SYS IP_LIMIT_SYS \endlink - Selects which predicate limit setting
+will be applied to each item when assigned to each pair. \n
+Predicate Limit Guide:
+  - 0 - No limit: An IP pair can active in any number of predicates.
+  - 1 - Adaptive limit: For items that are in queues for more selective predicates, the predicate limit is lower. 
+  For items that are in queues for less selective, the predicate limit is higher. The "selectivity" of a predicate
+  is determined by the number of tickets. 
+  - 2 - Hard limit: The algorithm selects an IP pair, whose item did not reach the ITEM_IP_LIMIT. 
+  - 3 - Soft limit: The algorithm selects an IP pair, whose item did not reach the ITEM_IP_LIMIT. If there is no 
+  IP pair to assign, it selects an IP pair that has reached the ITEM_IP_LIMIT.
+
+
+\link dynamicfilterapp.toggles.ITEM_IP_LIMIT ITEM_IP_LIMIT \endlink - Maximum number of predicates an item
+can be in (for hard limit or soft limit, which are ITEM_) \n
 
 \link dynamicfilterapp.toggles.ADAPTIVE_QUEUE ADAPTIVE_QUEUE \endlink - Determines whether PENDING_QUEUE_SIZE
 will be static throughout simulation or will vary. \n

@@ -51,9 +51,11 @@ EDDY_SYS = 5
 ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 100
-PENDING_QUEUE_SIZE = 20
-ITEM_IP_LIMIT = 1
-ITEM_HARD_LIMIT = False
+PENDING_QUEUE_SIZE = 40
+
+IP_LIMIT_SYS = 3   # type of predicate limit for an item
+ITEM_IP_LIMIT = 1   # number of predicates an item can be in 
+
 ADAPTIVE_QUEUE = False
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
@@ -175,6 +177,7 @@ TRACK_IP_PAIRS_DONE = True
 TRACK_ACTIVE_TASKS = True # Useful only for simulations with TIME
 TRACK_PLACEHOLDERS = True
 TRACK_WASTE = True  # Tracks tasks leftover from finished items
+
 EDDY_SET = [5]       # Used only when TRACK_ACTIVE_TASKS is true   
 QUEUE_SET = [40, 80] 
 ACTIVE_TASKS_SET = [160]
@@ -209,7 +212,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
             'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS',
             'DUMMY_TASK_OPTION','GEN_GRAPHS','NUM_ITEMS','SIN',
-            'SELECTIVITY_GRAPH','switch_list', 'ITEM_IP_LIMIT', 'ITEM_HARD_LIMIT',
+            'SELECTIVITY_GRAPH','switch_list', 'ITEM_IP_LIMIT', 'IP_LIMIT_SYS',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
