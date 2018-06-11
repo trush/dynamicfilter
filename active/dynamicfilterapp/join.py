@@ -1,11 +1,7 @@
 import datetime as DT
 from math import *
 from random import *
-<<<<<<< HEAD
 import numpy
-=======
-from numpy import *
->>>>>>> 6a2f075821a3b9efc95189c807640f80d471be44
 
 class Join:
     """A join class for each instance of a join that occurs (perhaps across many predicates) """
