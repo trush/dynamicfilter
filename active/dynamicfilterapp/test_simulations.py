@@ -775,7 +775,7 @@ class SimulationTest(TransactionTestCase):
 		time_proxy = 0
 		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE # saves the initial size of the array
 		active_tasks_size = orig_active_tasks # keeps track of the current size of the array
-		tps_start = .4
+		tps_start = 3
 		secs = 0 # used to count time steps when tasks per second is less than 1
 		if toggles.SELECTIVITY_GRAPH:
 			for count in toggles.CHOSEN_PREDS:
@@ -993,6 +993,9 @@ class SimulationTest(TransactionTestCase):
 					# 	else:
 					# 		print "Task removed ||| Item: " + str(task.ip_pair.item.id) + " | Predicate: " + str(task.ip_pair.predicate.id) + " | IP Pair: " + str(task.ip_pair.id)
 
+				for pred in Predicate.objects.all():
+					pred.award_wicket()
+
 				# Redefines max tasks based on the number of IP pairs
 				if len(toggles.ACTIVE_TASKS_ARRAY) > 0:
 					for i in range(len(toggles.ACTIVE_TASKS_ARRAY)):
@@ -1028,7 +1031,7 @@ class SimulationTest(TransactionTestCase):
 
 				# fill the active task array with new tasks as long as some IPs need eval
 				if refill: #Izzy Note: To ignore runoff placeholders, add and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()
-					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists(): # and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, isDone=False).exists()): #or IP_Pair.objects.filter(inQueue=True, tasks_remaining__gt=0).exists()):
+					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists():
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 
@@ -1094,7 +1097,7 @@ class SimulationTest(TransactionTestCase):
 
 				# Tracks the number of tasks that weren't collected by an IP which reached consensus.
 				if toggles.TRACK_WASTE:
-					self.num_waste = self.num_tasks - used_tasks
+					self.num_waste = self.num_tasks - used_tasks - self.pred_active_tasks.keys()[0]
 
 				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 				#so we need index 0 of the tuple to get the time at which the switch should occur
