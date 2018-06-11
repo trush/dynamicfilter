@@ -1,6 +1,7 @@
 import datetime as DT
 from math import *
 from random import *
+from numpy import *
 
 class Join:
     """A join class for each instance of a join that occurs (perhaps across many predicates) """
@@ -61,6 +62,7 @@ class Join:
         self.processed_by_pw = 0
         self.processed_by_PJF = 0
         self.processed_by_smallP = 0
+        self.processed_by_join = 0
 
         ## Other Variables ################################
 
@@ -83,48 +85,70 @@ class Join:
         This retruns information about selectivity and cost."""
 
         #### INITIALIZE VARIABLES TO USE ####
-        cost_of_PJF, PJF = generate_PJF() # TODO: what are we going to do with the cost_of_PJF? Move somewhere else?
+        cost_of_PJF, PJF = self.generate_PJF() # TODO: what are we going to do with the cost_of_PJF? Move somewhere else?
 
         #### CONTROL GROUP: COMPLETELY USING PJF THEN PW JOIN ####
         timer_val = 0
         if(not i in self.evaluated_with_PJF):
             # save results of PJF to avoid repeated work
-            self.evaluated_with_PJF[i],PJF_cost = evaluate(PJF,i)
+            self.evaluated_with_PJF[i],PJF_cost = self.evaluate(PJF,i)
             self.processed_by_PJF += 1 # TODO: check that these are correct for what we are trying to record
             # if the item evaluated True for the PFJ then adjust selectivity
             self.PJF_selectivity_est = (self.PJF_selectivity_est*(self.processed_by_PJF-1)+self.evaluated_with_PJF[i])/self.processed_by_PJF
             # adjust our cost estimates for evaluating PJF
-            self.PJF_cost_est = (self.PJF_cost_est*len(self.evaluated_with_PJF-1)+PJF_cost)/self.processed_by_PJF
+            self.PJF_cost_est = (self.PJF_cost_est*(len(self.evaluated_with_PJF)-1)+PJF_cost)/self.processed_by_PJF
             timer_val += self.TIME_TO_EVAL_PJF
 
         if (not j in self.evaluated_with_PJF):
             # save results of PJF to avoid repeated work
-            self.evaluated_with_PJF[j],PJF_cost = evaluate(PJF,j)
+            self.evaluated_with_PJF[j],PJF_cost = self.evaluate(PJF,j)
             self.processed_by_PJF += 1 # TODO: check that these are correct for what we are trying to record
             # if the item evaluated True for the PFJ then adjust selectivity
             self.PJF_selectivity_est = (self.PJF_selectivity_est*(self.processed_by_PJF-1)+self.evaluated_with_PJF[j])/self.processed_by_PJF
             # adjust our cost estimates for evaluating PJF
-            self.PJF_cost_est = (self.PJF_cost_est*len(self.evaluated_with_PJF-1)+PJF_cost)/self.processed_by_PJF
+            self.PJF_cost_est = (self.PJF_cost_est*(len(self.evaluated_with_PJF)-1)+PJF_cost)/self.processed_by_PJF
             timer_val += self.TIME_TO_EVAL_PJF
 
         if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
             # Generate task of current pair
             timer_val += self.TIME_TO_GENERATE_TASK
-            # Choose whether to add to results_from_join
+            # Choose whether to add to results_from_pjf_join
             timer_val += self.PAIRWISE_TIME_PER_TASK
-            # Adjust join cost with these two time costs
-            self.join_cost_est = (self.join_cost_est*len(results_from_join)+self.TIME_TO_GENERATE_TASK+self.PAIRWISE_TIME_PER_TASK)/(len(results_from_join)+1)
+            ### If it is accepted in join process
+            if(random.random() < self.JOIN_SELECTIVITY):
+                self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
+                self.processed_by_join += 1
+                self.total_num_ips_processed += 1 # TODO: this is messed up by concurrency
+                # Adjust join cost estimates
+                self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.TIME_TO_GENERATE_TASK+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
+                
+                 #### DEBUGGING ####
+                if self.DEBUG:
+                    print "ACCEPTED BY JOIN----------"
+                    print "TIMER VALUE: " + str(timer_val)
+                    print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
+                    print "PJF cost estimate: " + str(self.PJF_cost_est)
+                    print "Join selectivity estimate: " + str(self.join_selectivity_est)
+                    print "Join cost estimate: " + str(self.join_cost_est)
+                    print "--------------------------"
+                
+                return True
+            ### If it is not accepted in join process
+            self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
+            self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.TIME_TO_GENERATE_TASK+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
+            
+            #### DEBUGGING ####
+            if self.DEBUG:
+                print "MATCHED BUT REJECTED BY JOIN------------"
+                print "TIMER VALUE: " + str(timer_val)
+                print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
+                print "PJF cost estimate: " + str(self.PJF_cost_est)
+                print "Join selectivity estimate: " + str(self.join_selectivity_est)
+                print "Join cost estimate: " + str(self.join_cost_est)
+                print "----------------------------------------"
 
-        #### DEBUGGING ####
-        if self.DEBUG:
-            print "PJF JOIN -----------------"
-            print "TIMER VALUE: " + str(timer_val)
-            print "--------------------------"
-
-        if(random() < self.JOIN_SELECTIVITY):
-            return True
+            return False
         return False
-
 
     #########################
     ## PJF Join Helpers #####
@@ -135,7 +159,7 @@ class Join:
 
     def evaluate(self, prejoin, item):
         """ Evaluates the PJF and returns whether it evaluate to true and how long it took to evluate it"""
-        return random()<sqrt(self.PJF_SELECTIVITY),self.TIME_TO_EVAL_PJF
+        return random.random()<sqrt(self.PJF_SELECTIVITY),self.TIME_TO_EVAL_PJF
 
     #########################
     ## PW Join          #####
@@ -153,7 +177,7 @@ class Join:
         # Generate task with item
         timer_val += self.TIME_TO_GENERATE_TASK
         #Get results of that task
-        matches, timer_val = get_matches(i, timer_val)
+        matches, timer_val = self.get_matches(i, timer_val)
         timer_val += self.BASE_FIND_MATCHES
         #recalculate average cost
         self.PW_cost_est = (self.PW_cost_est*self.processed_by_pw + timer_val)/(self.processed_by_pw+1)
@@ -206,7 +230,7 @@ class Join:
                 self.has_2nd_list = True
         
         else:
-            costs = find_costs()
+            costs = self.find_costs()
             if self.DEBUG:
                 print "COSTS CALCULATED ---------------"
                 print "Cost1: " + str(cost_1)
@@ -219,35 +243,35 @@ class Join:
                 if random(0,1) < 0.5: # 50% chance of going to 1 or 2
                     for i in self.list2:
                         if cost[0] < cost[1]: # Choose the fastest between 1 amd 2
-                            if small_pred(i):
+                            if self.small_pred(i):
                                 if PJF_join(i, item):
                                     self.results_from_pjf_join.append([item, i])
                         else:
                             if PJF_join(i, item):
-                                if small_pred(i):
+                                if self.small_pred(i):
                                     self.results_from_pjf_join([item, i])
                 else: # 50% chance of going to 3 or 4
                     if cost[2]<cost[3]:
                         i = self.list2[0]
                         if cost[2] < cost[4]:
                             matches = PW_join(i, self.list2) # assuming self.list2 is not empty
-                            if small_pred(i):
+                            if self.small_pred(i):
                                 self.results_from_pw_join.append(matches)
                                 self.results_from_pjf_join.append(matches)
                         else:
-                            if small_pred(i):
+                            if self.small_pred(i):
                                 matches = PW_join(i, self.list2)
                                 self.results_from_pw_join.append(matches)
                                 self.results_from_pjf_join.append(matches)
                     elif cost[3]<cost[4]:
                         matches = PW_join(item, self.list1)
                         for i in matches:
-                            if small_pred(i[1]):
+                            if self.small_pred(i[1]):
                                 self.results_from_pw_join.append(i)
                                 self.results_from_pjf_join.append(i)
                     else:
                         i = self.list2[0]
-                        if small_pred(i):
+                        if self.small_pred(i):
                             matches = PW_join(i, self.list2)
                             self.results_from_pw_join.append(matches)
                             self.results_from_pjf_join.append(matches)
@@ -326,12 +350,3 @@ class Join:
                 print "-------------------------"
             return eval_results
 
-my_j = Join([1,2,3],[0,1,2,3,4])
-print my_j.small_pred(0)
-print my_j.small_pred(1)
-print my_j.small_pred(0)
-print my_j.small_pred(0)
-print my_j.small_pred(1)
-print my_j.small_pred(0)
-
-print my_j.find_costs()
