@@ -520,8 +520,6 @@ class IP_Pair(models.Model):
 		if not self.isDone:
 			self.status_votes += 1
 			self.save(update_fields=["status_votes"])
-			self.predicate.award_wicket()
-
 
 			if workerTask.answer:
 				self.value += 1
