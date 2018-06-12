@@ -41,6 +41,9 @@ class Join:
         self.SMALL_P_SELECTIVITY = 0.5
         self.TIME_TO_EVAL_SMALL_P = 30.0
 
+            ## Other private variables used for simulations
+        self.private_list2 = [ "Red", "Blue", "Green", "Yellow" ] 
+
 
         ## Estimates ######################################
 
@@ -195,19 +198,33 @@ class Join:
             print "PW TOTAL COST: " + str(self.PW_cost_est*self.processed_by_pw)
             print "----------------------------"
         # we want to add the new items to list2 and keep track of the sample size
-        if itemlist == list1:
+        if itemlist == self.list1:
             for match in matches:
                 # add to list 2
-                if match[1] not in list2:
-                    list2 += [match[1]]
+                if match[1] not in self.list2:
+                    self.list2 += [match[1]]
                 # add to f_dictionary
-                for entry in self.f_dictionary:
-                    if match[1] in self.f_dictionary[entry]:
-                        self.f_dictionary[entry].remove(match[1])
-                        if entry+1 in self.f_dictionary:
-                            self.f_dictionary[entry+1] += [match[1]]
-                        else:
-                            self.f_dictionary[entry+1] = [match[1]]
+                if not any(self.f_dictionary):
+                    self.f_dictionary[1] = [match[1]]
+                else:
+                    been_added = False
+                    entry = 1 # known first key
+                    # try to add it to the dictionary
+                    while not been_added:
+                        if match[1] in self.f_dictionary[entry]:
+                            self.f_dictionary[entry].remove(match[1])
+                            if entry+1 in self.f_dictionary:
+                                self.f_dictionary[entry+1] += [match[1]]
+                                been_added = True
+                            else:
+                                self.f_dictionary[entry+1] = [match[1]]
+                                been_added = True
+                        entry += 1
+                        if not entry in self.f_dictionary:
+                            break
+                    if not been_added:
+                        self.f_dictionary[1] += [match[1]]
+                
             self.total_sample_size += len(matches)
         # get_matches() returns (list2, list1) if itemlist is list2, so reverse them. 
         else:
@@ -226,9 +243,11 @@ class Join:
         #assumes a normal distribution
         num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
         matches = []
+        sample = numpy.random.choice(self.private_list2, num_matches, False)
         #add num_matches pairs
-        for i in range(num_matches):
-            matches.append((item, i))
+        for i in range(len(sample)):
+            item2 = sample[i]
+            matches.append((item, item2))
             timer += self.FIND_SINGLE_MATCH_TIME
         if self.DEBUG:
             print "MATCHES ---------------"
@@ -385,8 +404,8 @@ def chao_estimator():
     sum_fis = 0
     for i in self.f_dictionary:
         sum_fis += i*(i-1)*self.f_dictionary[i]
-    gamma_2 = max((len(self.list2)/c_hat*sum_fis) \ 
-                    /(self.total_sample_size*(self.total_sample_size-1)) -1, 0)
+    gamma_2 = max((len(self.list2)/c_hat*sum_fis)/\
+                (self.total_sample_size*(self.total_sample_size-1)) -1, 0)
     # final equation
     N_chao = len(self.list2)/c_hat + self.total_sample_size*(1-c_hat)/(c_hat)*max(len())
     #if we are comfortably within a small margin of the total set, we call it close enough
@@ -394,5 +413,11 @@ def chao_estimator():
         return True
     return False
 
-my_j = Join([1,2,3],[0,1,2,3,4])
-print my_j.main_join()
+my_j = Join([1,2,3])
+print my_j.PW_join(1, my_j.list1)
+print my_j.PW_join(2, my_j.list1)
+print my_j.PW_join(3, my_j.list1)
+# print my_j.PW_join(1, my_j.list1)
+# take take of case above
+print my_j.f_dictionary
+print my_j.total_sample_size
