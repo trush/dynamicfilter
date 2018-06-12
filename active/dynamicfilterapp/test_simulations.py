@@ -1281,7 +1281,7 @@ class SimulationTest(TransactionTestCase):
 			# if toggles.DEBUG_FLAG:
 			# 	print "Wrote file: " + dest
 
-			dest = toggles.OUTPUT_PATH + "placeholderTasks.csv"
+			dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + "placeholderTasks.csv"
 			with open(dest, 'a') as f1:
 				f1.write(str(self.num_placeholders) + ',')
 			if toggles.DEBUG_FLAG:
@@ -1294,7 +1294,7 @@ class SimulationTest(TransactionTestCase):
 			# if toggles.DEBUG_FLAG:
 			# 	print "Wrote file: " + dest
 
-			dest = toggles.OUTPUT_PATH + "wastedTasks.csv"
+			dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + "wastedTasks.csv"
 			with open(dest, 'a') as f1:
 				f1.write(str(self.num_waste) + ',')
 			if toggles.DEBUG_FLAG:
@@ -1324,8 +1324,6 @@ class SimulationTest(TransactionTestCase):
 			multi_line_graph_gen([range(time_proxy)]*xMultiplier, scores, predScoresLegend,
 								toggles.OUTPUT_PATH + "predScores" + str(self.sim_num) + ".png",
 								labels = ("time proxy", "scores"))
-
-
 
 		if toggles.COUNT_TICKETS:
 
@@ -2020,13 +2018,13 @@ class SimulationTest(TransactionTestCase):
 				if toggles.EDDY_SYS == 2:
 					break
 
-		dest = toggles.OUTPUT_PATH + "changingConfigTaskCounts"
+		dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + "changingConfigTaskCounts"
 		generic_csv_write(dest+".csv", save)
 
-		dest1 = toggles.OUTPUT_PATH + "changingConfigSimTimes"
+		dest1 = toggles.OUTPUT_PATH + toggles.RUN_NAME + "changingConfigSimTimes"
 		generic_csv_write(dest1+".csv", save1)
 
-		dest2 = toggles.OUTPUT_PATH + "changingConfigRealTaskCounts"
+		dest2 = toggles.OUTPUT_PATH + toggles.RUN_NAME + "changingConfigRealTaskCounts"
 		generic_csv_write(dest2+'.csv', save2)
 
 		if toggles.DEBUG_FLAG:
