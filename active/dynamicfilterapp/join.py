@@ -52,6 +52,10 @@ class Join:
         self.small_p_cost_est = 0.0
         self.small_p_selectivity_est = 0.0
 
+            ## Enumeration estimator variables
+        self.f_dictionary = { }
+        self.total_sample_size = 0
+
         ## Results ########################################
 
         self.results_from_pjf_join = []
@@ -189,6 +193,27 @@ class Join:
             print "PW AVERAGE COST: " + str(self.PW_cost_est)
             print "PW TOTAL COST: " + str(self.PW_cost_est*self.processed_by_pw)
             print "----------------------------"
+        # we want to add the new items to list2 and keep track of the sample size
+        if itemlist == list1:
+            for match in matches:
+                # add to list 2
+                if match[1] not in list2:
+                    list2 += [match[1]]
+                # add to f_dictionary
+                for entry in self.f_dictionary:
+                    if match[1] in self.f_dictionary[entry]:
+                        self.f_dictionary[entry].remove(match[1])
+                        if entry+1 in self.f_dictionary:
+                            self.f_dictionary[entry+1] += [match[1]]
+                        else:
+                            self.f_dictionary[entry+1] = [match[1]]
+            self.total_sample_size += len(matches)
+        # get_matches() returns (list2, list1) if itemlist is list2, so reverse them. 
+        else:
+            for match in matches:
+                match = (match[1],match[0])
+
+        
         return matches
 
     #########################
@@ -352,8 +377,18 @@ class Join:
                 print "-------------------------"
             return eval_results
 
+def chao_estimator():
+    """ Uses the Chao92 equation to estimate population size during enumeration """
+    # prepping variables
+    c_hat = (1-self.f_dictionary[1])/n
+    sum_fis = 0
+    for i in self.f_dictionary:
+        sum_fis += i*(i-1)*self.f_dictionary[i]
+    gamma_2 = max((len(self.list2)/c_hat*sum_fis) \ 
+                    /(self.total_sample_size*(self.total_sample_size-1)) -1, 0)
+    # final equation
+    N_chao = len(self.list2)/c_hat + self.total_sample_size*(1-c_hat)/(c_hat)*max(len())
+    return N_chao
+
 my_j = Join([1,2,3],[0,1,2,3,4])
-print my_j.PW_join(1, my_j.list1)
-print my_j.PW_join(2, my_j.list1)
-print my_j.PW_join(3, my_j.list1)
-print my_j.find_costs()
+print my_j.main_join()
