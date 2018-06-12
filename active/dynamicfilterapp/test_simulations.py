@@ -1996,7 +1996,7 @@ class SimulationTest(TransactionTestCase):
 				toggles.PENDING_QUEUE_SIZE = q
 
 				for a in activeTasksSet:
-					toggles.MAX_TASKS_OUT = toggles.NUM_CERTAIN_VOTES
+					# toggles.MAX_TASKS_OUT = toggles.NUM_CERTAIN_VOTES
 
 					for run in range(toggles.NUM_GRAPH_SIM):
 						toggles.ACTIVE_TASKS_SIZE = a

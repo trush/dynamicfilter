@@ -118,10 +118,11 @@ of tickets a predicate has exceeds the # tickets element of the tuple. If so, th
 set to the second element of the tuple. \n
 
 \link dynamicfilterapp.toggles.ACTIVE_TASKS_ARRAY ACTIVE_TASKS_ARRAY \endlink - A list of tuples of form
-(# of active pairs, task limit); at each time loop, the algorithm will check the number of IP pairs that are
+(# of active pairs, refill limit, task limit); at each time loop, the algorithm will check the number of IP pairs that are
 still active, and will compare it with the # of active pairs in each tuple, and set the maximum tasks equal to
 the the second number in the tuple with the largest # of active pairs less than the current active pairs
-set to the second element of the tuple. \n
+set to the second element of the tuple. At any point if active tasks fall below the refill limit, more tasks will be made
+available (refilled back to task limit). \n
 
 \link dynamicfilterapp.toggles.BATCH_ASSIGNMENT BATCH_ASSIGNMENT \endlink - Assigns jobs in batches, then
 waits for feedback before assigning more. Number of jobs in a batch will be equal to the current max number of active tasks \n

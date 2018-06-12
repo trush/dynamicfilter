@@ -61,7 +61,7 @@ ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
 QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3),(16,4)] # settings for above mode [(#tickets,qlength)]
-ACTIVE_TASKS_ARRAY = [(0,1,1),(1,5,40),(15,30,60),(50,50,80),(80,120,160),(100,250,300)] #Only matters (atm) if batch assignment on
+ACTIVE_TASKS_ARRAY = [(0,0,0),(1,10,40),(10,50,100),(40,350,450)] #Only matters (atm) if batch assignment on
 BATCH_ASSIGNMENT = True
 
 EPSILON = 0.7
