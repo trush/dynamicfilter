@@ -73,6 +73,7 @@ class Join:
         self.has_2nd_list = False
         self.total_num_ips_processed = 0
         self.enumerator_est = False # TODO: read more about this and use in our code
+        self.THRESHOLD = 0.1
 
         ## TOGGLES ########################################
         self.DEBUG = True
@@ -248,7 +249,7 @@ class Join:
             matches = PW_join(item, self.list1)
             self.results_from_pw_join.append(matches)
             self.results_from_pjf_join.append(matches)
-            if self.enumerator_est:
+            if self.chao_estimator():
                 if self.DEBUG:
                     print "ESTIMATOR HIT------------"
                     print "Size of list 1: " + str(len(self.list1))
@@ -388,7 +389,10 @@ def chao_estimator():
                     /(self.total_sample_size*(self.total_sample_size-1)) -1, 0)
     # final equation
     N_chao = len(self.list2)/c_hat + self.total_sample_size*(1-c_hat)/(c_hat)*max(len())
-    return N_chao
+    #if we are comfortably within a small margin of the total set, we call it close enough
+    if N_chao > 0 and abs(N_chao - len(list2)) < self.THRESHOLD * N_chao:
+        return True
+    return False
 
 my_j = Join([1,2,3],[0,1,2,3,4])
 print my_j.main_join()
