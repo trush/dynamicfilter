@@ -1097,8 +1097,8 @@ class SimulationTest(TransactionTestCase):
 						count = len(active_tasks)
 
 				#print "Task limit: " + str(task_limit) + "  Active Tasks: " + str(len(active_tasks)) + " Count: " + str(count) + " Refill: " + str(refill)
-
-				move_window()
+				if toggles.SLIDING_WINDOW:
+					move_window()
 
 				if toggles.TRACK_PLACEHOLDERS:
 					self.placeholder_change_count.append(DummyTask.objects.all().count())

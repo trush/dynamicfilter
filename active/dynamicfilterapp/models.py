@@ -204,13 +204,12 @@ class Predicate(models.Model):
 		self.save(update_fields=["rank"])
 
 	def move_window(self):
-		if self.num_wickets == toggles.LIFETIME:
-			self.num_wickets = 0
-			self.save(update_fields=["num_wickets"])
-
-			if self.num_tickets > 1:
-				self.num_tickets -= 1
-				self.save(update_fields=["num_tickets"])
+		recent_tasks = Task.objects.filter(end_time__gt=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
+		edge_tasks = Task.objects.filter(end_time=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
+		old_tasks = Task.objects.filter(end_time__lte=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
+		old_IPs = IP_Pair.objects.filter(isDone=True,predicate=self,value__lt=0).filter(id__in=old_tasks).filter(id__in=edge_tasks).exclude(id__in=recent_tasks)
+		self.num_tickets -= old_IPs.count()
+		self.save(update_fields=["num_tickets"])
 
 	def award_ticket(self):
 		self.num_tickets += 1
