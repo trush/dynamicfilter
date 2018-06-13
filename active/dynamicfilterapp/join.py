@@ -91,6 +91,9 @@ class Join:
         """ Assuming that we have two items of a join tuple that need to be evaluated, 
         this function mimicks human join with predetermined costs and selectivity specified.
         This retruns information about selectivity and cost."""
+        if (i,j) in results_from_all_join:
+            return true
+        #TODO: fix PJF join to not repeat work (with other concurrent tasks)
 
         #### INITIALIZE VARIABLES TO USE ####
         cost_of_PJF, PJF = self.generate_PJF() # TODO: what are we going to do with the cost_of_PJF? Move somewhere else?
@@ -198,7 +201,8 @@ class Join:
         self.processed_by_pw += 1
         #remove processed item from itemlist
 
-        itemlist.remove(i)
+        if i in itemlist:
+            itemlist.remove(i)
         if self.DEBUG:
             print "RAN PAIRWISE JOIN ----------"
             print "PW AVERAGE COST: " + str(self.PW_cost_est)
@@ -311,6 +315,8 @@ class Join:
                                 if self.small_pred(i):
                                     self.results_from_pjf_join([item, i])
                                     self.results_from_all_join([item, i])
+                        #we assume (and feel justified doing so) no repeats in primary list
+                        self.list1.remove(item)
                 else: # 50% chance of going to 3 or 4 or 5
                     if cost[2]<cost[3]:
                         i = self.list2[0]
