@@ -124,11 +124,10 @@ def pending_eddy(ID):
 		
 		if chosenIP != None and toggles.IP_LIMIT_SYS == 1: # adaptive limit
 			chosenIP = adaptive_predicate_limit(chosenIP, incompleteIP)
-			print "Completed adaptive predicate test"
 
 		if chosenIP == None:
 			if toggles.DEBUG_FLAG:
-				print "Warning: no IP pair for worker (worker has " + str(unfinishedList.exclude(id__in=completedIP).count()) + " tasks uncompleted) " + str(unfinishedList.filter(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False).exclude(id__in=completedIP)) + " " + str(unfinishedList.exclude(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False).exclude(id__in=completedIP))
+				print "Warning: no IP pair for worker "
 
 
 	else:
@@ -185,12 +184,13 @@ def adaptive_predicate_limit (chosenIP, incompleteIP):
 	totalTickets = sum(totalTicketList)
 
 	predicateLimit = 0
+	numPredicate = len(totalTicketList) # number of total predicates
 	if (ticketStats > (totalTickets*3/4)):   # item is in selective predicate queues
-		predicateLimit = 2
+		predicateLimit = 1
 	elif (ticketStats > (totalTickets*2/3)) :	# item is in medium-selective predicate queues
-		predicateLimit = 3
+		predicateLimit = int(numPredicate/2)
 	else:  # item is in not selective predicate queues
-		predicateLimit = 4
+		predicateLimit = numPredicate
 
 	
 	if activeItem.pairs_out >= predicateLimit: # if item is over predicate limit

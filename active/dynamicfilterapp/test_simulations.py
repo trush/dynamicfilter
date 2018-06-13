@@ -501,6 +501,7 @@ class SimulationTest(TransactionTestCase):
 		self.placeholder_change_count, self.num_tasks_change_count = [0], [0]
 		self.pred_active_tasks, self.time_steps_array = {}, []
 		self.pred_queues = {}
+		self.num_waste = 0
 
 		end = time.time()
 		reset_time = end - start
@@ -514,6 +515,7 @@ class SimulationTest(TransactionTestCase):
 		self.cum_placeholder_time_array, self.num_placeholders_array = [], []
 		self.num_tasks_array, self.num_real_tasks_array = [], []
 		self.num_incorrect_array = []
+		self.num_waste_array = []
 
 	## Experimental function that runs many simulations and slightly changes the simulation
 	# configuration during its run.
@@ -1116,7 +1118,6 @@ class SimulationTest(TransactionTestCase):
 
 			if toggles.DEBUG_FLAG:
 				print "Simulaton completed ||| Simulated time = " + str(time_clock) + " | number of tasks: " + str(self.num_tasks)
-				print "Number of tasks wasted: " + str(self.num_waste)
 				print "Time steps: " + str(len(self.time_steps_array))
 				print "Predicates saved in active tasks dict: " + str(self.pred_active_tasks.keys()[1:])
 				print "Number of placeholder tasks: " + str(self.pred_active_tasks.keys()[0])
@@ -1912,7 +1913,8 @@ class SimulationTest(TransactionTestCase):
 
 
 	## \todo write this docstring
-	def visualizeActiveTasks(self, data):
+	def visualizeActiveTasks(self, data, runNum):
+
 		if not (toggles.TRACK_ACTIVE_TASKS and toggles.SIMULATE_TIME):
 			raise Exception("Turn on TRACK_ACTIVE TASKS and SIMULATE_TIME for this to work properly.")
 		if not (toggles.COUNT_TICKETS and toggles.TRACK_QUEUES):
@@ -1927,7 +1929,7 @@ class SimulationTest(TransactionTestCase):
 			save.append(self.pred_active_tasks[pred])
 			graphData1.append( (pred, self.pred_active_tasks[pred]) )
 
-		dest1 = toggles.OUTPUT_PATH + "track_active_tasks_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS)
+		dest1 = toggles.OUTPUT_PATH + "track_active_tasks_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
 
 		generic_csv_write(dest1+".csv", save)
 		writtenFiles = [dest1+".csv"]
@@ -1941,7 +1943,7 @@ class SimulationTest(TransactionTestCase):
 				graphData2.append( (pred, self.ticket_nums[pred]) )
 
 
-			dest2 = toggles.OUTPUT_PATH + "track_tickets_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)
+			dest2 = toggles.OUTPUT_PATH + "track_tickets_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
 			generic_csv_write(dest2+".csv", save)
 			writtenFiles.append(dest2+".csv")
 
@@ -1953,7 +1955,7 @@ class SimulationTest(TransactionTestCase):
 				save.append(self.pred_queues[pred])
 				graphData3.append( (pred, self.pred_queues[pred]) )
 
-			dest3 = toggles.OUTPUT_PATH + "track_queues_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)
+			dest3 = toggles.OUTPUT_PATH + "track_queues_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
 			generic_csv_write(dest3+".csv", save)
 			writtenFiles.append(dest3+'.csv')
 
@@ -1968,7 +1970,7 @@ class SimulationTest(TransactionTestCase):
 				graphGen.queue_sizes(graphData3, dest3)
 
 		if toggles.TRACK_IP_PAIRS_DONE:
-			dest = toggles.OUTPUT_PATH + "ip_done_vs_tasks_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS)
+			dest = toggles.OUTPUT_PATH + "ip_done_vs_tasks_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
 			csv_dest = dest_resolver(dest+".csv")
 
 			dataToWrite = [self.ips_tasks_array, self.time_steps_array, self.ips_done_array]
@@ -1987,6 +1989,7 @@ class SimulationTest(TransactionTestCase):
 				# 	title = "Number IP Pairs Done vs. Time")
 
 		self.reset_database()
+		
 
 	## \todo write this docstring
 	def visualizeMultiRuns(self, data, queueSet, activeTasksSet, eddySet):
@@ -2008,12 +2011,9 @@ class SimulationTest(TransactionTestCase):
 
 					for run in range(toggles.NUM_GRAPH_SIM):
 						toggles.ACTIVE_TASKS_SIZE = a
-						if run == 0:
-							self.visualizeActiveTasks(data)
-						else:
-							self.run_sim(data)
-							self.reset_database()
+						self.visualizeActiveTasks(data, run)
 						print "Completed run: " + str(run) + " for e = " + str(e) + ", q = " + str(q) + ", a = " + str(a)
+						
 					save.append([e, q, a])
 					save1.append([e, q, a])
 					save2.append([e, q, a])
@@ -2046,6 +2046,50 @@ class SimulationTest(TransactionTestCase):
 			graphGen.task_distributions(graph_out, dest, False)
 			graphGen.simulated_time_distributions(graph_out1, dest1)
 			graphGen.task_distributions(graph_out2, dest2, True)
+
+	def runMultiSims(self, data):
+	# run multiple simulations with settings specified in MULTI_SIM_ARRAY
+	# outputs a multiRunStats.csv file that includes the settings and 
+	# number of placeholder tasks, waste tasks, total tasks, and simulated time for each simulation
+		settingCount = 0
+		for setting in toggles.MULTI_SIM_ARRAY:
+
+			numSim = setting[0]	# number of simulations for current setting
+			toggles.IP_LIMIT_SYS = setting[1][0] # predicate limit mode
+			if toggles.IP_LIMIT_SYS >= 2:		 # for hard, soft limit
+				toggles.ITEM_IP_LIMIT = setting[1][1] # predicate limit
+			toggles.ACTIVE_TASKS_ARRAY = setting[2] # batch size
+			toggles.QUEUE_LENGTH_ARRAY = setting[3] # adaptive queue length
+
+			# set up output csv file
+			save = []
+			runList = []
+			save.append(["Setting:", "Predicate Limit Mode", "Predicate Limit", "Active Task Array", "Queue Array"])
+			save.append(["",toggles.IP_LIMIT_SYS, toggles.ITEM_IP_LIMIT, str(toggles.ACTIVE_TASKS_ARRAY), str(toggles.QUEUE_LENGTH_ARRAY)])
+			
+			for run in range(numSim):
+				self.visualizeActiveTasks(data, str(settingCount)+str(run))
+				runList.append(str(run))
+
+			# write in file
+			save.append(runList)
+			save.append(self.num_placeholders_array)
+			save.append(self.num_waste_array)
+			save.append(self.num_real_tasks_array)
+			save.append(self.simulated_time_array)
+
+			self.reset_arrays()
+
+			# output file
+			dest = toggles.OUTPUT_PATH + "multiRunStats"+ str(settingCount)
+			generic_csv_write(dest+".csv", save)
+			if toggles.DEBUG_FLAG:
+				print "Wrote file: " + dest + ".csv"
+
+			settingCount += 1
+
+			
+
 
 	def collect_act1_data(self, timed):
 		if timed:
@@ -2291,6 +2335,7 @@ class SimulationTest(TransactionTestCase):
 
 			if toggles.RUN_TASKS_COUNT:
 				generic_csv_write(toggles.OUTPUT_PATH+toggles.RUN_NAME+'_tasks_count.csv',[runTasksArray])
+				self.reset_arrays()
 				if toggles.DEBUG_FLAG:
 					print "Wrote File: " + toggles.OUTPUT_PATH + toggles.RUN_NAME + '_tasks_count.csv'
 				if toggles.GEN_GRAPHS:
@@ -2386,6 +2431,10 @@ class SimulationTest(TransactionTestCase):
 			
 			self.visualizeMultiRuns(sampleData, queueSet, activeTasksSet, eddySet)
 
+		if toggles.MULTI_SIM: 
+			self.runMultiSims(sampleData)
+			# run multiple simulations for various configurations in toggles.MULTI_RUN_ARRAY
+
 
 	# def test_3(self):
 	# 	if not toggles.RUN_ITEM_ROUTING:
@@ -2423,3 +2472,4 @@ class SimulationTest(TransactionTestCase):
 	# 		syn_load_data()
 	#
 	# 	self.timeRun(sampleData)
+	
