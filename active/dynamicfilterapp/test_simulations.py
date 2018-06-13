@@ -811,6 +811,7 @@ class SimulationTest(TransactionTestCase):
 
 		# array of tasks currently in process
 		active_tasks = []
+		joins = [] ## TODO: make join object
 
 		#time counter
 		time_clock = 0

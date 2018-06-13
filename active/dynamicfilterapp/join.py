@@ -359,6 +359,7 @@ class Join:
                             if self.PJF_join(i, item):
                                 self.results_from_pjf_join.append([item, i])
                                 self.results_from_all_join.append([item, i])
+                    self.list1.remove(item)
                 if(cost[1] == minimum):
                     for i in self.list2:
                         if self.DEBUG:
@@ -367,6 +368,7 @@ class Join:
                             if self.small_pred(i):
                                 self.results_from_pjf_join([item, i])
                                 self.results_from_all_join([item, i])
+                    self.list1.remove(item)
                 if(cost[2] == minimum):
                     if self.DEBUG:
                         print "************** GOING DOWN PATH 3 ****************"
