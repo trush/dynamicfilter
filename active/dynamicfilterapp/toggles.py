@@ -126,6 +126,9 @@ BUFFER_TIME = 0
 MAX_TASKS_OUT = 40
 MAX_TASKS_COLLECTED = CUT_OFF
 
+MULTI_SIM = True 
+MULTI_SIM_ARRAY = [(3, (3, 1), [(0,0,0),(1,10,40),(10,50,100),(40,350,450)], [(0,1),(4,2),(8,3),(16,4)]),
+(3, (3, 1), [(0,0,0),(1,10,40),(10,50,100),(40,350,450)], [(0,1),(4,2),(8,3),(16,4)])]
 # ************************************************************************ #
 
 
@@ -226,7 +229,8 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'IDEAL_GRID', 'K', 'CONSENSUS_STATUS', 'SINGLE_VOTE_CUTOFF', 'NUM_ITEMS', 'NUM_QUESTIONS',
             'SELECTIVITY_GRAPH', 'CONSENSUS_STATUS_LIMITS', 'ACCURACY_COUNT', 'TRACK_SIZE',
             'ADAPTIVE_CONSENSUS', 'CONSENSUS_SIZE_LIMITS', 'RENO_BONUS_RATIO', 'BAYES_ENABLED', 'RESIZE_ACTIVE_TASKS',
-            'TASKS_PER_SECOND', 'EPSILON', 'REWARD'
+            'TASKS_PER_SECOND', 'EPSILON', 'REWARD',
+            'MULTI_SIM', 'MULTI_SIM_ARRAY'
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file
