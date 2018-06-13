@@ -771,6 +771,7 @@ class SimulationTest(TransactionTestCase):
 		used_tasks = 0
 		batch_tasks_out = toggles.ACTIVE_TASKS_SIZE
 		refill_mark = 0
+		last_refill = 0
 
 		time_proxy = 0
 		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE # saves the initial size of the array
@@ -1007,7 +1008,7 @@ class SimulationTest(TransactionTestCase):
 
 				count = len(active_tasks)
 
-				if toggles.BATCH_ASSIGNMENT:
+				if toggles.BATCH_ASSIGNMENT == 1:
 					if batch_tasks_out >= active_tasks_size:
 						if len(active_tasks) > refill_mark:
 							refill = False
@@ -1015,6 +1016,15 @@ class SimulationTest(TransactionTestCase):
 							# print("New batch " + str(time_clock))
 							refill = True
 							batch_tasks_out = len(active_tasks)
+				elif toggles.BATCH_ASSIGNMENT == 2:
+					if batch_tasks_out >= active_tasks_size:
+						if time_clock - last_refill < toggles.REFILL_PERIOD:
+							refill = False
+						else:
+							# print("New batch " + str(time_clock))
+							refill = True
+							batch_tasks_out = len(active_tasks)
+							last_refill = time_clock
 
 				# decides whether to give out more tasks if tasks per second is less than 1
 				if toggles.TASKS_PER_SECOND:

@@ -57,12 +57,14 @@ IP_LIMIT_SYS = 3   # type of predicate limit for an item
 ITEM_IP_LIMIT = 1   # number of predicates an item can be in 
 
 ADAPTIVE_QUEUE = False
-ADAPTIVE_QUEUE_MODE = 0
+ADAPTIVE_QUEUE_MODE = 1
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
-QUEUE_LENGTH_ARRAY = [(0,1),(4,2),(8,3),(16,4)] # settings for above mode [(#tickets,qlength)]
-ACTIVE_TASKS_ARRAY = [(0,0,0),(1,10,40),(10,50,100),(40,350,450)] #Only matters (atm) if batch assignment on
-BATCH_ASSIGNMENT = True
+QUEUE_LENGTH_ARRAY = [(0,4),(4,6),(8,10),(16,16),(25,25)] # settings for above mode [(#tickets,qlength)]
+ACTIVE_TASKS_ARRAY = [(0,0,0),(1,10,40),(10,150,200),(50,350,450)] #Only matters (atm) if batch assignment on
+#[(0,0,0),(1,10,40),(10,75,100),(20,150,200),(40,350,450)]
+BATCH_ASSIGNMENT = 2
+REFILL_PERIOD = 100
 
 EPSILON = 0.7
 REWARD = 1.7
@@ -220,7 +222,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'EDDY_SET', 'QUEUE_SET', 'ACTIVE_TASKS_SET', 'ACTIVE_TASKS_ARRAY',
             'NUM_SIM','TIME_SIMS','SIMULATE_TIME', 'NUM_GRAPH_SIM', 'BATCH_ASSIGNMENT',
             'ACTIVE_TASKS_SIZE', "MAX_TASKS_COLLECTED", "MAX_TASKS_OUT", 'BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
-            'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES',
+            'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES', 'REFILL_PERIOD',
             'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES',
             'PREDICATE_SPECIFIC', 'W_MAX', 'CUBIC_B', 'CUBIC_C', 'ADAPTIVE_CONSENSUS_MODE',
             'IDEAL_GRID', 'K', 'CONSENSUS_STATUS', 'SINGLE_VOTE_CUTOFF', 'NUM_ITEMS', 'NUM_QUESTIONS',
