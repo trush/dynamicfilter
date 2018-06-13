@@ -62,7 +62,7 @@ class Join:
         ## Results ########################################
 
         self.results_from_pjf_join = []
-        self.results_from_pw_join = [] # TODO: why did we want these seperate again?
+        self.results_from_all_join = [] # TODO: why did we want these seperate again?
         self.evaluated_with_PJF = { }
         self.evaluated_with_smallP = [] # all things that evaluated to True
         self.failed_by_smallP = [] # all things that evaluated to False
@@ -279,12 +279,12 @@ class Join:
         print buf1
         print self.total_num_ips_processed
 
+        # PW join on list1, no list2 yet
         if not self.has_2nd_list:
             matches = self.PW_join(item, self.list1)
             for match in matches:
                 if self.small_pred(match[1]):
-                    self.results_from_pw_join.append(match)
-                    self.results_from_pjf_join.append(match)
+                    self.results_from_all_join.append(match)
             if not buf1 and self.chao_estimator():
                 if self.DEBUG:
                     print "ESTIMATOR HIT------------"
@@ -301,15 +301,16 @@ class Join:
                             if self.DEBUG:
                                     print "************** BUFFER DOWN PATH 1 ****************"
                             if self.small_pred(i):
-                                print "we are here"
                                 if self.PJF_join(i, item):
                                     self.results_from_pjf_join.append([item, i])
+                                    self.results_from_all_join.append([item, i])
                         else:
                             if self.DEBUG:
                                     print "************** BUFFER DOWN PATH 2 ****************"
                             if self.PJF_join(i, item):
                                 if self.small_pred(i):
                                     self.results_from_pjf_join([item, i])
+                                    self.results_from_all_join([item, i])
                 else: # 50% chance of going to 3 or 4 or 5
                     if cost[2]<cost[3]:
                         i = self.list2[0]
@@ -318,8 +319,7 @@ class Join:
                                 print "************** BUFFER DOWN PATH 3 ****************"
                             matches = self.PW_join(i, self.list2) # assuming self.list2 is not empty
                             if self.small_pred(i):
-                                self.results_from_pw_join.append(matches)
-                                self.results_from_pjf_join.append(matches)
+                                self.results_from_all_join.append(matches)
                         else:
                             if self.DEBUG:
                                     print "************** BUFFER DOWN PATH 5 ****************"
@@ -327,24 +327,21 @@ class Join:
                                     print len(self.list2)
                             if self.small_pred(i):
                                 matches = self.PW_join(i, self.list2)
-                                self.results_from_pw_join.append(matches)
-                                self.results_from_pjf_join.append(matches)
+                                self.results_from_all_join.append(matches)
                     elif cost[3]<cost[4]:
                         if self.DEBUG:
                             print "************** BUFFER DOWN PATH 4 ****************"
                         matches = self.PW_join(item, self.list1)
                         for i in matches:
                             if self.small_pred(i[1]):
-                                self.results_from_pw_join.append(i)
-                                self.results_from_pjf_join.append(i)
+                                self.results_from_all_join.append(i)
                     else:
                         if self.DEBUG:
                             print "************** BUFFER DOWN PATH 5 ****************"
                         i = self.list2[0]
                         if self.small_pred(i):
                             matches = self.PW_join(i, self.list2)
-                            self.results_from_pw_join.append(matches)
-                            self.results_from_pjf_join.append(matches)
+                            self.results_from_all_join.append(matches)
             else:
                 print "we are here"
                 minimum = min(cost)
@@ -355,6 +352,7 @@ class Join:
                         if self.small_pred(i):
                             if self.PJF_join(i, item):
                                 self.results_from_pjf_join.append([item, i])
+                                self.results_from_all_join.append([item, i])
                 if(cost[1] == minimum):
                     for i in self.list2:
                         if self.DEBUG:
@@ -362,22 +360,21 @@ class Join:
                         if self.PJF_join(i, item):
                             if self.small_pred(i):
                                 self.results_from_pjf_join([item, i])
+                                self.results_from_all_join([item, i])
                 if(cost[2] == minimum):
                     if self.DEBUG:
                         print "************** GOING DOWN PATH 3 ****************"
                     i = self.list2[0]
                     matches = self.PW_join(i, self.list2) # assuming self.list2 is not empty
                     if self.small_pred(i):
-                        self.results_from_pw_join.append(matches)
-                        self.results_from_pjf_join.append(matches)
+                        self.results_from_all_join.append(matches)
                 if(cost[3] == minimum):
                     if self.DEBUG:
                         print "************** GOING DOWN PATH 4 ****************"
                     matches = self.PW_join(item, self.list1)
                     for i in matches:
                         if self.small_pred(i[1]):
-                            self.results_from_pw_join.append(i)
-                            self.results_from_pjf_join.append(i)
+                            self.results_from_all_join.append(i)
                 if(cost[4] == minimum):
                     if self.DEBUG:
                         print "************** GOING DOWN PATH 5 ****************"
@@ -385,8 +382,7 @@ class Join:
                     print i
                     if self.small_pred(i):
                         matches = self.PW_join(i, self.list2)
-                        self.results_from_pw_join.append(matches)
-                        self.results_from_pjf_join.append(matches)
+                        self.results_from_all_join.append(matches)
 
 
 
@@ -396,9 +392,8 @@ class Join:
     #########################
 
     def find_costs(self):
-        """ Finds the cost of the quickest path and returns the path number associated with that 
-        path. Path 1 = PJF w/ small predicate applied early. Path 2 = PJF w/ small predicate
-        applied later. Path 3 = PW on list 2. Path 4 = PW on list 1."""
+        """ Finds the cost estimates of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
+        Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
         # COST 1 CALCULATION - small pred then PJF
         cost_1 = self.small_p_cost_est*len(self.list2) + \
                 self.PJF_cost_est*(self.small_p_selectivity_est *(len(self.list2)-len(self.evaluated_with_smallP))+(len(self.list1))) + \
@@ -424,8 +419,38 @@ class Join:
             print "COST 3 = " + str(cost_3)
             print "COST 4 = " + str(cost_4)
             print "COST 5 = " + str(cost_5)
+            self.find_real_costs()
             print "----------------------------"
 
+        return [cost_1, cost_2, cost_3, cost_4, cost_5]
+
+    def find_real_costs(self):
+        """ Finds the real costs of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
+        Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
+        # COST 1 CALCULATION - small pred then PJF
+        cost_1 = self.TIME_TO_EVAL_SMALL_P*len(self.list2) + \
+            self.TIME_TO_EVAL_PJF*(self.SMALL_P_SELECTIVITY *(len(self.list2)-len(self.evaluated_with_smallP))+(len(self.list1))) + \
+            self.PAIRWISE_TIME_PER_TASK*len(self.list2)*len(self.list1)*self.SMALL_P_SELECTIVITY*self.PJF_SELECTIVITY
+        # COST 2 CALCULATION - PJF then small pred
+        cost_2 = self.TIME_TO_EVAL_PJF*(len(self.list2)+len(self.list1)) + \
+            self.PAIRWISE_TIME_PER_TASK*len(self.list2)*len(self.list1)*self.PJF_SELECTIVITY+ \
+            self.TIME_TO_EVAL_SMALL_P*self.JOIN_SELECTIVITY*len(self.list1)*len(self.list2)
+        # COST 3 CALCULATION - pairwise of second list and then small pred
+        cost_3 = (self.BASE_FIND_MATCHES+self.AVG_MATCHES*self.FIND_SINGLE_MATCH_TIME)*len(self.list2) + \
+            self.JOIN_SELECTIVITY*len(self.list1)*len(self.list2)*self.TIME_TO_EVAL_SMALL_P
+        # COST 4 CALCULATION - pairwise join on first list and then small pred
+        cost_4 = (self.BASE_FIND_MATCHES+self.AVG_MATCHES*self.FIND_SINGLE_MATCH_TIME)*len(self.list1)+ \
+            self.TIME_TO_EVAL_SMALL_P*self.JOIN_SELECTIVITY*len(self.list1)*len(self.list2)
+        # COST 5 CALCULATION - small pred then pairwise join on second list
+        cost_5 = self.TIME_TO_EVAL_SMALL_P*len(self.list2)+ self.SMALL_P_SELECTIVITY*len(self.list2)*(self.BASE_FIND_MATCHES+self.AVG_MATCHES*self.FIND_SINGLE_MATCH_TIME)
+
+        #### DEBUGGING ####
+        if self.DEBUG:
+            print "REAL COST 1 = " + str(cost_1)
+            print "REAL COST 2 = " + str(cost_2)
+            print "REAL COST 3 = " + str(cost_3)
+            print "REAL COST 4 = " + str(cost_4)
+            print "REAL COST 5 = " + str(cost_5)
         return [cost_1, cost_2, cost_3, cost_4, cost_5]
 
 
