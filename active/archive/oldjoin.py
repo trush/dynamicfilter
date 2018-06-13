@@ -8,19 +8,22 @@ import numpy as np
 
 #toggles
 DEBUG = False
-GRAPHS = True
+GRAPHS = False
 
 #dictionary for testing    
 evaluated_with_PJF_private = {}
 
 # Only used for mass testing
 join_selectivities_to_test = [0.3,0.6,0.9]
-PJF_selectivities_to_test =  [0.9,0.95,0.99]
+PJF_selectivities_to_test =  [0.95, 0.95, 0.95]
 pairwise_time_to_test = [10.0,50.0,100.0]
 time_to_eval_PJF_test = [10.0,50.0,100.0]
 size_l1_to_test = [5,50,100]
 size_l2_to_test = [2,20,40]
 
+# returns results from join
+# takes in the settings
+# need to save the average at the end of the join run through
 def join(H, M, join_settings):
     """ Assuming that we have two complete lists that need to b joined, mimicks human join
     with predetermined average cost per HIT """
@@ -138,7 +141,8 @@ def join(H, M, join_settings):
             adaptive_better = False
         makeCSV(run_summary,trial_number)
         makeJoinCostPlot(run_summary,trial_number, adaptive_better)
-    return results_from_join
+    # results, PJF, PW, adapative
+    return results_from_join, avg_cost, (avg_cost1*num_pairs1+avg_cost2*num_pairs2)/(num_pairs1+num_pairs2), PAIRWISE_TIME_PER_TASK+TIME_TO_GENERATE_TASK
 
 def generate_PJF(PJF_SELECTIVITY):
     return (15,PJF_SELECTIVITY)
@@ -195,7 +199,6 @@ def makeJoinCostPlot(data, trial_number, adaptive_better):
     plt.plot(data[0], data[3], 'g--') 
 
 
-
     ### ADJUST AXES AND LEGEND ###
     max_y = max( [max(data[1]),max(data[2]),max(data[3])] )
     min_y = min( [min(data[1]),min(data[2]),min(data[3])] )
@@ -219,10 +222,43 @@ def makeJoinCostPlot(data, trial_number, adaptive_better):
     fig = plt.gcf()
     fig.savefig(adaptive + 'Cost of Various Join algorithms' + str(trial_number) + '.png')
 
+def mass_trial_csv(data, PJF_avg_cost, PW_avg_cost, ad_avg_cost):
+    ''' Writes a 11 by n 2D list to a CSV file called join_data.csv '''
+    download_dir = "trial_info.csv" #where you want the file to be downloaded to 
+    csv = open(download_dir, "w") #"w" indicates that you're writing strings to the file
+
+    columnTitleRow = "Pairs processed, Cost of Adaptive Algorithm, Cost of PJF Join, Cost of PW Join\n"
+    csv.write(columnTitleRow)
+
+    if not len(data)==len(PJF_avg_cost):
+        print "not same size, all is not good!"
+    for iteration in range(len(data)):
+        col0 = data[iteration][0]
+        col1 = data[iteration][1]
+        col2 = data[iteration][2]
+        col3 = data[iteration][3]
+        col4 = data[iteration][4]
+        col5 = data[iteration][5]
+        col6 = data[iteration][6]
+        col7 = PJF_avg_cost[iteration]
+        col8 = PW_avg_cost[iteration]
+        col9 = ad_avg_cost[iteration]
+        if iteration==0:
+            col10 = "Adaptive - PJF cost"
+        else:
+            col10 = col9-col7
+        row = str(col0) + "," + str(col1) + "," + str(col2) + "," + str(col3) + "," + str(col4) + "," + str(col5) + "," + \
+            str(col6) + "," + str(col7) + "," + str(col8) + "," + str(col9) + "," + str(col10) +"\n"
+        csv.write(row)
+    
+
 def testing_join_settings():
     trial_number_info = [["Trial Number", "Join Selectivity", "PFJ Selectivity", "Pairwise time per task", 
                     "Time to eval PJF", "Size of List 1", "Size of List 2"]]
     trial_number = 1
+    all_PJF_costs = ["Avg. Cost of PJF"]
+    all_adaptive_costs = ["Avg. Cost of Adaptive"]
+    all_PW_costs = ["Avg. Cost of PW"]
     for join_selectivity in join_selectivities_to_test:
         for PJF_selectivity in PJF_selectivities_to_test:
             for pairwise_time in pairwise_time_to_test:
@@ -239,9 +275,12 @@ def testing_join_settings():
                             for i in range(size_2):
                                 M += [100+i]
                             # Run join
-                            join(H,M,join_settings)
+                            results, PJF_cost, adaptive_cost, PW_cost = join(H,M,join_settings)
                             trial_number += 1
-
+                            # here are the costs that we will save
+                            all_PJF_costs += [PJF_cost]
+                            all_adaptive_costs += [adaptive_cost]
+                            all_PW_costs += [PW_cost]
                             if DEBUG:
                                 print 'INSIDE TESTING JOIN SETTINGS -------'
                                 print 'JOIN_SELECTIVITY: ' + str(join_selectivity)
@@ -249,6 +288,7 @@ def testing_join_settings():
                                 print 'PAIRWISE_TIME_PER_TASK: ' + str(pairwise_time) 
                                 print 'TIME_TO_EVAL_PJF: ' + str(eval_PJF_time)
                                 print '-------------------------------------'
-    return trial_number_info
+    return trial_number_info, all_PJF_costs, all_adaptive_costs, all_PW_costs
 
-makeCSV_forTrialInfo( testing_join_settings() )
+things = testing_join_settings()
+mass_trial_csv( things[0], things[1], things[2], things[3] )
