@@ -204,11 +204,17 @@ class Predicate(models.Model):
 		self.save(update_fields=["rank"])
 
 	def move_window(self):
+		if self.num_wickets < toggles.DELAY_TIME:
+			self.num_tickets = 1
+		elif self.num_wickets == toggles.DELAY_TIME:
+			self.num_tickets = self.num_pending + 1
 		recent_tasks = Task.objects.filter(end_time__gt=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
 		edge_tasks = Task.objects.filter(end_time=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
 		old_tasks = Task.objects.filter(end_time__lte=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
 		old_IPs = IP_Pair.objects.filter(isDone=True,predicate=self,value__lt=0).filter(id__in=old_tasks).filter(id__in=edge_tasks).exclude(id__in=recent_tasks)
 		self.num_tickets -= old_IPs.count()
+		if self.num_tickets < 1:
+			self.num_tickets = 1
 		self.save(update_fields=["num_tickets"])
 
 	def award_ticket(self):
@@ -241,7 +247,8 @@ class Predicate(models.Model):
 			raise Exception ("Queue for predicate " + str(self.id) + " set to full when not")
 
 	def remove_ticket(self):
-		self.num_tickets -= 1
+		if self.num_tickets > 1:
+			self.num_tickets -= 1
 		self.save(update_fields=["num_tickets"])
 
 	def add_total_task(self):
@@ -562,11 +569,12 @@ class IP_Pair(models.Model):
 						self.predicate.update_pred(toggles.REWARD)
 					if (toggles.EDDY_SYS == 7):
 						self.predicate.update_pred_rank(toggles.REWARD)
-					itemPairs = IP_Pair.objects.filter(item__hasFailed=True)
+					itemPairs = IP_Pair.objects.filter(item__hasFailed=True,item=self.item)
 					itemPairs.update(isDone=True)
 					activePairs = itemPairs.filter(inQueue=True)
 					for aPair in activePairs:
 						aPair.remove_from_queue()
+						aPair.predicate.remove_ticket()
 
 				# helpful print statements
 				if toggles.DEBUG_FLAG:
