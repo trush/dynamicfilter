@@ -800,6 +800,7 @@ class SimulationTest(TransactionTestCase):
 
 		# array of tasks currently in process
 		active_tasks = []
+		joins = [] ## TODO: make join object
 
 		#set up joins for joinable predicates
 		for predicate in Predicate.objects.all():
