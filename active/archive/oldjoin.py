@@ -20,8 +20,8 @@ join_selectivities_to_test = [0.3,0.6,0.9]
 PJF_selectivities_to_test =  [0.9, 0.9, 0.9, 0.9 ,0.9]
 pairwise_time_to_test = [50.0,100.0]
 time_to_eval_PJF_test = [10.0,50.0]
-size_l1_to_test = [50,100]
-size_l2_to_test = [20,40]
+size_l1_to_test = [5,50,100]
+size_l2_to_test = [2, 20,40]
 
 # returns results from join
 # takes in the settings
@@ -286,22 +286,21 @@ def summary_csv(data):
 # time costs (of pairwise joins and of the PJF)
 def heatmap(data, trial_info):
     significant_data_x, significant_data_y = [],[]
-    for entry in range(len(data[0])):
+    print "LENGTH OF DATA: " + str(len(data)) + " ," + str(len(data[0]))
+    for entry in range(len(data)):
         x_T = data[entry][3] # the mean of the adaptive trial
         x_C = data[entry][1] # the mean of the PJF trial
         s_T = data[entry][6] # std of the adaptive trial
-        print s_T
+        print "Std fo adaptive: " + str(s_T)
         s_C = data[entry][4] # std of the PJF trial
-        print s_C
+        print "std of PJF: " + str(s_C)
         n_T = len(PJF_selectivities_to_test) # assuming they are all the same and we are using this to control how many trials
-        print n_T
         n_C = len(PJF_selectivities_to_test) # same as above
-        print n_C
         print "here1"
-        t_val = float(x_T-x_C)/float(sqrt(float(s_T**2)/float(n_T)+float(s_C**2)/float(n_C)))
+        t_val = float(x_T-x_C) / float(sqrt( float( s_T**2)/float(n_T)+float(s_C**2)/float(n_C) ))
         print t_val
         print "here2"
-        if t_val > 0.05:
+        if t_val < 0.05:
             ###                     (                size1          ) / (            size 2             )
             print "here3"
             significant_data_x += [ int(trial_info[int(data[entry][0])][5]) / int(trial_info[int(data[entry][0])][5])]
@@ -366,9 +365,9 @@ def testing_join_settings():
                             sum_avg_PJF += [PJF_cost]
                             sum_avg_PW += [PW_cost]
                             sum_avg_adapt += [adaptive_cost]
-                            print "ADDING ROW TO SUM_DATA"
                         summary_data += [[trial_number_start, np.mean(sum_avg_PJF), \
                             np.mean(sum_avg_PW), np.mean(sum_avg_adapt), np.std(sum_avg_PJF), np.std(sum_avg_PW), np.std(sum_avg_adapt) ]]
+                        print "the std is; " + str(np.std(sum_avg_adapt))
                         if DEBUG:
                             print "SETTINGS:"
                             print join_selectivity, PJF_selectivity, pairwise_time, eval_PJF_time,size_1,size_2
