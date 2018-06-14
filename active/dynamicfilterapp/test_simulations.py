@@ -170,6 +170,9 @@ class SimulationTest(TransactionTestCase):
 			q = Question(question_ID=ID, question_text=line)
 			q.save()
 			pred = Predicate(predicate_ID=ID, question=q)
+			#TODO: Use input (or some reasonable criteria) to choose whether joinable
+			if random() > 0.5:
+				pred.joinable = True
 			pred.save()
 			ID += 1
 		f.close()
@@ -797,6 +800,11 @@ class SimulationTest(TransactionTestCase):
 
 		# array of tasks currently in process
 		active_tasks = []
+
+		#set up joins for joinable predicates
+		for predicate in Predicate.objects.all():
+			if predicate.joinable:
+				Join.objects.create(pred = predicate)
 
 		#time counter
 		time_clock = 0
