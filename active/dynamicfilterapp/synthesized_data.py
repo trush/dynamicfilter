@@ -17,6 +17,9 @@ def syn_load_data():
 	for ID in toggles.CHOSEN_PREDS:
 		q = Question.objects.create(question_ID=ID, question_text="question" + str(ID))
 		pred = Predicate.objects.create(predicate_ID=ID, question=q)
+		#currently randomly set joinability
+		if(random() > 0.5):
+			pred.joinable = True
 		pred.setTrueSelectivity(toggles.switch_list[0][1+ID][0])
 		pred.setTrueAmbiguity(toggles.switch_list[0][1+ID][1])
 
@@ -28,6 +31,7 @@ def syn_load_data():
 	for p in predicates:
 		for i in itemList:
 			ip_pair = IP_Pair.objects.create(item=i, predicate=p)
+			
 
 
 def syn_answer(chosenIP, switch, numTasks):

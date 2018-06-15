@@ -170,6 +170,9 @@ class SimulationTest(TransactionTestCase):
 			q = Question(question_ID=ID, question_text=line)
 			q.save()
 			pred = Predicate(predicate_ID=ID, question=q)
+			#TODO: Use input (or some reasonable criteria) to choose whether joinable
+			if random() > 0.5:
+				pred.joinable = True
 			pred.save()
 			ID += 1
 		f.close()
