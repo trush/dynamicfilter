@@ -228,13 +228,9 @@ def nu_pending_eddy(incompleteIP):
 				# print "*"*10 + " Condition 2 invoked " + "*"*10
 
 				if (toggles.ITEM_SYS == 3): #item_inacive assignment
-					# choose an IP pair with minimum tasks out 
-					# print(pickFromFirst.values('tasks_out'))
-					# print(pickFromFirst.aggregate(Min('tasks_out')))
 					minTasks = pickFromFirst.aggregate(Min('tasks_out')).values()[0]
 					minTaskIP = pickFromFirst.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
 					chosenIP = minTaskIP
-
 				chosenIP = choice(pickFromFirst)
 				if not chosenIP.is_in_queue:
 					chosenIP.add_to_queue()
@@ -280,12 +276,9 @@ def nu_pending_eddy(incompleteIP):
 		# find something for that predicate that isn't being worked on yet and add it
 		if pickFrom.exists():
 			if (toggles.ITEM_SYS == 3): #item_inacive assignment
-					# choose an IP pair with minimum tasks out 
-					# print(pickFrom.values('tasks_out'))
-					# print(pickFrom.aggregate(Min('tasks_out')))
-					minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
-					minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-					chosenIP = minTaskIP
+				minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
+				minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+				chosenIP = minTaskIP
 			# print "*"*10 + " Condition 4 invoked " + "*"*10
 			chosenIP = choice(pickFrom.filter(predicate=chosenPred))
 			if not chosenIP.is_in_queue:
@@ -298,12 +291,9 @@ def nu_pending_eddy(incompleteIP):
 		if pickFromFirst.exists() and not chosenPred.queue_is_full:
 			# print "*"*10 + " Condition 6 invoked " + "*"*10
 			if (toggles.ITEM_SYS == 3): #item_inacive assignment
-					# choose an IP pair with minimum tasks out 
-					# print(pickFromFirst.values('tasks_out'))
-					# print(pickFromFirst.aggregate(Min('tasks_out')))
-					minTasks = pickFromFirst.aggregate(Min('tasks_out')).values()[0]
-					minTaskIP = pickFromFirst.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-					chosenIP = minTaskIP
+				minTasks = pickFromFirst.aggregate(Min('tasks_out')).values()[0]
+				minTaskIP = pickFromFirst.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+				chosenIP = minTaskIP
 			chosenIP = choice(pickFromFirst)
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
@@ -321,12 +311,9 @@ def nu_pending_eddy(incompleteIP):
 		lastResortPick = incompleteIP.exclude(predicate = chosenPred).exclude(id__in=outOfFullQueue).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
 		if lastResortPick.exists():
 			if (toggles.ITEM_SYS == 3): #item_inacive assignment
-					# choose an IP pair with minimum tasks out 
-					# print(lastResortPick.values('tasks_out'))
-					# print(lastResortPick.aggregate(Min('tasks_out')))
-					minTasks = lastResortPick.aggregate(Min('tasks_out')).values()[0]
-					minTaskIP = lastResortPick.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-					chosenIP = minTaskIP
+				minTasks = lastResortPick.aggregate(Min('tasks_out')).values()[0]
+				minTaskIP = lastResortPick.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+				chosenIP = minTaskIP
 			chosenIP = choice(lastResortPick) # random choice from what's available
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
