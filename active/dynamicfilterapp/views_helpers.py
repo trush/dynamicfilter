@@ -339,7 +339,7 @@ def give_task(active_tasks, workerID):
 		ip_pair.distribute_task()
 		#if our predicate is a join predicate, we may have a different time
 		if ip_pair.predicate.joinable:
-			eddy_time=ip_pair.get_join_process()[ip_pair.join_task_out][1]
+			eddy_time=ip_pair.get_join_process()[ip_pair.join_task_out]
 	else:
 		pass
 

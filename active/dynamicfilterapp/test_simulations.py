@@ -802,11 +802,6 @@ class SimulationTest(TransactionTestCase):
 		active_tasks = []
 		joins = [] ## TODO: make join object
 
-		#set up joins for joinable predicates
-		for predicate in Predicate.objects.all():
-			if predicate.joinable:
-				Join.objects.create(pred = predicate)
-
 		#time counter
 		time_clock = 0
 
