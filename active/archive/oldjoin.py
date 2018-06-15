@@ -7,6 +7,7 @@ import matplotlib.lines as mlines
 import numpy as np
 import plotly.plotly as py
 import plotly.graph_objs as go
+from scipy import stats
 
 #toggles
 DEBUG = False
@@ -17,11 +18,18 @@ evaluated_with_PJF_private = {}
 
 # Only used for mass testing
 join_selectivities_to_test = [0.3,0.6,0.9]
-PJF_selectivities_to_test =  [0.9, 0.9, 0.9, 0.9 ,0.9]
-pairwise_time_to_test = [50.0,100.0]
-time_to_eval_PJF_test = [10.0,50.0]
-size_l1_to_test = [5,50,100]
-size_l2_to_test = [2, 20,40]
+PJF_selectivities_to_test =  []
+for i in range(10):
+    PJF_selectivities_to_test += [0.6]
+pairwise_time_to_test = [10.0]
+time_to_eval_PJF_test = []
+size_l1_to_test = []
+size_l2_to_test = [10]
+for i in range(10):
+    # pairwise_time_to_test += [(i+1)*10.0]
+    time_to_eval_PJF_test += [(i+1)*10.0]
+    size_l1_to_test += [(i+1)*10]
+    # size_l2_to_test += [(i+1)*10]
 
 # returns results from join
 # takes in the settings
@@ -272,12 +280,12 @@ def summary_csv(data):
 
     for iteration in range(len(data)):
         trial = data[iteration][0]
-        PJF = data[iteration][1]
-        PW = data[iteration][2]
-        ADAPT = data[iteration][3]
-        PJF_std = data[iteration][4]
-        PW_std = data[iteration][5]
-        ADAPT_std = data[iteration][6]
+        PJF = np.mean(data[iteration][1])
+        PW = np.mean(data[iteration][2])
+        ADAPT = np.mean(data[iteration][3])
+        PJF_std = np.std(data[iteration][1]) 
+        PW_std = np.std(data[iteration][2])
+        ADAPT_std = np.std(data[iteration][3])
         row = str(trial) + "," + str(PJF) + "," + str(PW) + "," + str(ADAPT) + "," + str(PJF_std) + "," + str(PW_std) + "," + str(ADAPT_std) +"\n"
         csv.write(row)
 
@@ -286,38 +294,34 @@ def summary_csv(data):
 # time costs (of pairwise joins and of the PJF)
 def heatmap(data, trial_info):
     significant_data_x, significant_data_y = [],[]
-    print "LENGTH OF DATA: " + str(len(data)) + " ," + str(len(data[0]))
+    size_1s = []
+    size_2s = []
     for entry in range(len(data)):
-        x_T = data[entry][3] # the mean of the adaptive trial
-        x_C = data[entry][1] # the mean of the PJF trial
-        s_T = data[entry][6] # std of the adaptive trial
-        print "Std fo adaptive: " + str(s_T)
-        s_C = data[entry][4] # std of the PJF trial
-        print "std of PJF: " + str(s_C)
-        n_T = len(PJF_selectivities_to_test) # assuming they are all the same and we are using this to control how many trials
-        n_C = len(PJF_selectivities_to_test) # same as above
-        print "here1"
-        t_val = float(x_T-x_C) / float(sqrt( float( s_T**2)/float(n_T)+float(s_C**2)/float(n_C) ))
-        print t_val
-        print "here2"
-        if t_val < 0.05:
-            ###                     (                size1          ) / (            size 2             )
-            print "here3"
-            significant_data_x += [ int(trial_info[int(data[entry][0])][5]) / int(trial_info[int(data[entry][0])][5])]
-            ##                      (    pairwise time              ) / (   PJF time                    )
-            print "here4"
-            significant_data_y += [ int(trial_info[int(data[entry][0])][3]) / int(trial_info[int(data[entry][0])][4]) ]
-
-    heatmap, xedges, yedges = np.histogram2d(significant_data_y, significant_data_x, bins=(64,64))
+        a = data[entry][1] #PJF
+        b = data[entry][3] #ADAPT
+        t, p = stats.ttest_ind(a,b)
+        if np.mean(a) > np.mean(b):
+            if p < 0.05:
+                ###                     (                size1          ) / (            size 2             )
+                significant_data_x += [ float(trial_info[int(data[entry][0])][5]) / float(trial_info[int(data[entry][0])][6])]
+                size_1s += [trial_info[int(data[entry][0])][5]]
+                size_2s += [trial_info[int(data[entry][0])][6]]
+                ##                      (    pairwise time              ) / (   PJF time                    )
+                significant_data_y += [ float(trial_info[int(data[entry][0])][3]) / float(trial_info[int(data[entry][0])][4]) ]
+    
+    heatmap, xedges, yedges = np.histogram2d(significant_data_x, significant_data_y,bins=(10,10))
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
  
-    # Plot heatmap
+    # Plot heatmap 
     plt.clf()
-    plt.title('Pythonspot.com heatmap example')
+    plt.title('Heatmap of significantly different average costs')
     plt.ylabel('y')
     plt.xlabel('x')
-    plt.imshow(heatmap, extent=extent, origin='lower')
-    plt.show()
+    plt.imshow(heatmap, extent=extent, origin='lower', aspect=100)
+    
+    ### SHOW AND SAVE ###
+    fig = plt.gcf()
+    fig.savefig('heatmap.png')
 
 # Used to call join many times and save information about performances and settings tested. Returns data that is used in
 # summary_csv() and heatmap() and mass_trial_csv() mostly.
@@ -365,9 +369,8 @@ def testing_join_settings():
                             sum_avg_PJF += [PJF_cost]
                             sum_avg_PW += [PW_cost]
                             sum_avg_adapt += [adaptive_cost]
-                        summary_data += [[trial_number_start, np.mean(sum_avg_PJF), \
-                            np.mean(sum_avg_PW), np.mean(sum_avg_adapt), np.std(sum_avg_PJF), np.std(sum_avg_PW), np.std(sum_avg_adapt) ]]
-                        print "the std is; " + str(np.std(sum_avg_adapt))
+                        summary_data += [[trial_number_start, sum_avg_PJF, \
+                            sum_avg_PW, sum_avg_adapt]]
                         if DEBUG:
                             print "SETTINGS:"
                             print join_selectivity, PJF_selectivity, pairwise_time, eval_PJF_time,size_1,size_2
