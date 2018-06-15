@@ -80,7 +80,7 @@ Item System Guide:
   - 1 - Item-started system (Items that have already been started will be preferred when choosing an item.)
   - 2 - Item-almost-false system (Items that are close to being eliminated from the passing set will
         be preferred when choosing an item.)
-
+  - 3 - Item-inactive system (Items that aren't in the queue will be preferred when choosing an item.)
 
 \link dynamicfilterapp.toggles.SLIDING_WINDOW SLIDING_WINDOW \endlink - Determines whether "windowing"
 will be turned on for a Pending Eddy algorithm. (See "Algorithm Design" for details on how this works

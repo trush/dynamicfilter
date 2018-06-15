@@ -48,7 +48,7 @@ else:
 # ************************************************************************ #
 
 EDDY_SYS = 5
-ITEM_SYS = 0
+ITEM_SYS = 3
 SLIDING_WINDOW = False
 LIFETIME = 100
 PENDING_QUEUE_SIZE = 40
