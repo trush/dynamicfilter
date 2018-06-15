@@ -252,7 +252,7 @@ def nu_pending_eddy(incompleteIP):
 		pickFrom = incompleteIP.filter(predicate = chosenPred, inQueue = False).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
 
 		# find something for that predicate that isn't being worked on yet and add it
-		if pickFrom.filter(predicate = chosenPred).exists():
+		if pickFrom.filter(predicate = chosenPred).exists() and not chosenPred.queue_is_full:
 			# print "*"*10 + " Condition 4 invoked " + "*"*10
 			chosenIP = choice(pickFrom.filter(predicate=chosenPred))
 			if not chosenIP.is_in_queue:

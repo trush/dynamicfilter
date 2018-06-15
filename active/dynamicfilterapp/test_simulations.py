@@ -962,13 +962,20 @@ class SimulationTest(TransactionTestCase):
 				if toggles.COUNT_TICKETS:
 					for pred in self.ticket_nums:
 						self.ticket_nums[pred].append(Predicate.objects.get(pk=pred).num_tickets)
+						if len(self.ticket_nums[pred]) > 1:
+							if self.ticket_nums[pred][-1]<self.ticket_nums[pred][-2]:
+								print "Ticket numbers decreasing, from " + str(self.ticket_nums[pred][-2]) + " to " + str(self.ticket_nums[pred][-1]) + " for pred " + str(pred)
+								for pred in self.ticket_nums:
+									print Predicate.objects.get(pk=pred).num_tickets
 
 				# check if any tasks have reached completion, update bookkeeping
 				# print "Removing tasks"
 				for task in active_tasks:
 					if (task.end_time <= time_clock):
 						if task.ip_pair != None:
+							task.refresh_from_db()
 							task.ip_pair.refresh_from_db()
+							task.ip_pair.predicate.refresh_from_db()
 							pair_complete = task.ip_pair.isDone
 							updateCounts(task, task.ip_pair)
 							if toggles.TRACK_WASTE and pair_complete != task.ip_pair.isDone:
@@ -1184,7 +1191,8 @@ class SimulationTest(TransactionTestCase):
 					else:
 						task = self.syn_simulate_task(ip_pair, workerID, 0, switch, self.num_tasks)
 
-					move_window()
+					if toggles.SLIDING_WINDOW:
+						move_window()
 					self.num_tasks += 1
 
 
@@ -2028,13 +2036,13 @@ class SimulationTest(TransactionTestCase):
 				if toggles.EDDY_SYS == 2:
 					break
 
-		dest = toggles.OUTPUT_PATH + toggles.RUN_NAME + "changingConfigTaskCounts"
+		dest = toggles.OUTPUT_PATH + "changingConfigTaskCounts"
 		generic_csv_write(dest+".csv", save)
 
-		dest1 = toggles.OUTPUT_PATH + toggles.RUN_NAME + "changingConfigSimTimes"
+		dest1 = toggles.OUTPUT_PATH + "changingConfigSimTimes"
 		generic_csv_write(dest1+".csv", save1)
 
-		dest2 = toggles.OUTPUT_PATH + toggles.RUN_NAME + "changingConfigRealTaskCounts"
+		dest2 = toggles.OUTPUT_PATH + "changingConfigRealTaskCounts"
 		generic_csv_write(dest2+'.csv', save2)
 
 		if toggles.DEBUG_FLAG:

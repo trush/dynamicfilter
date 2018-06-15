@@ -204,15 +204,12 @@ class Predicate(models.Model):
 		self.save(update_fields=["rank"])
 
 	def move_window(self):
-		if self.num_wickets < toggles.DELAY_TIME:
-			self.num_tickets = 1
-		elif self.num_wickets == toggles.DELAY_TIME:
-			self.num_tickets = self.num_pending + 1
 		recent_tasks = Task.objects.filter(end_time__gt=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
 		edge_tasks = Task.objects.filter(end_time=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
 		old_tasks = Task.objects.filter(end_time__lte=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
 		old_IPs = IP_Pair.objects.filter(isDone=True,predicate=self,value__lt=0).filter(id__in=old_tasks).filter(id__in=edge_tasks).exclude(id__in=recent_tasks)
 		self.num_tickets -= old_IPs.count()
+		self.save(update_fields=["num_tickets"])
 		if self.num_tickets < 1:
 			self.num_tickets = 1
 		self.save(update_fields=["num_tickets"])
@@ -506,7 +503,7 @@ class IP_Pair(models.Model):
 			if toggles.EDDY_SYS != 5:
 				raise Exception ("Too many IP pair objects in queue for predicate " + str(self.predicate.id))
 		self.item.add_to_queue()
-		self.predicate.award_ticket()
+		# self.predicate.award_ticket()
 		if not IP_Pair.objects.filter(predicate=self.predicate, inQueue=True).count() == self.predicate.num_pending:
 			print "IP objects in queue for pred " + str(self.predicate.id) + ": " + str(IP_Pair.objects.filter(predicate=self.predicate, inQueue=True).count())
 			print "Number pending for pred " + str(self.predicate.id) + ": " + str(self.predicate.num_pending)
@@ -560,11 +557,12 @@ class IP_Pair(models.Model):
 				self.save(update_fields=["isDone"])
 				self.predicate.update_ip_count()
 
-				if not self.is_false() and self.predicate.num_tickets > 1:
-					self.predicate.remove_ticket()
+				#if not self.is_false() and self.predicate.num_tickets > 1:
+				#	self.predicate.remove_ticket()
 
 				if self.is_false():
 					# update score when item fails
+					self.predicate.award_ticket()
 					if (toggles.EDDY_SYS == 6):
 						self.predicate.update_pred(toggles.REWARD)
 					if (toggles.EDDY_SYS == 7):
@@ -574,7 +572,7 @@ class IP_Pair(models.Model):
 					activePairs = itemPairs.filter(inQueue=True)
 					for aPair in activePairs:
 						aPair.remove_from_queue()
-						aPair.predicate.remove_ticket()
+						# aPair.predicate.remove_ticket()
 
 				# helpful print statements
 				if toggles.DEBUG_FLAG:
