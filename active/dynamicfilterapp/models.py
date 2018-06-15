@@ -186,7 +186,10 @@ class Predicate(models.Model):
 		self.save(update_fields=["trueSelectivity"])
 
 	def setTrueAmbiguity(self, amb):
-		self.trueAmbiguity = amb
+		if amb > 0.5:
+			self.trueAmbiguity = 1 - amb
+		else: 
+			self.trueAmbiguity = amb
 		self.save(update_fields=["trueAmbiguity"])
 
 	def update_cost(self):

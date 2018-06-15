@@ -56,8 +56,8 @@ that will be asked of synthetic dataset. \n
 \link dynamicfilterapp.toggles.NUM_ITEMS NUM_ITEMS \endlink - The number of items that will be filtered. \n
 
 \link dynamicfilterapp.toggles.switch_list switch_list \endlink - A list of tuples representing
-selectivity and cost of each predicate at different points in time/number of tasks. The
-appropriate format of each tuple: (task number, (select,amb), (select,amb)) \n
+selectivity and cost of each predicate at different points in time/number of tasks. Selectivity and ambiguity
+should be between 0 and 1. The appropriate format of each tuple: (task number, (select,amb), (select,amb)) \n
 
 \section alg Algorithm Settings
 \link dynamicfilterapp.toggles.EDDY_SYS EDDY_SYS \endlink - Selects which algorithm will be used
