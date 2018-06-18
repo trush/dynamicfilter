@@ -24,7 +24,7 @@ class Join:
         ## Settings #######################################
 
         self.JOIN_SELECTIVITY = 0.1
-        self.TIME_TO_GENERATE_TASK = 10.0
+        self.TIME_TO_GENERATE_TASK = 0.0 # TODO: should we deprecate?
 
             ## PJFjoin in particular
         self.PJF_SELECTIVITY = 0.3
@@ -518,7 +518,7 @@ class Join:
                                 taskList += [self.full_timer]
                             self.full_timer = 0.0
                     self.list1.remove(item)
-                if(cost[1] == minimum):
+                elif(cost[1] == minimum):
                     for i in self.list2:
                         if self.DEBUG:
                             print "************** GOING DOWN PATH 2 ****************"
@@ -541,7 +541,7 @@ class Join:
                                 taskList += [self.full_timer]
                             self.full_timer = 0.0
                     self.list1.remove(item)
-                if(cost[2] == minimum):
+                elif(cost[2] == minimum):
                     if self.DEBUG:
                         print "************** GOING DOWN PATH 3 ****************"
                     i = self.list2[0]
@@ -558,7 +558,7 @@ class Join:
                         if self.full_timer != 0:
                             taskList += [self.full_timer]
                         self.full_timer = 0.0
-                if(cost[3] == minimum):
+                elif(cost[3] == minimum):
                     if self.DEBUG:
                         print "************** GOING DOWN PATH 4 ****************"
                     matches = self.PW_join(item, self.list1)
@@ -575,7 +575,7 @@ class Join:
                             if self.full_timer != 0:
                                 taskList += [self.full_timer]
                             self.full_timer = 0.0
-                if(cost[4] == minimum):
+                else:
                     if self.DEBUG:
                         print "************** GOING DOWN PATH 5 ****************"
                     i = self.list2[0]
@@ -605,30 +605,32 @@ class Join:
     def find_costs(self):
         """ Finds the cost estimates of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
         Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
+        #losp - "likelihood of some pairs" odds of a list2 item matching with at least one item from list1
+        losp = 1 - (1 - self.join_selectivity_est)**(len(self.list1))
         # COST 1 CALCULATION - small pred then PJF
-        cost_1 = self.small_p_cost_est*len(self.list2) + \
-                self.PJF_cost_est*(self.small_p_selectivity_est *(len(self.list2)-len(self.evaluated_with_smallP))+(len(self.list1))) + \
+        cost_1 = self.small_p_cost_est*(len(self.list2)-len(self.evaluated_with_smallP)) + \
+                self.PJF_cost_est*(self.small_p_selectivity_est *len(self.list2)+(len(self.list1))) + \
                 self.join_cost_est*len(self.list2)*len(self.list1)*self.small_p_selectivity_est*self.PJF_selectivity_est
         # COST 2 CALCULATION - PJF then small pred
         cost_2 = self.PJF_cost_est*(len(self.list2)+len(self.list1)) + \
                 self.join_cost_est*len(self.list2)*len(self.list1)*self.PJF_selectivity_est+ \
-                self.small_p_cost_est*self.join_selectivity_est*len(self.list1)*len(self.list2)
+                self.small_p_cost_est*losp*len(self.list2)
         # COST 3 CALCULATION - pairwise of second list and then small pred
         match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
         avg_matches_est_2 = numpy.mean(self.num_matches_per_item_2)
         cost_3 = base_cost_est*len(self.list2) + \
                 match_cost_est*avg_matches_est_2*len(self.list2)  + \
-                self.join_selectivity_est*len(self.list1)*len(self.list2)*self.small_p_cost_est
+                losp*len(self.list2)*self.small_p_cost_est
         # COST 4 CALCULATION - pairwise join on first list and then small pred
         avg_matches_est_1 = numpy.mean(self.num_matches_per_item_1)
         cost_4 = base_cost_est*len(self.list1)+ \
                 match_cost_est*avg_matches_est_1*len(self.list1) + \
-                self.small_p_cost_est*self.join_selectivity_est*len(self.list1)*len(self.list2)
+                self.small_p_cost_est*losp*len(self.list2)
         # COST 5 CALCULATION - small pred then pairwise join on second list
-        cost_5 = self.small_p_cost_est*len(self.list2)+ \
-                self.small_p_selectivity_est* (base_cost_est*len(self.list2) + \
-                match_cost_est*avg_matches_est_2*len(self.list2))
-
+        cost_5 = self.small_p_cost_est*(len(self.list2)-len(self.evaluated_with_smallP))+ \
+                self.small_p_selectivity_est*len(self.list2)* (base_cost_est + \
+                match_cost_est*avg_matches_est_2)
+        
         #### DEBUGGING ####
         if self.DEBUG:
             print "FIND COSTS ESTIMATES -------"
@@ -645,23 +647,25 @@ class Join:
     def find_real_costs(self):
         """ Finds the real costs of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
         Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
+        real_losp = 1 - (1-self.JOIN_SELECTIVITY)**(len(self.list1))
         # COST 1 CALCULATION - small pred then PJF
-        cost_1 = self.TIME_TO_EVAL_SMALL_P*len(self.list2) + \
-            self.TIME_TO_EVAL_PJF*(self.SMALL_P_SELECTIVITY *(len(self.list2)-len(self.evaluated_with_smallP))+(len(self.list1))) + \
+        cost_1 = self.TIME_TO_EVAL_SMALL_P*(len(self.list2)-len(self.evaluated_with_smallP)) + \
+            self.TIME_TO_EVAL_PJF*(self.SMALL_P_SELECTIVITY *len(self.list2)+(len(self.list1))) + \
             self.PAIRWISE_TIME_PER_TASK*len(self.list2)*len(self.list1)*self.SMALL_P_SELECTIVITY*self.PJF_SELECTIVITY
         # COST 2 CALCULATION - PJF then small pred
         cost_2 = self.TIME_TO_EVAL_PJF*(len(self.list2)+len(self.list1)) + \
             self.PAIRWISE_TIME_PER_TASK*len(self.list2)*len(self.list1)*self.PJF_SELECTIVITY+ \
-            self.TIME_TO_EVAL_SMALL_P*self.JOIN_SELECTIVITY*len(self.list1)*len(self.list2)
+            self.TIME_TO_EVAL_SMALL_P*real_losp*len(self.list2)
         # COST 3 CALCULATION - pairwise of second list and then small pred
         cost_3 = (self.BASE_FIND_MATCHES+self.AVG_MATCHES * (len(self.list1)/len(self.private_list2))*self.FIND_SINGLE_MATCH_TIME)*len(self.list2) + \
-            self.JOIN_SELECTIVITY*len(self.list1)*len(self.list2)*self.TIME_TO_EVAL_SMALL_P
+            real_losp*len(self.list2)*self.TIME_TO_EVAL_SMALL_P
         # COST 4 CALCULATION - pairwise join on first list and then small pred
         cost_4 = (self.BASE_FIND_MATCHES+self.AVG_MATCHES*self.FIND_SINGLE_MATCH_TIME)*len(self.list1)+ \
-            self.TIME_TO_EVAL_SMALL_P*self.JOIN_SELECTIVITY*len(self.list1)*len(self.list2)
+            self.TIME_TO_EVAL_SMALL_P*real_losp*len(self.list2)
         # COST 5 CALCULATION - small pred then pairwise join on second list
-        cost_5 = self.TIME_TO_EVAL_SMALL_P*len(self.list2)+ self.SMALL_P_SELECTIVITY*(self.BASE_FIND_MATCHES*len(self.list2)+self.AVG_MATCHES*len(self.list1)*self.FIND_SINGLE_MATCH_TIME)
-
+        cost_5 = self.TIME_TO_EVAL_SMALL_P*(len(self.list2)-len(self.evaluated_with_smallP))+ self.SMALL_P_SELECTIVITY*len(self.list2)*(self.BASE_FIND_MATCHES+ \
+            self.AVG_MATCHES*len(self.list1)/len(self.private_list2)*self.FIND_SINGLE_MATCH_TIME)
+        
         #### DEBUGGING ####
         if self.DEBUG:
             print "REAL COST 1 = " + str(cost_1)
@@ -677,22 +681,22 @@ class Join:
     def small_pred(self, item):
         """ Evaluates the small predicate, adding the results of that into a global dictionary. 
         Also adjusts the global estimates for the cost and selectivity of the small predicate."""
-        #first, check if we've already evaluated this item as true
+        #first, check if we've already evaluated this item
         if item in self.evaluated_with_smallP:
             return True
         elif item in self.failed_by_smallP:
             return False
         #if not, evaluate it with the small predicate
         else:
-            #increment the number of items 
-            self.processed_by_smallP += 1
             # Update the cost
-            self.small_p_cost_est = (self.small_p_cost_est*(self.processed_by_smallP-1)+self.TIME_TO_EVAL_SMALL_P)/self.processed_by_smallP
+            self.small_p_cost_est = (self.small_p_cost_est*(self.processed_by_smallP)+self.TIME_TO_EVAL_SMALL_P)/(self.processed_by_smallP+1)
             self.full_timer += self.TIME_TO_EVAL_SMALL_P
             #for preliminary testing, we randomly choose whether or not an item passes
             eval_results = random() < self.SMALL_P_SELECTIVITY
             # Update the selectivity
-            self.small_p_selectivity_est = (self.small_p_selectivity_est*(self.processed_by_smallP-1)+eval_results)/self.processed_by_smallP
+            self.small_p_selectivity_est = (self.small_p_selectivity_est*(self.processed_by_smallP)+eval_results)/(self.processed_by_smallP+1)
+            #increment the number of items 
+            self.processed_by_smallP += 1
             #if the item does not pass, we remove it from the list entirely
             if not eval_results:
                 self.list2.remove(item)
