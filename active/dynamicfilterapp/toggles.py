@@ -33,6 +33,7 @@ switch_list = [ (0, (0.9, 0.25), (0.2, 0.25), (0.5, 0.25), (0.5, 0.25), (0.3, 0.
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
 # tuples of form (task number, (select,amb), (select,amb))
+# selectivity and ambiguity - min value: 0  max value: 1
 
 # ___ PREDICATES (FOR REAL OR SYNTHETIC) ____ #
 if REAL_DATA:
@@ -48,7 +49,7 @@ else:
 # ************************************************************************ #
 
 EDDY_SYS = 5
-ITEM_SYS = 0
+ITEM_SYS = 3
 SLIDING_WINDOW = False
 LIFETIME = 100
 PENDING_QUEUE_SIZE = 40

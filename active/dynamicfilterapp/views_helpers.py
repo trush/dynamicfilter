@@ -5,6 +5,7 @@ from random import randint, choice
 from math import exp
 from django.db.models import Q
 from django.db.models import F
+from django.db.models import Min
 
 from toggles import *
 
@@ -225,11 +226,32 @@ def nu_pending_eddy(incompleteIP):
 			# assign a task from one of the IP pairs within the queue
 			if pickFromFirst.exists():
 				# print "*"*10 + " Condition 2 invoked " + "*"*10
+
+				if (toggles.ITEM_SYS == 3): #item_inacive assignment
+					minTasks = pickFromFirst.aggregate(Min('tasks_out')).values()[0]
+					minTaskIP = pickFromFirst.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+					chosenIP = minTaskIP
 				chosenIP = choice(pickFromFirst)
 				if not chosenIP.is_in_queue:
 					chosenIP.add_to_queue()
 					chosenIP.refresh_from_db()
 				return chosenIP
+
+
+		# item assignment
+		pickFrom = []
+		if (toggles.ITEM_SYS == 1): # item_started_system
+			pickFrom = incompleteIP.filter(predicate = chosenPred, item__isStarted = True)
+		elif (toggles.ITEM_SYS == 2): # item_almost_false_system
+			pickFrom = incompleteIP.filter(predicate = chosenPred, item__almostFalse = True)
+		elif (toggles.ITEM_SYS == 3): #item_inactive system
+			pickFrom = incompleteIP.filter(predicate = chosenPred, item__inQueue = False)
+		if len(pickFrom) != 0:
+			chosenIP = choice(pickFrom)
+			if not chosenIP.is_in_queue:
+				chosenIP.add_to_queue()
+				chosenIP.refresh_from_db()
+			return chosenIP
 
 		# print "*"*10 + " Condition 3 invoked " + "*"*10
 		# if queue is not full or we can't do anything that's in the queue
@@ -252,7 +274,11 @@ def nu_pending_eddy(incompleteIP):
 		pickFrom = incompleteIP.filter(predicate = chosenPred, inQueue = False).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
 
 		# find something for that predicate that isn't being worked on yet and add it
-		if pickFrom.filter(predicate = chosenPred).exists() and not chosenPred.queue_is_full:
+		if pickFrom.exists():
+			if (toggles.ITEM_SYS == 3): #item_inacive assignment
+				minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
+				minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+				chosenIP = minTaskIP
 			# print "*"*10 + " Condition 4 invoked " + "*"*10
 			chosenIP = choice(pickFrom.filter(predicate=chosenPred))
 			if not chosenIP.is_in_queue:
@@ -260,9 +286,14 @@ def nu_pending_eddy(incompleteIP):
 				chosenIP.refresh_from_db()
 			return chosenIP
 
+
 		# if we can't refill the queue right now, do something from within the queue
-		if pickFromFirst.exists():
+		if pickFromFirst.exists() and not chosenPred.queue_is_full:
 			# print "*"*10 + " Condition 6 invoked " + "*"*10
+			if (toggles.ITEM_SYS == 3): #item_inacive assignment
+				minTasks = pickFromFirst.aggregate(Min('tasks_out')).values()[0]
+				minTaskIP = pickFromFirst.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+				chosenIP = minTaskIP
 			chosenIP = choice(pickFromFirst)
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
@@ -270,7 +301,7 @@ def nu_pending_eddy(incompleteIP):
 			return chosenIP
 
 		
-		# we can't do anything in the queue for that predicate, find something else
+		# if we can't do anything in the queue for that predicate, find something else
 		# can be for a different predicate (still can't exceed that predicate's queue length)
 		if toggles.DEBUG_FLAG:
 			print "Attempting last resort IP pick (worker can't do Pred " + str(chosenPred.predicate_ID) +")"
@@ -279,6 +310,10 @@ def nu_pending_eddy(incompleteIP):
 	    #lastResortPick = incompleteIP.exclude(id__in=lotteryPred).exclude(id__in=nonUnique).exclude(id__in=outOfFullQueue).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)	
 		lastResortPick = incompleteIP.exclude(predicate = chosenPred).exclude(id__in=outOfFullQueue).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
 		if lastResortPick.exists():
+			if (toggles.ITEM_SYS == 3): #item_inacive assignment
+				minTasks = lastResortPick.aggregate(Min('tasks_out')).values()[0]
+				minTaskIP = lastResortPick.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+				chosenIP = minTaskIP
 			chosenIP = choice(lastResortPick) # random choice from what's available
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
@@ -394,14 +429,20 @@ def chooseItem(ipSet):
 	Chooses random item for right now
 	"""
 	if (toggles.ITEM_SYS == 1):
-	#if item_started_system:
+		#if item_started_system:
 		tempSet = ipSet.filter(item__isStarted=True)
 		if len(tempSet) != 0:
 			ipSet = tempSet
 
 	elif (toggles.ITEM_SYS == 2):
-	#if item_almost_false_system:
+		#if item_almost_false_system:
 		tempSet = ipSet.filter(item__almostFalse=True)
+		if len(tempSet) != 0:
+			ipSet = tempSet
+
+	elif (toggles.ITEM_SYS == 3):
+		# item_unstarted_system
+		tempSet = ipSet.filter(item__isStarted = False)
 		if len(tempSet) != 0:
 			ipSet = tempSet
 
