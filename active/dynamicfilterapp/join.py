@@ -493,7 +493,7 @@ class Join:
                             if self.full_timer != 0:
                                 taskList += [self.full_timer]
                             self.full_timer = 0.0
-            else:
+            else: #having escaped the buffer zone
                 minimum = min(cost)
                 if(cost[0] == minimum):
                     for i in self.list2:
