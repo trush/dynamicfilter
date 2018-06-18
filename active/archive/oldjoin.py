@@ -151,7 +151,7 @@ def join(H, M, join_settings):
             adaptive_better = False
         makeCSV(run_summary,trial_number)
         makeJoinCostPlot(run_summary,trial_number, adaptive_better)
-    # results, PJF, PW, adapative
+    # results, PJF, adapative, PW
     return results_from_join, avg_cost, (avg_cost1*num_pairs1+avg_cost2*num_pairs2)/(num_pairs1+num_pairs2), PAIRWISE_TIME_PER_TASK+TIME_TO_GENERATE_TASK
 
 def generate_PJF(PJF_SELECTIVITY):
@@ -201,6 +201,30 @@ def makeCSV_forTrialInfo(data):
         col5 = data[iteration][5]
         col6 = data[iteration][6]
         row = str(col0) + "," + str(col1) + "," + str(col2) + "," + str(col3) + "," + str(col4) + "," + str(col5) + "," + str(col6) + "\n"
+        csv.write(row)
+
+# Called in testing_join_settings(). Creates a csv of information on each of the graphs and the settings they were run at.
+def makeCSV_deep_dive(data):
+    ''' Writes a 7 by n 2D list to a CSV file called join_data.csv '''
+    download_dir = "deep_dives.csv" #where you want the file to be downloaded to 
+    csv = open(download_dir, "w") #"w" indicates that you're writing strings to the file
+
+    columnTitleRow = "Trial No., Join selectivity, PJF selectivity, PW time, PJF time, Size 1, Size 2, PJF Average Cost, PW Average Cost, Adaptive Average Cost\n"
+    csv.write(columnTitleRow)
+
+    for iteration in range(len(data)):
+        col0 = data[iteration][0]
+        col1 = data[iteration][1]
+        col2 = data[iteration][2]
+        col3 = data[iteration][3]
+        col4 = data[iteration][4]
+        col5 = data[iteration][5]
+        col6 = data[iteration][6]
+        col7 = data[iteration][7]
+        col8 = data[iteration][8]
+        col9 = data[iteration][9]
+        row = str(col0) + "," + str(col1) + "," + str(col2) + "," + str(col3) + "," + str(col4) + "," + str(col5) + "," + str(col6) + "," + \
+                str(col7) + "," + str(col8) + "," + str(col9) + "\n" 
         csv.write(row)
 
 # Graphs information about the average costs along a run. Saves the graph into the directory, tagging it if the adaptive
@@ -379,7 +403,25 @@ def testing_join_settings():
                             print "AVERAGE ADAPT COST: " + str(float(sum_avg_adapt)/len(PJF_selectivities_to_test))
     return trial_number_info, all_PJF_costs, all_adaptive_costs, all_PW_costs, summary_data
 
-trial_number_info, all_PJF_costs, all_adaptive_costs, all_PW_costs, summary_data = testing_join_settings()
-mass_trial_csv( trial_number_info, all_PJF_costs, all_adaptive_costs, all_PW_costs )
-summary_csv(summary_data)
-heatmap(summary_data , trial_number_info )
+# DEEP DIVE SINGLE TESTS
+
+
+setting = [2,0.3,0.9,10,100,100,20] 
+results = []
+for i in range (20):
+    # Prep fake data
+    H,M = [],[]
+    for i in range(setting[5]):
+        H += [i]
+    for i in range(setting[6]): 
+        M += [100+i]
+    cur_res, cur_PJF, cur_adapt, cur_PW = join(H,M,setting)
+    results += [setting + [cur_PJF,cur_PW,cur_adapt]]
+    evaluated_with_PJF_private = { }
+makeCSV_deep_dive(results)
+
+# MASS TESTING
+# trial_number_info, all_PJF_costs, all_adaptive_costs, all_PW_costs, summary_data = testing_join_settings()
+# mass_trial_csv( trial_number_info, all_PJF_costs, all_adaptive_costs, all_PW_costs )
+# summary_csv(summary_data)
+# heatmap(summary_data , trial_number_info )
