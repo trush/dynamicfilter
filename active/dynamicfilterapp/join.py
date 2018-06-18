@@ -51,9 +51,12 @@ class Join:
         self.join_selectivity_est = 0.5
         self.PJF_cost_est = 0.0
         self.join_cost_est = 0.0
-        self.PW_cost_est = 0.0
+        self.PW_cost_est_1 = [] # TODO: make sure that this is a list everywhere that it is used # TODO: rethink name
+        self.PW_cost_est_2 = []
         self.small_p_cost_est = 0.0
         self.small_p_selectivity_est = 0.0
+        self.num_matches_per_item_1 = []
+        self.num_matches_per_item_2 = []
 
             ## Enumeration estimator variables
         self.f_dictionary = { }
@@ -66,7 +69,6 @@ class Join:
         self.evaluated_with_PJF = { }
         self.evaluated_with_smallP = [] # all things that evaluated to True
         self.failed_by_smallP = [] # all things that evaluated to False
-        self.processed_by_pw = 0
         self.processed_by_PJF = 0
         self.processed_by_smallP = 0
         self.processed_by_join = 0
@@ -204,14 +206,18 @@ class Join:
         #Get results of that task
         if itemlist == self.list1:
             matches, timer_val = self.get_matches(i, timer_val)
-            print matches
         else:
             matches, timer_val = self.get_matches_l2(i, timer_val)
         timer_val += self.BASE_FIND_MATCHES
         self.full_timer += self.BASE_FIND_MATCHES
         #recalculate average cost
-        self.PW_cost_est = (self.PW_cost_est*self.processed_by_pw + timer_val)/(self.processed_by_pw+1)
-        self.processed_by_pw += 1
+        
+        if itemlist == self.list1:
+            self.PW_cost_est_1 += [timer_val]
+            self.num_matches_per_item_1 += [len(matches)]
+        else:
+            self.PW_cost_est_2 += [timer_val]
+            self.num_matches_per_item_2 += [len(matches)]
         #remove processed item from itemlist
 
         if itemlist == self.list1 and i in itemlist:
@@ -221,8 +227,10 @@ class Join:
             self.evaluated_with_smallP.remove(i)
         if self.DEBUG:
             print "RAN PAIRWISE JOIN ----------"
-            print "PW AVERAGE COST: " + str(self.PW_cost_est)
-            print "PW TOTAL COST: " + str(self.PW_cost_est*self.processed_by_pw)
+            print "PW AVERAGE COST FOR L1: " + str(numpy.mean(self.PW_cost_est_1))
+            print "PW TOTAL COST FOR L1: " + str(numpy.sum(self.PW_cost_est_1))
+            print "PW AVERAGE COST FOR L2: " + str(numpy.mean(self.PW_cost_est_2))
+            print "PW TOTAL COST FOR L2: " + str(numpy.sum(self.PW_cost_est_2))
             print "----------------------------"
         # we want to add the new items to list2 and keep track of the sample size
         if itemlist == self.list1:
@@ -606,13 +614,20 @@ class Join:
                 self.join_cost_est*len(self.list2)*len(self.list1)*self.PJF_selectivity_est+ \
                 self.small_p_cost_est*self.join_selectivity_est*len(self.list1)*len(self.list2)
         # COST 3 CALCULATION - pairwise of second list and then small pred
-        cost_3 = self.PW_cost_est*len(self.list2) + \
+        match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
+        avg_matches_est_2 = numpy.mean(self.num_matches_per_item_2)
+        cost_3 = base_cost_est*len(self.list2) + \
+                match_cost_est*avg_matches_est_2*len(self.list2)  + \
                 self.join_selectivity_est*len(self.list1)*len(self.list2)*self.small_p_cost_est
         # COST 4 CALCULATION - pairwise join on first list and then small pred
-        cost_4 = self.PW_cost_est*len(self.list1)+ \
+        avg_matches_est_1 = numpy.mean(self.num_matches_per_item_1)
+        cost_4 = base_cost_est*len(self.list1)+ \
+                match_cost_est*avg_matches_est_1*len(self.list1) + \
                 self.small_p_cost_est*self.join_selectivity_est*len(self.list1)*len(self.list2)
         # COST 5 CALCULATION - small pred then pairwise join on second list
-        cost_5 = self.small_p_cost_est*len(self.list2)+self.small_p_selectivity_est*len(self.list2)*self.PW_cost_est
+        cost_5 = self.small_p_cost_est*len(self.list2)+ \
+                self.small_p_selectivity_est* (base_cost_est*len(self.list2) + \
+                match_cost_est*avg_matches_est_2*len(self.list2))
 
         #### DEBUGGING ####
         if self.DEBUG:
@@ -645,7 +660,7 @@ class Join:
         cost_4 = (self.BASE_FIND_MATCHES+self.AVG_MATCHES*self.FIND_SINGLE_MATCH_TIME)*len(self.list1)+ \
             self.TIME_TO_EVAL_SMALL_P*self.JOIN_SELECTIVITY*len(self.list1)*len(self.list2)
         # COST 5 CALCULATION - small pred then pairwise join on second list
-        cost_5 = self.TIME_TO_EVAL_SMALL_P*len(self.list2)+ self.SMALL_P_SELECTIVITY*len(self.list2)*(self.BASE_FIND_MATCHES+self.AVG_MATCHES * (len(self.list1)/len(self.private_list2))*self.FIND_SINGLE_MATCH_TIME)
+        cost_5 = self.TIME_TO_EVAL_SMALL_P*len(self.list2)+ self.SMALL_P_SELECTIVITY*(self.BASE_FIND_MATCHES*len(self.list2)+self.AVG_MATCHES*len(self.list1)*self.FIND_SINGLE_MATCH_TIME)
 
         #### DEBUGGING ####
         if self.DEBUG:
