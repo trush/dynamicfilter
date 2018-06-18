@@ -24,7 +24,6 @@ class Join:
         ## Settings #######################################
 
         self.JOIN_SELECTIVITY = 0.1
-        self.TIME_TO_GENERATE_TASK = 0.0 # TODO: should we deprecate?
 
             ## PJFjoin in particular
         self.PJF_SELECTIVITY = 0.3
@@ -133,8 +132,6 @@ class Join:
 
         if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
             # Generate task of current pair
-            timer_val += self.TIME_TO_GENERATE_TASK
-            self.full_timer += self.TIME_TO_GENERATE_TASK
             # Choose whether to add to results_from_pjf_join
             timer_val += self.PAIRWISE_TIME_PER_TASK
             self.full_timer += self.PAIRWISE_TIME_PER_TASK
@@ -144,7 +141,7 @@ class Join:
                 self.processed_by_join += 1
                 self.total_num_ips_processed += 1 # TODO: this is messed up by concurrency
                 # Adjust join cost estimates
-                self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.TIME_TO_GENERATE_TASK+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
+                self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
                 
                  #### DEBUGGING ####
                 if self.DEBUG:
@@ -159,7 +156,7 @@ class Join:
                 return True
             ### If it is not accepted in join process
             self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
-            self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.TIME_TO_GENERATE_TASK+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
+            self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
             
             #### DEBUGGING ####
             if self.DEBUG:
@@ -200,9 +197,6 @@ class Join:
         num_items = 0
 
         timer_val = 0
-        # Generate task with item
-        timer_val += self.TIME_TO_GENERATE_TASK
-        self.full_timer += self.TIME_TO_GENERATE_TASK
         #Get results of that task
         if itemlist == self.list1:
             matches, timer_val = self.get_matches(i, timer_val)
