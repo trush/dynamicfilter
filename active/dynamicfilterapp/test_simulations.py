@@ -851,6 +851,9 @@ class SimulationTest(TransactionTestCase):
 		ip_pair = IP_Pair()
 		total_ip_pairs = IP_Pair.objects.all().count()
 
+		if toggles.ADAPTIVE_QUEUE:
+			toggles.PENDING_QUEUE_SIZE = toggles.QUEUE_LENGTH_ARRAY[0][1]
+
 		if toggles.SIMULATE_TIME:
 			prev_time = 0
 			task_limit = 0

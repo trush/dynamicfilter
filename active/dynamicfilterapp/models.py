@@ -227,7 +227,11 @@ class Predicate(models.Model):
 		self.save(update_fields=["totalNo"])
 
 	def check_queue_full(self):
-		if self.num_pending == self.queue_length:
+		#self.queue_length = self.num_tickets*2 + 1
+		#if self.queue_length < 4:
+		#	self.queue_length = 4
+		#self.save(update_fields = ["queue_length"])
+		if self.num_pending >= self.queue_length:
 			self.queue_is_full = True
 			self.save(update_fields = ["queue_is_full"])
 		elif self.num_pending < self.queue_length:
@@ -324,9 +328,10 @@ class Predicate(models.Model):
 		if toggles.ADAPTIVE_QUEUE_MODE == 0:
 			# print "increase version invoked"
 			for pair in toggles.QUEUE_LENGTH_ARRAY:
-				if self.num_tickets > pair[0] and self.queue_length < pair[1]:
-					self.inc_queue_length()
+				if self.num_tickets >= pair[0] and self.queue_length < pair[1]:
+					self.queue_length = pair[1]
 					break
+			self.save(update_fields=["queue_length"])
 			return self.queue_length
 
 		if toggles.ADAPTIVE_QUEUE_MODE == 1:
