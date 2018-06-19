@@ -19,7 +19,7 @@ evaluated_with_PJF_private = {}
 # Only used for mass testing
 join_selectivities_to_test = [0.3,0.6,0.9]
 PJF_selectivities_to_test =  []
-for i in range(10):
+for i in range(20):
     PJF_selectivities_to_test += [0.6]
 pairwise_time_to_test = [10.0]
 time_to_eval_PJF_test = []
@@ -393,6 +393,7 @@ def testing_join_settings():
                             sum_avg_PJF += [PJF_cost]
                             sum_avg_PW += [PW_cost]
                             sum_avg_adapt += [adaptive_cost]
+                            evaluated_with_PJF_private = { }
                         summary_data += [[trial_number_start, sum_avg_PJF, \
                             sum_avg_PW, sum_avg_adapt]]
                         if DEBUG:
@@ -404,24 +405,22 @@ def testing_join_settings():
     return trial_number_info, all_PJF_costs, all_adaptive_costs, all_PW_costs, summary_data
 
 # DEEP DIVE SINGLE TESTS
-
-
-setting = [2,0.3,0.9,10,100,100,20] 
-results = []
-for i in range (20):
-    # Prep fake data
-    H,M = [],[]
-    for i in range(setting[5]):
-        H += [i]
-    for i in range(setting[6]): 
-        M += [100+i]
-    cur_res, cur_PJF, cur_adapt, cur_PW = join(H,M,setting)
-    results += [setting + [cur_PJF,cur_PW,cur_adapt]]
-    evaluated_with_PJF_private = { }
-makeCSV_deep_dive(results)
+# setting = [2,0.3,0.9,10,100,100,20] 
+# results = []
+# for i in range (20):
+#     # Prep fake data
+#     H,M = [],[]
+#     for i in range(setting[5]):
+#         H += [i]
+#     for i in range(setting[6]): 
+#         M += [100+i]
+#     cur_res, cur_PJF, cur_adapt, cur_PW = join(H,M,setting)
+#     results += [setting + [cur_PJF,cur_PW,cur_adapt]]
+#     evaluated_with_PJF_private = { }
+# makeCSV_deep_dive(results)
 
 # MASS TESTING
-# trial_number_info, all_PJF_costs, all_adaptive_costs, all_PW_costs, summary_data = testing_join_settings()
-# mass_trial_csv( trial_number_info, all_PJF_costs, all_adaptive_costs, all_PW_costs )
-# summary_csv(summary_data)
-# heatmap(summary_data , trial_number_info )
+trial_number_info, all_PJF_costs, all_adaptive_costs, all_PW_costs, summary_data = testing_join_settings()
+mass_trial_csv( trial_number_info, all_PJF_costs, all_adaptive_costs, all_PW_costs )
+summary_csv(summary_data)
+heatmap(summary_data , trial_number_info )
