@@ -422,6 +422,7 @@ def updateCounts(workerTask, chosenIP):
 	if chosenIP is not None:
 		#if the predicate is joinable, we don't want to get a vote 
 		if chosenIP.predicate.joinable and chosenIP.join_task_out < len(chosenIP.get_join_process()) - 1:
+			chosenIP.refresh_from_db()
 			chosenIP.collect_task()
 			chosenIP.refresh_from_db()
 			return
