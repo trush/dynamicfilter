@@ -759,9 +759,8 @@ class Join(models.Model):
     ##############################
     ## CONSTRUCTOR           #####
     ##############################
-
-	pred = OneToOneField(Predicate)
-	joinID = pred.predicate_ID
+    pred = OneToOneField(Predicate)
+    joinID = pred.predicate_ID
 
     def __init__(self, in_list2 = None):
 
