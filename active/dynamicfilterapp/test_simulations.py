@@ -2074,20 +2074,27 @@ class SimulationTest(TransactionTestCase):
 
 			# set up output csv file
 			save = []
-			runList = []
 			save.append(["Setting:", "Predicate Limit Mode", "Predicate Limit", "Active Task Array", "Queue Array"])
 			save.append(["",toggles.IP_LIMIT_SYS, toggles.ITEM_IP_LIMIT, str(toggles.ACTIVE_TASKS_ARRAY), str(toggles.QUEUE_LENGTH_ARRAY)])
+			save.append(["Run", "Placeholder tasks", "Wasted tasks", "Total tasks", "Time"])
 			
 			for run in range(numSim):
 				self.visualizeActiveTasks(data, str(settingCount)+str(run))
-				runList.append(str(run))
 
-			# write in file
-			save.append(runList)
-			save.append(self.num_placeholders_array)
-			save.append(self.num_waste_array)
-			save.append(self.num_real_tasks_array)
-			save.append(self.simulated_time_array)
+				# write in file
+				runList = []
+				runList.append(str(run))
+				runList.append(self.num_placeholders_array[run])
+				runList.append(self.num_waste_array[run])
+				runList.append(self.num_real_tasks_array[run])
+				runList.append(self.simulated_time_array[run])
+				save.append(runList)
+
+			stats = (np.array([self.num_placeholders_array, self.num_waste_array, self.num_real_tasks_array, self.simulated_time_array]))
+			save.append (["mean"])
+			save.append(np.mean(stats, axis = 1).tolist())
+			save.append(["standard deivation"])
+			save.append(np.std(stats, axis = 1).tolist())
 
 			self.reset_arrays()
 
