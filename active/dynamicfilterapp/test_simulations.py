@@ -897,6 +897,11 @@ class SimulationTest(TransactionTestCase):
 						# 	print "Predicate " +  str(p.pk) + " |||  Queue full: " + str(p.queue_is_full) + " | Queue length: " + str(p.queue_length) + " | Tickets: " + str(p.num_tickets)
 
 						print "$"*96
+				placeholders = 0
+				for task in active_tasks:
+					if task.ip_pair == None:
+						placeholders += 1
+				print "Active tasks: " + str(len(active_tasks)) + " | Placeholders: " + str(placeholders)
 
 				# throw some errors for debugging purposes
 				#if not (Item.objects.filter(inQueue=True).count() == IP_Pair.objects.filter(inQueue=True).count()):

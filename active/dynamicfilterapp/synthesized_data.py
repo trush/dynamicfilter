@@ -16,10 +16,14 @@ def syn_load_data():
 	"""
 	for ID in toggles.CHOSEN_PREDS:
 		q = Question.objects.create(question_ID=ID, question_text="question" + str(ID))
-		pred = Predicate.objects.create(predicate_ID=ID, question=q)
+		
 		#currently randomly set joinability
-		if(random() > 0.5):
-			pred.joinable = True
+		if(random.random() > 0.5):
+			pred = Predicate.objects.create(predicate_ID=ID, question=q, joinable=True)
+		else:
+			pred = Predicate.objects.create(predicate_ID=ID, question=q, joinable=False)
+		print pred.joinable
+
 		pred.setTrueSelectivity(toggles.switch_list[0][1+ID][0])
 		pred.setTrueAmbiguity(toggles.switch_list[0][1+ID][1])
 
