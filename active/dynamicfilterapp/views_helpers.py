@@ -299,8 +299,12 @@ def give_task(active_tasks, workerID):
 		# print "IP pair selected"
 		ip_pair.distribute_task()
 		#if our predicate is a join predicate, we may have a different time
-		if ip_pair.predicate.joinable:
+		if ip_pair is not None and ip_pair.is_joinable():
+			ip_pair.refresh_from_db()
 			eddy_time=ip_pair.get_join_process()[ip_pair.join_task_out]
+			print "join"
+			ip_pair.refresh_from_db()
+		print "eddy time: " + str(eddy_time)
 	else:
 		pass
 
@@ -424,6 +428,8 @@ def updateCounts(workerTask, chosenIP):
 		if chosenIP.predicate.joinable and chosenIP.join_task_out < len(chosenIP.get_join_process()) - 1:
 			chosenIP.refresh_from_db()
 			chosenIP.collect_task()
+			chosenIP.refresh_from_db()
+			chosenIP.remove_from_queue()
 			chosenIP.refresh_from_db()
 			return
 
