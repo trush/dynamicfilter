@@ -115,12 +115,6 @@ class SimulationTest(TransactionTestCase):
 	## An array of updateCounts() cumulative runtimes for multiple simulation runs.
 	update_time_array = []
 
-	## Cumulative clock time spent running creating the list of predicates in nu_pending_eddy over the course
-	# of one simulation.
-	predicate_time = 0
-    ## An array of cumulative predicate generating times for multiple simulation runs.
-	predicate_time_array = []
-
 	## The amount of cumulative worker time spent over the course of a simulation. (As
 	# though each time step of worker time happened one after the other, not concurrently.)
 	cum_work_time = 0
@@ -506,9 +500,8 @@ class SimulationTest(TransactionTestCase):
 		self.sim_task_time_array.append(self.sim_task_time)
 		self.run_sim_time_array.append(self.run_sim_time)
 		self.update_time_array.append(self.update_time)
-		self.predicate_time_array.append(self.predicate_time)
 		self.num_tasks, self.num_incorrect, self.num_placeholders = 0, 0, 0
-		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time, self.update_time, self.predicate_time = 0, 0, 0, 0, 0, 0
+		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time, self.update_time = 0, 0, 0, 0, 0, 0
 		self.simulated_time, self.cum_work_time, self.cum_placeholder_time = 0, 0, 0
 		self.ticket_nums, self.ips_done_array, self.ips_tasks_array = {}, [], []
 		self.no_tasks_to_give, self.ips_times_array = 0, []
@@ -529,7 +522,7 @@ class SimulationTest(TransactionTestCase):
 		self.cum_placeholder_time_array, self.num_placeholders_array = [], []
 		self.num_tasks_array, self.num_real_tasks_array = [], []
 		self.num_incorrect_array, self.update_time_array = [], []
-		self.num_waste_array, self.predicate_time_array = [], []
+		self.num_waste_array = []
 
 	## Experimental function that runs many simulations and slightly changes the simulation
 	# configuration during its run.
@@ -643,10 +636,9 @@ class SimulationTest(TransactionTestCase):
 
 			if workerID is not None:
 				# select a task to assign to this person
-				ip_pair, eddy_time, predTime = give_task(active_tasks, workerID)
+				ip_pair, eddy_time = give_task(active_tasks, workerID)
 				#ip_pair.refresh_from_db()
 				self.pending_eddy_time += eddy_time
-				self.predicate_time += predTime
 
 				if toggles.REAL_DATA:
 					# TODO change return val of simulate task and syn simulate task to just task
@@ -661,9 +653,8 @@ class SimulationTest(TransactionTestCase):
 
 		else:
 			workerID = self.pick_worker(b_workers, [])
-			ip_pair, eddy_time, predTime = give_task(active_tasks, workerID)
+			ip_pair, eddy_time = give_task(active_tasks, workerID)
 			self.pending_eddy_time += eddy_time
-			self.predicate_time += predTime
 			#if ip_pair is not None:
 				#ip_pair.refresh_from_db()
 
@@ -1709,7 +1700,7 @@ class SimulationTest(TransactionTestCase):
 
 		# graph the sim time vs. the number of sims (for random and queue separately)
 		data = [range(0, toggles.NUM_SIM), self.run_sim_time_array, self.pending_eddy_time_array,
-		 		self.sim_task_time_array, self.update_time_array, self.predicate_time_array, self.worker_done_time_array, resetTimes]
+		 		self.sim_task_time_array, self.update_time_array, self.worker_done_time_array, resetTimes]
 		generic_csv_write(toggles.OUTPUT_PATH + "timingSimulationsOut.csv", data)
 
 		if toggles.DEBUG_FLAG:
