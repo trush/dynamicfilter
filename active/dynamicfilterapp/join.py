@@ -78,7 +78,6 @@ class Join:
         self.total_num_ips_processed = 0
         self.enumerator_est = False # TODO: read more about this and use in our code
         self.THRESHOLD = 0.1
-        self.full_timer = 0.0
 
         ## TOGGLES ########################################
         self.DEBUG = True
@@ -89,10 +88,73 @@ class Join:
     ## PJF Join         #####
     ######################### 
 
+    def prejoin_filter(self, item):
+        timer_val = 0
+        if(not item in self.evaluated_with_PJF):
+            # save results of PJF to avoid repeated work
+            self.evaluated_with_PJF[item],PJF_cost = self.evaluate(PJF,item)
+            self.processed_by_PJF += 1 # TODO: check that these are correct for what we are trying to record
+            # if the item evaluated True for the PFJ then adjust selectivity
+            self.PJF_selectivity_est = (self.PJF_selectivity_est*(self.processed_by_PJF-1)+self.evaluated_with_PJF[i])/self.processed_by_PJF
+            # adjust our cost estimates for evaluating PJF
+            self.PJF_cost_est = (self.PJF_cost_est*(len(self.evaluated_with_PJF)-1)+PJF_cost)/self.processed_by_PJF
+            timer_val += self.TIME_TO_EVAL_PJF
+            self.full_timer += self.TIME_TO_EVAL_PJF
+
+        if self.DEBUG:
+            print "************** PJF CHECKING ITEM ****************"
+        return evaluated_with_PJF[item], timer_val
+
+    def join_with_second_list(self, item):
+        timer_val = 0
+        if (i,j) in self.results_from_all_join:
+            return True, 0
+        if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
+            # Generate task of current pair
+            # Choose whether to add to results_from_pjf_join
+            timer_val += self.PAIRWISE_TIME_PER_TASK
+            self.full_timer += self.PAIRWISE_TIME_PER_TASK
+            ### If it is accepted in join process
+            if(random() < self.JOIN_SELECTIVITY):
+                self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
+                self.processed_by_join += 1
+                self.total_num_ips_processed += 1 # TODO: this is messed up by concurrency
+                # Adjust join cost estimates
+                self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
+                
+                #### DEBUGGING ####
+                if self.DEBUG:
+                    print "ACCEPTED BY JOIN----------"
+                    print "TIMER VALUE: " + str(timer_val)
+                    print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
+                    print "PJF cost estimate: " + str(self.PJF_cost_est)
+                    print "Join selectivity estimate: " + str(self.join_selectivity_est)
+                    print "Join cost estimate: " + str(self.join_cost_est)
+                    print "--------------------------"
+                
+                return True, timer_val
+        ### If it is not accepted in join process
+        self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
+        self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
+        
+        #### DEBUGGING ####
+        if self.DEBUG:
+            print "MATCHED BUT REJECTED BY JOIN------------"
+            print "TIMER VALUE: " + str(timer_val)
+            print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
+            print "PJF cost estimate: " + str(self.PJF_cost_est)
+            print "Join selectivity estimate: " + str(self.join_selectivity_est)
+            print "Join cost estimate: " + str(self.join_cost_est)
+            print "----------------------------------------"
+
+        return False, timer_val
+            
+
     def PJF_join(self, i, j):
         """ Assuming that we have two items of a join tuple that need to be evaluated, 
         this function mimicks human join with predetermined costs and selectivity specified.
         This retruns information about selectivity and cost."""
+
         if (i,j) in self.results_from_all_join:
             return true
         #TODO: fix PJF join to not repeat work (with other concurrent tasks)
@@ -676,15 +738,16 @@ class Join:
         """ Evaluates the small predicate, adding the results of that into a global dictionary. 
         Also adjusts the global estimates for the cost and selectivity of the small predicate."""
         #first, check if we've already evaluated this item
+        timer_val = 0
         if item in self.evaluated_with_smallP:
-            return True
+            return True, timer_val
         elif item in self.failed_by_smallP:
-            return False
+            return False, timer_val
         #if not, evaluate it with the small predicate
         else:
             # Update the cost
             self.small_p_cost_est = (self.small_p_cost_est*(self.processed_by_smallP)+self.TIME_TO_EVAL_SMALL_P)/(self.processed_by_smallP+1)
-            self.full_timer += self.TIME_TO_EVAL_SMALL_P
+            timer_val += self.TIME_TO_EVAL_SMALL_P
             #for preliminary testing, we randomly choose whether or not an item passes
             eval_results = random() < self.SMALL_P_SELECTIVITY
             # Update the selectivity
@@ -704,7 +767,7 @@ class Join:
                 print "small p cost estimate: " + str(self.small_p_cost_est)
                 print "small p selectivity: " + str(self.small_p_selectivity_est)
                 print "-------------------------"
-            return eval_results
+            return eval_results, timer_val
 
     def chao_estimator(self):
         """ Uses the Chao92 equation to estimate population size during enumeration """
