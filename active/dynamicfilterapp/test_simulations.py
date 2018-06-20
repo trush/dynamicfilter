@@ -2064,6 +2064,7 @@ class SimulationTest(TransactionTestCase):
 	# number of placeholder tasks, waste tasks, total tasks, and simulated time for each simulation
 		settingCount = 0
 		for setting in toggles.MULTI_SIM_ARRAY:
+            print "Running setting " + str(settingCount)
 
 			numSim = setting[0]	# number of simulations for current setting
 			toggles.IP_LIMIT_SYS = setting[1][0] # predicate limit mode
@@ -2440,7 +2441,8 @@ class SimulationTest(TransactionTestCase):
 			queueSet = toggles.QUEUE_SET
 			activeTasksSet = toggles.ACTIVE_TASKS_SET
 			
-			self.visualizeMultiRuns(sampleData, queueSet, activeTasksSet, eddySet)
+            if toggles.NUM_GRAPH_SIM > 0:
+                self.visualizeMultiRuns(sampleData, queueSet, activeTasksSet, eddySet)
 
 		if toggles.MULTI_SIM: 
 			self.runMultiSims(sampleData)

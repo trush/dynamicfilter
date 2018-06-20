@@ -53,6 +53,8 @@ ITEM_SYS = 3
 SLIDING_WINDOW = False
 LIFETIME = 100
 PENDING_QUEUE_SIZE = 40
+QUEUE_SUM = 100
+QUEUE_MODE_SWITCH = 200
 
 IP_LIMIT_SYS = 3   # type of predicate limit for an item
 ITEM_IP_LIMIT = 1   # number of predicates an item can be in 

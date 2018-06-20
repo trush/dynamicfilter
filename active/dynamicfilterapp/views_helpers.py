@@ -274,7 +274,7 @@ def nu_pending_eddy(incompleteIP):
 		pickFrom = incompleteIP.filter(predicate = chosenPred, inQueue = False).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
 
 		# find something for that predicate that isn't being worked on yet and add it
-		if pickFrom.exists():
+		if pickFrom.exists() and not chosenPred.queue_is_full:
 			if (toggles.ITEM_SYS == 3): #item_inacive assignment
 				minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
 				minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out

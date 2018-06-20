@@ -328,12 +328,23 @@ class Predicate(models.Model):
 		'''
 
 		# print "adapt queue length called"
-		if toggles.ADAPTIVE_QUEUE_MODE == 0:
+		total_tickets = 0
+		queue_length = toggles.PENDING_QUEUE_SIZE
+		for pred in Predicate.objects.all():
+			total_tickets += pred.num_tickets
+
+		if toggles.ADAPTIVE_QUEUE_MODE == 3 and self.num_wickets == toggles.QUEUE_MODE_SWITCH and total_tickets < 20:
+			toggles.ADAPTIVE_QUEUE_MODE = 4
+			self.save(update_fields=["queue_length"])
+			return queue_length
+
+		if toggles.ADAPTIVE_QUEUE_MODE == 0 or toggles.ADAPTIVE_QUEUE_MODE == 3:
 			# print "increase version invoked"
 			for pair in toggles.QUEUE_LENGTH_ARRAY:
 				if self.num_tickets >= pair[0] and self.queue_length < pair[1]:
 					self.queue_length = pair[1]
 					break
+			self.check_queue_full()
 			self.save(update_fields=["queue_length"])
 			return self.queue_length
 
@@ -347,6 +358,13 @@ class Predicate(models.Model):
 					break
 			return self.queue_length
 
+		if toggles.ADAPTIVE_QUEUE_MODE == 2:
+			queue_length = pred.num_tickets/total_tickets*toggles.QUEUE_SUM
+			self.check_queue_full()
+			self.save(update_fields=["queue_length"])
+			return self.queue_length
+
+		return self.queue_length
 
 	## Takes an IP-Pair into consideration for adaptive consensus metrics
 	# uses the mode set in toggles.ADAPTIVE_CONSENSUS_MODE
