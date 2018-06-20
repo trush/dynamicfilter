@@ -302,6 +302,7 @@ def give_task(active_tasks, workerID):
 	else:
 		pass
 
+	return ip_pair, eddy_time, predTime
 
 #____________LOTTERY SYSTEMS____________#
 def chooseItem(ipSet):
