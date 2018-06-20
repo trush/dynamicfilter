@@ -209,8 +209,7 @@ class Predicate(models.Model):
 	def move_window(self):
 		recent_tasks = Task.objects.filter(end_time__gt=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
 		edge_tasks = Task.objects.filter(end_time=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
-		old_tasks = Task.objects.filter(end_time__lte=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
-		old_IPs = IP_Pair.objects.filter(isDone=True,predicate=self,value__lt=0).filter(id__in=old_tasks).filter(id__in=edge_tasks).exclude(id__in=recent_tasks)
+		old_IPs = IP_Pair.objects.filter(isDone=True,predicate=self,value__lt=0).filter(id__in=edge_tasks).exclude(id__in=recent_tasks)
 		self.num_tickets -= old_IPs.count()
 		self.save(update_fields=["num_tickets"])
 		if self.num_tickets < 1:
