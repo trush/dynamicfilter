@@ -114,7 +114,7 @@ def pending_eddy(ID):
 	end = time.time()
 	runTime = end - start
 	if toggles.SIMULATE_TIME:
-		return chosenIP, runTime, predTime
+		return chosenIP, runTime
 	return chosenIP
 
 
@@ -158,7 +158,6 @@ def nu_pending_eddy(incompleteIP):
 
 		# get a predicate using the ticketing system
 		# make list of possible predicates and remove duplicates
-		predStart = time.time()
 		predicatevalues = incompleteIP.values('predicate')
 		predicates = Predicate.objects.filter(id__in=predicatevalues)
 
@@ -167,8 +166,6 @@ def nu_pending_eddy(incompleteIP):
 		totalTickets = np.sum(weightList)
 		probList = np.true_divide(weightList, totalTickets)
 		chosenPred = np.random.choice(predicates, p=probList)
-		predEnd = time.time()
-		predTime = predEnd - predStart
 
 		pickFrom = incompleteIP.filter(predicate = chosenPred)
 
@@ -206,9 +203,9 @@ def nu_pending_eddy(incompleteIP):
 
 		# if there's literally nothing left to be done, issue a placeholder task
 		else:
-			return None, predTime
+			return None
 	else:
-		return None, 0
+		return None
 
 
 
