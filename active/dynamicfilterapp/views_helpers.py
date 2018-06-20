@@ -68,13 +68,17 @@ def pending_eddy(ID):
 		chosenIP, predTime = nu_pending_eddy(incompleteIP)
 		if chosenIP == None: 
 			if toggles.IP_LIMIT_SYS == 3: # soft limit
+
 				# check the IP pairs, whose items have reached the ITEM_IP_LIMIT
 				incompleteIP = unfinishedList.filter(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False).exclude(id__in=completedIP)
 				chosenIP, predTime = nu_pending_eddy(incompleteIP)
 		
 		if chosenIP != None and toggles.IP_LIMIT_SYS == 1: # adaptive limit
-			chosenIP = adaptive_predicate_limit(chosenIP, incompleteIP)
-
+			predLim = adaptive_predicate_limit(chosenIP)
+			if chosenIP.item.pairs_out > predLim: # if too many pairs out, pick another IP 
+				incompleteIP = incompleteIP.exclude(item = chosenIP.item, predicate = chosenIP.predicate)
+				chosenIP = nu_pending_eddy(incompleteIP)
+			
 		if chosenIP == None:
 			if toggles.DEBUG_FLAG:
 				print "Warning: no IP pair for worker "
@@ -114,38 +118,35 @@ def pending_eddy(ID):
 	return chosenIP
 
 
-def adaptive_predicate_limit (chosenIP, incompleteIP):		
-	# determine whether a chosenIP has reached the adaptive predicate limit
-	# items in queue for selective predicates should have a lower limit
-	# returns the chosenIP pair if it did not reach the limit
-	# returns another chosenIP pair that did not reach the adaptive limit
-
+def adaptive_predicate_limit (chosenIP):	
+	# given an IP pair return the adaptive predicate limit	
+	# based on the number of tickets of the queues the item is in 
 	currentIP = chosenIP
 
 	activeItem = currentIP.item
 	activeIP = IP_Pair.objects.filter(inQueue = True, item = activeItem)
 	activePredSet = [ip.predicate for ip in activeIP]
 
-	# use number of tickets to determine selectivity of the predicates the activeItem is in
-	ticketList = [pred.num_tickets for pred in activePredSet]
-	ticketStats = sum (ticketList)  #maxmimum, minimum, average, or sum of tickets in active predicate
-	totalTicketList = [pred.num_tickets for pred in Predicate.objects.all()]
-	totalTickets = sum(totalTicketList)
-
+	# rank predicates based on number of ticket 
+	predRanking = Predicate.objects.order_by ('-num_tickets')
+	predRanking = [pred for pred in predRanking]	
+	num_pred = len(predRanking)
+	
 	predicateLimit = 0
-	numPredicate = len(totalTicketList) # number of total predicates
-	if (ticketStats > (totalTickets*3/4)):   # item is in selective predicate queues
-		predicateLimit = 1
-	elif (ticketStats > (totalTickets*2/3)) :	# item is in medium-selective predicate queues
-		predicateLimit = int(numPredicate/2)
-	else:  # item is in not selective predicate queues
-		predicateLimit = numPredicate
-
-	
-	if activeItem.pairs_out >= predicateLimit: # if item is over predicate limit
-		currentIP = None
-	
-	return currentIP
+	if activeIP.filter(predicate = predRanking[0]).exists():
+		# if current item is in the most selective predicate
+		if num_pred <= 2:
+			predicateLimit = num_pred
+		else:
+			predicateLimit = (num_pred+1)/2
+	elif activeIP.filter(predicate__in = predRanking[:num_pred/3+1]).exists():
+		# if current item is in the mid selectivity predicates
+		predicateLimit = (num_pred+1)*2/3
+	else: 
+		#if current item is in low selectivity predicates
+		predicateLimit = num_pred
+		
+	return predicateLimit
 	
 
 
