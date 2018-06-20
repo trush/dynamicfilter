@@ -734,6 +734,7 @@ class Task(models.Model):
 	ip_pair = models.ForeignKey(IP_Pair, default=None)
 	answer = models.NullBooleanField(default=None)
 	workerID = models.CharField(db_index=True, max_length=15)
+	task_type = models.CharField(default = "default", max_length=15)
 
 	#used for simulating task completion having DURATION
 	start_time = models.IntegerField(default=0)
@@ -1080,40 +1081,21 @@ class Join():
 	## Main Join		#####
 	#########################
 
-	def main_join(self, item):
+	def main_join(self, item, task_type):
 		""" This is the main join function. It calls PW_join(), PJF_join(), and small_pred(). Uses 
 		cost estimates to determine which function to call item by item."""
 
-		#if we have already finished the join, return results and drop lists, refusing to continue
+		#if we have already finished the join, return and drop lists, refusing to continue
 		if not self.list1 or self.has_2nd_list and not self.list2:
 			self.list1 = []
 			self.list2 = []
-			return [], self.results_from_all_join
-
-		#captures times for each task in this run of main_join
-		taskList = []
+			return []
 
 		buffer = len(self.results_from_all_join) <= 0.15*len(self.list1)*len(self.list2)
 		buf1 = len(self.results_from_all_join) < .1*len(self.list1)
 		#reconsider these a bit 
 
-		# PW join on list1, no list2 yet
-		if not self.has_2nd_list:
-			
-			matches = self.PW_join(item, self.list1)
-			if self.full_timer != 0:
-				taskList += [self.full_timer]
-			self.full_timer = 0.0
-			for match in matches:
-				if self.small_pred(match[1]):
-					if self.full_timer != 0:
-						taskList += [self.full_timer]
-					self.full_timer = 0.0
-					self.results_from_all_join.append(match)
-				else:
-					if self.full_timer != 0:
-						taskList += [self.full_timer]
-					self.full_timer = 0.0
+		if not self.has_2nd_list: # PW join on list1, no list2 yet
 			if not buf1 and self.chao_estimator():
 				if self.DEBUG:
 					print "ESTIMATOR HIT------------"
@@ -1122,230 +1104,36 @@ class Join():
 					print "failed by small predicate: "
 					print str(len(self.failed_by_smallP))
 					print "-------------------------"
-
 				self.has_2nd_list = True
-		else:
+			return ["PW", "small_p"] # path 4
+		else: # if we have both lists
 			cost = self.find_costs()
 			if buffer: # if still in buffer region TODO: think more about this metric
 				if random.random() < 0.5: # 50% chance of going to 1 or 2
-					for i in self.list2:
-						if cost[0] < cost[1]: # Choose the fastest between 1 amd 2
-							if self.DEBUG:
-									print "************** BUFFER DOWN PATH 1 ****************"
-							if self.small_pred(i):
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-								if self.PJF_join(i, item):
-									if self.full_timer != 0:
-										taskList += [self.full_timer]
-									self.full_timer = 0.0
-									self.results_from_pjf_join.append([item, i])
-									self.results_from_all_join.append([item, i])
-								else:
-									if self.full_timer != 0:
-										taskList += [self.full_timer]
-									self.full_timer = 0.0
-							else:
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-						else:
-							if self.DEBUG:
-									print "************** BUFFER DOWN PATH 2 ****************"
-							if self.PJF_join(i, item):
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-								if self.small_pred(i):
-									if self.full_timer != 0:
-										taskList += [self.full_timer]
-									self.full_timer = 0.0
-									self.results_from_pjf_join.append([item, i])
-									self.results_from_all_join.append([item, i])
-								else:
-									if self.full_timer != 0:
-										taskList += [self.full_timer]
-									self.full_timer = 0.0
-							else:
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-						#we assume (and feel justified doing so) no repeats in primary list
-					self.list1.remove(item)
+					if cost[0] < cost[1]:# path 1
+						return ["small_p", "PJF", "join"]
+					else:# path 2
+						return ["PJF", "join", "small_p"] # TODO: remember to change these functions + for loop and remove item
 				else: # 50% chance of going to 3 or 4 or 5
-					if cost[2]<cost[3]:
-						i = self.list2[0]
-						if cost[2] < cost[4]:
-							if self.DEBUG:
-								print "************** BUFFER DOWN PATH 3 ****************"
-							matches = self.PW_join(i, self.list2) # assuming self.list2 is not empty
-							if self.full_timer != 0:
-								taskList += [self.full_timer]
-							self.full_timer = 0.0
-							if self.small_pred(i):
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-								self.results_from_all_join+=(matches)
-							else:
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-						else:
-							if self.DEBUG:
-									print "************** BUFFER DOWN PATH 5 ****************"
-									print "length of list 2: "
-									print len(self.list2)
-							if self.small_pred(i):
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-								matches = self.PW_join(i, self.list2)
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-								self.results_from_all_join+= matches
-							else:
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-					elif cost[3]<cost[4]:
-						if self.DEBUG:
-							print "************** BUFFER DOWN PATH 4 ****************"
-						matches = self.PW_join(item, self.list1)
-						if self.full_timer != 0:
-							taskList += [self.full_timer]
-						self.full_timer = 0.0
-						for i in matches:
-							if self.small_pred(i[1]):
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-								self.results_from_all_join.append(i)
-							else:
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-					else:
-						if self.DEBUG:
-							print "************** BUFFER DOWN PATH 5 ****************"
-						i = self.list2[0]
-						if self.small_pred(i):
-							if self.full_timer != 0:
-								taskList += [self.full_timer]
-							self.full_timer = 0.0
-							matches = self.PW_join(i, self.list2)
-							if self.full_timer != 0:
-								taskList += [self.full_timer]
-							self.full_timer = 0.0
-							self.results_from_all_join+= matches
-						else:
-							if self.full_timer != 0:
-								taskList += [self.full_timer]
-							self.full_timer = 0.0
+					if cost[2]<cost[3] and cost[2]<cost[4]:# path 3
+						return ["PW", "small_p"] # on second list
+					elif cost[3]<cost[2] and cost[3]<cost[4]# path 4
+						return ["PW", "small_p"] # on first list
+					else:# path 5
+						return ["small_p", "PW"] # on second list
 			else: #having escaped the buffer zone
 				minimum = min(cost)
-				if(cost[0] == minimum):
-					for i in self.list2:
-						if self.DEBUG:
-							print "************** GOING DOWN PATH 1 ****************"
-						if self.small_pred(i):
-							if self.full_timer != 0:
-								taskList += [self.full_timer]
-							self.full_timer = 0.0
-							if self.PJF_join(i, item):
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-								self.results_from_pjf_join.append([item, i])
-								self.results_from_all_join.append([item, i])
-							else:
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-						else:
-							if self.full_timer != 0:
-								taskList += [self.full_timer]
-							self.full_timer = 0.0
-					self.list1.remove(item)
-				elif(cost[1] == minimum):
-					for i in self.list2:
-						if self.DEBUG:
-							print "************** GOING DOWN PATH 2 ****************"
-						if self.PJF_join(i, item):
-							if self.full_timer != 0:
-								taskList += [self.full_timer]
-							self.full_timer = 0.0
-							if self.small_pred(i):
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-								self.results_from_pjf_join.append([item, i])
-								self.results_from_all_join.append([item, i])
-							else:
-								if self.full_timer != 0:
-									taskList += [self.full_timer]
-								self.full_timer = 0.0
-						else:
-							if self.full_timer != 0:
-								taskList += [self.full_timer]
-							self.full_timer = 0.0
-					self.list1.remove(item)
-				elif(cost[2] == minimum):
-					if self.DEBUG:
-						print "************** GOING DOWN PATH 3 ****************"
-					i = self.list2[0]
-					matches = self.PW_join(i, self.list2) # assuming self.list2 is not empty
-					if self.full_timer != 0:
-						taskList += [self.full_timer]
-					self.full_timer = 0.0
-					if self.small_pred(i):
-						if self.full_timer != 0:
-							taskList += [self.full_timer]
-						self.full_timer = 0.0
-						self.results_from_all_join+= matches
-					else:
-						if self.full_timer != 0:
-							taskList += [self.full_timer]
-						self.full_timer = 0.0
-				elif(cost[3] == minimum):
-					if self.DEBUG:
-						print "************** GOING DOWN PATH 4 ****************"
-					matches = self.PW_join(item, self.list1)
-					if self.full_timer != 0:
-						taskList += [self.full_timer]
-					self.full_timer = 0.0
-					for i in matches:
-						if self.small_pred(i[1]):
-							if self.full_timer != 0:
-								taskList += [self.full_timer]
-							self.full_timer = 0.0
-							self.results_from_all_join.append(i)
-						else:
-							if self.full_timer != 0:
-								taskList += [self.full_timer]
-							self.full_timer = 0.0
-				else:
-					if self.DEBUG:
-						print "************** GOING DOWN PATH 5 ****************"
-					i = self.list2[0]
-					if self.small_pred(i):
-						if self.full_timer != 0:
-							taskList += [self.full_timer]
-						self.full_timer = 0.0
-						matches = self.PW_join(i, self.list2)
-						if self.full_timer != 0:
-							taskList += [self.full_timer]
-						self.full_timer = 0.0
-						self.results_from_all_join+= matches
-					else:
-						if self.full_timer != 0:
-							taskList += [self.full_timer]
-						self.full_timer = 0.0
-		for i in range(len(taskList)):
-			taskList[i] = taskList[i]/1000.0
-		return taskList
+				if(cost[0] == minimum):# path 1
+					return ["small_p", "PJF", "join"]
+				elif(cost[1] == minimum):# path 2
+					return ["PJF", "join", "small_p"]
+				elif(cost[2] == minimum):# path 3
+					return ["PW", "small_p"] # on second list
+				elif(cost[3] == minimum)# path 4:
+					return ["PW", "small_p"] # on first list
+				else:# path 5
+					return ["small_p", "PW"] # on second list
+		
 
 
 
