@@ -246,7 +246,7 @@ simulations for every configuration in MULTI_SIM_ARRAY \n
 
 \link dynamicfilterapp.toggles.MULTI_SIM_ARRAY MULTI_SIM_ARRAY \endlink - A list of tuples of form 
 (number of simulations for this configuration, (IP_LIMIT_SYS, ITEM_IP_LIMIT), ACTIVE_TASKS_ARRAY, 
-QUEUE_LENGTH_ARRAY) that will be simulated if MULTI_SIM is true \n
+QUEUE_LENGTH_ARRAY, switch_list, ADAPTIVE_QUEUE_MODE) that will be simulated if MULTI_SIM is true \n
 
 
 \section output Output Settings

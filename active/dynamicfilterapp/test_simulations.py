@@ -2011,6 +2011,11 @@ class SimulationTest(TransactionTestCase):
 		graph_out1 = []
 		graph_out2 = []
 
+		# keep original toggles
+		origEddySize = toggles.EDDY_SYS
+		origPendingQueueSize = toggles.PENDING_QUEUE_SIZE
+		origActiveTasksSize = toggles.ACTIVE_TASKS_SIZE
+		
 		for e in eddySet:
 			toggles.EDDY_SYS = e
 
@@ -2058,37 +2063,64 @@ class SimulationTest(TransactionTestCase):
 			graphGen.simulated_time_distributions(graph_out1, dest1)
 			graphGen.task_distributions(graph_out2, dest2, True)
 
+		# reset to original toggle settings
+		toggles.EDDY_SYS = origEddySize
+		toggles.PENDING_QUEUE_SIZE = origPendingQueueSize
+		toggles.ACTIVE_TASKS_SIZE = origActiveTasksSize
+
+
+
 	def runMultiSims(self, data):
 	# run multiple simulations with settings specified in MULTI_SIM_ARRAY
 	# outputs a multiRunStats.csv file that includes the settings and 
 	# number of placeholder tasks, waste tasks, total tasks, and simulated time for each simulation
+	# and each attribute's mean and standard deviation
+	# resets to the original setting
+		
+		# keep original toggle settings
+		origIpLimitSys = toggles.IP_LIMIT_SYS
+		origItemIpLimit = toggles.ITEM_IP_LIMIT
+		origActiveTasksArray = toggles.ACTIVE_TASKS_ARRAY
+		origQueueLengthArray = toggles.QUEUE_LENGTH_ARRAY
+		origSwitchList = toggles.switch_list
+		origAdaptiveQueueMode = toggles.ADAPTIVE_QUEUE_MODE
+			
 		settingCount = 0
 		for setting in toggles.MULTI_SIM_ARRAY:
             print "Running setting " + str(settingCount)
 
 			numSim = setting[0]	# number of simulations for current setting
-			toggles.IP_LIMIT_SYS = setting[1][0] # predicate limit mode
-			if toggles.IP_LIMIT_SYS >= 2:		 # for hard, soft limit
-				toggles.ITEM_IP_LIMIT = setting[1][1] # predicate limit
-			toggles.ACTIVE_TASKS_ARRAY = setting[2] # batch size
-			toggles.QUEUE_LENGTH_ARRAY = setting[3] # adaptive queue length
+			toggles.IP_LIMIT_SYS = setting[1][0] 		# predicate limit mode
+			if toggles.IP_LIMIT_SYS >= 2:# for hard, soft limit
+				toggles.ITEM_IP_LIMIT = setting[1][1] 	# predicate limit
+			toggles.ACTIVE_TASKS_ARRAY = setting[2] 	# batch size
+			toggles.QUEUE_LENGTH_ARRAY = setting[3] 	# adaptive queue length
+			toggles.SWITCH_LIST = setting[4]			# predicate selectivity, ambiguity, cost settings
+			toggles.ADAPTIVE_QUEUE_MODE = setting [5]	
 
 			# set up output csv file
 			save = []
-			runList = []
 			save.append(["Setting:", "Predicate Limit Mode", "Predicate Limit", "Active Task Array", "Queue Array"])
 			save.append(["",toggles.IP_LIMIT_SYS, toggles.ITEM_IP_LIMIT, str(toggles.ACTIVE_TASKS_ARRAY), str(toggles.QUEUE_LENGTH_ARRAY)])
+			save.append(["Run", "Placeholder tasks", "Wasted tasks", "Total tasks", "Time"])
 			
 			for run in range(numSim):
 				self.visualizeActiveTasks(data, str(settingCount)+str(run))
-				runList.append(str(run))
 
-			# write in file
-			save.append(runList)
-			save.append(self.num_placeholders_array)
-			save.append(self.num_waste_array)
-			save.append(self.num_real_tasks_array)
-			save.append(self.simulated_time_array)
+				# write in file
+				runList = []
+				runList.append(str(run))
+				runList.append(self.num_placeholders_array[run])
+				runList.append(self.num_waste_array[run])
+				runList.append(self.num_real_tasks_array[run])
+				runList.append(self.simulated_time_array[run])
+				save.append(runList)
+
+			stats = (np.array([self.num_placeholders_array, self.num_waste_array, self.num_real_tasks_array, self.simulated_time_array]))
+			save.append (["mean"])
+			save.append(np.mean(stats, axis = 1).tolist())
+			save.append(["standard deivation"])
+			save.append(np.std(stats, axis = 1).tolist())
 
 			self.reset_arrays()
 
@@ -2100,8 +2132,15 @@ class SimulationTest(TransactionTestCase):
 
 			settingCount += 1
 
+		# reset to original toggle settings
+		toggles.IP_LIMIT_SYS = origIpLimitSys
+		toggles.ITEM_IP_LIMIT = origItemIpLimit
+		toggles.ACTIVE_TASKS_ARRAY = origActiveTasksArray
+		toggles.QUEUE_LENGTH_ARRAY = origQueueLengthArray
+		toggles.switch_list = origSwitchList
+		toggles.ADAPTIVE_QUEUE_MODE = origAdaptiveQueueMode
 			
-
+			
 
 	def collect_act1_data(self, timed):
 		if timed:
