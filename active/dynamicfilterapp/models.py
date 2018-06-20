@@ -47,19 +47,12 @@ class Item(models.Model):
 		self.save(update_fields=["inQueue","pairs_out"])
 
 	def reset(self):
-		self.hasFailed=False
-		self.isStarted=False
-		self.almostFalse=False
-		self.inQueue=False
-		self.save(update_fields=["hasFailed","isStarted","almostFalse","inQueue"])
-
-
-	def reset(self):
-		self.hasFailed=False
-		self.isStarted=False
-		self.almostFalse=False
-		self.inQueue=False
-		self.save(update_fields=["hasFailed","isStarted","almostFalse","inQueue"])
+		self.hasFailed = False
+		self.isStarted=  False
+		self.almostFalse = False
+		self.inQueue = False
+		self.pairs_out  = 0
+		self.save(update_fields=["hasFailed","isStarted","almostFalse","inQueue", "pairs_out"])
 
 
 @python_2_unicode_compatible
