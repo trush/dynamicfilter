@@ -403,14 +403,14 @@ class SimulationTest(TransactionTestCase):
 
 		else:
 			chosenIP.refresh_from_db()
-			value = syn_answer(chosenIP, switch, numTasks)
+			value, cost_multiplier = syn_answer(chosenIP, switch, numTasks)
 			if toggles.SIMULATE_TIME:
 				if value :
 					#worker said true, take from true distribution
-					work_time = choice(toggles.TRUE_TIMES)
+					work_time = np.rint(cost_multiplier*choice(toggles.TRUE_TIMES))
 				else:
 					#worker said false, take from false distribution
-					work_time = choice(toggles.FALSE_TIMES)
+					work_time = np.rint(cost_multiplier*choice(toggles.FALSE_TIMES))
 
 				start_task = time_clock + toggles.BUFFER_TIME
 				end_task = start_task + work_time
