@@ -105,7 +105,7 @@ class Join:
             print "************** PJF CHECKING ITEM ****************"
         return evaluated_with_PJF[item], timer_val
 
-    def join_with_second_list(self, item):
+    def join_items(self, i, j):
         timer_val = 0
         if (i,j) in self.results_from_all_join:
             return True, 0
