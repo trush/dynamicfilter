@@ -379,24 +379,33 @@ class SimulationTest(TransactionTestCase):
 	# @param numTasks The number of tasks completed before this task; informs whether selectivity/ambiguity
 	# should change.
 	# @returns The Task object that was simulated.
-	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks):
+	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks, curr_join=None):
 		start = time.time()
 		if chosenIP is None:
-			if toggles.SIMULATE_TIME:
-				# TODO
-				# this task is going to be as long as any task can be?
-				# or delay workers by a fixed amount of time?
-				work_time = choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
-				start_task = time_clock + toggles.BUFFER_TIME
-				end_task = start_task + work_time
-				self.cum_placeholder_time += work_time
-			else:
-				start_task = 0
-				end_task = 0
+			if predicate is None:
+				if toggles.SIMULATE_TIME:
+					# TODO
+					# this task is going to be as long as any task can be?
+					# or delay workers by a fixed amount of time?
+					work_time = choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
+					start_task = time_clock + toggles.BUFFER_TIME
+					end_task = start_task + work_time
+					self.cum_placeholder_time += work_time
+				else:
+					start_task = 0
+					end_task = 0
 
-			t = DummyTask(workerID = workerID,
-				start_time = start_task, end_time = end_task)
-			t.save()
+				t = DummyTask(workerID = workerID,
+					start_time = start_task, end_time = end_task)
+				t.save()
+			else:
+				task_type = curr_join.assign_join_tasks()
+				#TODO: figure out exactly how the algorithm needs to handle splitting join processes
+				value = curr_join.main_join(task_type)
+				if value:
+					worker_time = 
+				if curr_join.isDone():
+					predicate.finishjoin()#TODO: implement
 
 		else:
 			chosenIP.refresh_from_db()
@@ -621,7 +630,7 @@ class SimulationTest(TransactionTestCase):
 	# @param switch A number that indicates the "state" of the simulation -- can indicate whether selectivity/ambiguity
 	# of synthetic data should change.
 	# @returns an Task object or DummyTask object.
-	def issueTask(self, active_tasks, b_workers, time_clock, dictionary, switch):
+	def issueTask(self, active_tasks, active_joins, b_workers, time_clock, dictionary, switch):
 		# select an available worker who is eligible to do a task in our pool
 		workerDone = True
 		a_num = toggles.NUM_WORKERS - len(b_workers)
@@ -657,6 +666,12 @@ class SimulationTest(TransactionTestCase):
 		else:
 			workerID = self.pick_worker(b_workers, [])
 			ip_pair, eddy_time = give_task(active_tasks, workerID)
+			if ip_pair.is_joinable():
+				curr_join = active_joins[ip_pair.predicate]
+				task_type = curr_join.assign_join_tasks()
+				curr_join.addTask(task_type)
+				if task_type == "PWl2" or task_type == "small_p":
+					syn_simulate_task(None, workerID, time_clock, dictionary, curr_join)
 			self.pending_eddy_time += eddy_time
 			#if ip_pair is not None:
 				#ip_pair.refresh_from_db()
@@ -814,22 +829,20 @@ class SimulationTest(TransactionTestCase):
 
 		# array of tasks currently in process
 		active_tasks = []
-		joins = [] ## TODO: make join object
+		#dictionary of predicate-joins in process
+		active_joins = {}
 
 		#time counter
 		time_clock = 0
 
 		# set up a dictionary to hold counts of active tasks_out
-		if toggles.REAL_DATA:
-			for pred in toggles.CHOSEN_PREDS:
-				self.pred_active_tasks[pred+1] = []
-				self.pred_queues[pred+1] = []
-				self.ticket_nums[pred+1] = []
-		else:
-			for pred in toggles.CHOSEN_PREDS:
-				self.pred_active_tasks[pred+1] = []
-				self.pred_queues[pred+1] = []
-				self.ticket_nums[pred+1] = []
+		for pred in toggles.CHOSEN_PREDS:
+			self.pred_active_tasks[pred+1] = []
+			self.pred_queues[pred+1] = []
+			self.ticket_nums[pred+1] = []
+
+		#set up a join object for every join predicate
+		for pred in toggles.CHOSEN_PREDS:
 
 		# add an entry to save the numbers of placeholder tasks
 		self.pred_active_tasks[0] = []

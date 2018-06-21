@@ -770,6 +770,7 @@ class Task(models.Model):
 	Model representing one crowd worker task. (One HIT on Mechanical Turk.)
 	"""
 	ip_pair = models.ForeignKey(IP_Pair, default=None)
+	predicate = models.ForeignKey(Predicate, default = None)
 	answer = models.NullBooleanField(default=None)
 	workerID = models.CharField(db_index=True, max_length=15)
 	task_type = models.CharField(default = "default", max_length=15)
@@ -863,6 +864,7 @@ class Join():
 
 		## Results ########################################
 
+		self.task_types = [] # TODO: consider moving/replacing to properly represent that the list corresponds to items either passed or picked from list2
 		self.results_from_pjf_join = []
 		self.results_from_all_join = [] # TODO: why did we want these seperate again?
 		self.evaluated_with_PJF = { }
@@ -886,6 +888,10 @@ class Join():
 	#########################
 	## PJF Join		 #####
 	######################### 
+
+	def addTask(task_type):
+		'''adds a task'''
+		self.task_types.insert(task_type, 0)
 
 	def PJF_join(self, i, j):
 		""" Assuming that we have two items of a join tuple that need to be evaluated, 
@@ -1109,58 +1115,54 @@ class Join():
 	## Main Join		#####
 	#########################
 
-	def main_join(self, item, task_type):
+	def assign_join_tasks(self):
 		""" This is the main join function. It calls PW_join(), PJF_join(), and small_pred(). Uses 
 		cost estimates to determine which function to call item by item."""
 
-		#if we have already finished the join, return and drop lists, refusing to continue
-		if not self.list1 or self.has_2nd_list and not self.list2:
-			self.list1 = []
-			self.list2 = []
-			return []
+		if not self.task_types:
+			buffer = len(self.results_from_all_join) <= 0.15*len(self.list1)*len(self.list2)
+			buf1 = len(self.results_from_all_join) < .1*len(self.list1)
+			#reconsider these a bit 
 
-		buffer = len(self.results_from_all_join) <= 0.15*len(self.list1)*len(self.list2)
-		buf1 = len(self.results_from_all_join) < .1*len(self.list1)
-		#reconsider these a bit 
-
-		if not self.has_2nd_list: # PW join on list1, no list2 yet
-			if not buf1 and self.chao_estimator():
-				if self.DEBUG:
-					print "ESTIMATOR HIT------------"
-					print "Size of list 1: " + str(len(self.list1))
-					print "Size of list 2: " + str(len(self.list2))
-					print "failed by small predicate: "
-					print str(len(self.failed_by_smallP))
-					print "-------------------------"
-				self.has_2nd_list = True
-			return ["PW", "small_p"] # path 4
-		else: # if we have both lists
-			cost = self.find_costs()
-			if buffer: # if still in buffer region TODO: think more about this metric
-				if random.random() < 0.5: # 50% chance of going to 1 or 2
-					if cost[0] < cost[1]:# path 1
-						return ["small_p", "PJF", "join"]
-					else:# path 2
-						return ["PJF", "join", "small_p"] # TODO: remember to change these functions + for loop and remove item
-				else: # 50% chance of going to 3 or 4 or 5
-					if cost[2]<cost[3] and cost[2]<cost[4]:# path 3
-						return ["PW", "small_p"] # on second list
-					elif cost[3]<cost[2] and cost[3]<cost[4]# path 4
-						return ["PW", "small_p"] # on first list
+			if not self.has_2nd_list: # PW join on list1, no list2 yet
+				if not buf1 and self.chao_estimator():
+					if self.DEBUG:
+						print "ESTIMATOR HIT------------"
+						print "Size of list 1: " + str(len(self.list1))
+						print "Size of list 2: " + str(len(self.list2))
+						print "failed by small predicate: "
+						print str(len(self.failed_by_smallP))
+						print "-------------------------"
+					self.has_2nd_list = True
+				self.task_types =  ["PW", "small_p"] # path 4
+			else: # if we have both lists
+				cost = self.find_costs()
+				if buffer: # if still in buffer region TODO: think more about this metric
+					if random.random() < 0.5: # 50% chance of going to 1 or 2
+						if cost[0] < cost[1]:# path 1
+							self.task_types =  ["small_p", "PJF", "join"]
+						else:# path 2
+							self.task_types =  ["PJF", "join", "small_p"] # TODO: remember to change these functions + for loop and remove item
+					else: # 50% chance of going to 3 or 4 or 5
+						if cost[2]<cost[3] and cost[2]<cost[4]:# path 3
+							self.task_types =  ["PW", "small_p"] # on second list
+						elif cost[3]<cost[2] and cost[3]<cost[4]# path 4
+							self.task_types =  ["PW", "small_p"] # on first list
+						else:# path 5
+							self.task_types =  ["small_p", "PW"] # on second list
+				else: #having escaped the buffer zone
+					minimum = min(cost)
+					if(cost[0] == minimum):# path 1
+						self.task_types =  ["small_p", "PJF", "join"]
+					elif(cost[1] == minimum):# path 2
+						self.task_types =  ["PJF", "join", "small_p"]
+					elif(cost[2] == minimum):# path 3
+						self.task_types =  ["PWl2", "small_p"] # on second list
+					elif(cost[3] == minimum)# path 4:
+						self.task_types =  ["PW", "small_p"] # on first list
 					else:# path 5
-						return ["small_p", "PW"] # on second list
-			else: #having escaped the buffer zone
-				minimum = min(cost)
-				if(cost[0] == minimum):# path 1
-					return ["small_p", "PJF", "join"]
-				elif(cost[1] == minimum):# path 2
-					return ["PJF", "join", "small_p"]
-				elif(cost[2] == minimum):# path 3
-					return ["PW", "small_p"] # on second list
-				elif(cost[3] == minimum)# path 4:
-					return ["PW", "small_p"] # on first list
-				else:# path 5
-					return ["small_p", "PW"] # on second list
+						self.task_types =  ["small_p", "PWl2"] # on second list
+		return self.task_types.pop(0)
 
 	#########################
 	## Main Join Helpers ####
@@ -1276,6 +1278,14 @@ class Join():
 				print "small p selectivity: " + str(self.small_p_selectivity_est)
 				print "-------------------------"
 			return eval_results, small_p_timer
+
+
+	def is_done(self):
+		'''checks whether this join has been completed. Should be run after any item is processed'''
+		#check whether list1 is empty or if we have already built list2 but it is empty
+		if not self.list1 or self.has_2nd_list and not self.list2:
+			return self.results_from_all_join
+		return None
 
 	def chao_estimator(self):
 		""" Uses the Chao92 equation to estimate population size during enumeration """
