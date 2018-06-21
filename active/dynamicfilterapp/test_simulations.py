@@ -501,7 +501,7 @@ class SimulationTest(TransactionTestCase):
 		self.run_sim_time_array.append(self.run_sim_time)
 		self.update_time_array.append(self.update_time)
 		self.num_tasks, self.num_incorrect, self.num_placeholders = 0, 0, 0
-		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time, self.update_time = 0, 0, 0, 0, 0, 0
+		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time, self.update_time = 0, 0, 0, 0, 0
 		self.simulated_time, self.cum_work_time, self.cum_placeholder_time = 0, 0, 0
 		self.ticket_nums, self.ips_done_array, self.ips_tasks_array = {}, [], []
 		self.no_tasks_to_give, self.ips_times_array = 0, []
@@ -857,7 +857,7 @@ class SimulationTest(TransactionTestCase):
 		ip_pair = IP_Pair()
 		total_ip_pairs = IP_Pair.objects.all().count()
 
-		if toggles.ADAPTIVE_QUEUE:
+		if toggles.ADAPTIVE_QUEUE_MODE < 4:
 			toggles.PENDING_QUEUE_SIZE = toggles.QUEUE_LENGTH_ARRAY[0][1]
 
 		if toggles.SIMULATE_TIME:
@@ -2086,6 +2086,7 @@ class SimulationTest(TransactionTestCase):
 		origQueueLengthArray = toggles.QUEUE_LENGTH_ARRAY
 		origSwitchList = toggles.switch_list
 		origAdaptiveQueueMode = toggles.ADAPTIVE_QUEUE_MODE
+		origQueueLength = toggle.PENDING_QUEUE_SIZE
 			
 		settingCount = 0
 		for setting in toggles.MULTI_SIM_ARRAY:
@@ -2141,7 +2142,7 @@ class SimulationTest(TransactionTestCase):
 		toggles.QUEUE_LENGTH_ARRAY = origQueueLengthArray
 		toggles.switch_list = origSwitchList
 		toggles.ADAPTIVE_QUEUE_MODE = origAdaptiveQueueMode
-			
+		toggles.PENDING_QUEUE_SIZE = origQueueLength
 			
 
 	def collect_act1_data(self, timed):
