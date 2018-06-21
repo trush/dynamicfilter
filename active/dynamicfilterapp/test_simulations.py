@@ -786,6 +786,11 @@ class SimulationTest(TransactionTestCase):
 		active_tasks_size = orig_active_tasks # keeps track of the current size of the array
 		tps_start = 3
 		secs = 0 # used to count time steps when tasks per second is less than 1
+
+		if toggles.ADAPTIVE_QUEUE_MODE < 4:
+			for pred in Predicate.objects.all():
+				pred.set_queue_length(toggles.QUEUE_LENGTH_ARRAY[0][1])
+
 		if toggles.SELECTIVITY_GRAPH:
 			for count in toggles.CHOSEN_PREDS:
 				self.pred_selectivities.append([])
@@ -856,9 +861,6 @@ class SimulationTest(TransactionTestCase):
 
 		ip_pair = IP_Pair()
 		total_ip_pairs = IP_Pair.objects.all().count()
-
-		if toggles.ADAPTIVE_QUEUE_MODE < 4:
-			toggles.PENDING_QUEUE_SIZE = toggles.QUEUE_LENGTH_ARRAY[0][1]
 
 		if toggles.SIMULATE_TIME:
 			prev_time = 0
@@ -2108,6 +2110,8 @@ class SimulationTest(TransactionTestCase):
 			save.append(["Run", "Placeholder tasks", "Wasted tasks", "Total tasks", "Time"])
 			
 			for run in range(numSim):
+				for pred in Predicate.objects.all():
+					pred.set_queue_length(origQueueLength)
 				self.visualizeActiveTasks(data, str(settingCount)+str(run))
 
 				# write in file
