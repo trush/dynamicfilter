@@ -931,16 +931,29 @@ class Join():
 		""" Generates the PJF, returns the cost of finding the PJF and selectivity fo the PJF"""
 		return (15,self.PJF_SELECTIVITY)
 
+	## @param self
+	# @param prejoin : the prejoin instance that determines the time to evaluate the PJF and its selectivity
+	# @param item : the item that is being filtered by the prejoin filter.
+	# return true or false, the results of the prejoin filter
+	# @remarks : The results of the PJF are saved and added to a dctionary of things evaluated by the PJF in 
+	#	prejoin_filter() where evaluate() is called. Note: Currently the prejoin parameter serves no purpose,
+	# 	the selectivities and time costs are determined by toggles (private instance variables of the join class
+	#	that are already set). In the future prejoin should be able to set these.
 	def evaluate(self, prejoin, item):
-		""" Evaluates the PJF and returns whether it evaluate to true and how long it took to evluate it"""
 		return random.random()<sqrt(self.PJF_SELECTIVITY),self.TIME_TO_EVAL_PJF
 
 	#----------------------- PW Join -----------------------#
 
+	## @param self
+	# @param i : item that we are sending to the "crowd" to be matches up with
+	# @param itemlist : the itemList that i belongs to
+	# @return matches : list of tuples representing the matches that the item got from the crowd.
+	# @return timer : the updated amount of time that the task has taken (with the time taken for the matches
+	#	added to it.)
+	# @remarks Matches does some of the heavy lifting for this function (in terms of finding the item-item tuples),
+	#	In PW_join() we also update cost estimates, removed processed items from corresponding lists, update variabes
+	# 	used in the chao estimator.
 	def PW_join(self, i, itemlist):
-		'''Creates a join by taking one item at a time and finding matches
-		with input from the crowd '''
-
 		if i in self.failed_by_smallP:
 			raise Exception("Improper removal/addition of " + str(i) + " occurred")
 		#Metadata/debug information
@@ -1008,9 +1021,15 @@ class Join():
 
 	#----------------------- PW Join Helpers -----------------------#
 
+	## @param self
+	# @param item : an item from list1 that we want to ask the crowd for matches with
+	# @param timer : the current time taken so far by a task
+	# @return matches : list of tuples representing the matches that the item got from the crowd.
+	# @return timer : the updated amount of time that the task has taken (with the time taken for the matches
+	#	added to it.)
+	# @remarks : Intended to be called in PW_join(). Currently chooses the number of matches semi-randomly,
+	#	eventually should use data from the crowd.
 	def get_matches(self, item, timer):
-		'''gets matches for an item, eventually from the crowd, currently random. Uses list1 as the primary list
-		and gets matches for an item in list1.'''
 		#assumes a normal distribution
 		num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
 		matches = []
@@ -1033,9 +1052,14 @@ class Join():
 		return matches, timer
 
 	## @param self
+	# @param item : an item from list2 that we want to ask the crowd for matches with
+	# @param timer : the current time taken so far by a task
+	# @return matches : list of tuples representing the matches that the item got from the crowd.
+	# @return timer : the updated amount of time that the task has taken (with the time taken for the matches
+	#	added to it.)
+	# @remarks : Intended to be called in PW_join(). Currently chooses the number of matches semi-randomly,
+	#	eventually should use data from the crowd.
 	def get_matches_l2(self, item, timer):
-		'''gets matches for an item, eventually from the crowd, currently random. Uses list2 as the primary list
-		and gets matches for an item in list2.'''
 		#assumes a normal distribution
 		num_matches = int(round(numpy.random.normal(self.AVG_MATCHES * (len(self.list1)/len(self.private_list2)), self.STDDEV_MATCHES * (len(self.list1)/len(self.private_list2)), None)))
 		matches = []
@@ -1067,7 +1091,7 @@ class Join():
 	#	corresponding to the outcome of one task in the join progress (if there are still pending tasks in the
 	# 	join process for the IP_pair/Predicate)
 	# @return timer : the time taken to do said task
-	# @remarks : This is what is called in simulate_tasK() where the task answer and time are retrieved and saved.
+	# @remarks This is what is called in simulate_task() where the task answer and time are retrieved and saved.
 	def main_join(self, task_type, IP_pair=None):
 
 		#if the upcoming task does not require an item from list1 
