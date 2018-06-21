@@ -314,6 +314,11 @@ class Predicate(models.Model):
 
 		return self.queue_length
 
+	def set_queue_length(self,value):
+		self.queue_length = value
+		self.save(update_fields=["queue_length"])
+		self.check_queue_full()
+
 	def adapt_queue_length(self):
 		'''
 		depending on adaptive queue mode, changes queue length as appropriate
@@ -321,7 +326,6 @@ class Predicate(models.Model):
 
 		# print "adapt queue length called"
 		total_tickets = 0
-		queue_length = toggles.PENDING_QUEUE_SIZE
 		for pred in Predicate.objects.all():
 			total_tickets += pred.num_tickets
 
@@ -336,8 +340,8 @@ class Predicate(models.Model):
 				if self.num_tickets >= pair[0] and self.queue_length < pair[1]:
 					self.queue_length = pair[1]
 					break
-			self.check_queue_full()
 			self.save(update_fields=["queue_length"])
+			self.check_queue_full()
 			return self.queue_length
 
 		if toggles.ADAPTIVE_QUEUE_MODE == 1:
@@ -352,8 +356,8 @@ class Predicate(models.Model):
 
 		if toggles.ADAPTIVE_QUEUE_MODE == 2:
 			queue_length = pred.num_tickets/total_tickets*toggles.QUEUE_SUM
-			self.check_queue_full()
 			self.save(update_fields=["queue_length"])
+			self.check_queue_full()
 			return self.queue_length
 
 		return self.queue_length
@@ -452,8 +456,10 @@ class Predicate(models.Model):
 		self.total_time=0.0
 		self.avg_completion_time=1.0
 		self.avg_tasks_per_pair=1.0
+		self.trueSelectivity=0.0
+		self.trueAmbiguity=0.0
 
-		self.save(update_fields=["num_tickets","num_wickets","calculatedSelectivity", "num_ip_complete","selectivity","totalTasks","totalNo","queue_is_full","queue_length","consensus_max_threshold","rank","count","score","cost","total_time","avg_completion_time","avg_tasks_per_pair"])
+		self.save(update_fields=["num_tickets","num_wickets","calculatedSelectivity", "num_ip_complete","selectivity","totalTasks","totalNo","queue_is_full","queue_length","consensus_max_threshold","rank","count","score","cost","total_time","avg_completion_time","avg_tasks_per_pair","trueSelectivity","trueAmbiguity"])
 
 
 @python_2_unicode_compatible
