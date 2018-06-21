@@ -39,7 +39,9 @@ def syn_answer(chosenIP, switch, numTasks):
 	#TODO: If trans is 0, it starts at the selectvity of the previous timestep
 
 	timeStepInfo = toggles.switch_list[switch]
-	cost_multiplier = timeStepInfo[chosenIP.predicate.pk][2]
+	cost_multiplier = 1
+	if len(timeStepInfo[chosenIP.predicate.pk]) > 2:
+		cost_multiplier = timeStepInfo[chosenIP.predicate.pk][2]
 
 	# for predNum in toggles.CHOSEN_PREDS:
 
