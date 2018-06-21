@@ -90,6 +90,15 @@ class Predicate(models.Model):
 	question = models.ForeignKey(Question)
 	#is this a "join-like" predicate?
 	joinable = models.BooleanField(default = False)
+	task_types = models.CharField(default="")
+
+	def set_new_task(self, new_task):
+		temp = json.loads(self.task_types)
+		temp = [new_task] + temp
+		self.task_types = json.dumps(temp)
+
+	def get_task_types(self):
+		return json.loads(self.task_types)
 
 	# lottery system variables
 	num_tickets = models.IntegerField(default=1)
@@ -446,6 +455,7 @@ class IP_Pair(models.Model):
 	"""
 	item = models.ForeignKey(Item)
 	predicate = models.ForeignKey(Predicate)
+	task_types = models.CharField(default="")
 
 	# tasks out at a given point in time
 	tasks_out = models.IntegerField(default=0)
@@ -456,18 +466,22 @@ class IP_Pair(models.Model):
 	num_no = models.IntegerField(default=0)
 	num_yes = models.IntegerField(default=0)
 	isDone = models.BooleanField(db_index=True, default=False)
+	join_pairs = models.CharField(default = "", max_length = 400)
+	small_p_done = models.BooleanField(default=False)
 
-	#a list of tasks in the join process for 1 run
-	join_process = models.CharField(max_length=200, default = "")
-	#which task we are currently doing in the join process
-	join_task_out = models.IntegerField(default = -1)
+	def set_join_pairs(self, inlist):
+		self.join_pairs = json.dumps(inlist)
 
-	#django does not support list fields, so we store it encoded as a string
-	def set_join_process(self, x):
-		self.join_process = json.dumps(x)
+	def get_join_pairs(self):
+		return json.loads(self.join_pairs)
 
-	def get_join_process(self):
-		return json.loads(self.join_process)
+	def set_new_task(self, new_task):
+		temp = json.loads(self.task_types)
+		temp = [new_task] + temp
+		self.task_types = json.dumps(temp)
+
+	def get_task_types(self):
+		return json.loads(self.task_types)
 
 	def is_joinable(self):
 		return self.predicate.joinable
@@ -806,7 +820,6 @@ class Join():
 			## Other private variables used for simulations
 		self.private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
 
-
 		## Estimates ######################################
 
 		self.PJF_selectivity_est = 0.5
@@ -826,7 +839,6 @@ class Join():
 
 		## Results ########################################
 
-		self.task_types = [] # TODO: consider moving/replacing to properly represent that the list corresponds to items either passed or picked from list2
 		self.results_from_pjf_join = []
 		self.results_from_all_join = [] # TODO: why did we want these seperate again?
 		self.evaluated_with_PJF = { }
@@ -841,6 +853,9 @@ class Join():
 		self.has_2nd_list = False
 		self.enumerator_est = False # TODO: read more about this and use in our code
 		self.THRESHOLD = 0.1
+		self.sec_item_in_progress = None
+		self.pending = False
+		self.pairwise_pairs = []
 
 		## TOGGLES ########################################
 		self.DEBUG = True
@@ -851,90 +866,66 @@ class Join():
 	## PJF Join		 #####
 	######################### 
 
-	def addTask(task_type):
-		'''adds a task'''
-		self.task_types.insert(task_type, 0)
+	def prejoin_filter(self, item):
+        timer_val = 0
+        if(not item in self.evaluated_with_PJF):
+            # save results of PJF to avoid repeated work
+            self.evaluated_with_PJF[item],PJF_cost = self.evaluate(PJF,item)
+            self.processed_by_PJF += 1 # TODO: check that these are correct for what we are trying to record
+            # if the item evaluated True for the PFJ then adjust selectivity
+            self.PJF_selectivity_est = (self.PJF_selectivity_est*(self.processed_by_PJF-1)+self.evaluated_with_PJF[i])/self.processed_by_PJF
+            # adjust our cost estimates for evaluating PJF
+            self.PJF_cost_est = (self.PJF_cost_est*(len(self.evaluated_with_PJF)-1)+PJF_cost)/self.processed_by_PJF
+            timer_val += self.TIME_TO_EVAL_PJF
+            self.full_timer += self.TIME_TO_EVAL_PJF
 
-	def PJF_join(self, i, j):
-		""" Assuming that we have two items of a join tuple that need to be evaluated, 
-		this function mimicks human join with predetermined costs and selectivity specified.
-		This retruns information about selectivity and cost."""
-		if (i,j) in self.results_from_all_join:
-			return true
-		#TODO: fix PJF join to not repeat work (with other concurrent tasks)
+        if self.DEBUG:
+            print "************** PJF CHECKING ITEM ****************"
+        return evaluated_with_PJF[item], timer_val
 
-		#### INITIALIZE VARIABLES TO USE ####
-		cost_of_PJF, PJF = self.generate_PJF() # TODO: what are we going to do with the cost_of_PJF? Move somewhere else?
+    def join_items(self, i, j):
+        timer_val = 0
+        if (i,j) in self.results_from_all_join:
+            return True, 0
+        if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
+            # Generate task of current pair
+            # Choose whether to add to results_from_pjf_join
+            timer_val += self.PAIRWISE_TIME_PER_TASK
+            self.full_timer += self.PAIRWISE_TIME_PER_TASK
+            ### If it is accepted in join process
+            if(random() < self.JOIN_SELECTIVITY):
+                self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
+                self.processed_by_join += 1
+                self.total_num_ips_processed += 1 # TODO: this is messed up by concurrency
+                # Adjust join cost estimates
+                self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
+                
+                #### DEBUGGING ####
+                if self.DEBUG:
+                    print "ACCEPTED BY JOIN----------"
+                    print "TIMER VALUE: " + str(timer_val)
+                    print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
+                    print "PJF cost estimate: " + str(self.PJF_cost_est)
+                    print "Join selectivity estimate: " + str(self.join_selectivity_est)
+                    print "Join cost estimate: " + str(self.join_cost_est)
+                    print "--------------------------"
+                
+                return True, timer_val
+        ### If it is not accepted in join process
+        self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
+        self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
+        
+        #### DEBUGGING ####
+        if self.DEBUG:
+            print "MATCHED BUT REJECTED BY JOIN------------"
+            print "TIMER VALUE: " + str(timer_val)
+            print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
+            print "PJF cost estimate: " + str(self.PJF_cost_est)
+            print "Join selectivity estimate: " + str(self.join_selectivity_est)
+            print "Join cost estimate: " + str(self.join_cost_est)
+            print "----------------------------------------"
 
-		#### CONTROL GROUP: COMPLETELY USING PJF THEN PW JOIN ####
-		timer_val = 0
-		if(not i in self.evaluated_with_PJF):
-			# save results of PJF to avoid repeated work
-			self.evaluated_with_PJF[i],PJF_cost = self.evaluate(PJF,i)
-			self.processed_by_PJF += 1 # TODO: check that these are correct for what we are trying to record
-			# if the item evaluated True for the PFJ then adjust selectivity
-			self.PJF_selectivity_est = (self.PJF_selectivity_est*(self.processed_by_PJF-1)+self.evaluated_with_PJF[i])/self.processed_by_PJF
-			# adjust our cost estimates for evaluating PJF
-			self.PJF_cost_est = (self.PJF_cost_est*(len(self.evaluated_with_PJF)-1)+PJF_cost)/self.processed_by_PJF
-			timer_val += self.TIME_TO_EVAL_PJF
-			self.full_timer += self.TIME_TO_EVAL_PJF
-
-			if self.DEBUG:
-				print "************** PJF: CHECKING FIRST ITEM ****************"
-
-		if (not j in self.evaluated_with_PJF):
-			# save results of PJF to avoid repeated work
-			self.evaluated_with_PJF[j],PJF_cost = self.evaluate(PJF,j)
-			self.processed_by_PJF += 1 # TODO: check that these are correct for what we are trying to record
-			# if the item evaluated True for the PFJ then adjust selectivity
-			self.PJF_selectivity_est = (self.PJF_selectivity_est*(self.processed_by_PJF-1)+self.evaluated_with_PJF[j])/self.processed_by_PJF
-			# adjust our cost estimates for evaluating PJF
-			self.PJF_cost_est = (self.PJF_cost_est*(len(self.evaluated_with_PJF)-1)+PJF_cost)/self.processed_by_PJF
-			timer_val += self.TIME_TO_EVAL_PJF
-			self.full_timer += self.TIME_TO_EVAL_PJF
-
-			if self.DEBUG:
-				print "************* PJF: CHECKING SECOND ITEM **************"
-
-		if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
-			# Generate task of current pair
-			# Choose whether to add to results_from_pjf_join
-			timer_val += self.PAIRWISE_TIME_PER_TASK
-			self.full_timer += self.PAIRWISE_TIME_PER_TASK
-			### If it is accepted in join process
-			if(random.random() < self.JOIN_SELECTIVITY):
-				self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
-				self.processed_by_join += 1
-				# Adjust join cost estimates
-				self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
-				
-				 #### DEBUGGING ####
-				if self.DEBUG:
-					print "ACCEPTED BY JOIN----------"
-					print "TIMER VALUE: " + str(timer_val)
-					print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
-					print "PJF cost estimate: " + str(self.PJF_cost_est)
-					print "Join selectivity estimate: " + str(self.join_selectivity_est)
-					print "Join cost estimate: " + str(self.join_cost_est)
-					print "--------------------------"
-				
-				return True
-			### If it is not accepted in join process
-			self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
-			self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
-			
-			#### DEBUGGING ####
-			if self.DEBUG:
-				print "MATCHED BUT REJECTED BY JOIN------------"
-				print "TIMER VALUE: " + str(timer_val)
-				print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
-				print "PJF cost estimate: " + str(self.PJF_cost_est)
-				print "Join selectivity estimate: " + str(self.join_selectivity_est)
-				print "Join cost estimate: " + str(self.join_cost_est)
-				print "----------------------------------------"
-
-			return False
-		return False
+        return False, timer_val
 
 	#########################
 	## PJF Join Helpers #####
@@ -1077,54 +1068,131 @@ class Join():
 	## Main Join		#####
 	#########################
 
+	def main_join(self, task_type, IP_pair=None):
+		#TODO: document
+		if not IP_Pair:
+			if task_type == "small_p":
+				if not self.pending:
+					finished_tup = self.small_pred(self.sec_item_in_progress)
+					self.pending = True
+				else:
+					self.pending = False
+					if not self.pairwise_pairs:
+						return None, 0
+					eval_results, timer = self.small_pred(self.pairwise_pairs[0][1]):
+					if eval_results:
+						finished_tup = self.pairwise_pairs, timer
+					else:
+						finished_tup = None, timer
+				return finished_tup # returns eval_results, small_p_timer
+			elif task_type == "PWl2":
+				if not self.pending:
+					results, timer = self.PW_join(self.sec_item_in_progress, self.list2)
+					self.sec_item_in_progress = self.list2[0]
+					self.pairwise_pairs = results
+					return any(results), timer
+				else:
+					self.pending = False
+					self.sec_item_in_progress = self.list2[0]
+					if self.sec_item_in_progress in self.failed_by_smallP:
+						return None, 0
+					finished_tup = self.PW_join(self.sec_item_in_progress, self.list2)
+				return finished_tup # returns matches, PW_timer
+			else:
+				print "Task type was: " + str(task_type)
+				raise Exception("Your Predicate/IP_Pair doesn't match the expected task_types for Join.")
+		else:
+			if task_type == "PW":
+				return self.PW_join(IP_pair.item, self.list1) # returns matches, PW_timer
+			elif task_type == "PJF": # TODO: need to make this break into new tasks, not do all at once
+				total_prejoin_timer = 0
+				if list2_not_eval:
+					for i in self.list2:
+						results, prejoin_timer = self.prejoin_filter(i)
+						total_prejoin_timer += prejoin_timer
+				results, prejoin_timer = self.prejoin_filter(IP_pair.item)
+				total_prejoin_timer += prejoin_timer
+				return None, total_prejoin_timer
+			elif task_type == "join":
+				total_join_timer = 0
+				results = []
+				for j in self.list2:
+					eval_TF, join_timer = self.join_items(IP_pair.item,j)
+					total_join_timer += join_timer
+					if eval_TF:
+						results += [[IP_pair.item, j]]
+				IP_pair.set_join_pairs(results)
+				if IP_pair.small_p_done:
+					IP_pair.small_p_done = False #TODO:can we do this
+					return results, timer
+				else:
+					return any(results), timer
+				return any(results), total_join_timer
+			elif task_type == "small_p":
+				if not IP_pair.join_pairs:
+					return None, 0
+				else:
+					results = []
+					total_time = 0
+					for join_pair in IP_pair.get_join_pairs():
+						eval_result, timer = self.small_pred(join_pair[1])
+						if eval_result:
+							results += [join_pair]
+						total_time += timer
+					IP_pair.small_p_done = True
+					return results, total_time
+			else:
+				print "Task type was: " + str(task_type)
+				raise Exception("Your Predicate/IP_Pair doesn't match the expected task_types for Join.")
+
+
+
 	def assign_join_tasks(self):
 		""" This is the main join function. It calls PW_join(), PJF_join(), and small_pred(). Uses 
 		cost estimates to determine which function to call item by item."""
 
-		if not self.task_types:
-			buffer = len(self.results_from_all_join) <= 0.15*len(self.list1)*len(self.list2)
-			buf1 = len(self.results_from_all_join) < .1*len(self.list1)
-			#reconsider these a bit 
+		buffer = len(self.results_from_all_join) <= 0.15*len(self.list1)*len(self.list2)
+		buf1 = len(self.results_from_all_join) < .1*len(self.list1)
+		#reconsider these a bit 
 
-			if not self.has_2nd_list: # PW join on list1, no list2 yet
-				if not buf1 and self.chao_estimator():
-					if self.DEBUG:
-						print "ESTIMATOR HIT------------"
-						print "Size of list 1: " + str(len(self.list1))
-						print "Size of list 2: " + str(len(self.list2))
-						print "failed by small predicate: "
-						print str(len(self.failed_by_smallP))
-						print "-------------------------"
-					self.has_2nd_list = True
-				self.task_types =  ["PW", "small_p"] # path 4
-			else: # if we have both lists
-				cost = self.find_costs()
-				if buffer: # if still in buffer region TODO: think more about this metric
-					if random.random() < 0.5: # 50% chance of going to 1 or 2
-						if cost[0] < cost[1]:# path 1
-							self.task_types =  ["small_p", "PJF", "join"]
-						else:# path 2
-							self.task_types =  ["PJF", "join", "small_p"] # TODO: remember to change these functions + for loop and remove item
-					else: # 50% chance of going to 3 or 4 or 5
-						if cost[2]<cost[3] and cost[2]<cost[4]:# path 3
-							self.task_types =  ["PW", "small_p"] # on second list
-						elif cost[3]<cost[2] and cost[3]<cost[4]# path 4
-							self.task_types =  ["PW", "small_p"] # on first list
-						else:# path 5
-							self.task_types =  ["small_p", "PW"] # on second list
-				else: #having escaped the buffer zone
-					minimum = min(cost)
-					if(cost[0] == minimum):# path 1
-						self.task_types =  ["small_p", "PJF", "join"]
-					elif(cost[1] == minimum):# path 2
-						self.task_types =  ["PJF", "join", "small_p"]
-					elif(cost[2] == minimum):# path 3
-						self.task_types =  ["PWl2", "small_p"] # on second list
-					elif(cost[3] == minimum)# path 4:
-						self.task_types =  ["PW", "small_p"] # on first list
+		if not self.has_2nd_list: # PW join on list1, no list2 yet
+			if not buf1 and self.chao_estimator():
+				if self.DEBUG:
+					print "ESTIMATOR HIT------------"
+					print "Size of list 1: " + str(len(self.list1))
+					print "Size of list 2: " + str(len(self.list2))
+					print "failed by small predicate: "
+					print str(len(self.failed_by_smallP))
+					print "-------------------------"
+				self.has_2nd_list = True
+			return ["PW", "small_p"] # path 4
+		else: # if we have both lists
+			cost = self.find_costs()
+			if buffer: # if still in buffer region TODO: think more about this metric
+				if random.random() < 0.5: # 50% chance of going to 1 or 2
+					if cost[0] < cost[1]:# path 1
+						return ["small_p", "PJF", "join"]
+					else:# path 2
+						return ["PJF", "join", "small_p"] # TODO: remember to change these functions + for loop and remove item
+				else: # 50% chance of going to 3 or 4 or 5
+					if cost[2]<cost[3] and cost[2]<cost[4]:# path 3
+						return ["PW", "small_p"] # on second list
+					elif cost[3]<cost[2] and cost[3]<cost[4]# path 4
+						return ["PW", "small_p"] # on first list
 					else:# path 5
-						self.task_types =  ["small_p", "PWl2"] # on second list
-		return self.task_types.pop(0)
+						return ["small_p", "PW"] # on second list
+			else: #having escaped the buffer zone
+				minimum = min(cost)
+				if(cost[0] == minimum):# path 1
+					return ["small_p", "PJF", "join"]
+				elif(cost[1] == minimum):# path 2
+					return ["PJF", "join", "small_p"]
+				elif(cost[2] == minimum):# path 3
+					return ["PWl2", "small_p"] # on second list
+				elif(cost[3] == minimum)# path 4:
+					return ["PW", "small_p"] # on first list
+				else:# path 5
+					return ["small_p", "PWl2"] # on second list
 
 	#########################
 	## Main Join Helpers ####
