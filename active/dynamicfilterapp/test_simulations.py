@@ -379,7 +379,7 @@ class SimulationTest(TransactionTestCase):
 	# @param numTasks The number of tasks completed before this task; informs whether selectivity/ambiguity
 	# should change.
 	# @returns The Task object that was simulated.
-	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks, curr_join=None):
+	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks, task_type=None, curr_join=None):
 		start = time.time()
 		if chosenIP is None:
 			if predicate is None:
@@ -399,9 +399,8 @@ class SimulationTest(TransactionTestCase):
 					start_time = start_task, end_time = end_task)
 				t.save()
 			else:
-				task_type = curr_join.assign_join_tasks()
 				#TODO: figure out exactly how the algorithm needs to handle splitting join processes
-				value = curr_join.main_join(task_type)
+				results, time_taken = curr_join.main_join(task_type)
 				if value:
 					worker_time = 
 				if curr_join.isDone():
@@ -424,7 +423,6 @@ class SimulationTest(TransactionTestCase):
 			else:
 				start_task = 0
 				end_task = 0
-
 
 			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
 					start_time=start_task, end_time=end_task)
@@ -671,7 +669,7 @@ class SimulationTest(TransactionTestCase):
 				task_type = curr_join.assign_join_tasks()
 				curr_join.addTask(task_type)
 				if task_type == "PWl2" or task_type == "small_p":
-					syn_simulate_task(None, workerID, time_clock, dictionary, curr_join)
+					syn_simulate_task(None, workerID, time_clock, dictionary, task_type, curr_join)
 			self.pending_eddy_time += eddy_time
 			#if ip_pair is not None:
 				#ip_pair.refresh_from_db()
