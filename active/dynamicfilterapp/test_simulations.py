@@ -857,7 +857,7 @@ class SimulationTest(TransactionTestCase):
 		ip_pair = IP_Pair()
 		total_ip_pairs = IP_Pair.objects.all().count()
 
-		if toggles.ADAPTIVE_QUEUE_MODE < 4:
+		if toggles.ADAPTIVE_QUEUE_MODE < 4 and toggles.ADAPTIVE_QUEUE == True :
 			toggles.PENDING_QUEUE_SIZE = toggles.QUEUE_LENGTH_ARRAY[0][1]
 
 		if toggles.SIMULATE_TIME:
@@ -970,7 +970,7 @@ class SimulationTest(TransactionTestCase):
 				if toggles.COUNT_TICKETS:
 					for pred in self.ticket_nums:
 						self.ticket_nums[pred].append(Predicate.objects.get(pk=pred).num_tickets)
-						if len(self.ticket_nums[pred]) > 1:
+						if len(self.ticket_nums[pred]) > 1 and toggles.DEBUG_FLAG:
 							if self.ticket_nums[pred][-1]<self.ticket_nums[pred][-2]:
 								print "Ticket numbers decreasing, from " + str(self.ticket_nums[pred][-2]) + " to " + str(self.ticket_nums[pred][-1]) + " for pred " + str(pred)
 								for pred in self.ticket_nums:
@@ -2098,7 +2098,7 @@ class SimulationTest(TransactionTestCase):
 				toggles.ITEM_IP_LIMIT = setting[1][1] 	# predicate limit
 			toggles.ACTIVE_TASKS_ARRAY = setting[2] 	# batch size
 			toggles.QUEUE_LENGTH_ARRAY = setting[3] 	# adaptive queue length
-			toggles.SWITCH_LIST = setting[4]			# predicate selectivity, ambiguity, cost settings
+			toggles.switch_list = setting[4]			# predicate selectivity, ambiguity, cost settings
 			toggles.ADAPTIVE_QUEUE_MODE = setting [5]	
 
 			# set up output csv file

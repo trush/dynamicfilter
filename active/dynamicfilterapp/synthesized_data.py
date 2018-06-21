@@ -43,29 +43,29 @@ def syn_answer(chosenIP, switch, numTasks):
 	if len(timeStepInfo[chosenIP.predicate.pk]) > 2:
 		cost_multiplier = timeStepInfo[chosenIP.predicate.pk][2]
 
-	# for predNum in toggles.CHOSEN_PREDS:
+	for predNum in toggles.CHOSEN_PREDS:
 
-	# 	pred = Predicate.objects.get(pk=predNum+1)
-	# 	predInfo = timeStepInfo[predNum+1]
+		pred = Predicate.objects.get(pk=predNum+1)
+		predInfo = timeStepInfo[predNum+1]
 
-	# 	if isinstance(predInfo[0], tuple):
-	# 		selSinInfo = predInfo[0]
-	# 		samplingFrac = selSinInfo[3]
-	# 		period = selSinInfo[2]
-	# 		if((numTasks % (samplingFrac*period)) == 0):
-	# 			pred.setTrueSelectivity(getSinValue(selSinInfo, numTasks))
-	# 			print "right after sin call: ", str(pred.trueSelectivity)
-	# 	else:
-	# 		pred.setTrueSelectivity(predInfo[0])
+		if isinstance(predInfo[0], tuple):
+			selSinInfo = predInfo[0]
+			samplingFrac = selSinInfo[3]
+			period = selSinInfo[2]
+			if((numTasks % (samplingFrac*period)) == 0):
+				pred.setTrueSelectivity(getSinValue(selSinInfo, numTasks))
+				print "right after sin call: ", str(pred.trueSelectivity)
+		else:
+			pred.setTrueSelectivity(predInfo[0])
 
-	# 	if isinstance(predInfo[1], tuple):
-	# 		ambSinInfo = predInfo[1]
-	# 		samplingFrac = ambSinInfo[3]
-	# 		period = ambSinInfo[2]
-	# 		if((numTasks % (samplingFrac*period)) == 0):
-	# 			pred.setTrueAmbiguity(getSinValue(ambSinInfo, numTasks))
-	# 	else:
-	# 		pred.setTrueAmbiguity(predInfo[1])
+		if isinstance(predInfo[1], tuple):
+			ambSinInfo = predInfo[1]
+			samplingFrac = ambSinInfo[3]
+			period = ambSinInfo[2]
+			if((numTasks % (samplingFrac*period)) == 0):
+				pred.setTrueAmbiguity(getSinValue(ambSinInfo, numTasks))
+		else:
+			pred.setTrueAmbiguity(predInfo[1])
 
 	# if this is the first time we've seen this pair, it needs a true answer
 	if ((chosenIP.num_no == 0) and (chosenIP.num_yes == 0)):
