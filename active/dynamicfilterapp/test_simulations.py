@@ -2100,7 +2100,7 @@ class SimulationTest(TransactionTestCase):
 				toggles.ITEM_IP_LIMIT = setting[1][1] 	# predicate limit
 			toggles.ACTIVE_TASKS_ARRAY = setting[2] 	# batch size
 			toggles.QUEUE_LENGTH_ARRAY = setting[3] 	# adaptive queue length
-			toggles.SWITCH_LIST = setting[4]			# predicate selectivity, ambiguity, cost settings
+			toggles.switch_list = setting[4]			# predicate selectivity, ambiguity, cost settings
 			toggles.ADAPTIVE_QUEUE_MODE = setting [5]	
 
 			# set up output csv file

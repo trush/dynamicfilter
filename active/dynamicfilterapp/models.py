@@ -456,8 +456,10 @@ class Predicate(models.Model):
 		self.total_time=0.0
 		self.avg_completion_time=1.0
 		self.avg_tasks_per_pair=1.0
+		self.trueSelectivity=0.0
+		self.trueAmbiguity=0.0
 
-		self.save(update_fields=["num_tickets","num_wickets","calculatedSelectivity", "num_ip_complete","selectivity","totalTasks","totalNo","queue_is_full","queue_length","consensus_max_threshold","rank","count","score","cost","total_time","avg_completion_time","avg_tasks_per_pair"])
+		self.save(update_fields=["num_tickets","num_wickets","calculatedSelectivity", "num_ip_complete","selectivity","totalTasks","totalNo","queue_is_full","queue_length","consensus_max_threshold","rank","count","score","cost","total_time","avg_completion_time","avg_tasks_per_pair","trueSelectivity","trueAmbiguity"])
 
 
 @python_2_unicode_compatible
