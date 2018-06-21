@@ -6,13 +6,13 @@ import numpy
 class Join:
     """A join class for each instance of a join that occurs (perhaps across many predicates) """
 
-    ##############################
+    #-----------------------######
     ## CONSTRUCTOR           #####
-    ##############################
+    #-----------------------######
 
     def __init__(self, in_list, in_list2 = None):
 
-        ## INPUTS ########################################
+        ## INPUTS #-----------------------################
 
         self.list1 = in_list
 
@@ -21,7 +21,7 @@ class Join:
         else:
             self.list2 = in_list2
 
-        ## Settings #######################################
+        ## Settings #-----------------------###############
 
         self.JOIN_SELECTIVITY = 0.1
 
@@ -44,7 +44,7 @@ class Join:
         self.private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
 
 
-        ## Estimates ######################################
+        ## Estimates #-----------------------##############
 
         self.PJF_selectivity_est = 0.5
         self.join_selectivity_est = 0.5
@@ -61,7 +61,7 @@ class Join:
         self.f_dictionary = { }
         self.total_sample_size = 0
 
-        ## Results ########################################
+        ## Results #-----------------------################
 
         self.results_from_pjf_join = []
         self.results_from_all_join = [] # TODO: why did we want these seperate again?
@@ -72,21 +72,21 @@ class Join:
         self.processed_by_smallP = 0
         self.processed_by_join = 0
 
-        ## Other Variables ################################
+        ## Other Variables #-----------------------########
 
         self.has_2nd_list = False
         self.total_num_ips_processed = 0
         self.enumerator_est = False # TODO: read more about this and use in our code
         self.THRESHOLD = 0.1
 
-        ## TOGGLES ########################################
+        ## TOGGLES #-----------------------################
         self.DEBUG = True
 
     # TODO: 
 
-    #########################
+    #-----------------------#
     ## PJF Join         #####
-    ######################### 
+    #-----------------------# 
 
     def prejoin_filter(self, item):
         timer_val = 0
@@ -233,9 +233,9 @@ class Join:
             return False
         return False
 
-    #########################
+    #-----------------------#
     ## PJF Join Helpers #####
-    #########################
+    #-----------------------#
     def generate_PJF(self):
         """ Generates the PJF, returns the cost of finding the PJF and selectivity fo the PJF"""
         return (15,self.PJF_SELECTIVITY)
@@ -244,9 +244,9 @@ class Join:
         """ Evaluates the PJF and returns whether it evaluate to true and how long it took to evluate it"""
         return random()<sqrt(self.PJF_SELECTIVITY),self.TIME_TO_EVAL_PJF
 
-    #########################
+    #-----------------------#
     ## PW Join          #####
-    #########################
+    #-----------------------#
 
     def PW_join(self, i, itemlist):
         '''Creates a join by taking one item at a time and finding matches
@@ -326,9 +326,9 @@ class Join:
             self.total_num_ips_processed += len(matches)
         return matches
 
-    #########################
+    #-----------------------#
     ## PW Join Helpers  #####
-    #########################
+    #-----------------------#
 
     def get_matches(self, item, timer):
         '''gets matches for an item, eventually from the crowd, currently random'''
@@ -377,9 +377,9 @@ class Join:
             print "-----------------------"
         return matches, timer
 
-    #########################
+    #-----------------------#
     ## Main Join        #####
-    #########################
+    #-----------------------#
 
     def main_join(self, predicate, item):
         """ This is the main join function. It calls PW_join(), PJF_join(), and small_pred(). Uses 
@@ -654,13 +654,17 @@ class Join:
 
 
 
-    #########################
+    #-----------------------#
     ## Main Join Helpers ####
-    #########################
+    #-----------------------#
 
+    ## @param self
+    # @return list of cost estimates of 5 paths
+    # @remarks Finds the cost estimates of the 5 paths available to go down using the instance variables for estimating different task times. 
+    #   Path 1 = PJF w/ small predicate applied early. 
+    #   Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2.
+    #   Helper for assign_join_tasks()
     def find_costs(self):
-        """ Finds the cost estimates of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
-        Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
         #losp - "likelihood of some pairs" odds of a list2 item matching with at least one item from list1
         losp = 1 - (1 - self.join_selectivity_est)**(len(self.list1))
         # COST 1 CALCULATION - small pred then PJF
@@ -700,9 +704,11 @@ class Join:
 
         return [cost_1, cost_2, cost_3, cost_4, cost_5]
 
+    ## @param self
+    # @return list of real costs of 5 paths
+    # @remarks Finds the real costs of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
+    #    Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2
     def find_real_costs(self):
-        """ Finds the real costs of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
-        Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
         real_losp = 1 - (1-self.JOIN_SELECTIVITY)**(len(self.list1))
         # COST 1 CALCULATION - small pred then PJF
         cost_1 = self.TIME_TO_EVAL_SMALL_P*(len(self.list2)-len(self.evaluated_with_smallP)) + \
@@ -732,11 +738,14 @@ class Join:
         return [cost_1, cost_2, cost_3, cost_4, cost_5]
 
 
-    ###param item: the item to be evaluated
-    ##return val whether the item evaluates to true, the cost of this run of small_pred
+    ## @param item: the item to be evaluated
+    # @param self
+    # @return eval_results : a boolean for whether or not the item passes the small predicate (the predicate that
+    #   applies to the secondary item list in a join, remnants of the otherall predicate which was broken up into a join)
+    # @return timer_val : this is the amount of time (time units) that it took to evaluate the small predicate
+    # @remarks Evaluates the small predicate, adding the results of that into a global dictionary. 
+    #   Also adjusts the global estimates for the cost and selectivity of the small predicate.
     def small_pred(self, item):
-        """ Evaluates the small predicate, adding the results of that into a global dictionary. 
-        Also adjusts the global estimates for the cost and selectivity of the small predicate."""
         #first, check if we've already evaluated this item
         timer_val = 0
         if item in self.evaluated_with_smallP:
@@ -769,6 +778,10 @@ class Join:
                 print "-------------------------"
             return eval_results, timer_val
 
+    ## @param self
+    # @return true if the current size of the list is within a certain threshold of the total size of the list (according to the chao estimator)
+    #   and false otherwise.
+    # @remarks To understand the math computed in this function see: http://www.cs.albany.edu/~jhh/courses/readings/trushkowsky.icde13.enumeration.pdf 
     def chao_estimator(self):
         """ Uses the Chao92 equation to estimate population size during enumeration """
         # prepping variables
