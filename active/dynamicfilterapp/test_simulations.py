@@ -2086,7 +2086,7 @@ class SimulationTest(TransactionTestCase):
 		origQueueLengthArray = toggles.QUEUE_LENGTH_ARRAY
 		origSwitchList = toggles.switch_list
 		origAdaptiveQueueMode = toggles.ADAPTIVE_QUEUE_MODE
-		origQueueLength = toggle.PENDING_QUEUE_SIZE
+		origQueueLength = toggles.PENDING_QUEUE_SIZE
 			
 		settingCount = 0
 		for setting in toggles.MULTI_SIM_ARRAY:

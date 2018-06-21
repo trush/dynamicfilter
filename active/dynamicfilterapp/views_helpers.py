@@ -151,11 +151,10 @@ def adaptive_predicate_limit (chosenIP):
 
 
 def nu_pending_eddy(incompleteIP):
+	#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
+	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
 	if incompleteIP.exists():
-		#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
-		maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-		incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
-
 		# get a predicate using the ticketing system
 		# make list of possible predicates and remove duplicates
 		predicatevalues = incompleteIP.values('predicate')
@@ -165,6 +164,10 @@ def nu_pending_eddy(incompleteIP):
 		weightList = np.array([pred.num_tickets for pred in predicates])
 		totalTickets = np.sum(weightList)
 		probList = np.true_divide(weightList, totalTickets)
+		if len(probList) == 0:
+			print incompleteIP
+			print probList
+			print predicates
 		chosenPred = np.random.choice(predicates, p=probList)
 
 		pickFrom = incompleteIP.filter(predicate = chosenPred)

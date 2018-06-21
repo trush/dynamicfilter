@@ -200,10 +200,10 @@ class Predicate(models.Model):
 		self.save(update_fields=["rank"])
 
 	def move_window(self):
-		recent_tasks = Task.objects.filter(end_time__gt=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
-		edge_tasks = Task.objects.filter(end_time=self.num_wickets-toggles.LIFETIME,ip_pair__predicate=self).values('ip_pair__id')
-		old_IPs = IP_Pair.objects.filter(isDone=True,predicate=self,value__lt=0).filter(id__in=edge_tasks).exclude(id__in=recent_tasks)
-		self.num_tickets -= old_IPs.count()
+		expired_pairs = IP_Pair.objects.filter(end_time__gt=0,end_time__lte=self.num_wickets-toggles.LIFETIME,predicate=self)
+		self.num_tickets -= expired_pairs.count()
+		for ip in expired_pairs:
+			ip.zero_end_time()
 		self.save(update_fields=["num_tickets"])
 		if self.num_tickets < 1:
 			self.num_tickets = 1
@@ -487,6 +487,9 @@ class IP_Pair(models.Model):
 	# for random algorithm
 	isStarted = models.BooleanField(default=False)
 
+	# for windowing
+	end_time = models.IntegerField(default=0)
+
 	# for synth data:
 	true_answer = models.BooleanField(default=True)
 
@@ -566,6 +569,10 @@ class IP_Pair(models.Model):
 			self.predicate.update_rank()
 			self.set_done_if_done()
 
+	def zero_end_time(self):
+		self.end_time = 0
+		self.save(update_fields=["end_time"])
+
 	def set_done_if_done(self):
 
 		if self.status_votes == toggles.NUM_CERTAIN_VOTES:
@@ -581,6 +588,8 @@ class IP_Pair(models.Model):
 				if self.is_false():
 					# update score when item fails
 					self.predicate.award_ticket()
+					self.end_time = self.predicate.num_wickets
+					self.save(update_fields=["end_time"])
 					if (toggles.EDDY_SYS == 6):
 						self.predicate.update_pred(toggles.REWARD)
 					if (toggles.EDDY_SYS == 7):
