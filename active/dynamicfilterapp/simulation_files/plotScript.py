@@ -131,6 +131,7 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='',smoothne
     y_max = plt.axis()[3]
     plt.ylim(ymax=y_max*1.25)
     plt.savefig(dest_resolver(dest))
+    plt.close(fig)
 
 ## Generates a plot containing a line-graph
 # @param xpoints a python iterable containing the x values of each point
@@ -233,6 +234,7 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
         plt.axis([-1,mx+2,-1,mx+2])
         plt.grid()
     plt.savefig(dest_resolver(dest))
+    plt.close(fig)
 
 ## Generates a set of bargraphs
 # @param data a python iterable storing integer/float data for the height of each bar
@@ -274,6 +276,7 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
     # Title the graph
     plt.title(title)
     plt.savefig(dest_resolver(dest))
+    plt.close(fig)
 
 def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',split='vertical', stderrL = None, fig_size = None, tight=False):
     knownSplits=('vertical','horizontal')
@@ -326,6 +329,7 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
     if tight:
         fig.tight_layout()
     plt.savefig(dest_resolver(dest))
+    plt.close(fig)
 
 ## A wrapper for bar_graph_gen Calculates statistics for you
 # @param dataL a python iterable of iterables containing numeric data
