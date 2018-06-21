@@ -1070,76 +1070,116 @@ class Join():
 
 	def main_join(self, task_type, IP_pair=None):
 		#TODO: document
+
+		#if the upcoming task does not require an item from list1 
+		# i.e. small_p or Pairwise on list 2
 		if not IP_Pair:
+			if not self.sec_item_in_progress:
+				self.sec_item_in_progress = self.list2[0]
+			#running & managing small predicate evaluation
 			if task_type == "small_p":
+				#uses a variable called pending(consider moving to predicate)
+				# to find how far we have gotten
 				if not self.pending:
+					#if we have not yet pairwise joined this 2nd-list item
+					# we just return whether it passes small p and its time
 					finished_tup = self.small_pred(self.sec_item_in_progress)
-					self.pending = True
+					self.pending = True #sets pending for PWjoin
 				else:
-					self.pending = False
+					#if we have already joined the item, we need to return them iff
+					# their 2nd-list item passes small p
+					self.pending = False #sets pending for next join process
 					if not self.pairwise_pairs:
+						#if there are no pairs, we never run small_pred()
 						return None, 0
 					eval_results, timer = self.small_pred(self.pairwise_pairs[0][1]):
-					if eval_results:
+					if eval_results: #2nd-list item passes small p
 						finished_tup = self.pairwise_pairs, timer
-					else:
+					else: #2nd-list item fails small p, do not return pairs
 						finished_tup = None, timer
 				return finished_tup # returns eval_results, small_p_timer
+			#running & managing pairwise joins on list 2
 			elif task_type == "PWl2":
+				#uses a variable called pending(consider moving to predicate)
+				# to find how far we have gotten
 				if not self.pending:
+					#if we have not yet checked this item with small p
+					# we find and save matches and return whether there are any
 					results, timer = self.PW_join(self.sec_item_in_progress, self.list2)
+					#after PWjoin removes this item, the next one is the first in list2
 					self.sec_item_in_progress = self.list2[0]
 					self.pairwise_pairs = results
+					self.pending = True #sets pending for smallP
 					return any(results), timer
 				else:
-					self.pending = False
-					self.sec_item_in_progress = self.list2[0]
+					#if we have already checked this 2nd-list item with small p
+					# we execute the join and return its results
+					self.pending = False # sets pending for the next join process
+					#we need to check before joining that we haven't eliminated this
+					# 2nd-list object with small p before we test it
 					if self.sec_item_in_progress in self.failed_by_smallP:
 						return None, 0
 					finished_tup = self.PW_join(self.sec_item_in_progress, self.list2)
+					#after PWjoin removes this item, the next one is the first in list2
+					self.sec_item_in_progress = self.list2[0]
 				return finished_tup # returns matches, PW_timer
 			else:
+				#we throw an exception if we receive an unwanted task type
 				print "Task type was: " + str(task_type)
 				raise Exception("Your Predicate/IP_Pair doesn't match the expected task_types for Join.")
+		#the upcoming task works for a single IP pair, like most tasks
 		else:
+			#running & managing pairwise joins on list1
 			if task_type == "PW":
 				return self.PW_join(IP_pair.item, self.list1) # returns matches, PW_timer
+			#running & managing prejoin filtration
 			elif task_type == "PJF": # TODO: need to make this break into new tasks, not do all at once
+				#the first time we evaluate a prejoin filter, we filter
+				# the entire second list
 				total_prejoin_timer = 0
 				if list2_not_eval:
 					for i in self.list2:
 						results, prejoin_timer = self.prejoin_filter(i)
 						total_prejoin_timer += prejoin_timer
+				#evaluates the prejoin filter on the item and records the time
 				results, prejoin_timer = self.prejoin_filter(IP_pair.item)
 				total_prejoin_timer += prejoin_timer
-				return None, total_prejoin_timer
+				return None, total_prejoin_timer #returns nothing (?) and the time taken
+			#running & managing normal joins
 			elif task_type == "join":
-				total_join_timer = 0
-				results = []
+				#our current (WILL BE CHANGED) version matches a given item against every
+				# item in the second list at once. In the future, should be chunked
+				total_join_timer = 0 #keeps time
+				results = [] #records matching pairs
 				for j in self.list2:
 					eval_TF, join_timer = self.join_items(IP_pair.item,j)
 					total_join_timer += join_timer
 					if eval_TF:
 						results += [[IP_pair.item, j]]
-				IP_pair.set_join_pairs(results)
 				if IP_pair.small_p_done:
+					#if the small predicate is done already, return the pairs
 					IP_pair.small_p_done = False #TODO:can we do this
 					return results, timer
 				else:
+					#record pairs found in IP pair related to the item
+					# for use in small predicate evaluation
+					IP_pair.set_join_pairs(results)
 					return any(results), timer
-				return any(results), total_join_timer
+			#runs & manages small predicate for list 1
 			elif task_type == "small_p":
+				#if there aren't any join pairs yet, don't run
 				if not IP_pair.join_pairs:
 					return None, 0
 				else:
-					results = []
-					total_time = 0
+					#if we have run our join and have pairs to filter, we do
+					results = [] # records successful pairs
+					total_time = 0 # records time
 					for join_pair in IP_pair.get_join_pairs():
 						eval_result, timer = self.small_pred(join_pair[1])
 						if eval_result:
 							results += [join_pair]
 						total_time += timer
-					IP_pair.small_p_done = True
+					IP_pair.small_p_done = True #sets small_p_done for join
 					return results, total_time
 			else:
 				print "Task type was: " + str(task_type)
