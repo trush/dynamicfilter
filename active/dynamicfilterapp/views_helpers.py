@@ -65,13 +65,13 @@ def pending_eddy(ID):
 		incompleteIP = unfinishedList.exclude(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False)
 
 	if toggles.EDDY_SYS == 5:
-		chosenIP, predTime = nu_pending_eddy(incompleteIP)
+		chosenIP = nu_pending_eddy(incompleteIP)
 		if chosenIP == None: 
 			if toggles.IP_LIMIT_SYS == 3: # soft limit
 
 				# check the IP pairs, whose items have reached the ITEM_IP_LIMIT
 				incompleteIP = unfinishedList.filter(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False).exclude(id__in=completedIP)
-				chosenIP, predTime = nu_pending_eddy(incompleteIP)
+				chosenIP = nu_pending_eddy(incompleteIP)
 		
 		if chosenIP != None and toggles.IP_LIMIT_SYS == 1: # adaptive limit
 			predLim = adaptive_predicate_limit(chosenIP)
@@ -180,7 +180,7 @@ def nu_pending_eddy(incompleteIP):
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
 				chosenIP.refresh_from_db()
-			return chosenIP, predTime
+			return chosenIP 
 
 		
 		# if we can't do anything for that predicate, find something else
@@ -291,7 +291,7 @@ def annealingSelectPred(predList):
 		return chosenPred
 
 def give_task(active_tasks, workerID):
-	ip_pair, eddy_time, predTime = pending_eddy(workerID)
+	ip_pair, eddy_time = pending_eddy(workerID)
 	if ip_pair is not None:
 		# print "IP pair selected"
 		ip_pair.distribute_task()
@@ -299,7 +299,7 @@ def give_task(active_tasks, workerID):
 	else:
 		pass
 
-	return ip_pair, eddy_time, predTime
+	return ip_pair, eddy_time
 
 #____________LOTTERY SYSTEMS____________#
 def chooseItem(ipSet):
