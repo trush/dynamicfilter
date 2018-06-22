@@ -90,7 +90,14 @@ class Predicate(models.Model):
 	question = models.ForeignKey(Question)
 	#is this a "join-like" predicate?
 	joinable = models.BooleanField(default = False)
-	task_types = models.CharField(default="")
+	task_types = models.CharField(default="", max_length = 400)
+	correct_matches = models.CharField(default = "", max_length = 300)
+
+	def set_correct_matches(self, inlist):
+		self.correct_matches = json.dumps(inlist)
+	
+	def get_correct_matches(self):
+		return json.loads(self.correct_matches)
 
 	def set_new_task(self, new_task):
 		temp = json.loads(self.task_types)
@@ -463,12 +470,20 @@ class IP_Pair(models.Model):
 	tasks_collected=models.IntegerField(default=0)
 	# running cumulation of votes
 	value = models.FloatField(default=0.0)
-	num_no = models.IntegerField(default=0)
+	num_no = models.IntegerField(default=0)#we reuse num_no and num_yes for joins
 	num_yes = models.IntegerField(default=0)
 	isDone = models.BooleanField(db_index=True, default=False)
+
 	join_pairs = models.CharField(default = "", max_length = 400)
 	small_p_done = models.BooleanField(default=False)
+	correct_matches = models.CharField(default = "", max_length = 300)
 
+	def set_correct_matches(self, inlist):
+		self.correct_matches = json.dumps(inlist)
+	
+	def get_correct_matches(self):
+		return json.loads(self.correct_matches)
+	
 	def set_join_pairs(self, inlist):
 		self.join_pairs = json.dumps(inlist)
 
@@ -562,7 +577,7 @@ class IP_Pair(models.Model):
 				self.num_yes += 1
 				self.save(update_fields=["value", "num_yes"])
 
-			elif not workerTask.answer:
+			elif workerTask.answer != False:
 				self.value -= 1
 				self.num_no += 1
 				self.predicate.add_no()
@@ -574,6 +589,8 @@ class IP_Pair(models.Model):
 					self.predicate.update_pred(toggles.REWARD)
 
 				self.save(update_fields=["value", "num_no"])
+
+			# answer may be none, but we do not update votes for these answers
 
 			self.predicate.update_selectivity()
 			self.predicate.update_avg_tasks()
@@ -840,7 +857,7 @@ class Join():
 
 		# Estimates -----------------------#
 
-		## @remars This is the estimate of the selectivity of the prejoin filter. Updated by prejoin_filter() and used in find_costs().
+		## @remarks This is the estimate of the selectivity of the prejoin filter. Updated by prejoin_filter() and used in find_costs().
 		self.PJF_selectivity_est = 0.5
 		## @remarks This is the estimate of the selectivity of the join. Updated by join_items() and used in find_costs().
 		self.join_selectivity_est = 0.5
@@ -1010,17 +1027,17 @@ class Join():
 	#----------------------- PW Join -----------------------#
 
 	## @param self
-	# @param i : item that we are sending to the "crowd" to be matches up with
-	# @param itemlist : the itemList that i belongs to
+	# @param ip_or_pred : ip pair that we are sending to the "crowd" to be matches up with
+	# @param itemlist : the itemList that ip_or_pred's item belongs to
 	# @return matches : list of tuples representing the matches that the item got from the crowd.
 	# @return timer : the updated amount of time that the task has taken (with the time taken for the matches
 	#	added to it.)
 	# @remarks Matches does some of the heavy lifting for this function (in terms of finding the item-item tuples),
 	#	In PW_join() we also update cost estimates, removed processed items from corresponding lists, update variabes
 	# 	used in the chao estimator.
-	def PW_join(self, i, itemlist):
-		if i in self.failed_by_smallP:
-			raise Exception("Improper removal/addition of " + str(i) + " occurred")
+	def PW_join(self, ip_or_pred, itemlist):
+		if ip_or_pred.item in self.failed_by_smallP:
+			raise Exception("Improper removal/addition of " + str(ip_or_pred.item) + " occurred")
 		#Metadata/debug information
 		avg_cost = 0
 		num_items = 0
@@ -1028,61 +1045,64 @@ class Join():
 
 		#Get results of that task
 		if itemlist == self.list1:
-			matches, PW_timer = self.get_matches(i, PW_timer)
+			matches, PW_timer = self.get_matches(ip_or_pred, PW_timer)
 		else:
-			matches, PW_timer = self.get_matches_l2(i, PW_timer)
+			matches, PW_timer = self.get_matches_l2(ip_or_pred, PW_timer)
 
-		#save costs and matches for estimates later
-		if itemlist == self.list1:
-			self.PW_cost_est_1 += [PW_timer]
-			self.num_matches_per_item_1 += [len(matches)]
+		if not consensus_hit:
+			return "Not yet consensus", PW_timer
 		else:
-			self.PW_cost_est_2 += [PW_timer]
-			self.num_matches_per_item_2 += [len(matches)]
+			#save costs and matches for estimates later
+			if itemlist == self.list1:
+				self.PW_cost_est_1 += [PW_timer]
+				self.num_matches_per_item_1 += [len(matches)]
+			else:
+				self.PW_cost_est_2 += [PW_timer]
+				self.num_matches_per_item_2 += [len(matches)]
 
-		#remove processed item from itemlist
-		if itemlist == self.list1 and i in itemlist:
-			self.list1.remove(i)
-		elif i in itemlist:
-			self.list2.remove(i)
-			self.evaluated_with_smallP.remove(i)
-		if self.DEBUG:
-			print "RAN PAIRWISE JOIN ----------"
-			print "PW AVERAGE COST FOR L1: " + str(numpy.mean(self.PW_cost_est_1))
-			print "PW TOTAL COST FOR L1: " + str(numpy.sum(self.PW_cost_est_1))
-			print "PW AVERAGE COST FOR L2: " + str(numpy.mean(self.PW_cost_est_2))
-			print "PW TOTAL COST FOR L2: " + str(numpy.sum(self.PW_cost_est_2))
-			print "----------------------------"
-		# we want to add the new items to list2 and keep track of the sample size
-		if itemlist == self.list1:
-			if not self.has_2nd_list:
-				for match in matches:
-					# add to list 2
-					if match[1] not in self.list2 and match[1] not in self.failed_by_smallP:
-						self.list2 += [match[1]]
-					# add to f_dictionary
-					if not any(self.f_dictionary):
-						self.f_dictionary[1] = [match[1]]
-					else:
-						been_added = False
-						entry = 1 # known first key
-						# try to add it to the dictionary
-						while not been_added:
-							if match[1] in self.f_dictionary[entry]:
-								self.f_dictionary[entry].remove(match[1])
-								if entry+1 in self.f_dictionary:
-									self.f_dictionary[entry+1] += [match[1]]
-									been_added = True
-								else:
-									self.f_dictionary[entry+1] = [match[1]]
-									been_added = True
-							entry += 1
-							if not entry in self.f_dictionary:
-								break
-						if not been_added:
-							self.f_dictionary[1] += [match[1]]
-			self.total_sample_size += len(matches)
-		return matches, PW_timer
+			#remove processed item from itemlist
+			if itemlist == self.list1 and ip_or_pred.item in itemlist:
+				self.list1.remove(ip_or_pred.item)
+			elif ip_or_pred.item in itemlist:
+				self.list2.remove(ip_or_pred.item)
+				self.evaluated_with_smallP.remove(ip_or_pred.item)
+			if self.DEBUG:
+				print "RAN PAIRWISE JOIN ----------"
+				print "PW AVERAGE COST FOR L1: " + str(numpy.mean(self.PW_cost_est_1))
+				print "PW TOTAL COST FOR L1: " + str(numpy.sum(self.PW_cost_est_1))
+				print "PW AVERAGE COST FOR L2: " + str(numpy.mean(self.PW_cost_est_2))
+				print "PW TOTAL COST FOR L2: " + str(numpy.sum(self.PW_cost_est_2))
+				print "----------------------------"
+			# we want to add the new items to list2 and keep track of the sample size
+			if itemlist == self.list1:
+				if not self.has_2nd_list:
+					for match in matches:
+						# add to list 2
+						if match[1] not in self.list2 and match[1] not in self.failed_by_smallP:
+							self.list2 += [match[1]]
+						# add to f_dictionary
+						if not any(self.f_dictionary):
+							self.f_dictionary[1] = [match[1]]
+						else:
+							been_added = False
+							entry = 1 # known first key
+							# try to add it to the dictionary
+							while not been_added:
+								if match[1] in self.f_dictionary[entry]:
+									self.f_dictionary[entry].remove(match[1])
+									if entry+1 in self.f_dictionary:
+										self.f_dictionary[entry+1] += [match[1]]
+										been_added = True
+									else:
+										self.f_dictionary[entry+1] = [match[1]]
+										been_added = True
+								entry += 1
+								if not entry in self.f_dictionary:
+									break
+							if not been_added:
+								self.f_dictionary[1] += [match[1]]
+				self.total_sample_size += len(matches)
+			return matches, PW_timer
 
 	#----------------------- PW Join Helpers -----------------------#
 
@@ -1094,20 +1114,50 @@ class Join():
 	#	added to it.)
 	# @remarks : Intended to be called in PW_join(). Currently chooses the number of matches semi-randomly,
 	#	eventually should use data from the crowd.
-	def get_matches(self, item, timer):
-		#assumes a normal distribution
-		num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
-		matches = []
-		if num_matches < len(self.private_list2):
-			sample = numpy.random.choice(self.private_list2, num_matches, False)
+	def get_matches(self, ip_pair, timer):
+		if not ip_pair.get_correct_matches():
+			#assumes a normal distribution
+			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
+			matches = []
+			if num_matches < len(self.private_list2):
+				sample = numpy.random.choice(self.private_list2, num_matches, False)
+			else:
+				sample = self.list2
+			ip_pair.set_correct_matches(sample)
+			
+			#add num_matches pairs
+			for i in range(len(sample)):
+				item2 = sample[i]
+				matches.append((ip_pair.item, item2))
+				timer += self.FIND_SINGLE_MATCH_TIME
 		else:
-			sample = self.list2
-		
-		#add num_matches pairs
-		for i in range(len(sample)):
-			item2 = sample[i]
-			matches.append((item, item2))
-			timer += self.FIND_SINGLE_MATCH_TIME
+			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
+			matches = []
+			num_wrong_matches = 0
+			wrong_matches = []
+			total_matches = range(num_matches)
+			for i in total_matches:
+				if random() > 0.9:
+					num_matches -= 1
+					num_wrong_matches += 1
+			
+			sample = numpy.random.choice(ip_pair.get_correct_matches(), num_matches, False)
+			wrong_sample = numpy.random.choice(self.private_list2 - ip_pair.get_correct_matches(), num_wrong_matches, False)
+
+
+			#add num_matches pairs
+			for i in range(len(sample)):
+				item2 = sample[i]
+				matches.append((ip_pair.item, item2))
+				timer += self.FIND_SINGLE_MATCH_TIME
+			
+			#add num_matches pairs
+			for i in range(len(wrong_sample)):
+				item2 = wrong_sample[i]
+				matches.append((ip_pair.item, item2))
+				timer += self.FIND_SINGLE_MATCH_TIME
+			
+
 		if self.DEBUG:
 			print "MATCHES ---------------"
 			print "Number of matches: " + str(num_matches)
@@ -1124,27 +1174,58 @@ class Join():
 	#	added to it.)
 	# @remarks : Intended to be called in PW_join(). Currently chooses the number of matches semi-randomly,
 	#	eventually should use data from the crowd.
-	def get_matches_l2(self, item, timer):
-		#assumes a normal distribution
-		num_matches = int(round(numpy.random.normal(self.AVG_MATCHES * (len(self.list1)/len(self.private_list2)), self.STDDEV_MATCHES * (len(self.list1)/len(self.private_list2)), None)))
-		matches = []
-		if num_matches < len(self.list1):
-			sample = numpy.random.choice(self.list1, num_matches, False)
+	def get_matches_l2(self, pred, timer):
+		if not pred.get_correct_matches():
+			#assumes a normal distribution
+			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES * (len(self.list1)/len(self.private_list2)), self.STDDEV_MATCHES * (len(self.list1)/len(self.private_list2)), None)))
+			matches = []
+			if num_matches < len(self.list1):
+				sample = numpy.random.choice(self.list1, num_matches, False)
+			else:
+				sample = self.list1
+			pred.set_correct_matches(sample)
+			
+			#add num_matches pairs
+			for i in range(len(sample)):
+				item2 = sample[i]
+				matches.append((item2, sec_item_in_progress))
+				timer += self.FIND_SINGLE_MATCH_TIME
 		else:
-			sample = self.list1
-		
-		#add num_matches pairs
-		for i in range(len(sample)):
-			item2 = sample[i]
-			matches.append((item2, item))
-			timer += self.FIND_SINGLE_MATCH_TIME
-			self.full_timer += self.FIND_SINGLE_MATCH_TIME
-		if self.DEBUG: 
+			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
+			matches = []
+			num_wrong_matches = 0
+			wrong_matches = []
+			total_matches = range(num_matches)
+			for i in total_matches:
+				if random() > 0.9:
+					num_matches -= 1
+					num_wrong_matches += 1
+			
+			sample = numpy.random.choice(pred.get_correct_matches(), num_matches, False)
+			wrong_sample = numpy.random.choice(self.list1 - pred.get_correct_matches(), num_wrong_matches, False)
+
+
+			#add num_matches pairs
+			for i in range(len(sample)):
+				item2 = sample[i]
+				matches.append((item2,sec_item_in_progress))
+				timer += self.FIND_SINGLE_MATCH_TIME
+			
+			#add num_matches pairs
+			for i in range(len(wrong_sample)):
+				item2 = wrong_sample[i]
+				matches.append((item2, sec_item_in_progress))
+				timer += self.FIND_SINGLE_MATCH_TIME
+			
+
+		if self.DEBUG:
 			print "MATCHES ---------------"
 			print "Number of matches: " + str(num_matches)
 			print "Time taken to find matches: " + str(timer)
 			print "-----------------------"
+		timer += self.BASE_FIND_MATCHES
 		return matches, timer
+		
 
 	#----------------------- Main Join -----------------------#
 
@@ -1157,7 +1238,7 @@ class Join():
 	# 	join process for the IP_pair/Predicate)
 	# @return timer : the time taken to do said task
 	# @remarks This is what is called in simulate_task() where the task answer and time are retrieved and saved.
-	def main_join(self, task_type, IP_pair=None):
+	def main_join(self, task_type, IP_pair=None, predicate=None):
 
 		#if the upcoming task does not require an item from list1 
 		# i.e. small_p or Pairwise on list 2
@@ -1171,7 +1252,7 @@ class Join():
 				if not self.pending:
 					#if we have not yet pairwise joined this 2nd-list item
 					# we just return whether it passes small p and its time
-					finished_tup = self.small_pred(self.sec_item_in_progress)
+					results,timer = self.small_pred(self.sec_item_in_progress)
 					self.pending = True #sets pending for PWjoin
 				else:
 					#if we have already joined the item, we need to return them iff
@@ -1180,12 +1261,10 @@ class Join():
 					if not self.pairwise_pairs:
 						#if there are no pairs, we never run small_pred()
 						return None, 0
-					eval_results, timer = self.small_pred(self.pairwise_pairs[0][1]):
-					if eval_results: #2nd-list item passes small p
-						finished_tup = self.pairwise_pairs, timer
-					else: #2nd-list item fails small p, do not return pairs
-						finished_tup = None, timer
-				return finished_tup # returns eval_results, small_p_timer
+					results, timer = self.small_pred(self.pairwise_pairs[0][1]):
+					if results: #2nd-list item passes small p
+						self.results_from_all_join += self.pairwise_pairs
+				return results,timer # returns eval_results, small_p_timer
 			#running & managing pairwise joins on list 2
 			elif task_type == "PWl2":
 				#uses a variable called pending(consider moving to predicate)
@@ -1193,12 +1272,15 @@ class Join():
 				if not self.pending:
 					#if we have not yet checked this item with small p
 					# we find and save matches and return whether there are any
-					results, timer = self.PW_join(self.sec_item_in_progress, self.list2)
+					matches, timer = self.PW_join(predicate, self.list2)
 					#after PWjoin removes this item, the next one is the first in list2
 					self.sec_item_in_progress = self.list2[0]
-					self.pairwise_pairs = results
+					self.pairwise_pairs = matches
 					self.pending = True #sets pending for smallP
-					return any(results), timer
+					if any(matches):
+						return None, timer
+					else:
+						return False, timer
 				else:
 					#if we have already checked this 2nd-list item with small p
 					# we execute the join and return its results
@@ -1206,11 +1288,12 @@ class Join():
 					#we need to check before joining that we haven't eliminated this
 					# 2nd-list object with small p before we test it
 					if self.sec_item_in_progress in self.failed_by_smallP:
-						return None, 0
-					finished_tup = self.PW_join(self.sec_item_in_progress, self.list2)
+						return False, 0
+					matches,timer = self.PW_join(predicate, self.list2)
 					#after PWjoin removes this item, the next one is the first in list2
 					self.sec_item_in_progress = self.list2[0]
-				return finished_tup # returns matches, PW_timer
+					self.results_from_all_join += matches #TODO: are these unique matches / no doubles
+					return any(matches), timer # returns matches, PW_timer
 			else:
 				#we throw an exception if we receive an unwanted task type
 				print "Task type was: " + str(task_type)
@@ -1219,7 +1302,11 @@ class Join():
 		else:
 			#running & managing pairwise joins on list1
 			if task_type == "PW":
-				return self.PW_join(IP_pair.item, self.list1) # returns matches, PW_timer
+				matches, timer = self.PW_join(IP_Pair, self.list1)
+				if any(matches):
+					return None, timer
+				else:
+					return False, timer
 			#running & managing prejoin filtration
 			elif task_type == "PJF": # TODO: need to make this break into new tasks, not do all at once
 				#the first time we evaluate a prejoin filter, we filter
@@ -1247,17 +1334,26 @@ class Join():
 				if IP_pair.small_p_done:
 					#if the small predicate is done already, return the pairs
 					IP_pair.small_p_done = False #TODO:can we do this
-					return results, timer
+					return any(results), timer
 				else:
 					#record pairs found in IP pair related to the item
 					# for use in small predicate evaluation
 					IP_pair.set_join_pairs(results)
-					return any(results), timer
+					if any(results):
+						return None, timer
+					else:
+						return False, timer
 			#runs & manages small predicate for list 1
 			elif task_type == "small_p":
 				#if there aren't any join pairs yet, don't run
 				if not IP_pair.join_pairs:
-					return None, 0
+					total_time = 0
+					for second_item in self.list2:
+						total_time += self.small_pred(second_item)[1]
+					if any(self.list2):
+						return None, total_time
+					else:
+						return False, total_time
 				else:
 					#if we have run our join and have pairs to filter, we do
 					results = [] # records successful pairs
@@ -1268,7 +1364,8 @@ class Join():
 							results += [join_pair]
 						total_time += timer
 					IP_pair.small_p_done = True #sets small_p_done for join
-					return results, total_time
+					self.results_from_all_join += results
+					return any(results), total_time
 			else:
 				print "Task type was: " + str(task_type)
 				raise Exception("Your Predicate/IP_Pair doesn't match the expected task_types for Join.")
