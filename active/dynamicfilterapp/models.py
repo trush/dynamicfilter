@@ -818,91 +818,148 @@ class DummyTask(models.Model):
 class Join():
 	"""A join class to create an object for each join-able predicate """
 
-	#-----------------------######
-	## CONSTRUCTOR		   #####
-	#-----------------------######
+	#----------------------- CONSTRUCTOR -----------------------#
 
+	## @param self
+	# @return the sizes of both lists in the join.
 	def __str__(self):
 		return "this join: "+ str(len(list1)) + " in list1, " + str(len(list2)) + " in list2"
 
-	
+	## @param self
+	# @param in_list2 : the second list is an optional input
+	# @remarks Sets all the variables of a join. Needs access to Item objects in order to
+	# set list 1.
 	def __init__(self, in_list2 = None):
 
-		## INPUTS #-----------------------################
+		# INPUTS -----------------------#
+
+		## @remarks This is the primary item list, info taken from database.
+		self.list1 = []
+		## @remarks This is the secondary list list, not always given
+		self.list2 = []
+		## @remarks Tells us whether we have a second list (if enumeration estimator hit). Main use
+		# is in assign_join_tasks()
+		self.has_2nd_list = False
 
 		self.list1 = Item.objects.all().values_list()
 		if in_list2 == None:
 			self.list2 = []
 		else:
 			self.list2 = in_list2
+			self.has_2nd_list = True
 
-		## Settings #-----------------------###############
+		# Settings -----------------------#
 
+		## @remarks This is the selectivity of the join and determines whether an item-item tuple passes of fails the join.
 		self.JOIN_SELECTIVITY = 0.1
-
-			## PJFjoin in particular
+		## @remarks This is the selectivity of the prejoin filter and determines whether a item passes or fails the PJF.
 		self.PJF_SELECTIVITY = 0.3
-		self.PAIRWISE_TIME_PER_TASK = 40.0 # TODO: RENAME
+		## @remarks This is the time it takes to determine if two items (one from list 1 and one from list2) "pass" the join. The join
+		# is usually performed after the items have gone through the prejoin filter. This is used in join_items() and find_real_costs().
+		self.JOIN_TIME = 40.0
+		## @remarks Time it takes to evaluate the prejoin filter for one item of list1 or list 2.
 		self.TIME_TO_EVAL_PJF = 100.0
-
-			## PWJoin in particular
-		self.BASE_FIND_MATCHES = 60.0	 #Basic requirement to find some matches
-		self.FIND_SINGLE_MATCH_TIME = 7.0 #cost per match found
-		self.AVG_MATCHES = 10.0 #average matches per item
-		self.STDDEV_MATCHES = 2.0 #standard deviation of matches
-
-			## small predicate in particular
+		## @remarks Basic requirement to find some matches, cost of generating the task and giving workers time to answer (even if answer is no matches)
+		self.BASE_FIND_MATCHES = 60.0
+		## @remarks The cost that each match found adds to the total cost of a pairwise join.
+		self.FIND_SINGLE_MATCH_TIME = 7.0 
+		## @remarks Average matches per item found from doing a pairwise join.
+		self.AVG_MATCHES = 10.0 
+		## @remarks Standard deviation of matches found from doing a pairwise join. 
+		self.STDDEV_MATCHES = 2.0 
+		## @remarks This is the selectivity of the small predicate (predicate on the second list)
 		self.SMALL_P_SELECTIVITY = 0.5
+		## @remark This is the time it takes to evaluate the small predicate (predicate on the second list)
 		self.TIME_TO_EVAL_SMALL_P = 30.0
-
-			## Other private variables used for simulations
+		## @remarks This is the real list 2, only used in returning answers. Not supposed to know about or use in
+		# any cost estimation or algorithmic decisions.
 		self.private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
 
 
-		## Estimates #-----------------------##############
+		# Estimates -----------------------#
 
+		## @remars This is the estimate of the selectivity of the prejoin filter. Updated by prejoin_filter() and used in find_costs().
 		self.PJF_selectivity_est = 0.5
+		## @remarks This is the estimate of the selectivity of the join. Updated by join_items() and used in find_costs().
 		self.join_selectivity_est = 0.5
+		## @remarks Estimate of the time cost of the prejoin. Updated in the prejoin_fiter() function and used in find_costs()
 		self.PJF_cost_est = 0.0
+		## @remarks Estimate of the time cost of the join. Updated in the join_items() function and used in find_costs()
 		self.join_cost_est = 0.0
-		self.PW_cost_est_1 = [] # TODO: make sure that this is a list everywhere that it is used # TODO: rethink name
+		## @remarks Keeps track of the costs of performing a pairwise-build join on list1 items. Each entry is for a different item.
+		# Used in conjunction with num_matches_per_item_1 in find_costs()
+		self.PW_cost_est_1 = [] 
+		## @remarks Keeps track of the costs of performing a pairwise-build join on list2 items. Each entry is for a different item.
+		# Used in conjunction with num_matches_per_item_2 in find_costs()
 		self.PW_cost_est_2 = []
+		## @remarks Estimate of the selectivity of the small predicate. Updated in small_pred() based on the cost of
+		# evaluating of eac item.
 		self.small_p_cost_est = 0.0
+		## @remarks Estimate of the selectivity of the small predicate. Updated in small_pred() based on the evaluation
+		# results of eac item.
 		self.small_p_selectivity_est = 0.0
+		## @remarks List of number of matches for each item in list2. Used later with the costs to get a linear
+		# approximation used in cost calculation estimates
 		self.num_matches_per_item_1 = []
+		## @remarks List of number of matches for each item in list2. Used later with the costs to get a linear
+		# approximation used in cost calculation estimates
 		self.num_matches_per_item_2 = []
-
-			## Enumeration estimator variables
+		## @remarks Used in the enumeration estimate in chao_estimator()
 		self.f_dictionary = { }
+		## @remarks Used in the enumeration estimate in chao_estimator()
 		self.total_sample_size = 0
 
-		## Results #-----------------------################
+		# Results -----------------------#.
 
-		self.results_from_pjf_join = []
-		self.results_from_all_join = [] # TODO: why did we want these seperate again?
+		## @remarks These are the results from just performing the pjf followed by the join. Helps us estimate the
+		# cost of join_items().
+		self.num_join_items = 0
+		## @remarks These are the results from all the joins methods. Used to avoid repeated work and in buffers.
+		self.results_from_all_join = []
+		## This is everything that has been evaluated by the prejoin filter and what it evaluated to. For now, we assume these
+		# are true and false values. Eventualy could be modified to hold "tags" like the county of the metros and hotels and then
+		# cross referenced (ex. if they are equal accept).
 		self.evaluated_with_PJF = { }
-		self.evaluated_with_smallP = [] # all things that evaluated to True
-		self.failed_by_smallP = [] # all things that evaluated to False
+		## @remarks This is a list of everything that has passed (true) the small predicate. So if we get that item again 
+		# we don't need to redo work.
+		self.evaluated_with_smallP = []
+		## @remarks This is a list of everything that has been failed (false) by the small predicate. So if we get that item again
+		# we don't need to redo the work.
+		self.failed_by_smallP = []
+		## @remarks This is the number of things that have been processed by the prejoin filter. It is used to calculate
+		# the avergae cost estimate for the prejoin_filter(). Updated in prejoin_filter(), used in find_costs().
 		self.processed_by_PJF = 0
+		## @remarks This is the number of things that have been processed by the small predicate. It is used to calculate
+		# the average cost estimate for small_pred(). Updated in small_pred(), used in find_costs().
 		self.processed_by_smallP = 0
+		## @remarks This is the number of things that have been processed by the main join. It is used to calculate
+		# the average cost estimate for join_items(). Updated in join_items(), used in find_costs().
 		self.processed_by_join = 0
 
-		## Other Variables #-----------------------########
+		# Other Variables -----------------------#
 
-		self.has_2nd_list = False
-		self.enumerator_est = False # TODO: read more about this and use in our code
+		## @remarks Called in chao_estimator(). If the difference between the size of list2 and the size of the 
+		# estimate is less than this fraction of the size of the estimate then chao_estimator() will return True.
 		self.THRESHOLD = 0.1
+		## @remarks Internal pointer to which item from the secondary list we left off at (for Predicate-only
+		# tasks). Set/reset/used in main_join(). 
 		self.sec_item_in_progress = None
+		## @remarks Boolean value that tells us whether we have already completed the small predicate or not.
+		# Called/used in main_join().
 		self.pending = False
+		## @remarks If we have already done a PW join, but we will need to apply the small predicate down the 
+		# line, we have the PW pairs we generated so we can process them later.
 		self.pairwise_pairs = []
 
-		## TOGGLES #-----------------------################
+		# TOGGLES -----------------------#
 		self.DEBUG = True
-
-	# TODO: 
 
 	#----------------------- PJF Join -----------------------# 
 
+	## @param self
+	# @param item : item from list1 that needs to be evaluated by the PJF
+	# @return evaluated_with_PJF[item] : the results of the evaluation (boolean) from the saved dictionary
+	# @return timer_val : time it took to compute
 	def prejoin_filter(self, item):
         timer_val = 0
         if(not item in self.evaluated_with_PJF):
@@ -920,24 +977,29 @@ class Join():
             print "************** PJF CHECKING ITEM ****************"
         return evaluated_with_PJF[item], timer_val
 
+	## @param self
+	# @param i : item from one list
+	# @param j : an item from a second list
+	# @return boolean value of the results of the join, time taken to compute the join
+	# @remarks Join method also updates all relevant estimate variables.
     def join_items(self, i, j):
         timer_val = 0
         if (i,j) in self.results_from_all_join:
             return True, 0
         if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
             # Generate task of current pair
-            # Choose whether to add to results_from_pjf_join
-            timer_val += self.PAIRWISE_TIME_PER_TASK
-            self.full_timer += self.PAIRWISE_TIME_PER_TASK
-            ### If it is accepted in join process
+            # Choose whether to add to num_join_items
+            timer_val += self.JOIN_TIME
+            self.full_timer += self.JOIN_TIME
+            # If it is accepted in join process
             if(random() < self.JOIN_SELECTIVITY):
                 self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
                 self.processed_by_join += 1
-                self.total_num_ips_processed += 1 # TODO: this is messed up by concurrency
+                self.num_join_items += 1 # TODO: is this messed up by concurrency?
                 # Adjust join cost estimates
-                self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
+                self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
                 
-                #### DEBUGGING ####
+                # DEBUGGING
                 if self.DEBUG:
                     print "ACCEPTED BY JOIN----------"
                     print "TIMER VALUE: " + str(timer_val)
@@ -948,11 +1010,11 @@ class Join():
                     print "--------------------------"
                 
                 return True, timer_val
-        ### If it is not accepted in join process
+        # If it is not accepted in join process
         self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
-        self.join_cost_est = (self.join_cost_est*len(self.results_from_pjf_join)+self.PAIRWISE_TIME_PER_TASK)/(len(self.results_from_pjf_join)+1)
+        self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
         
-        #### DEBUGGING ####
+        # DEBUGGING
         if self.DEBUG:
             print "MATCHED BUT REJECTED BY JOIN------------"
             print "TIMER VALUE: " + str(timer_val)
@@ -965,8 +1027,11 @@ class Join():
         return False, timer_val
 
 	#----------------------- PJF Join Helpers -----------------------#
+	## @param self
+	# @return cost of a PJF task : estimate given by worker 
+	# @return selectivity of a PJF task 
+	# @remarks Generates the PJF, returns the cost of finding the PJF and selectivity fo the PJF
 	def generate_PJF(self):
-		""" Generates the PJF, returns the cost of finding the PJF and selectivity fo the PJF"""
 		return (15,self.PJF_SELECTIVITY)
 
 	## @param self
@@ -1336,7 +1401,7 @@ class Join():
 				self.small_p_selectivity_est*len(self.list2)* (base_cost_est + \
 				match_cost_est*avg_matches_est_2)
 		
-		#### DEBUGGING ####
+		# DEBUGGING 
 		if self.DEBUG:
 			print "FIND COSTS ESTIMATES -------"
 			print "COST 1 = " + str(cost_1)
@@ -1360,10 +1425,10 @@ class Join():
 		# COST 1 CALCULATION - small pred then PJF
 		cost_1 = self.TIME_TO_EVAL_SMALL_P*(len(self.list2)-len(self.evaluated_with_smallP)) + \
 			self.TIME_TO_EVAL_PJF*(self.SMALL_P_SELECTIVITY *len(self.list2)+(len(self.list1))) + \
-			self.PAIRWISE_TIME_PER_TASK*len(self.list2)*len(self.list1)*self.SMALL_P_SELECTIVITY*self.PJF_SELECTIVITY
+			self.JOIN_TIME*len(self.list2)*len(self.list1)*self.SMALL_P_SELECTIVITY*self.PJF_SELECTIVITY
 		# COST 2 CALCULATION - PJF then small pred
 		cost_2 = self.TIME_TO_EVAL_PJF*(len(self.list2)+len(self.list1)) + \
-			self.PAIRWISE_TIME_PER_TASK*len(self.list2)*len(self.list1)*self.PJF_SELECTIVITY+ \
+			self.JOIN_TIME*len(self.list2)*len(self.list1)*self.PJF_SELECTIVITY+ \
 			self.TIME_TO_EVAL_SMALL_P*real_losp*len(self.list2)
 		# COST 3 CALCULATION - pairwise of second list and then small pred
 		cost_3 = (self.BASE_FIND_MATCHES+self.AVG_MATCHES * (len(self.list1)/len(self.private_list2))*self.FIND_SINGLE_MATCH_TIME)*len(self.list2) + \
@@ -1375,7 +1440,7 @@ class Join():
 		cost_5 = self.TIME_TO_EVAL_SMALL_P*(len(self.list2)-len(self.evaluated_with_smallP))+ self.SMALL_P_SELECTIVITY*len(self.list2)*(self.BASE_FIND_MATCHES+ \
 			self.AVG_MATCHES*len(self.list1)/len(self.private_list2)*self.FIND_SINGLE_MATCH_TIME)
 		
-		#### DEBUGGING ####
+		# DEBUGGING 
 		if self.DEBUG:
 			print "REAL COST 1 = " + str(cost_1)
 			print "REAL COST 2 = " + str(cost_2)
