@@ -401,11 +401,10 @@ class SimulationTest(TransactionTestCase):
 			else:
 				#TODO: figure out exactly how the algorithm needs to handle splitting join processes
 				results, time_taken = curr_join.main_join(task_type)
-				if value:
-					worker_time = 
-				if curr_join.isDone():
-					predicate.finishjoin()#TODO: implement
-
+				start_time = time_clock + toggles.BUFFER_TIME
+				end_time = start_time + time_taken
+				t = Task(predicate=predicate, answer=results, workerID=workerID,
+					start_time=start_time, end_time=end_time)
 		else:
 			chosenIP.refresh_from_db()
 			value, cost_multiplier = syn_answer(chosenIP, switch, numTasks)
@@ -923,7 +922,7 @@ class SimulationTest(TransactionTestCase):
 						print "$"*96
 				placeholders = 0
 				for task in active_tasks:
-					if task.ip_pair == None:
+					if task.ip_pair == None and task.predicate == None:
 						placeholders += 1
 				print "Active tasks: " + str(len(active_tasks)) + " | Placeholders: " + str(placeholders)
 
