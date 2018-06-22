@@ -329,12 +329,7 @@ class Predicate(models.Model):
 		for pred in Predicate.objects.all():
 			total_tickets += pred.num_tickets
 
-		if toggles.ADAPTIVE_QUEUE_MODE == 3 and self.num_wickets == toggles.QUEUE_MODE_SWITCH and total_tickets < 20:
-			toggles.ADAPTIVE_QUEUE_MODE = 4
-			self.save(update_fields=["queue_length"])
-			return queue_length
-
-		if toggles.ADAPTIVE_QUEUE_MODE == 0 or toggles.ADAPTIVE_QUEUE_MODE == 3:
+		if toggles.ADAPTIVE_QUEUE_MODE == 0:
 			# print "increase version invoked"
 			for pair in toggles.QUEUE_LENGTH_ARRAY:
 				if self.num_tickets >= pair[0] and self.queue_length < pair[1]:
@@ -346,12 +341,19 @@ class Predicate(models.Model):
 
 		if toggles.ADAPTIVE_QUEUE_MODE == 1:
 			for pair in toggles.QUEUE_LENGTH_ARRAY:
-				if self.num_tickets > pair[0] and self.queue_length < pair[1]:
-					self.inc_queue_length()
+				if self.num_tickets >= pair[0] and self.queue_length < pair[1]:
+					self.queue_length = pair[1]
 					break
-				elif self.num_tickets <= pair[0] and self.queue_length >= pair[1]:
-					self.dec_queue_length()
+			for i in range(len(toggles.QUEUE_LENGTH_ARRAY)):
+				big_pair = toggles.QUEUE_LENGTH_ARRAY[i]
+				small_pair = big_pair
+				if i > 0:
+					small_pair = toggles.QUEUE_LENGTH_ARRAY[i-1]
+				if self.num_tickets < big_pair[0] and self.queue_length >= big_pair[1]:
+					self.queue_length = small_pair[1]
 					break
+			self.save(update_fields=["queue_length"])
+			self.check_queue_full()
 			return self.queue_length
 
 		if toggles.ADAPTIVE_QUEUE_MODE == 2:
