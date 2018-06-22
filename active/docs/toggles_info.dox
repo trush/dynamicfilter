@@ -110,12 +110,20 @@ can be in (for hard limit or soft limit, which are ITEM_) \n
 \link dynamicfilterapp.toggles.ADAPTIVE_QUEUE ADAPTIVE_QUEUE \endlink - Determines whether PENDING_QUEUE_SIZE
 will be static throughout simulation or will vary. \n
 
-\link dynamicfilterapp.toggles.ADAPTIVE_QUEUE_MODE ADAPTIVE_QUEUE_MODE \endlink - TODO: say stuff about this
+\link dynamicfilterapp.toggles.ADAPTIVE_QUEUE_MODE ADAPTIVE_QUEUE_MODE \endlink - Decides the style of adaptive queue to use
+Adaptive Queue Mode Guide:
+  - 0 - Increases queue length based on toggles.QUEUE_LENGTH_ARRAY
+  - 1 - Increases or decreases queue length based on toggles.QUEUE_LENGTH_ARRAY
+  - 2 - Gives a proportion of toggles.QUEUE_SUM to each predicate, based on its proportion of tickets.
+  - 4 - "Off", but when we want toggles.ADAPTIVE_QUEUE to be true, for testing reasons
+
+\link dynamicfilterapp.toggles.QUEUE_SUM QUEUE_SUM \endlink - Summed queue length over all predicates used in adaptive queue
+mode 2
 
 \link dynamicfilterapp.toggles.QUEUE_LENGTH_ARRAY QUEUE_LENGTH_ARRAY \endlink - A list of tuples of form
 (# tickets, queue length); when ADAPTIVE_QUEUE is turned on, the algorithm will check whether the number
-of tickets a predicate has exceeds the # tickets element of the tuple. If so, the queue length will be
-set to the second element of the tuple. \n
+of tickets a predicate has exceeds the # tickets element of the tuple, and adjust the queue length based
+on the adaptive queue mode. \n
 
 \link dynamicfilterapp.toggles.ACTIVE_TASKS_ARRAY ACTIVE_TASKS_ARRAY \endlink - A list of tuples of form
 (# of active pairs, refill limit, task limit); at each time loop, the algorithm will check the number of IP pairs that are

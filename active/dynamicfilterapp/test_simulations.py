@@ -787,7 +787,7 @@ class SimulationTest(TransactionTestCase):
 		tps_start = 3
 		secs = 0 # used to count time steps when tasks per second is less than 1
 
-		if toggles.ADAPTIVE_QUEUE_MODE < 4:
+		if toggles.ADAPTIVE_QUEUE_MODE < 4 and toggles.ADAPTIVE_QUEUE:
 			for pred in Predicate.objects.all():
 				pred.set_queue_length(toggles.QUEUE_LENGTH_ARRAY[0][1])
 
@@ -861,9 +861,6 @@ class SimulationTest(TransactionTestCase):
 
 		ip_pair = IP_Pair()
 		total_ip_pairs = IP_Pair.objects.all().count()
-
-		if toggles.ADAPTIVE_QUEUE_MODE < 4 and toggles.ADAPTIVE_QUEUE == True :
-			toggles.PENDING_QUEUE_SIZE = toggles.QUEUE_LENGTH_ARRAY[0][1]
 
 		if toggles.SIMULATE_TIME:
 			prev_time = 0

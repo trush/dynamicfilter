@@ -7,7 +7,7 @@ import responseTimeDistribution
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
 DEBUG_FLAG = False
-SIM_TIME_STEP = 60
+SIM_TIME_STEP = 180
 # ************************************************************************ #
 
 
@@ -24,11 +24,11 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
-NUM_QUESTIONS = 6
+NUM_QUESTIONS = 2
 NUM_ITEMS = 40
 SIN = -1
 SELECTIVITY_GRAPH = False
-switch_list = [ (0, (0.9, 0.25), (0.2, 0.25), (0.5, 0.25), (0.5, 0.25), (0.3, 0.25), (0.7, 0.25))]
+switch_list = [ (0, (0,0), (0,0))]
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
@@ -49,22 +49,21 @@ else:
 # ************************************************************************ #
 
 EDDY_SYS = 5
-ITEM_SYS = 3
+ITEM_SYS = 0
 SLIDING_WINDOW = False
-LIFETIME = 100
+LIFETIME = 150
 PENDING_QUEUE_SIZE = 40
 QUEUE_SUM = 100
-QUEUE_MODE_SWITCH = 200
 
-IP_LIMIT_SYS = 3   # type of predicate limit for an item
-ITEM_IP_LIMIT = 1   # number of predicates an item can be in 
+IP_LIMIT_SYS = 0   # type of predicate limit for an item
+ITEM_IP_LIMIT = 4   # number of predicates an item can be in
 
 ADAPTIVE_QUEUE = False
-ADAPTIVE_QUEUE_MODE = 1
+ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
-QUEUE_LENGTH_ARRAY = [(0,4),(4,6),(8,10),(16,16),(25,25)] # settings for above mode [(#tickets,qlength)]
-ACTIVE_TASKS_ARRAY = [(0,0,0),(1,10,40),(10,150,200),(50,350,450)] #Only matters (atm) if batch assignment on
+QUEUE_LENGTH_ARRAY = [(0, 4), (3, 15), (10, 30)] # settings for above mode [(#tickets,qlength)]
+ACTIVE_TASKS_ARRAY = [(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)] #Only matters (atm) if batch assignment on
 #[(0,0,0),(1,10,40),(10,75,100),(20,150,200),(40,350,450)]
 BATCH_ASSIGNMENT = 2 # 0 - No batches, 1 - Refill limit, 2 - Periodic refill
 REFILL_PERIOD = 100
@@ -118,7 +117,7 @@ DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
-NUM_SIM = 1
+NUM_SIM = 0
 NUM_GRAPH_SIM = 1
 
 SIMULATE_TIME = True # simulate time passing/concurrency
@@ -132,8 +131,7 @@ MAX_TASKS_OUT = 40
 MAX_TASKS_COLLECTED = CUT_OFF
 
 MULTI_SIM = True 
-MULTI_SIM_ARRAY = [(3, (3, 1), [(0,0,0),(1,10,40),(10,50,100),(40,350,450)], [(0,1),(4,2),(8,3),(16,4)]),
-(3, (3, 1), [(0,0,0),(1,10,40),(10,50,100),(40,350,450)], [(0,1),(4,2),(8,3),(16,4)])]
+MULTI_SIM_ARRAY = [(6,(0, 1),[(0,0,0),(1,10,40),(10,150,200),(50,350,450)],[(0,4),(3,15),(10,30)],[(0,(0.2,0.25,.5),(0.2,0.25,.5))],0)]
 # ************************************************************************ #
 
 
@@ -180,14 +178,14 @@ ABSTRACT_VARIABLE = "NUM_WORKERS"
 ABSTRACT_VALUES = [100, 200]
 
 RUN_TASKS_COUNT = True
-TRACK_IP_PAIRS_DONE = True
+TRACK_IP_PAIRS_DONE = False
 
 TRACK_ACTIVE_TASKS = True # Useful only for simulations with TIME
 TRACK_PLACEHOLDERS = True
 TRACK_WASTE = True  # Tracks tasks leftover from finished items
 
 EDDY_SET = [5]       # Used only when TRACK_ACTIVE_TASKS is true   
-QUEUE_SET = [40, 80] 
+QUEUE_SET = [40] 
 ACTIVE_TASKS_SET = [160]
 
 TEST_ACCURACY = False
@@ -219,7 +217,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
             'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS',
-            'DUMMY_TASK_OPTION','GEN_GRAPHS','NUM_ITEMS','SIN',
+            'DUMMY_TASK_OPTION','GEN_GRAPHS','NUM_ITEMS','SIN', 'QUEUE_SUM',
             'SELECTIVITY_GRAPH','switch_list', 'ITEM_IP_LIMIT', 'IP_LIMIT_SYS',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',
