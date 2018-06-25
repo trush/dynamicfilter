@@ -43,7 +43,7 @@ def worker_done(ID):
 		worker_done_time = end - start
 		return False, worker_done_time
 
-def pending_eddy(ID):
+def pending_eddy(ID, active_joins = None):
 	"""
 	This function chooses which system to use for choosing the next ip_pair
 	"""
@@ -60,61 +60,13 @@ def pending_eddy(ID):
 	#Limits the number of predicates an item is being evaluated under simultaneously
 	incompleteIP = unfinishedList.exclude(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False).exclude(id__in=completedIP)
 
-	#queue_pending_system:
-	if (toggles.EDDY_SYS == 1):
-		# filter out the ips that are not in the queue of full predicates
-		outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
-		nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-		allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-		maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-		incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
-		# if there are IP pairs that could be assigned to this worker
-		if incompleteIP.exists():
-			chosenIP = lotteryPendingQueue(incompleteIP)
-			chosenIP.refresh_from_db()
-		else:
-			chosenIP = None
 
+	if (toggles.EDDY_SYS == 5):
+		chosenIP = nu_pending_eddy(incompleteIP, active_joins)
 
-	#random_system:
-	elif (toggles.EDDY_SYS == 2):
-		if not incompleteIP.exists():
-			print "Worker has completed all IP pairs left to do"
-		allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-		maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-		incompleteIP = incompleteIP.exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
-		if incompleteIP.exists():
-			startedIPs = incompleteIP.filter(isStarted=True)
-			if startedIPs.exists():
-				incompleteIP = startedIPs
-			chosenIP = choice(incompleteIP)
-		else:
-
-			chosenIP = None
-
-
-	#controlled_system:
-	elif (toggles.EDDY_SYS == 3):
-		#this config will run pred[0] first ALWAYS and then pred[1]
-		if incompleteIP.exists():
-			chosenPred = Predicate.objects.get(pk=1+CHOSEN_PREDS[0])
-			tempSet = incompleteIP.filter(predicate=chosenPred)
-			if tempSet.exists():
-				incompleteIP = tempSet
-			chosenIP = choice(incompleteIP)
-		else:
-			chosenIP = None
-
-
-	#system that uses ticketing and finishes an IP pair once started
-	elif (toggles.EDDY_SYS == 4):
-		chosenIP = useLottery(incompleteIP)
-
-	elif (toggles.EDDY_SYS == 5):
-		chosenIP = nu_pending_eddy(incompleteIP)
 		if chosenIP == None and not toggles.ITEM_HARD_LIMIT:
 			incompleteIP = unfinishedList.filter(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False).exclude(id__in=completedIP)
-			chosenIP = nu_pending_eddy(incompleteIP)
+			chosenIP = nu_pending_eddy(incompleteIP, active_joins)
 		if chosenIP == None:
 			if toggles.DEBUG_FLAG:
 				print "Warning: no IP pair for worker"
@@ -156,14 +108,11 @@ def pending_eddy(ID):
 
 
 
-def nu_pending_eddy(incompleteIP):
+def nu_pending_eddy(incompleteIP, active_joins=None):
 	# get a predicate using the ticketing system
 	# make list of possible predicates and remove duplicates
-	ipSet = IP_Pair.objects.filter(isDone=False)
-	predicates = [ip.predicate for ip in ipSet]
-	seen = set()
-	seen_add = seen.add
-	predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
+	predicatevalues = incompleteIP.values('predicate')
+	predicates = Predicate.objects.filter(id__in=predicatevalues)
 
 	#choose the predicate
 	weightList = np.array([pred.num_tickets for pred in predicates])
@@ -171,20 +120,26 @@ def nu_pending_eddy(incompleteIP):
 	probList = np.true_divide(weightList, totalTickets)
 	chosenPred = np.random.choice(predicates, p=probList)
 
-	# if the queue of the predicate is full, assign from the queue
-	allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	pickFromFirst = incompleteIP.filter(predicate = chosenPred, inQueue = True).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
-	if chosenPred.queue_is_full:
-		# print "*"*10 + " Condition 1 invoked " + "*"*10
-		# assign a task from one of the IP pairs within the queue
-		if pickFromFirst.exists():
-			# print "*"*10 + " Condition 2 invoked " + "*"*10
-			chosenIP = choice(pickFromFirst)
-			if not chosenIP.is_in_queue:
-				chosenIP.add_to_queue()
-				chosenIP.refresh_from_db()
-			return chosenIP
+    cur_join = active_joins[chosenPred]
+	task_types = cur_join.assign_join_tasks()
+	if task_types == ["PWl2", "small_p"] or task_types == ["small_p", "PWl2"]:
+		return chosenPred
+		# return a pred instead of an IP pair
+	else: # TODO: read and figure out if this is what we want to do for this else case????
+		# if the queue of the predicate is full, assign from the queue
+		allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+		maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+		pickFromFirst = incompleteIP.filter(predicate = chosenPred, inQueue = True).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+		if chosenPred.queue_is_full:
+			# print "*"*10 + " Condition 1 invoked " + "*"*10
+			# assign a task from one of the IP pairs within the queue
+			if pickFromFirst.exists():
+				# print "*"*10 + " Condition 2 invoked " + "*"*10
+				chosenIP = choice(pickFromFirst)
+				if not chosenIP.is_in_queue:
+					chosenIP.add_to_queue()
+					chosenIP.refresh_from_db()
+				return chosenIP
 
 	# print "*"*10 + " Condition 3 invoked " + "*"*10
 	# if queue is not full or we can't do anything that's in the queue
@@ -332,8 +287,8 @@ def annealingSelectPred(predList):
 		chosenPred = random.choice(predList)
 		return chosenPred
 
-def give_task(active_tasks, workerID):
-	ip_pair, eddy_time = pending_eddy(workerID)
+def give_task(active_tasks, workerID, active_joins = None):
+	ip_pair, eddy_time = pending_eddy(workerID, active_joins)
 	if ip_pair is not None:
 		# print "IP pair selected"
 		ip_pair.distribute_task()

@@ -944,7 +944,7 @@ class Join():
         if(not item in self.evaluated_with_PJF):
             # save results of PJF to avoid repeated work
             self.evaluated_with_PJF[item],PJF_cost = self.evaluate(PJF,item)
-            self.processed_by_PJF += 1 # TODO: check that these are correct for what we are trying to record
+            self.processed_by_PJF += 1
             # if the item evaluated True for the PFJ then adjust selectivity
             self.PJF_selectivity_est = (self.PJF_selectivity_est*(self.processed_by_PJF-1)+self.evaluated_with_PJF[i])/self.processed_by_PJF
             # adjust our cost estimates for evaluating PJF
@@ -974,7 +974,7 @@ class Join():
             if(random() < self.JOIN_SELECTIVITY):
                 self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
                 self.processed_by_join += 1
-                self.num_join_items += 1 # TODO: is this messed up by concurrency?
+                self.num_join_items += 1
                 # Adjust join cost estimates
                 self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
                 
@@ -1405,11 +1405,11 @@ class Join():
 						return ["PJF", "join", "small_p"] # TODO: remember to change these functions + for loop and remove item
 				else: # 50% chance of going to 3 or 4 or 5
 					if cost[2]<cost[3] and cost[2]<cost[4]: # path 3
-						return ["PW", "small_p"] # on second list
+						return ["PWl2", "small_p"] # on second list
 					elif cost[3]<cost[2] and cost[3]<cost[4] # path 4
 						return ["PW", "small_p"] # on first list
 					else: # path 5
-						return ["small_p", "PW"] # on second list
+						return ["small_p", "PWl2"] # on second list
 			else: # having escaped the buffer zone
 				minimum = min(cost)
 				if(cost[0] == minimum):# path 1
