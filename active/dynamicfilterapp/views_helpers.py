@@ -44,7 +44,7 @@ def worker_done(ID):
 		worker_done_time = end - start
 		return False, worker_done_time
 
-def pending_eddy(ID):
+def pending_eddy(ID, active_joins = None):
 	"""
 	This function chooses which system to use for choosing the next ip_pair
 	"""
@@ -170,6 +170,13 @@ def nu_pending_eddy(incompleteIP):
 			print predicates
 		chosenPred = np.random.choice(predicates, p=probList)
 
+		cur_join = active_joins[chosenPred]
+		task_types = cur_join.assign_join_tasks()
+		if task_types == ["PWl2", "small_p"] or task_types == ["small_p", "PWl2"]:
+			return chosenPred
+			# return a pred instead of an IP pair
+		# TODO: read and figure out if this is what we want to do for this else case????
+
 		pickFrom = incompleteIP.filter(predicate = chosenPred)
 
 		# Choose an available pair from the chosen predicate
@@ -293,8 +300,8 @@ def annealingSelectPred(predList):
 		chosenPred = random.choice(predList)
 		return chosenPred
 
-def give_task(active_tasks, workerID):
-	ip_pair, eddy_time = pending_eddy(workerID)
+def give_task(active_tasks, workerID, active_joins = None):
+	ip_pair, eddy_time = pending_eddy(workerID, active_joins)
 	if ip_pair is not None:
 		# print "IP pair selected"
 		ip_pair.distribute_task()

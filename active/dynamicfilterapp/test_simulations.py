@@ -176,9 +176,6 @@ class SimulationTest(TransactionTestCase):
 			q = Question(question_ID=ID, question_text=line)
 			q.save()
 			pred = Predicate(predicate_ID=ID, question=q)
-			#TODO: Use input (or some reasonable criteria) to choose whether joinable
-			if random() > 0.5:
-				pred.joinable = True
 			pred.save()
 			ID += 1
 		f.close()
@@ -382,7 +379,7 @@ class SimulationTest(TransactionTestCase):
 	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks, task_type=None, curr_join=None):
 		start = time.time()
 		if chosenIP is None:
-			if predicate is None:
+			if curr_join is None:
 				if toggles.SIMULATE_TIME:
 					# TODO
 					# this task is going to be as long as any task can be?
@@ -404,7 +401,7 @@ class SimulationTest(TransactionTestCase):
 				start_time = time_clock + toggles.BUFFER_TIME
 				end_time = start_time + time_taken
 				t = Task(predicate=predicate, answer=results, workerID=workerID,
-					start_time=start_time, end_time=end_time)
+					start_time=start_time, end_time=end_time, )
 		else:
 			chosenIP.refresh_from_db()
 			value, cost_multiplier = syn_answer(chosenIP, switch, numTasks)
@@ -645,7 +642,7 @@ class SimulationTest(TransactionTestCase):
 
 			if workerID is not None:
 				# select a task to assign to this person
-				ip_pair, eddy_time = give_task(active_tasks, workerID)
+				ip_pair, eddy_time = give_task(active_tasks, workerID, active_joins)
 				#ip_pair.refresh_from_db()
 				self.pending_eddy_time += eddy_time
 
@@ -662,21 +659,30 @@ class SimulationTest(TransactionTestCase):
 
 		else:
 			workerID = self.pick_worker(b_workers, [])
-			ip_pair, eddy_time = give_task(active_tasks, workerID)
-			if ip_pair.is_joinable():
-				curr_join = active_joins[ip_pair.predicate]
-				task_type = curr_join.assign_join_tasks()
-				curr_join.addTask(task_type)
-				if task_type == "PWl2" or task_type == "small_p":
-					syn_simulate_task(None, workerID, time_clock, dictionary, task_type, curr_join)
+			#TODO: allow give_tasks to return a predicate if appropriate
+			#use assign_join_tasks() in give_tasks to determine which
+			#return predicate as a tertiary value with None as default
+			ip_pair, eddy_time, pred = give_task(active_tasks, workerID, active_joins)
+								
 			self.pending_eddy_time += eddy_time
-			#if ip_pair is not None:
-				#ip_pair.refresh_from_db()
 
 			if toggles.REAL_DATA:
 				task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 			else:
-				task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
+				if pred is not None:
+					#if give_task returns a predicate, then we create a predicate task
+					curr_join = active_joins[ip_pair.predicate]
+					pred.task_types = curr_join.assign_join_tasks()
+					task_type = pred.task_types[0]
+					task = syn_simulate_task(None, workerID, time_clock, switch, self.num_tasks, task_type, curr_join)
+				elif ip_pair is not None and ip_pair.is_joinable():
+					#if give_task returns an ip pair, then we create an ip pair task
+					curr_join = active_joins[ip_pair.predicate]
+					ip_pair.task_types = curr_join.assign_join_tasks()
+					task_type = ip_pair.task_types[0]
+					task = syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks, task_type, curr_join)
+				else:
+					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
 
 		return task, workerID
 
