@@ -85,6 +85,7 @@ class Predicate(models.Model):
 	joinable = models.BooleanField(default = False)
 	task_types = models.CharField(default="", max_length = 400)
 	correct_matches = models.CharField(default = "", max_length = 300)
+	tasks_out = models.IntegerField(default = 0)
 
 	def set_correct_matches(self, inlist):
 		self.correct_matches = json.dumps(inlist)
@@ -97,8 +98,17 @@ class Predicate(models.Model):
 		temp = [new_task] + temp
 		self.task_types = json.dumps(temp)
 
+
+	def set_task_types(self, inList):
+		return self.task_types = json.dumps(inList)
+
 	def get_task_types(self):
 		return json.loads(self.task_types)
+
+	def distribute_task(self):
+		#If the predicate is joinable, we need to increment its join progress
+		self.tasks_out += 1
+		self.save(update_fields = ["tasks_out"]) #"tasks_released"
 
 	# lottery system variables
 	num_tickets = models.IntegerField(default=1)
@@ -751,22 +761,8 @@ class IP_Pair(models.Model):
 
 	def distribute_task(self):
 		#If the predicate is joinable, we need to increment its join progress
-		if self.predicate.joinable:
-			#if the join process has not been started, create it through a join object
-			if not self.join_process:
-				join = Join()#creates a local Join object
-				taskList = join.main_join(self.item)
-				self.set_join_process(taskList)
-				self.join_task_out = -1
-			#increment join_task_out so we move to the next task in the process
-			self.join_task_out += 1
-			if self.join_task_out >= len(self.get_join_process()):
-				self.join_task_out = 0
 		self.tasks_out += 1
-		# self.tasks_released += 1 # TODO: get rid
 		self.save(update_fields = ["tasks_out"]) #"tasks_released"
-		self.save(update_fields = ["join_process"]) #"tasks_released"
-		self.save(update_fields = ["join_task_out"]) #"tasks_released"
 
 	def collect_task(self):
 		self.tasks_out -= 1

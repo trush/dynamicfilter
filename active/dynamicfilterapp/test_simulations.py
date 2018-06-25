@@ -401,28 +401,36 @@ class SimulationTest(TransactionTestCase):
 				start_time = time_clock + toggles.BUFFER_TIME
 				end_time = start_time + time_taken
 				t = Task(predicate=predicate, answer=results, workerID=workerID,
-					start_time=start_time, end_time=end_time, )
+					start_time=start_time, end_time=end_time)
 		else:
 			chosenIP.refresh_from_db()
-			value, cost_multiplier = syn_answer(chosenIP, switch, numTasks)
-			if toggles.SIMULATE_TIME:
-				if value :
-					#worker said true, take from true distribution
-					work_time = np.rint(cost_multiplier*choice(toggles.TRUE_TIMES))
+			if not chosenIP.is_joinable():
+				value, cost_multiplier = syn_answer(chosenIP, switch, numTasks)
+				if toggles.SIMULATE_TIME:
+					if value :
+						#worker said true, take from true distribution
+						work_time = np.rint(cost_multiplier*choice(toggles.TRUE_TIMES))
+					else:
+						#worker said false, take from false distribution
+						work_time = np.rint(cost_multiplier*choice(toggles.FALSE_TIMES))
+
+					start_task = time_clock + toggles.BUFFER_TIME
+					end_task = start_task + work_time
+					self.cum_work_time += work_time
 				else:
-					#worker said false, take from false distribution
-					work_time = np.rint(cost_multiplier*choice(toggles.FALSE_TIMES))
+					start_task = 0
+					end_task = 0
 
-				start_task = time_clock + toggles.BUFFER_TIME
-				end_task = start_task + work_time
-				self.cum_work_time += work_time
+				t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+						start_time=start_task, end_time=end_task)
+				t.save()
+			
 			else:
-				start_task = 0
-				end_task = 0
-
-			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
-					start_time=start_task, end_time=end_task)
-			t.save()
+				results, time_taken = curr_join.main_join(task_type)
+				start_time = time_clock + toggles.BUFFER_TIME
+				end_time = start_time + time_taken
+				t = Task(ip_pair=chosenIP, answer=results, workerID=workerID,
+					start_time=start_time, end_time=end_time)
 
 			if not toggles.SIMULATE_TIME:
 				updateCounts(t, chosenIP)
@@ -662,7 +670,11 @@ class SimulationTest(TransactionTestCase):
 			#TODO: allow give_tasks to return a predicate if appropriate
 			#use assign_join_tasks() in give_tasks to determine which
 			#return predicate as a tertiary value with None as default
-			ip_pair, eddy_time, pred = give_task(active_tasks, workerID, active_joins)
+			pred = None
+			ip_pair, eddy_time = give_task(active_tasks, workerID, active_joins)
+			if type(ip_pair) is Predicate:
+				#if we have returned an itemless ip pair, we operate on a predicate.
+				pred = ip_pair
 								
 			self.pending_eddy_time += eddy_time
 
@@ -672,7 +684,6 @@ class SimulationTest(TransactionTestCase):
 				if pred is not None:
 					#if give_task returns a predicate, then we create a predicate task
 					curr_join = active_joins[ip_pair.predicate]
-					pred.task_types = curr_join.assign_join_tasks()
 					task_type = pred.task_types[0]
 					task = syn_simulate_task(None, workerID, time_clock, switch, self.num_tasks, task_type, curr_join)
 				elif ip_pair is not None and ip_pair.is_joinable():

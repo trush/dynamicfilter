@@ -66,6 +66,14 @@ def pending_eddy(ID, active_joins = None):
 
 	if toggles.EDDY_SYS == 5:
 		chosenIP = nu_pending_eddy(incompleteIP)
+		#check whether ip pair or predicate
+		if type(chosenIP) is Predicate:
+			#TODO:do we need to start()?
+			end = time.time()
+			runTime = end - start
+			if toggles.SIMULATE_TIME:
+				return chosenIP, runTime
+			return chosenIP
 		if chosenIP == None: 
 			if toggles.IP_LIMIT_SYS == 3: # soft limit
 
@@ -74,14 +82,14 @@ def pending_eddy(ID, active_joins = None):
 				chosenIP = nu_pending_eddy(incompleteIP)
 		
 		if chosenIP != None and toggles.IP_LIMIT_SYS == 1: # adaptive limit
-			predLim = adaptive_predicate_limit(chosenIP)
+			predLim = adaptive_predicate_limit(chosenIP) #TODO: don't do this for predicates
 			if chosenIP.item.pairs_out > predLim: # if too many pairs out, pick another IP 
 				incompleteIP = incompleteIP.exclude(item = chosenIP.item, predicate = chosenIP.predicate)
 				chosenIP = nu_pending_eddy(incompleteIP)
 			
 		if chosenIP == None:
 			if toggles.DEBUG_FLAG:
-				print "Warning: no IP pair for worker "
+				print "Warning: no IP pair or predicate for worker "
 
 	# else:
 	# ## standard epsilon-greedy MAB and decreasing epsilon-greedy MAB.
@@ -110,7 +118,7 @@ def pending_eddy(ID, active_joins = None):
 
 
 	if chosenIP is not None:
-		chosenIP.start()
+		chosenIP.start()#TODO:don't do this if predicate
 	end = time.time()
 	runTime = end - start
 	if toggles.SIMULATE_TIME:
@@ -173,6 +181,8 @@ def nu_pending_eddy(incompleteIP):
 		cur_join = active_joins[chosenPred]
 		task_types = cur_join.assign_join_tasks()
 		if task_types == ["PWl2", "small_p"] or task_types == ["small_p", "PWl2"]:
+			if chosenPred.get_task_types() == []:
+				chosenPred.set_task_types(task_types)
 			return chosenPred
 			# return a pred instead of an IP pair
 		# TODO: read and figure out if this is what we want to do for this else case????
@@ -182,11 +192,14 @@ def nu_pending_eddy(incompleteIP):
 		# Choose an available pair from the chosen predicate
 		if pickFrom.exists():
 			# print "*"*10 + " Condition 6 invoked " + "*"*10
+			#TODO: this if statement does nothing. Why?
 			if (toggles.ITEM_SYS == 3): #item_inacive assignment
 				minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
 				minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
 				chosenIP = minTaskIP
 			chosenIP = choice(pickFrom)
+			if chosenIP.get_task_types() == []:
+				raise Exception("this ip pair is done")
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
 				chosenIP.refresh_from_db()
@@ -303,18 +316,7 @@ def annealingSelectPred(predList):
 def give_task(active_tasks, workerID, active_joins = None):
 	ip_pair, eddy_time = pending_eddy(workerID, active_joins)
 	if ip_pair is not None:
-		# print "IP pair selected"
 		ip_pair.distribute_task()
-		#if our predicate is a join predicate, we may have a different time
-		if ip_pair is not None and ip_pair.is_joinable():
-			ip_pair.refresh_from_db()
-			eddy_time=ip_pair.get_join_process()[ip_pair.join_task_out]
-			print "join"
-			ip_pair.refresh_from_db()
-		print "eddy time: " + str(eddy_time)
-	else:
-		pass
-
 	return ip_pair, eddy_time
 
 #____________LOTTERY SYSTEMS____________#
