@@ -966,6 +966,18 @@ class Join():
 		# line, we have the PW pairs we generated so we can process them later.
 		self.pairwise_pairs = []
 
+		# Consensus tracking ---------------------#
+
+		## @remarks Dictionary that keeps track of how many votes the small predicate has based on the consensus
+		# metric used. See find_consensus() for more details. Algorithm matches that of IP_pair consensus finding.
+		self.votes_for_small_p = {}
+		## @remarks Dictionary that keeps track of how many votes the prejoin filter has based on the consensus
+		# metric used. See find_consensus() for more details. Algorithm matches that of IP_pair consensus finding.
+		self.votes_for_pjf = {}
+		## @remarks Dictionary that keeps track of how many votes the join matches have based on the consensus
+		# metric used. See find_consensus() for more details. Algorithm matches that of IP_pair consensus finding.
+		self.votes_for_matches = {}
+
 		# TOGGLES -----------------------#
 		self.DEBUG = True
 
@@ -1616,3 +1628,19 @@ class Join():
 		if N_chao > 0 and abs(N_chao - len(self.list2)) < self.THRESHOLD * N_chao:
 			return True
 		return False
+
+	## @param self
+	# @param for_task : This is the type of task that the function will determine to be at or not at consensus. Current options are:
+	#	"small_p", "PJF", and "join".
+	# @param entry : Can be an item from the first or second list or a match in the form of a tuple. 
+	# @return boolean : True if entry has reach consensus. Ex. if entry was an item in the second list and for_task was an "small_p" we
+	#	would return true if the the item passed the task a certain number of times TODO: clarify
+	def find_consensus(self, for_task, entry):
+		if for_task == "small_p":
+			#...
+		elif for_task == "PJF":
+			#...
+		elif for_task == "join":
+			#...
+		else:
+			raise Exception "Cannot find consensus for: " + str(for_task)
