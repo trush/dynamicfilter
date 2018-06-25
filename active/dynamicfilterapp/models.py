@@ -763,6 +763,8 @@ class IP_Pair(models.Model):
 		#If the predicate is joinable, we need to increment its join progress
 		self.tasks_out += 1
 		self.save(update_fields = ["tasks_out"]) #"tasks_released"
+		self.save(update_fields = ["join_process"]) #"tasks_released"
+		self.save(update_fields = ["join_task_out"]) #"tasks_released"
 
 	def collect_task(self):
 		self.tasks_out -= 1

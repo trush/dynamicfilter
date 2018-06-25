@@ -317,6 +317,19 @@ def give_task(active_tasks, workerID, active_joins = None):
 	ip_pair, eddy_time = pending_eddy(workerID, active_joins)
 	if ip_pair is not None:
 		ip_pair.distribute_task()
+<<<<<<< HEAD
+=======
+		#if our predicate is a join predicate, we may have a different time
+		if ip_pair is not None and ip_pair.is_joinable():
+			ip_pair.refresh_from_db()
+			eddy_time=ip_pair.get_join_process()[ip_pair.join_task_out]
+			print "join"
+			ip_pair.refresh_from_db()
+		print "eddy time: " + str(eddy_time)
+	else:
+		pass
+
+>>>>>>> 8abd055060727f70365a160b8cc44a2752157382
 	return ip_pair, eddy_time
 
 #____________LOTTERY SYSTEMS____________#
