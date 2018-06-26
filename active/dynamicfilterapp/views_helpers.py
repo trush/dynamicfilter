@@ -317,19 +317,6 @@ def give_task(active_tasks, workerID, active_joins = None):
 	ip_pair, eddy_time = pending_eddy(workerID, active_joins)
 	if ip_pair is not None:
 		ip_pair.distribute_task()
-<<<<<<< HEAD
-=======
-		#if our predicate is a join predicate, we may have a different time
-		if ip_pair is not None and ip_pair.is_joinable():
-			ip_pair.refresh_from_db()
-			eddy_time=ip_pair.get_join_process()[ip_pair.join_task_out]
-			print "join"
-			ip_pair.refresh_from_db()
-		print "eddy time: " + str(eddy_time)
-	else:
-		pass
-
->>>>>>> 8abd055060727f70365a160b8cc44a2752157382
 	return ip_pair, eddy_time
 
 #____________LOTTERY SYSTEMS____________#
@@ -446,14 +433,6 @@ def useLottery(ipSet):
 def updateCounts(workerTask, chosenIP):
 	start = time.time()
 	if chosenIP is not None:
-		#if the predicate is joinable, we don't want to get a vote 
-		if chosenIP.predicate.joinable and chosenIP.join_task_out < len(chosenIP.get_join_process()) - 1:
-			chosenIP.refresh_from_db()
-			chosenIP.collect_task()
-			chosenIP.refresh_from_db()
-			chosenIP.remove_from_queue()
-			chosenIP.refresh_from_db()
-			return
 
 		chosenIP.refresh_from_db()
 		workerTask.refresh_from_db()

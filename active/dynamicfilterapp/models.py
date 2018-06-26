@@ -113,6 +113,7 @@ class Predicate(models.Model):
 	# lottery system variables
 	num_tickets = models.IntegerField(default=1)
 	num_wickets = models.IntegerField(default=0)
+	#num_jickets = models.IntegerField(default=1)
 
 	def _get_num_pending(self):
 		return IP_Pair.objects.filter(inQueue=True, predicate=self).count()
@@ -509,7 +510,7 @@ class IP_Pair(models.Model):
 	tasks_collected=models.IntegerField(default=0)
 	# running cumulation of votes
 	value = models.FloatField(default=0.0)
-	num_no = models.IntegerField(default=0)#we reuse num_no and num_yes for joins
+	num_no = models.IntegerField(default=0)#TODO:change to floats for joins?
 	num_yes = models.IntegerField(default=0)
 	isDone = models.BooleanField(db_index=True, default=False)
 
@@ -612,12 +613,12 @@ class IP_Pair(models.Model):
 			self.status_votes += 1
 			self.save(update_fields=["status_votes"])
 
-			if workerTask.answer:
+			if workerTask.answer == True:
 				self.value += 1
 				self.num_yes += 1
 				self.save(update_fields=["value", "num_yes"])
 
-			elif workerTask.answer != False:
+			elif workerTask.answer == False:
 				self.value -= 1
 				self.num_no += 1
 				self.predicate.add_no()
@@ -992,13 +993,23 @@ class Join():
         if(not item in self.evaluated_with_PJF):
             # save results of PJF to avoid repeated work
             self.evaluated_with_PJF[item],PJF_cost = self.evaluate(PJF,item)
-            self.processed_by_PJF += 1
-            # if the item evaluated True for the PFJ then adjust selectivity
-            self.PJF_selectivity_est = (self.PJF_selectivity_est*(self.processed_by_PJF-1)+self.evaluated_with_PJF[i])/self.processed_by_PJF
-            # adjust our cost estimates for evaluating PJF
-            self.PJF_cost_est = (self.PJF_cost_est*(len(self.evaluated_with_PJF)-1)+PJF_cost)/self.processed_by_PJF
-            timer_val += self.TIME_TO_EVAL_PJF
-            self.full_timer += self.TIME_TO_EVAL_PJF
+			#add a vote to pjf for this item
+			if not self.votes_for_pjf[item]:
+				self.votes_for_pjf[item] = (0,0)
+			if eval_results:
+				self.votes_for_pjf[item][0] += 1
+			else:
+				self.votes_for_pjf[item][1] += 1
+			#check if we have reached consensus
+			consensus_result = self.find_consensus("PJF", item)[0]
+			if consensus_result is not None:
+				self.processed_by_PJF += 1
+				# if the item evaluated True for the PFJ then adjust selectivity
+				self.PJF_selectivity_est = (self.PJF_selectivity_est*(self.processed_by_PJF-1)+self.evaluated_with_PJF[i])/self.processed_by_PJF
+				# adjust our cost estimates for evaluating PJF
+				self.PJF_cost_est = (self.PJF_cost_est*(len(self.evaluated_with_PJF)-1)+PJF_cost)/self.processed_by_PJF
+				timer_val += self.TIME_TO_EVAL_PJF
+				self.full_timer += self.TIME_TO_EVAL_PJF
 
         if self.DEBUG:
             print "************** PJF CHECKING ITEM ****************"
@@ -1019,39 +1030,50 @@ class Join():
             timer_val += self.JOIN_TIME
             self.full_timer += self.JOIN_TIME
             # If it is accepted in join process
-            if(random() < self.JOIN_SELECTIVITY):
-                self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
-                self.processed_by_join += 1
-                self.num_join_items += 1
-                # Adjust join cost estimates
-                self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
-                
-                # DEBUGGING
-                if self.DEBUG:
-                    print "ACCEPTED BY JOIN----------"
-                    print "TIMER VALUE: " + str(timer_val)
-                    print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
-                    print "PJF cost estimate: " + str(self.PJF_cost_est)
-                    print "Join selectivity estimate: " + str(self.join_selectivity_est)
-                    print "Join cost estimate: " + str(self.join_cost_est)
-                    print "--------------------------"
-                
-                return True, timer_val
-        # If it is not accepted in join process
-        self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
-        self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
-        
-        # DEBUGGING
-        if self.DEBUG:
-            print "MATCHED BUT REJECTED BY JOIN------------"
-            print "TIMER VALUE: " + str(timer_val)
-            print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
-            print "PJF cost estimate: " + str(self.PJF_cost_est)
-            print "Join selectivity estimate: " + str(self.join_selectivity_est)
-            print "Join cost estimate: " + str(self.join_cost_est)
-            print "----------------------------------------"
+			should_join = random() < self.JOIN_SELECTIVITY
+			#add a vote to matches for this item
+			if not self.votes_for_matches[(i,j)]:
+				self.votes_for_matches[(i,j)] = (0,0)
+			if eval_results:
+				self.votes_for_matches[(i,j)][0] += 1
+			else:
+				self.votes_for_matches[(i,j)][1] += 1
+			#check if we have reached consensus
+			consensus_result = self.find_consensus("small_p", (i,j))[0]
+			if consensus_result is not None:
+				if consensus_result:
+					self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
+					self.processed_by_join += 1
+					self.num_join_items += 1
+					# Adjust join cost estimates
+					self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
+					
+					# DEBUGGING
+					if self.DEBUG:
+						print "ACCEPTED BY JOIN----------"
+						print "TIMER VALUE: " + str(timer_val)
+						print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
+						print "PJF cost estimate: " + str(self.PJF_cost_est)
+						print "Join selectivity estimate: " + str(self.join_selectivity_est)
+						print "Join cost estimate: " + str(self.join_cost_est)
+						print "--------------------------"
+					
+					return True, timer_val
+				# If it is not accepted in join process
+				self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
+				self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
+				
+				# DEBUGGING
+				if self.DEBUG:
+					print "MATCHED BUT REJECTED BY JOIN------------"
+					print "TIMER VALUE: " + str(timer_val)
+					print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
+					print "PJF cost estimate: " + str(self.PJF_cost_est)
+					print "Join selectivity estimate: " + str(self.join_selectivity_est)
+					print "Join cost estimate: " + str(self.join_cost_est)
+					print "----------------------------------------"
 
-        return False, timer_val
+				return False, timer_val
 
 	#----------------------- PJF Join Helpers -----------------------#
 	## @param self
@@ -1097,9 +1119,7 @@ class Join():
 		else:
 			matches, PW_timer = self.get_matches_l2(ip_or_pred, PW_timer)
 
-		if not consensus_hit:
-			return "Not yet consensus", PW_timer
-		else:
+		for match in matches:
 			#save costs and matches for estimates later
 			if itemlist == self.list1:
 				self.PW_cost_est_1 += [PW_timer]
@@ -1580,24 +1600,34 @@ class Join():
 			small_p_timer += self.TIME_TO_EVAL_SMALL_P
 			#for preliminary testing, we randomly choose whether or not an item passes
 			eval_results = random.random() < self.SMALL_P_SELECTIVITY
-			# Update the selectivity
-			self.small_p_selectivity_est = (self.small_p_selectivity_est*(self.processed_by_smallP)+eval_results)/(self.processed_by_smallP+1)
-			#increment the number of items 
-			self.processed_by_smallP += 1
-			#if the item does not pass, we remove it from the list entirely
-			if not eval_results:
-				self.list2.remove(item)
-				self.failed_by_smallP.append(item)
-				print item + " eliminated"
-			#if the item does pass, we add it to the list of things already evaluated
+			#add a vote to small_p for this item
+			if not self.votes_for_small_p[item]:
+				self.votes_for_small_p[item] = (0,0)
+			if eval_results:
+				self.votes_for_small_p[item][0] += 1
 			else:
-				self.evaluated_with_smallP.append(item)
-			if self.DEBUG:
-				print "SMALL P JUST RUN---------"
-				print "small p cost estimate: " + str(self.small_p_cost_est)
-				print "small p selectivity: " + str(self.small_p_selectivity_est)
-				print "-------------------------"
-			return eval_results, small_p_timer
+				self.votes_for_small_p[item][1] += 1
+			#check if we have reached consensus
+			consensus_result = self.find_consensus("small_p", item)[0]
+			if consensus_result is not None:
+				# Update the selectivity
+				self.small_p_selectivity_est = (self.small_p_selectivity_est*(self.processed_by_smallP)+eval_results)/(self.processed_by_smallP+1)
+				#increment the number of items 
+				self.processed_by_smallP += 1
+				#if the item does not pass, we remove it from the list entirely
+				if not consensus_results:
+					self.list2.remove(item)
+					self.failed_by_smallP.append(item)
+					print item + " eliminated"
+				#if the item does pass, we add it to the list of things already evaluated
+				else:
+					self.evaluated_with_smallP.append(item)
+				if self.DEBUG:
+					print "SMALL P JUST RUN---------"
+					print "small p cost estimate: " + str(self.small_p_cost_est)
+					print "small p selectivity: " + str(self.small_p_selectivity_est)
+					print "-------------------------"
+				return consensus_results, small_p_timer
 
 	## @param self
 	# @return the results if both lists are empty and thus the join is done, otherwise returns None
@@ -1637,10 +1667,112 @@ class Join():
 	#	would return true if the the item passed the task a certain number of times TODO: clarify
 	def find_consensus(self, for_task, entry):
 		if for_task == "small_p":
+			votes_yes, votes_no = self.votes_for_small_p[entry]
+			votes_cast = votes_no+votes_yes
+			larger = max(votes_yes,votes_no)
+			smaller = min(votes_yes,votes_no)
+			single_max = int(1+math.ceil(toggles.CUT_OFF/2.0))
+			uncertLevel = 2
+			if toggles.BAYES_ENABLED:
+				if self.value > 0:
+					uncertLevel = btdtr(votes_yes+1, votes_no+1, toggles.DECISION_THRESHOLD)
+				else:
+					uncertLevel = btdtr(votes_no+1, votes_yes+1, toggles.DECISION_THRESHOLD)
+			#print("Uncertainty: " + str(uncertLevel))
+
+			if votes_cast >= toggles.CUT_OFF:
+				#print("Most ambiguity")
+				return larger == votes_yes, 4
+
+			elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
+				#print("Unambiguous")
+				return larger == votes_yes, 1
+
+			elif larger >= single_max:
+				if smaller < single_max*(1.0/3.0): #TODO un-hard-code this part
+					#print("Unambiguous+")
+					return larger == votes_yes, 1
+				elif smaller < single_max*(2.0/3.0):
+					#print("Medium ambiguity")
+					return larger == votes_yes, 2
+				else:
+					#print("Low ambiguity")
+					return larger == votes_yes, 3
+
+			else:
+				return None, 0
 			#...
 		elif for_task == "PJF":
+			votes_yes, votes_no = self.votes_for_pjf[entry]
+			votes_cast = votes_no+votes_yes
+			larger = max(votes_yes,votes_no)
+			smaller = min(votes_yes,votes_no)
+			single_max = int(1+math.ceil(toggles.CUT_OFF/2.0))
+			uncertLevel = 2
+			if toggles.BAYES_ENABLED:
+				if self.value > 0:
+					uncertLevel = btdtr(votes_yes+1, votes_no+1, toggles.DECISION_THRESHOLD)
+				else:
+					uncertLevel = btdtr(votes_no+1, votes_yes+1, toggles.DECISION_THRESHOLD)
+			#print("Uncertainty: " + str(uncertLevel))
+
+			if votes_cast >= toggles.CUT_OFF:
+				#print("Most ambiguity")
+				return 4
+
+			elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
+				#print("Unambiguous")
+				return 1
+
+			elif larger >= single_max:
+				if smaller < single_max*(1.0/3.0): #TODO un-hard-code this part
+					#print("Unambiguous+")
+					return 1
+				elif smaller < single_max*(2.0/3.0):
+					#print("Medium ambiguity")
+					return 2
+				else:
+					#print("Low ambiguity")
+					return 3
+
+			else:
+				return 0
 			#...
 		elif for_task == "join":
+			votes_yes, votes_no = self.votes_for_matches[entry]
+			votes_cast = votes_no+votes_yes
+			larger = max(votes_yes,votes_no)
+			smaller = min(votes_yes,votes_no)
+			single_max = int(1+math.ceil(toggles.CUT_OFF/2.0))
+			uncertLevel = 2
+			if toggles.BAYES_ENABLED:
+				if self.value > 0:
+					uncertLevel = btdtr(votes_yes+1, votes_no+1, toggles.DECISION_THRESHOLD)
+				else:
+					uncertLevel = btdtr(votes_no+1, votes_yes+1, toggles.DECISION_THRESHOLD)
+			#print("Uncertainty: " + str(uncertLevel))
+
+			if votes_cast >= toggles.CUT_OFF:
+				#print("Most ambiguity")
+				return 4
+
+			elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
+				#print("Unambiguous")
+				return 1
+
+			elif larger >= single_max:
+				if smaller < single_max*(1.0/3.0): #TODO un-hard-code this part
+					#print("Unambiguous+")
+					return 1
+				elif smaller < single_max*(2.0/3.0):
+					#print("Medium ambiguity")
+					return 2
+				else:
+					#print("Low ambiguity")
+					return 3
+
+			else:
+				return 0
 			#...
 		else:
 			raise Exception "Cannot find consensus for: " + str(for_task)

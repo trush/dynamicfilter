@@ -18,11 +18,12 @@ def syn_load_data():
 		q = Question.objects.create(question_ID=ID, question_text="question" + str(ID))
 		
 		#currently randomly set joinability
-		if(random.random() > 0.5):
-			pred = Predicate.objects.create(predicate_ID=ID, question=q, joinable=True)
-		else:
-			pred = Predicate.objects.create(predicate_ID=ID, question=q, joinable=False)
-		print pred.joinable
+		if toggles.USE_JOINS:
+			if(random.random() > 0.5):
+				pred = Predicate.objects.create(predicate_ID=ID, question=q, joinable=True)
+			else:
+				pred = Predicate.objects.create(predicate_ID=ID, question=q, joinable=False)
+		
 
 		pred.setTrueSelectivity(toggles.switch_list[0][1+ID][0])
 		pred.setTrueAmbiguity(toggles.switch_list[0][1+ID][1])
