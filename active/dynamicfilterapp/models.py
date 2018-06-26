@@ -700,7 +700,6 @@ class IP_Pair(models.Model):
 
 	def distribute_task(self):
 		self.tasks_out += 1
-		# self.tasks_released += 1 # TODO: get rid
 		self.save(update_fields = ["tasks_out"]) #"tasks_released"
 
 	def collect_task(self):

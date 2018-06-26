@@ -164,10 +164,6 @@ def nu_pending_eddy(incompleteIP):
 		weightList = np.array([pred.num_tickets for pred in predicates])
 		totalTickets = np.sum(weightList)
 		probList = np.true_divide(weightList, totalTickets)
-		if len(probList) == 0:
-			print incompleteIP
-			print probList
-			print predicates
 		chosenPred = np.random.choice(predicates, p=probList)
 
 		pickFrom = incompleteIP.filter(predicate = chosenPred)
