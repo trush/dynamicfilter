@@ -1116,61 +1116,87 @@ class Join():
 		#Get results of that task
 		if itemlist == self.list1:
 			matches, PW_timer = self.get_matches(ip_or_pred, PW_timer)
+			itemList2 = self.list2
+			item1 = ip_or_pred.item
 		else:
 			matches, PW_timer = self.get_matches_l2(ip_or_pred, PW_timer)
-
-		for match in matches:
-			#save costs and matches for estimates later
-			if itemlist == self.list1:
-				self.PW_cost_est_1 += [PW_timer]
-				self.num_matches_per_item_1 += [len(matches)]
+			itemList2 = self.list1
+			item1 = self.sec_item_in_progress
+		done = True
+		for item2 in itemList2:
+			#update votes for consensus for each item pair 
+			if itemList == self.list1:
+				if not (item1,item2) in self.votes_for_matches:
+					self.votes_for_matches[(item1,item2)] = (0,0)
+				if (item1, item2) in matches:
+					self.votes_for_matches[(item1,item2)][0] += 1
+				else:
+					self.votes_for_matches[(item1,item2)][1] += 1
+				consensus_found = self.find_consensus("join", (item1,item2))
 			else:
-				self.PW_cost_est_2 += [PW_timer]
-				self.num_matches_per_item_2 += [len(matches)]
+				if not (item2,item1) in self.votes_for_matches:
+					self.votes_for_matches[(item2,item1)] = (0,0)
+				if (item2, item1) in matches:
+					self.votes_for_matches[(item2,item1)][0] += 1
+				else:
+					self.votes_for_matches[(item2,item1)][1] += 1
+				consensus_found = self.find_consensus("join", (item2,item1))
+			if not consensus_found:
+				done = False
 
-			#remove processed item from itemlist
-			if itemlist == self.list1 and ip_or_pred.item in itemlist:
-				self.list1.remove(ip_or_pred.item)
-			elif ip_or_pred.item in itemlist:
-				self.list2.remove(ip_or_pred.item)
-				self.evaluated_with_smallP.remove(ip_or_pred.item)
-			if self.DEBUG:
-				print "RAN PAIRWISE JOIN ----------"
-				print "PW AVERAGE COST FOR L1: " + str(numpy.mean(self.PW_cost_est_1))
-				print "PW TOTAL COST FOR L1: " + str(numpy.sum(self.PW_cost_est_1))
-				print "PW AVERAGE COST FOR L2: " + str(numpy.mean(self.PW_cost_est_2))
-				print "PW TOTAL COST FOR L2: " + str(numpy.sum(self.PW_cost_est_2))
-				print "----------------------------"
-			# we want to add the new items to list2 and keep track of the sample size
-			if itemlist == self.list1:
-				if not self.has_2nd_list:
-					for match in matches:
-						# add to list 2
-						if match[1] not in self.list2 and match[1] not in self.failed_by_smallP:
-							self.list2 += [match[1]]
-						# add to f_dictionary
-						if not any(self.f_dictionary):
-							self.f_dictionary[1] = [match[1]]
-						else:
-							been_added = False
-							entry = 1 # known first key
-							# try to add it to the dictionary
-							while not been_added:
-								if match[1] in self.f_dictionary[entry]:
-									self.f_dictionary[entry].remove(match[1])
-									if entry+1 in self.f_dictionary:
-										self.f_dictionary[entry+1] += [match[1]]
-										been_added = True
-									else:
-										self.f_dictionary[entry+1] = [match[1]]
-										been_added = True
-								entry += 1
-								if not entry in self.f_dictionary:
-									break
-							if not been_added:
-								self.f_dictionary[1] += [match[1]]
-				self.total_sample_size += len(matches)
-			return matches, PW_timer
+			
+			if done:
+				#save costs and matches for estimates later
+				if itemlist == self.list1:
+					self.PW_cost_est_1 += [PW_timer]
+					self.num_matches_per_item_1 += [len(matches)]
+				else:
+					self.PW_cost_est_2 += [PW_timer]
+					self.num_matches_per_item_2 += [len(matches)]
+
+				#remove processed item from itemlist
+				if itemlist == self.list1 and ip_or_pred.item in itemlist:
+					self.list1.remove(ip_or_pred.item)
+				elif ip_or_pred.item in itemlist:
+					self.list2.remove(ip_or_pred.item)
+					self.evaluated_with_smallP.remove(ip_or_pred.item)
+				if self.DEBUG:
+					print "RAN PAIRWISE JOIN ----------"
+					print "PW AVERAGE COST FOR L1: " + str(numpy.mean(self.PW_cost_est_1))
+					print "PW TOTAL COST FOR L1: " + str(numpy.sum(self.PW_cost_est_1))
+					print "PW AVERAGE COST FOR L2: " + str(numpy.mean(self.PW_cost_est_2))
+					print "PW TOTAL COST FOR L2: " + str(numpy.sum(self.PW_cost_est_2))
+					print "----------------------------"
+				# we want to add the new items to list2 and keep track of the sample size
+				if itemlist == self.list1:
+					if not self.has_2nd_list:
+						for match in matches:
+							# add to list 2
+							if match[1] not in self.list2 and match[1] not in self.failed_by_smallP:
+								self.list2 += [match[1]]
+							# add to f_dictionary
+							if not any(self.f_dictionary):
+								self.f_dictionary[1] = [match[1]]
+							else:
+								been_added = False
+								entry = 1 # known first key
+								# try to add it to the dictionary
+								while not been_added:
+									if match[1] in self.f_dictionary[entry]:
+										self.f_dictionary[entry].remove(match[1])
+										if entry+1 in self.f_dictionary:
+											self.f_dictionary[entry+1] += [match[1]]
+											been_added = True
+										else:
+											self.f_dictionary[entry+1] = [match[1]]
+											been_added = True
+									entry += 1
+									if not entry in self.f_dictionary:
+										break
+								if not been_added:
+									self.f_dictionary[1] += [match[1]]
+					self.total_sample_size += len(matches)
+				return matches, PW_timer
 
 	#----------------------- PW Join Helpers -----------------------#
 
