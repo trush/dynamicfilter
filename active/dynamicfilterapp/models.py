@@ -1112,6 +1112,7 @@ class Join():
 		avg_cost = 0
 		num_items = 0
 		PW_timer = 0
+		consensus_matches = []
 
 		#Get results of that task
 		if itemlist == self.list1:
@@ -1125,24 +1126,26 @@ class Join():
 		done = True
 		for item2 in itemList2:
 			#update votes for consensus for each item pair 
-			if itemList == self.list1:
-				if not (item1,item2) in self.votes_for_matches:
-					self.votes_for_matches[(item1,item2)] = (0,0)
-				if (item1, item2) in matches:
-					self.votes_for_matches[(item1,item2)][0] += 1
-				else:
-					self.votes_for_matches[(item1,item2)][1] += 1
-				consensus_found = self.find_consensus("join", (item1,item2))
+			match = []
+
+			if itemList = self.list1:
+				match = (item1,item2)
 			else:
-				if not (item2,item1) in self.votes_for_matches:
-					self.votes_for_matches[(item2,item1)] = (0,0)
-				if (item2, item1) in matches:
-					self.votes_for_matches[(item2,item1)][0] += 1
-				else:
-					self.votes_for_matches[(item2,item1)][1] += 1
-				consensus_found = self.find_consensus("join", (item2,item1))
+				match = (item2,item1)
+
+				
+			if not match in self.votes_for_matches:
+				self.votes_for_matches[match] = (0,0)
+			if match in matches:
+				self.votes_for_matches[match][0] += 1
+			else:
+				self.votes_for_matches[match][1] += 1
+			consensus_found = self.find_consensus("join", match)
 			if not consensus_found:
 				done = False
+			else:
+				consensus_matches += match
+
 
 			
 			if done:
@@ -1601,7 +1604,6 @@ class Join():
 			print "REAL COST 4 = " + str(cost_4)
 			print "REAL COST 5 = " + str(cost_5)
 		return [cost_1, cost_2, cost_3, cost_4, cost_5]
-
 
 	## @param item: the item to be evaluated
 	# @param self
