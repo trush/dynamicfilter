@@ -100,7 +100,7 @@ class Predicate(models.Model):
 
 
 	def set_task_types(self, inList):
-		return self.task_types = json.dumps(inList)
+		self.task_types = json.dumps(inList)
 
 	def get_task_types(self):
 		return json.loads(self.task_types)
@@ -989,10 +989,10 @@ class Join():
 	# @return evaluated_with_PJF[item] : the results of the evaluation (boolean) from the saved dictionary
 	# @return timer_val : time it took to compute
 	def prejoin_filter(self, item):
-        timer_val = 0
-        if(not item in self.evaluated_with_PJF):
-            # save results of PJF to avoid repeated work
-            self.evaluated_with_PJF[item],PJF_cost = self.evaluate(PJF,item)
+		timer_val = 0
+		if(not item in self.evaluated_with_PJF):
+			# save results of PJF to avoid repeated work
+			self.evaluated_with_PJF[item],PJF_cost = self.evaluate(PJF,item)
 			#add a vote to pjf for this item
 			if not self.votes_for_pjf[item]:
 				self.votes_for_pjf[item] = (0,0)
@@ -1011,25 +1011,25 @@ class Join():
 				timer_val += self.TIME_TO_EVAL_PJF
 				self.full_timer += self.TIME_TO_EVAL_PJF
 
-        if self.DEBUG:
-            print "************** PJF CHECKING ITEM ****************"
-        return evaluated_with_PJF[item], timer_val
+		if self.DEBUG:
+			print "************** PJF CHECKING ITEM ****************"
+		return evaluated_with_PJF[item], timer_val
 
 	## @param self
 	# @param i : item from one list
 	# @param j : an item from a second list
 	# @return boolean value of the results of the join, time taken to compute the join
 	# @remarks Join method also updates all relevant estimate variables.
-    def join_items(self, i, j):
-        timer_val = 0
-        if (i,j) in self.results_from_all_join:
-            return True, 0
-        if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
-            # Generate task of current pair
-            # Choose whether to add to num_join_items
-            timer_val += self.JOIN_TIME
-            self.full_timer += self.JOIN_TIME
-            # If it is accepted in join process
+	def join_items(self, i, j):
+			timer_val = 0
+			if (i,j) in self.results_from_all_join:
+				return True, 0
+			if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
+				# Generate task of current pair
+				# Choose whether to add to num_join_items
+				timer_val += self.JOIN_TIME
+				self.full_timer += self.JOIN_TIME
+				# If it is accepted in join process
 			should_join = random() < self.JOIN_SELECTIVITY
 			#add a vote to matches for this item
 			if not self.votes_for_matches[(i,j)]:
@@ -1520,11 +1520,11 @@ class Join():
 	#----------------------- Main Join Helpers -----------------------#
 
 	## @param self
-    # @return list of cost estimates of 5 paths
-    # @remarks Finds the cost estimates of the 5 paths available to go down using the instance variables for estimating different task times. 
-    #   Path 1 = PJF w/ small predicate applied early. 
-    #   Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2.
-    #   Helper for assign_join_tasks()
+	# @return list of cost estimates of 5 paths
+	# @remarks Finds the cost estimates of the 5 paths available to go down using the instance variables for estimating different task times. 
+	#   Path 1 = PJF w/ small predicate applied early. 
+	#   Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2.
+	#   Helper for assign_join_tasks()
 	def find_costs(self):
 		""" Finds the cost estimates of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
 		Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
@@ -1568,10 +1568,10 @@ class Join():
 		return [cost_1, cost_2, cost_3, cost_4, cost_5]
 
 	## @param self
-    # @return list of real costs of 5 paths
-    # @remarks Finds the real costs of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
-    #    Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2
-    def find_real_costs(self):
+	# @return list of real costs of 5 paths
+	# @remarks Finds the real costs of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
+	#	Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2
+	def find_real_costs(self):
 		""" Finds the real costs of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
 		Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
 		real_losp = 1 - (1-self.JOIN_SELECTIVITY)**(len(self.list1))
@@ -1604,13 +1604,13 @@ class Join():
 
 
 	## @param item: the item to be evaluated
-    # @param self
-    # @return eval_results : a boolean for whether or not the item passes the small predicate (the predicate that
-    #   applies to the secondary item list in a join, remnants of the otherall predicate which was broken up into a join)
-    # @return timer_val : this is the amount of time (time units) that it took to evaluate the small predicate
-    # @remarks Evaluates the small predicate, adding the results of that into a global dictionary. 
-    #   Also adjusts the global estimates for the cost and selectivity of the small predicate.
-    def small_pred(self, item):
+	# @param self
+	# @return eval_results : a boolean for whether or not the item passes the small predicate (the predicate that
+	#   applies to the secondary item list in a join, remnants of the otherall predicate which was broken up into a join)
+	# @return timer_val : this is the amount of time (time units) that it took to evaluate the small predicate
+	# @remarks Evaluates the small predicate, adding the results of that into a global dictionary. 
+	#   Also adjusts the global estimates for the cost and selectivity of the small predicate.
+	def small_pred(self, item):
 		""" Evaluates the small predicate, adding the results of that into a global dictionary. 
 		Also adjusts the global estimates for the cost and selectivity of the small predicate."""
 		small_p_timer = 0
@@ -1666,11 +1666,11 @@ class Join():
 		return None
 
 	## @param self
-    # @return true if the current size of the list is within a certain threshold of the total size of the list (according to the chao estimator)
-    #   and false otherwise.
-    # @remarks Uses the Chao92 equation to estimate population size during enumeration.
+	# @return true if the current size of the list is within a certain threshold of the total size of the list (according to the chao estimator)
+	#   and false otherwise.
+	# @remarks Uses the Chao92 equation to estimate population size during enumeration.
 	#	To understand the math computed in this function see: http://www.cs.albany.edu/~jhh/courses/readings/trushkowsky.icde13.enumeration.pdf 
-    def chao_estimator(self):
+	def chao_estimator(self):
 		# prepping variables
 		c_hat = 1-float(len(self.f_dictionary[1]))/self.total_sample_size
 		sum_fis = 0
