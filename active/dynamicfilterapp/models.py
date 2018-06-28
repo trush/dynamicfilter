@@ -1145,58 +1145,58 @@ class Join():
 
 
 			
-			if done:
-				#save costs and matches for estimates later
-				if itemlist == self.list1:
-					self.PW_cost_est_1 += [PW_timer]
-					self.num_matches_per_item_1 += [len(consensus_matches)]
-				else:
-					self.PW_cost_est_2 += [PW_timer]
-					self.num_matches_per_item_2 += [len(consensus_matches)]
+		if done:
+			#save costs and matches for estimates later
+			if itemlist == self.list1:
+				self.PW_cost_est_1 += [PW_timer]
+				self.num_matches_per_item_1 += [len(consensus_matches)]
+			else:
+				self.PW_cost_est_2 += [PW_timer]
+				self.num_matches_per_item_2 += [len(consensus_matches)]
 
-				#remove processed item from itemlist
-				if itemlist == self.list1 and ip_or_pred.item in itemlist:
-					self.list1.remove(ip_or_pred.item)
-				elif ip_or_pred.item in itemlist:
-					self.list2.remove(ip_or_pred.item)
-					self.evaluated_with_smallP.remove(ip_or_pred.item)
-				if self.DEBUG:
-					print "RAN PAIRWISE JOIN ----------"
-					print "PW AVERAGE COST FOR L1: " + str(numpy.mean(self.PW_cost_est_1))
-					print "PW TOTAL COST FOR L1: " + str(numpy.sum(self.PW_cost_est_1))
-					print "PW AVERAGE COST FOR L2: " + str(numpy.mean(self.PW_cost_est_2))
-					print "PW TOTAL COST FOR L2: " + str(numpy.sum(self.PW_cost_est_2))
-					print "----------------------------"
-				# we want to add the new items to list2 and keep track of the sample size
-				if itemlist == self.list1:
-					if not self.has_2nd_list:
-						for match in consensus_matches:
-							# add to list 2
-							if match[1] not in self.list2 and match[1] not in self.failed_by_smallP:
-								self.list2 += [match[1]]
-							# add to f_dictionary
-							if not any(self.f_dictionary):
-								self.f_dictionary[1] = [match[1]]
-							else:
-								been_added = False
-								entry = 1 # known first key
-								# try to add it to the dictionary
-								while not been_added:
-									if match[1] in self.f_dictionary[entry]:
-										self.f_dictionary[entry].remove(match[1])
-										if entry+1 in self.f_dictionary:
-											self.f_dictionary[entry+1] += [match[1]]
-											been_added = True
-										else:
-											self.f_dictionary[entry+1] = [match[1]]
-											been_added = True
-									entry += 1
-									if not entry in self.f_dictionary:
-										break
-								if not been_added:
-									self.f_dictionary[1] += [match[1]]
-					self.total_sample_size += len(consensus_matches)
-				return consensus_matches, PW_timer
+			#remove processed item from itemlist
+			if itemlist == self.list1 and ip_or_pred.item in itemlist:
+				self.list1.remove(ip_or_pred.item)
+			elif ip_or_pred.item in itemlist:
+				self.list2.remove(ip_or_pred.item)
+				self.evaluated_with_smallP.remove(ip_or_pred.item)
+			if self.DEBUG:
+				print "RAN PAIRWISE JOIN ----------"
+				print "PW AVERAGE COST FOR L1: " + str(numpy.mean(self.PW_cost_est_1))
+				print "PW TOTAL COST FOR L1: " + str(numpy.sum(self.PW_cost_est_1))
+				print "PW AVERAGE COST FOR L2: " + str(numpy.mean(self.PW_cost_est_2))
+				print "PW TOTAL COST FOR L2: " + str(numpy.sum(self.PW_cost_est_2))
+				print "----------------------------"
+			# we want to add the new items to list2 and keep track of the sample size
+			if itemlist == self.list1:
+				if not self.has_2nd_list:
+					for match in consensus_matches:
+						# add to list 2
+						if match[1] not in self.list2 and match[1] not in self.failed_by_smallP:
+							self.list2 += [match[1]]
+						# add to f_dictionary
+						if not any(self.f_dictionary):
+							self.f_dictionary[1] = [match[1]]
+						else:
+							been_added = False
+							entry = 1 # known first key
+							# try to add it to the dictionary
+							while not been_added:
+								if match[1] in self.f_dictionary[entry]:
+									self.f_dictionary[entry].remove(match[1])
+									if entry+1 in self.f_dictionary:
+										self.f_dictionary[entry+1] += [match[1]]
+										been_added = True
+									else:
+										self.f_dictionary[entry+1] = [match[1]]
+										been_added = True
+								entry += 1
+								if not entry in self.f_dictionary:
+									break
+							if not been_added:
+								self.f_dictionary[1] += [match[1]]
+				self.total_sample_size += len(consensus_matches)
+			return consensus_matches, PW_timer
 
 	#----------------------- PW Join Helpers -----------------------#
 
