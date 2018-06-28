@@ -24,11 +24,11 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
-NUM_QUESTIONS = 2
-NUM_ITEMS = 40
+NUM_QUESTIONS = 6
+NUM_ITEMS = 100
 SIN = -1
 SELECTIVITY_GRAPH = False
-switch_list = [ (0, (0,0), (0,0))]
+switch_list = [(0, (0,0), (0,0), (0,0), (0,0), (0,0), (0,0))]
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
@@ -52,21 +52,23 @@ EDDY_SYS = 5
 ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 150
-PENDING_QUEUE_SIZE = 40
+PENDING_QUEUE_SIZE = 2000
 QUEUE_SUM = 100
 
-IP_LIMIT_SYS = 0   # type of predicate limit for an item
-ITEM_IP_LIMIT = 4   # number of predicates an item can be in
+IP_LIMIT_SYS = 2   # type of predicate limit for an item
+ITEM_IP_LIMIT = 1   # number of predicates an item can be in
 
 ADAPTIVE_QUEUE = False
 ADAPTIVE_QUEUE_MODE = 0
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
 QUEUE_LENGTH_ARRAY = [(0, 4), (3, 15), (10, 30)] # settings for above mode [(#tickets,qlength)]
-ACTIVE_TASKS_ARRAY = [(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)] #Only matters (atm) if batch assignment on
+ACTIVE_TASKS_ARRAY = [(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)] #Only matters (atm) if simulate time assignment on
 #[(0,0,0),(1,10,40),(10,75,100),(20,150,200),(40,350,450)]
-BATCH_ASSIGNMENT = 2 # 0 - No batches, 1 - Refill limit, 2 - Periodic refill
+BATCH_ASSIGNMENT = 1 # 0 - No batches, 1 - Refill limit, 2 - Periodic refill
 REFILL_PERIOD = 100
+
+TICKETING_SYS = 1
 
 EPSILON = 0.7
 REWARD = 1.7
@@ -118,7 +120,7 @@ DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
 NUM_SIM = 0
-NUM_GRAPH_SIM = 1
+NUM_GRAPH_SIM = 0
 
 SIMULATE_TIME = True # simulate time passing/concurrency
 
@@ -131,7 +133,7 @@ MAX_TASKS_OUT = 40
 MAX_TASKS_COLLECTED = CUT_OFF
 
 MULTI_SIM = True 
-MULTI_SIM_ARRAY = [(6,(0, 1),[(0,0,0),(1,10,40),(10,150,200),(50,350,450)],[(0,4),(3,15),(10,30)],[(0,(0.2,0.25,.5),(0.2,0.25,.5))],0)]
+MULTI_SIM_ARRAY = [(10,(0, 1),[(0, 0, 0), (1, 350, 450)],[(0,4),(3,15),(10,30)],[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],1,1)]
 # ************************************************************************ #
 
 
@@ -214,7 +216,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'ADAPTIVE_CONSENSUS','ADAPTIVE_CONSENSUS_MODE','PREDICATE_SPECIFIC',
             'CONSENSUS_STATUS_LIMITS','CONSENSUS_SIZE_LIMITS','RENO_BONUS_RATIO',
             'CONSENSUS_STATUS','K','W_MAX','CUBIC_C','CUBIC_B','NUM_WORKERS',
-            'DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
+            'DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE', 'TICKETING_SYS',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
             'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS',
             'DUMMY_TASK_OPTION','GEN_GRAPHS','NUM_ITEMS','SIN', 'QUEUE_SUM',

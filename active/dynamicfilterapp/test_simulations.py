@@ -2090,6 +2090,7 @@ class SimulationTest(TransactionTestCase):
 		origSwitchList = toggles.switch_list
 		origAdaptiveQueueMode = toggles.ADAPTIVE_QUEUE_MODE
 		origQueueLength = toggles.PENDING_QUEUE_SIZE
+		origTicketing = toggles.TICKETING_SYS
 			
 		settingCount = 0
 		for setting in toggles.MULTI_SIM_ARRAY:
@@ -2103,6 +2104,7 @@ class SimulationTest(TransactionTestCase):
 			toggles.QUEUE_LENGTH_ARRAY = setting[3] 	# adaptive queue length
 			toggles.switch_list = setting[4]			# predicate selectivity, ambiguity, cost settings
 			toggles.ADAPTIVE_QUEUE_MODE = setting [5]	
+			toggles.TICKETING_SYS = setting[6]
 
 			# set up output csv file
 			save = []
@@ -2148,6 +2150,7 @@ class SimulationTest(TransactionTestCase):
 		toggles.switch_list = origSwitchList
 		toggles.ADAPTIVE_QUEUE_MODE = origAdaptiveQueueMode
 		toggles.PENDING_QUEUE_SIZE = origQueueLength
+		toggles.TICKETING_SYS = origTicketing
 			
 
 	def collect_act1_data(self, timed):
