@@ -592,6 +592,7 @@ class IP_Pair(models.Model):
 			if self.found_consensus():
 				self.isDone = True
 				self.save(update_fields=["isDone"])
+				self.remove_from_queue()
 				self.predicate.update_ip_count()
 
 				if toggles.TICKETING_SYS == 0 and not self.is_false() and self.predicate.num_tickets > 1:
@@ -599,15 +600,16 @@ class IP_Pair(models.Model):
 
 				if self.is_false():
 					# update score when item fails
-					self.predicate.award_ticket()
+					if toggles.TICKETING_SYS == 1:
+						self.predicate.award_ticket()
 					self.set_end_time(self.predicate.num_wickets)
 					if (toggles.EDDY_SYS == 6):
 						self.predicate.update_pred(toggles.REWARD)
 					if (toggles.EDDY_SYS == 7):
 						self.predicate.update_pred_rank(toggles.REWARD)
 					itemPairs = IP_Pair.objects.filter(item__hasFailed=True,item=self.item)
-					activePairs = itemPairs.filter(inQueue=True,isDone = False)
-					activePairs.update(isDone=True)
+					itemPairs.update(isDone=True)
+					activePairs = itemPairs.filter(inQueue=True).filter(end_time=0)
 					for aPair in activePairs:
 						aPair.remove_from_queue()
 						if toggles.TICKETING_SYS == 0:
