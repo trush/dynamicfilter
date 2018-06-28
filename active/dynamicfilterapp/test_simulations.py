@@ -856,7 +856,12 @@ class SimulationTest(TransactionTestCase):
 			self.ticket_nums[pred+1] = []
 
 		#set up a join object for every join predicate
-		for pred in toggles.CHOSEN_PREDS:
+		for pred in Predicate.objects.all():
+			if pred.joinable:
+				if toggles.HAS_LIST2:
+					active_joins[pred] = Join(toggles.private_list2)
+				else:
+					active_joins[pred] = Join()
 
 		# add an entry to save the numbers of placeholder tasks
 		self.pred_active_tasks[0] = []
@@ -1100,7 +1105,7 @@ class SimulationTest(TransactionTestCase):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 
-						task, worker = self.issueTask(active_tasks, b_workers, time_clock, dictionary, switch)
+						task, worker = self.issueTask(active_tasks, active_joins, b_workers, time_clock, dictionary, switch)
 
 						if toggles.BATCH_ASSIGNMENT:
 							batch_tasks_out += 1

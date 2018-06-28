@@ -18,7 +18,7 @@ REAL_DATA = False # if False, use synethic data
 
 # ______ REAL DATA SETTINGS ______ #
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
-ITEM_TYPE = "Hotel"                   # "Hotel" or "Restaurant"
+ITEM_TYPE = "Hotel"       # "Hotel" or "Restaurant"
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
@@ -74,10 +74,37 @@ REWARD = 1.7
 
 
 
-# ************************** CONSENSUS SETTINGS ************************** #
+# ************************** JOIN SETTINGS ************************** #
 # ************************************************************************ #
 
 USE_JOINS = True
+## Settings #-----------------------###############
+
+JOIN_SELECTIVITY = 0.1
+
+    ## PJFjoin in particular
+PJF_SELECTIVITY = 0.3
+JOIN_TIME = 40.0 # TODO: RENAME
+TIME_TO_EVAL_PJF = 100.0
+
+    ## PWJoin in particular
+BASE_FIND_MATCHES = 60.0     #Basic requirement to find some matches
+FIND_SINGLE_MATCH_TIME = 7.0 #cost per match found
+AVG_MATCHES = 10.0 #average matches per item
+STDDEV_MATCHES = 2.0 #standard deviation of matches
+
+    ## small predicate in particular
+SMALL_P_SELECTIVITY = 0.5
+TIME_TO_EVAL_SMALL_P = 30.0
+
+    ## Other private variables used for simulations
+HAS_LIST2 = False
+private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
+
+#denotes how close the actual number of estimated 2nd list items must be found
+# to the estimated number for species estimation
+THRESHOLD = 0.1
+
 
 # ************************************************************************ #
 
@@ -86,7 +113,7 @@ USE_JOINS = True
 # ************************** CONSENSUS SETTINGS ************************** #
 # ************************************************************************ #
 
-NUM_CERTAIN_VOTES = 5               # Recomended val: 5 (unless using agressive bayes)
+NUM_CERTAIN_VOTES = 5            # Recomended val: 5 (unless using agressive bayes)
 ##VoteCutOff
 CUT_OFF = 21
                  #TODO test more stuff on synth data
@@ -121,7 +148,7 @@ CUBIC_B = (0.8)
 # ************************************************************************ #
 
 NUM_WORKERS = 1000
-DISTRIBUTION_TYPE = 0               # tells pick_worker how to choose workers
+DISTRIBUTION_TYPE = 0            # tells pick_worker how to choose workers
 DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
@@ -193,7 +220,7 @@ TRACK_ACTIVE_TASKS = True # Useful only for simulations with TIME
 TRACK_PLACEHOLDERS = True
 TRACK_WASTE = True  # Tracks tasks leftover from finished items
 
-EDDY_SET = [5]       # Used only when TRACK_ACTIVE_TASKS is true   
+EDDY_SET = [5]     # Used only when TRACK_ACTIVE_TASKS is true   
 QUEUE_SET = [40] 
 ACTIVE_TASKS_SET = [160]
 
@@ -242,7 +269,10 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'SELECTIVITY_GRAPH', 'CONSENSUS_STATUS_LIMITS', 'ACCURACY_COUNT', 'TRACK_SIZE',
             'ADAPTIVE_CONSENSUS', 'CONSENSUS_SIZE_LIMITS', 'RENO_BONUS_RATIO', 'BAYES_ENABLED', 'RESIZE_ACTIVE_TASKS',
             'TASKS_PER_SECOND', 'EPSILON', 'REWARD',
-            'MULTI_SIM', 'MULTI_SIM_ARRAY'
+            'MULTI_SIM', 'MULTI_SIM_ARRAY', 'USE_JOINS', 'JOIN_SELECTIVITY', 'PJF_SELECTIVITY',
+            'JOIN_TIME', 'TIME_TO_EVAL_PJF', 'BASE_FIND_MATCHES', 'FIND_SINGLE_MATCH_TIME',
+            'AVG_MATCHES', 'STDDEV_MATCHES', 'SMALL_P_SELECTIVITY', 'TIME_TO_EVAL_SMALL_P',
+            'HAS_LIST2', 'private_list2', 'THRESHOLD' 
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file

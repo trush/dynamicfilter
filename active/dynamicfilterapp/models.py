@@ -502,7 +502,7 @@ class IP_Pair(models.Model):
 	"""
 	item = models.ForeignKey(Item)
 	predicate = models.ForeignKey(Predicate)
-	task_types = models.CharField(default="")
+	task_types = models.CharField(default="", max_length = 400)
 
 	# tasks out at a given point in time
 	tasks_out = models.IntegerField(default=0)
@@ -761,11 +761,8 @@ class IP_Pair(models.Model):
 
 
 	def distribute_task(self):
-		#If the predicate is joinable, we need to increment its join progress
 		self.tasks_out += 1
-		self.save(update_fields = ["tasks_out"]) #"tasks_released"
-		self.save(update_fields = ["join_process"]) #"tasks_released"
-		self.save(update_fields = ["join_task_out"]) #"tasks_released"
+		self.save(update_fields = ["tasks_out"]) 
 
 	def collect_task(self):
 		self.tasks_out -= 1
@@ -867,30 +864,30 @@ class Join():
 		# Settings -----------------------#
 
 		## @remarks This is the selectivity of the join and determines whether an item-item tuple passes of fails the join.
-		self.JOIN_SELECTIVITY = 0.1
+		self.JOIN_SELECTIVITY = toggles.JOIN_SELECTIVITY
 		## @remarks This is the selectivity of the prejoin filter and determines whether a item passes or fails the PJF.
-		self.PJF_SELECTIVITY = 0.3
+		self.PJF_SELECTIVITY = toggles.PJF_SELECTIVITY
 		## @remarks This is the time it takes to determine if two items (one from list 1 and one from list2) "pass" the join. The join
 		# is usually performed after the items have gone through the prejoin filter. This is used in join_items() and find_real_costs().
-		self.JOIN_TIME = 40.0
+		self.JOIN_TIME = toggles.JOIN_TIME
 		## @remarks Time it takes to evaluate the prejoin filter for one item of list1 or list 2.
-		self.TIME_TO_EVAL_PJF = 100.0
+		self.TIME_TO_EVAL_PJF = toggles.TIME_TO_EVAL_PJF
 		## @remarks Basic requirement to find some matches, cost of generating the task and giving workers time to answer (even if answer is no matches)
-		self.BASE_FIND_MATCHES = 60.0
+		self.BASE_FIND_MATCHES = toggles.BASE_FIND_MATCHES
 		## @remarks The cost that each match found adds to the total cost of a pairwise join.
-		self.FIND_SINGLE_MATCH_TIME = 7.0 
+		self.FIND_SINGLE_MATCH_TIME = toggles.FIND_SINGLE_MATCH_TIME
 		## @remarks Average matches per item found from doing a pairwise join.
-		self.AVG_MATCHES = 10.0 
+		self.AVG_MATCHES = toggles.AVG_MATCHES
 		## @remarks Standard deviation of matches found from doing a pairwise join. 
-		self.STDDEV_MATCHES = 2.0 
+		self.STDDEV_MATCHES = toggles.STDDEV_MATCHES
 		## @remarks This is the selectivity of the small predicate (predicate on the second list)
-		self.SMALL_P_SELECTIVITY = 0.5
+		self.SMALL_P_SELECTIVITY = toggles.SMALL_P_SELECTIVITY
 		## @remark This is the time it takes to evaluate the small predicate (predicate on the second list)
-		self.TIME_TO_EVAL_SMALL_P = 30.0
+		self.TIME_TO_EVAL_SMALL_P = toggles.TIME_TO_EVAL_SMALL_P
 		## @remarks This is the real list 2, only used in returning answers. Not supposed to know about or use in
 		# any cost estimation or algorithmic decisions.
-		self.private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
-
+		self.private_list2 = toggles.private_list2
+		
 
 		# Estimates -----------------------#
 
@@ -956,7 +953,7 @@ class Join():
 
 		## @remarks Called in chao_estimator(). If the difference between the size of list2 and the size of the 
 		# estimate is less than this fraction of the size of the estimate then chao_estimator() will return True.
-		self.THRESHOLD = 0.1
+		self.THRESHOLD = toggles.THRESHOLD
 		## @remarks Internal pointer to which item from the secondary list we left off at (for Predicate-only
 		# tasks). Set/reset/used in main_join(). 
 		self.sec_item_in_progress = None
@@ -1128,7 +1125,7 @@ class Join():
 			#update votes for consensus for each item pair 
 			match = []
 
-			if itemList = self.list1:
+			if itemList == self.list1:
 				match = (item1,item2)
 			else:
 				match = (item2,item1)
@@ -1152,10 +1149,10 @@ class Join():
 				#save costs and matches for estimates later
 				if itemlist == self.list1:
 					self.PW_cost_est_1 += [PW_timer]
-					self.num_matches_per_item_1 += [len(matches)]
+					self.num_matches_per_item_1 += [len(consensus_matches)]
 				else:
 					self.PW_cost_est_2 += [PW_timer]
-					self.num_matches_per_item_2 += [len(matches)]
+					self.num_matches_per_item_2 += [len(consensus_matches)]
 
 				#remove processed item from itemlist
 				if itemlist == self.list1 and ip_or_pred.item in itemlist:
@@ -1173,7 +1170,7 @@ class Join():
 				# we want to add the new items to list2 and keep track of the sample size
 				if itemlist == self.list1:
 					if not self.has_2nd_list:
-						for match in matches:
+						for match in consensus_matches:
 							# add to list 2
 							if match[1] not in self.list2 and match[1] not in self.failed_by_smallP:
 								self.list2 += [match[1]]
@@ -1198,8 +1195,8 @@ class Join():
 										break
 								if not been_added:
 									self.f_dictionary[1] += [match[1]]
-					self.total_sample_size += len(matches)
-				return matches, PW_timer
+					self.total_sample_size += len(consensus_matches)
+				return consensus_matches, PW_timer
 
 	#----------------------- PW Join Helpers -----------------------#
 
@@ -1358,7 +1355,7 @@ class Join():
 					if not self.pairwise_pairs:
 						#if there are no pairs, we never run small_pred()
 						return None, 0
-					results, timer = self.small_pred(self.pairwise_pairs[0][1]):
+					results, timer = self.small_pred(self.pairwise_pairs[0][1])
 					if results: #2nd-list item passes small p
 						self.results_from_all_join += self.pairwise_pairs
 				return results,timer # returns eval_results, small_p_timer
@@ -1503,7 +1500,7 @@ class Join():
 				else: # 50% chance of going to 3 or 4 or 5
 					if cost[2]<cost[3] and cost[2]<cost[4]: # path 3
 						return ["PWl2", "small_p"] # on second list
-					elif cost[3]<cost[2] and cost[3]<cost[4] # path 4
+					elif cost[3]<cost[2] and cost[3]<cost[4]: # path 4
 						return ["PW", "small_p"] # on first list
 					else: # path 5
 						return ["small_p", "PWl2"] # on second list
@@ -1515,7 +1512,7 @@ class Join():
 					return ["PJF", "join", "small_p"]
 				elif(cost[2] == minimum):# path 3
 					return ["PWl2", "small_p"] # on second list
-				elif(cost[3] == minimum)# path 4:
+				elif(cost[3] == minimum):# path 4:
 					return ["PW", "small_p"] # on first list
 				else:# path 5
 					return ["small_p", "PWl2"] # on second list
@@ -1803,4 +1800,4 @@ class Join():
 				return 0
 			#...
 		else:
-			raise Exception "Cannot find consensus for: " + str(for_task)
+			raise Exception("Cannot find consensus for: " + str(for_task))

@@ -158,7 +158,7 @@ def adaptive_predicate_limit (chosenIP):
 	
 
 
-def nu_pending_eddy(incompleteIP):
+def nu_pending_eddy(incompleteIP, active_joins=None):
 	#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
 	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
 	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
@@ -178,12 +178,13 @@ def nu_pending_eddy(incompleteIP):
 			print predicates
 		chosenPred = np.random.choice(predicates, p=probList)
 
-		cur_join = active_joins[chosenPred]
-		task_types = cur_join.assign_join_tasks()
-		if task_types == ["PWl2", "small_p"] or task_types == ["small_p", "PWl2"]:
-			if chosenPred.get_task_types() == []:
-				chosenPred.set_task_types(task_types)
-			return chosenPred
+		if active_joins is not None and chosenPred in active_joins:
+			cur_join = active_joins[chosenPred]
+			task_types = cur_join.assign_join_tasks()
+			if task_types == ["PWl2", "small_p"] or task_types == ["small_p", "PWl2"]:
+				if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
+					chosenPred.set_task_types(task_types)
+				return chosenPred
 			# return a pred instead of an IP pair
 		# TODO: read and figure out if this is what we want to do for this else case????
 
@@ -198,11 +199,16 @@ def nu_pending_eddy(incompleteIP):
 				minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
 				chosenIP = minTaskIP
 			chosenIP = choice(pickFrom)
-			if chosenIP.get_task_types() == []:
+			if not chosenIP.task_types == "" and chosenIP.get_task_types() == []:
 				raise Exception("this ip pair is done")
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
 				chosenIP.refresh_from_db()
+			if active_joins is not None and chosenIP.predicate in active_joins:
+				cur_join = active_joins[chosenIP.predicate]
+				task_types = cur_join.assign_join_tasks()
+				if  chosenIP.task_types == "" or chosenIP.get_task_types() == []:
+					chosenIP.set_task_types(task_types)
 			return chosenIP 
 
 		
@@ -221,6 +227,11 @@ def nu_pending_eddy(incompleteIP):
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
 				chosenIP.refresh_from_db()
+			if active_joins is not None and chosenIP.predicate in active_joins:
+				cur_join = active_joins[chosenIP.predicate]
+				task_types = cur_join.assign_join_tasks()
+				if chosenIP.task_types == "" or chosenIP.get_task_types() == []  :
+					chosenIP.set_task_types(task_types)
 			return chosenIP
 
 
