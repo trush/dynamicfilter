@@ -39,6 +39,7 @@ def syn_answer(chosenIP, switch, numTasks):
 	#TODO: If trans is 0, it starts at the selectvity of the previous timestep
 
 	timeStepInfo = toggles.switch_list[switch]
+	#Cost multiplier multiplies work time for tasks, is a basic proxy for difficulty
 	cost_multiplier = 1
 	if len(timeStepInfo[chosenIP.predicate.pk]) > 2:
 		cost_multiplier = timeStepInfo[chosenIP.predicate.pk][2]

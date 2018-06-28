@@ -986,10 +986,7 @@ class SimulationTest(TransactionTestCase):
 							task.refresh_from_db()
 							task.ip_pair.refresh_from_db()
 							task.ip_pair.predicate.refresh_from_db()
-							pair_complete = task.ip_pair.isDone
 							self.update_time += updateCounts(task, task.ip_pair)
-							if toggles.TRACK_WASTE and pair_complete != task.ip_pair.isDone:
-								used_tasks += task.ip_pair.tasks_collected
 						else:
 							self.update_time += updateCounts(task, task.ip_pair)
 						#task.refresh_from_db()
@@ -1127,7 +1124,11 @@ class SimulationTest(TransactionTestCase):
 
 				# Tracks the number of tasks that weren't collected by an IP which reached consensus.
 				if toggles.TRACK_WASTE:
-					self.num_waste = self.num_tasks - used_tasks - self.pred_active_tasks.keys()[0]
+					used_tasks = 0
+					collected_IP = IP_Pair.objects.exclude(end_time=0)
+					for ip in collected_IP:
+						used_tasks += ip.num_no + ip.num_yes
+					self.num_waste = self.num_tasks - used_tasks - DummyTask.objects.all().count()
 
 				#the tuples in switch_list are of the form (time, pred1, pred2 ....),
 				#so we need index 0 of the tuple to get the time at which the switch should occur
