@@ -895,6 +895,8 @@ class Join():
 		self.PJF_selectivity_est = 0.5
 		## @remarks This is the estimate of the selectivity of the join. Updated by join_items() and used in find_costs().
 		self.join_selectivity_est = 0.5
+		## @remarks This is the average number of tasks that it takes to confirm a match.
+		self.matches_tasks_for_cons = []
 		## @remarks Estimate of the time cost of the prejoin. Updated in the prejoin_fiter() function and used in find_costs()
 		self.PJF_cost_est = 0.0
 		## @remarks Estimate of the time cost of the join. Updated in the join_items() function and used in find_costs()
@@ -911,6 +913,8 @@ class Join():
 		## @remarks Estimate of the selectivity of the small predicate. Updated in small_pred() based on the evaluation
 		# results of eac item.
 		self.small_p_selectivity_est = 0.0
+		## @remarks This is the average number of tasks it took to reach consensus for an item evaluated by small predicate
+		self.small_p_tasks_for_cons = []
 		## @remarks List of number of matches for each item in list2. Used later with the costs to get a linear
 		# approximation used in cost calculation estimates
 		self.num_matches_per_item_1 = []
@@ -929,10 +933,12 @@ class Join():
 		self.num_join_items = 0
 		## @remarks These are the results from all the joins methods. Used to avoid repeated work and in buffers.
 		self.results_from_all_join = []
-		## This is everything that has been evaluated by the prejoin filter and what it evaluated to. For now, we assume these
+		## @remarks This is everything that has been evaluated by the prejoin filter and what it evaluated to. For now, we assume these
 		# are true and false values. Eventualy could be modified to hold "tags" like the county of the metros and hotels and then
 		# cross referenced (ex. if they are equal accept).
 		self.evaluated_with_PJF = { }
+		## @remarks This is the average number of tasks it takes to reach consensus on the prejoin filter.
+		self.PJF_tasks_for_cons = []
 		## @remarks This is a list of everything that has passed (true) the small predicate. So if we get that item again 
 		# we don't need to redo work.
 		self.evaluated_with_smallP = []
@@ -987,9 +993,11 @@ class Join():
 	# @return timer_val : time it took to compute
 	def prejoin_filter(self, item):
 		timer_val = 0
+		if self.DEBUG:
+			print "************** PJF CHECKING ITEM ****************"
 		if(not item in self.evaluated_with_PJF):
 			# save results of PJF to avoid repeated work
-			self.evaluated_with_PJF[item],PJF_cost = self.evaluate(PJF,item)
+			eval_results,PJF_cost = self.evaluate(PJF,item)
 			#add a vote to pjf for this item
 			if not self.votes_for_pjf[item]:
 				self.votes_for_pjf[item] = (0,0)
@@ -1006,11 +1014,10 @@ class Join():
 				# adjust our cost estimates for evaluating PJF
 				self.PJF_cost_est = (self.PJF_cost_est*(len(self.evaluated_with_PJF)-1)+PJF_cost)/self.processed_by_PJF
 				timer_val += self.TIME_TO_EVAL_PJF
-				self.full_timer += self.TIME_TO_EVAL_PJF
-
-		if self.DEBUG:
-			print "************** PJF CHECKING ITEM ****************"
-		return evaluated_with_PJF[item], timer_val
+				self.evaluated_with_PJF[item] = consensus_result
+				self.PJF_tasks_for_cons += [ self.votes_for_pjf[item][0] + self.votes_for_pjf[item][1] ]
+				return self.evaluated_with_PJF[item], timer_val	
+		return None, timer_val
 
 	## @param self
 	# @param i : item from one list
@@ -1025,7 +1032,6 @@ class Join():
 				# Generate task of current pair
 				# Choose whether to add to num_join_items
 				timer_val += self.JOIN_TIME
-				self.full_timer += self.JOIN_TIME
 				# If it is accepted in join process
 			should_join = random() < self.JOIN_SELECTIVITY
 			#add a vote to matches for this item
@@ -1036,8 +1042,9 @@ class Join():
 			else:
 				self.votes_for_matches[(i,j)][1] += 1
 			#check if we have reached consensus
-			consensus_result = self.find_consensus("small_p", (i,j))[0]
+			consensus_result = self.find_consensus("join", (i,j))[0]
 			if consensus_result is not None:
+				self.matches_tasks_for_cons += [ self.votes_for_matches[(i,j)][0] + self.votes_for_matches[(i,j)][1] ]
 				if consensus_result:
 					self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
 					self.processed_by_join += 1
@@ -1054,7 +1061,8 @@ class Join():
 						print "Join selectivity estimate: " + str(self.join_selectivity_est)
 						print "Join cost estimate: " + str(self.join_cost_est)
 						print "--------------------------"
-					
+
+					self.results_from_all_join += [(i,j)]
 					return True, timer_val
 				# If it is not accepted in join process
 				self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
@@ -1071,6 +1079,7 @@ class Join():
 					print "----------------------------------------"
 
 				return False, timer_val
+			return None, timer_val
 
 	#----------------------- PJF Join Helpers -----------------------#
 	## @param self
@@ -1197,6 +1206,7 @@ class Join():
 								self.f_dictionary[1] += [match[1]]
 				self.total_sample_size += len(consensus_matches)
 			return consensus_matches, PW_timer
+		return None
 
 	#----------------------- PW Join Helpers -----------------------#
 
@@ -1652,7 +1662,9 @@ class Join():
 					print "small p cost estimate: " + str(self.small_p_cost_est)
 					print "small p selectivity: " + str(self.small_p_selectivity_est)
 					print "-------------------------"
+				self.small_p_tasks_for_cons += [self.votes_for_small_p[item][0] + self.votes_for_small_p[item][1]]
 				return consensus_results, small_p_timer
+			return None, small_p_timer
 
 	## @param self
 	# @return the results if both lists are empty and thus the join is done, otherwise returns None
