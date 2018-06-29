@@ -1029,6 +1029,11 @@ class SimulationTest(TransactionTestCase):
 							self.update_time += updateCounts(task, task.ip_pair)
 							if toggles.TRACK_WASTE and pair_complete != task.ip_pair.isDone:
 								used_tasks += task.ip_pair.tasks_collected
+						elif task.predicate != None:
+							task.refresh_from_db()
+							task.predicate.refresh_from_db()
+							pair_complete = task.predicate.isDone
+							self.update_time += updateCounts(task, task.predicate)
 						else:
 							self.update_time += updateCounts(task, task.ip_pair)
 						#task.refresh_from_db()

@@ -6,7 +6,7 @@ import responseTimeDistribution
 
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
-DEBUG_FLAG = False
+DEBUG_FLAG = True
 SIM_TIME_STEP = 60
 # ************************************************************************ #
 
@@ -25,10 +25,10 @@ TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PAT
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
 NUM_QUESTIONS = 2
-NUM_ITEMS = 40
+NUM_ITEMS = 80
 SIN = -1
 SELECTIVITY_GRAPH = False
-switch_list = [ (0, (0,0), (0,0))]
+switch_list = [ (0, (0.3,0), (0.3,0))]
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep

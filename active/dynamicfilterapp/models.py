@@ -1506,6 +1506,7 @@ class Join():
 	def assign_join_tasks(self):
 		""" This is the main join function. It calls PW_join(), PJF_join(), and small_pred(). Uses 
 		cost estimates to determine which function to call item by item."""
+		print len(self.results_from_all_join)
 
 		buffer = len(self.results_from_all_join) <= 0.15*len(self.list1)*len(self.list2)
 		buf1 = len(self.results_from_all_join) < .1*len(self.list1)
