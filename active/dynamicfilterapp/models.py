@@ -796,8 +796,8 @@ class Task(models.Model):
 	"""
 	Model representing one crowd worker task. (One HIT on Mechanical Turk.)
 	"""
-	ip_pair = models.ForeignKey(IP_Pair, default=None)
-	predicate = models.ForeignKey(Predicate, default = None)
+	ip_pair = models.ForeignKey(IP_Pair, null=True, blank=True)
+	predicate = models.ForeignKey(Predicate, null=True, blank=True)
 	answer = models.NullBooleanField(default=None)
 	workerID = models.CharField(db_index=True, max_length=15)
 	task_type = models.CharField(default = "default", max_length=15)
@@ -848,8 +848,10 @@ class Join():
 
 		## @remarks This is the primary item list, info taken from database.
 		self.list1 = []
-		## @remarks This is the secondary list list, not always given
+		## @remarks This is the secondary list, not always given
 		self.list2 = []
+		## @remarks guess_list2 is a list of unconfirmed items in the secondary list, pending consensus
+		self.guess_list2 = set()
 		## @remarks Tells us whether we have a second list (if enumeration estimator hit). Main use
 		# is in assign_join_tasks()
 		self.has_2nd_list = False
@@ -925,6 +927,12 @@ class Join():
 		self.f_dictionary = { }
 		## @remarks Used in the enumeration estimate in chao_estimator()
 		self.total_sample_size = 0
+		## @remarks The number of PW tasks, aka the number of times that PW_join() has been called
+		self.PW_join_calls = 0
+		## @remarks The number of items that have reach consensus through PW_join().
+		self.consensus_items_PW = 0
+		## @remarks The average number of tasks it takes to reach consensus on all the matches for a particular item using PW join
+		self.tasks_for_PW = 0.0
 
 		# Results -----------------------#.
 
@@ -1112,6 +1120,7 @@ class Join():
 	#	In PW_join() we also update cost estimates, removed processed items from corresponding lists, update variabes
 	# 	used in the chao estimator.
 	def PW_join(self, ip_or_pred, itemlist):
+		self.PW_join_calls += 1
 		if ip_or_pred.item in self.failed_by_smallP:
 			raise Exception("Improper removal/addition of " + str(ip_or_pred.item) + " occurred")
 		#Metadata/debug information
@@ -1123,7 +1132,11 @@ class Join():
 		#Get results of that task
 		if itemlist == self.list1:
 			matches, PW_timer = self.get_matches(ip_or_pred, PW_timer)
-			itemList2 = self.list2
+			if self.has_2nd_list:
+				itemList2 = self.list2
+			else:
+				self.guess_list2.update(matches)
+				itemList2 = self.guess_list2
 			item1 = ip_or_pred.item
 		else:
 			matches, PW_timer = self.get_matches_l2(ip_or_pred, PW_timer)
@@ -1155,6 +1168,8 @@ class Join():
 
 			
 		if done:
+			self.consensus_items_PW += 1
+			self.tasks_for_PW = float(self.PW_join_calls)/self.consensus_items_PW
 			#save costs and matches for estimates later
 			if itemlist == self.list1:
 				self.PW_cost_est_1 += [PW_timer]
@@ -1211,7 +1226,7 @@ class Join():
 	#----------------------- PW Join Helpers -----------------------#
 
 	## @param self
-	# @param item : an item from list1 that we want to ask the crowd for matches with
+	# @param ip_pair : an ip_pair with an item from list1 that we want to ask the crowd for matches with
 	# @param timer : the current time taken so far by a task
 	# @return matches : list of tuples representing the matches that the item got from the crowd.
 	# @return timer : the updated amount of time that the task has taken (with the time taken for the matches
@@ -1219,6 +1234,7 @@ class Join():
 	# @remarks : Intended to be called in PW_join(). Currently chooses the number of matches semi-randomly,
 	#	eventually should use data from the crowd.
 	def get_matches(self, ip_pair, timer):
+		print str(ip_pair)
 		if not ip_pair.get_correct_matches():
 			#assumes a normal distribution
 			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
@@ -1346,6 +1362,8 @@ class Join():
 
 		#if the upcoming task does not require an item from list1 
 		# i.e. small_p or Pairwise on list 2
+		if IP_Pair is None and predicate is None:
+			raise Exception("no IP pair or predicate.")
 		if not IP_Pair:
 			if not self.sec_item_in_progress:
 				self.sec_item_in_progress = self.list2[0]

@@ -376,7 +376,7 @@ class SimulationTest(TransactionTestCase):
 	# @param numTasks The number of tasks completed before this task; informs whether selectivity/ambiguity
 	# should change.
 	# @returns The Task object that was simulated.
-	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks, task_type=None, curr_join=None):
+	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks, task_type=None, curr_join=None, predicate=None):
 		start = time.time()
 		if chosenIP is None:
 			if curr_join is None:
@@ -397,7 +397,7 @@ class SimulationTest(TransactionTestCase):
 				t.save()
 			else:
 				#TODO: figure out exactly how the algorithm needs to handle splitting join processes
-				results, time_taken = curr_join.main_join(task_type)
+				results, time_taken = curr_join.main_join(task_type, None, predicate)
 				start_time = time_clock + toggles.BUFFER_TIME
 				end_time = start_time + time_taken
 				t = Task(predicate=predicate, answer=results, workerID=workerID,
@@ -426,7 +426,7 @@ class SimulationTest(TransactionTestCase):
 				t.save()
 			
 			else:
-				results, time_taken = curr_join.main_join(task_type)
+				results, time_taken = curr_join.main_join(task_type, chosenIP)
 				start_time = time_clock + toggles.BUFFER_TIME
 				end_time = start_time + time_taken
 				t = Task(ip_pair=chosenIP, answer=results, workerID=workerID,
@@ -685,13 +685,13 @@ class SimulationTest(TransactionTestCase):
 					#if give_task returns a predicate, then we create a predicate task
 					curr_join = active_joins[ip_pair.predicate]
 					task_type = pred.task_types[0]
-					task = syn_simulate_task(None, workerID, time_clock, switch, self.num_tasks, task_type, curr_join)
+					task = self.syn_simulate_task(None, workerID, time_clock, switch, self.num_tasks, task_type, curr_join, pred)
 				elif ip_pair is not None and ip_pair.is_joinable():
 					#if give_task returns an ip pair, then we create an ip pair task
 					curr_join = active_joins[ip_pair.predicate]
 					ip_pair.task_types = curr_join.assign_join_tasks()
 					task_type = ip_pair.task_types[0]
-					task = syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks, task_type, curr_join)
+					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks, task_type, curr_join, pred)
 				else:
 					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
 
@@ -1971,6 +1971,8 @@ class SimulationTest(TransactionTestCase):
 	## \todo write this docstring
 	def visualizeActiveTasks(self, data, runNum):
 
+		
+
 		if not (toggles.TRACK_ACTIVE_TASKS and toggles.SIMULATE_TIME):
 			raise Exception("Turn on TRACK_ACTIVE TASKS and SIMULATE_TIME for this to work properly.")
 		if not (toggles.COUNT_TICKETS and toggles.TRACK_QUEUES):
@@ -1990,6 +1992,15 @@ class SimulationTest(TransactionTestCase):
 		generic_csv_write(dest1+".csv", save)
 		writtenFiles = [dest1+".csv"]
 
+		if toggles.USE_JOINS:
+			dest3 = toggles.OUTPUT_PATH + "join_info" + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
+			pred_set = Predicate.objects.all()
+			data = []
+			for i in pred_set:
+				data += [str(i.joinable) + "\n"]
+			generic_csv_write(dest3+".csv", data)
+			writtenFiles.append(dest3+'.csv')
+			
 		if toggles.EDDY_SYS != 2:
 			save = [self.time_steps_array]
 			graphData2 = [self.time_steps_array]
