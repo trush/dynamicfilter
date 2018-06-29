@@ -2091,9 +2091,11 @@ class SimulationTest(TransactionTestCase):
 		origAdaptiveQueueMode = toggles.ADAPTIVE_QUEUE_MODE
 		origQueueLength = toggles.PENDING_QUEUE_SIZE
 		origTicketing = toggles.TICKETING_SYS
+		origBatch = toggles.BATCH_ASSIGNMENT
 			
 		settingCount = 0
 		for setting in toggles.MULTI_SIM_ARRAY:
+			tempLength = origQueueLength
 			print "Running setting " + str(settingCount)
 
 			numSim = setting[0]	# number of simulations for current setting
@@ -2101,10 +2103,15 @@ class SimulationTest(TransactionTestCase):
 			if toggles.IP_LIMIT_SYS >= 2:# for hard, soft limit
 				toggles.ITEM_IP_LIMIT = setting[1][1] 	# predicate limit
 			toggles.ACTIVE_TASKS_ARRAY = setting[2] 	# batch size
-			toggles.QUEUE_LENGTH_ARRAY = setting[3] 	# adaptive queue length
+			if isinstance(setting[3], list):
+				toggles.QUEUE_LENGTH_ARRAY = setting[3] 	# adaptive queue length
+			else:
+				toggles.PENDING_QUEUE_SIZE = setting[3]
+				tempLength = setting[3]
 			toggles.switch_list = setting[4]			# predicate selectivity, ambiguity, cost settings
 			toggles.ADAPTIVE_QUEUE_MODE = setting [5]	
 			toggles.TICKETING_SYS = setting[6]
+			toggles.BATCH_ASSIGNMENT = setting[7]
 
 			# set up output csv file
 			save = []
@@ -2114,7 +2121,7 @@ class SimulationTest(TransactionTestCase):
 			
 			for run in range(numSim):
 				for pred in Predicate.objects.all():
-					pred.set_queue_length(origQueueLength)
+					pred.set_queue_length(tempLength)
 				self.visualizeActiveTasks(data, str(settingCount)+str(run))
 
 				# write in file
@@ -2151,6 +2158,7 @@ class SimulationTest(TransactionTestCase):
 		toggles.ADAPTIVE_QUEUE_MODE = origAdaptiveQueueMode
 		toggles.PENDING_QUEUE_SIZE = origQueueLength
 		toggles.TICKETING_SYS = origTicketing
+		toggles.BATCH_ASSIGNMENT = origBatch
 			
 
 	def collect_act1_data(self, timed):
