@@ -765,13 +765,11 @@ class IP_Pair(models.Model):
 		self.save(update_fields = ["tasks_out"]) 
 
 	def collect_task(self):
+		#TODO: how do we collect tasks for joins
 		self.tasks_out -= 1
 		self.tasks_collected += 1
 		self.predicate.add_total_task()
 		self.predicate.add_total_time()
-		#if we have not yet completed the join process, we do not update average completed
-		if not self.predicate.joinable or self.join_task_out >= len(self.get_join_process()) - 1:
-			self.predicate.update_avg_compl()
 		self.save(update_fields = ["tasks_out", "tasks_collected"])
 
 	def start(self):
@@ -788,8 +786,9 @@ class IP_Pair(models.Model):
 		self.inQueue=False
 		self.isStarted=False
 		self.tasks_collected=0
+		self.end_time = 0
 		self.tasks_out=0
-		self.save(update_fields=["value","num_yes","num_no","isDone","status_votes","inQueue", "isStarted", "tasks_collected", "tasks_out"])
+		self.save(update_fields=["value","end_time","num_yes","num_no","isDone","status_votes","inQueue", "isStarted", "tasks_collected", "tasks_out"])
 
 @python_2_unicode_compatible
 class Task(models.Model):
@@ -991,7 +990,7 @@ class Join():
 		self.votes_for_matches = {}
 
 		# TOGGLES -----------------------#
-		self.DEBUG = True
+		self.DEBUG = toggles.DEBUG_FLAG
 
 	#----------------------- PJF Join -----------------------# 
 
@@ -1008,7 +1007,7 @@ class Join():
 			eval_results,PJF_cost = self.evaluate(PJF,item)
 			#add a vote to pjf for this item
 			if not self.votes_for_pjf[item]:
-				self.votes_for_pjf[item] = (0,0)
+				self.votes_for_pjf[item] = [0,0]
 			if eval_results:
 				self.votes_for_pjf[item][0] += 1
 			else:
@@ -1044,7 +1043,7 @@ class Join():
 			should_join = random() < self.JOIN_SELECTIVITY
 			#add a vote to matches for this item
 			if not self.votes_for_matches[(i,j)]:
-				self.votes_for_matches[(i,j)] = (0,0)
+				self.votes_for_matches[(i,j)] = [0,0]
 			if eval_results:
 				self.votes_for_matches[(i,j)][0] += 1
 			else:
@@ -1112,7 +1111,7 @@ class Join():
 
 	## @param self
 	# @param ip_or_pred : ip pair that we are sending to the "crowd" to be matches up with
-	# @param itemlist : the itemList that ip_or_pred's item belongs to
+	# @param itemlist : the itemlist that ip_or_pred's item belongs to
 	# @return matches : list of tuples representing the matches that the item got from the crowd.
 	# @return timer : the updated amount of time that the task has taken (with the time taken for the matches
 	#	added to it.)
@@ -1133,28 +1132,28 @@ class Join():
 		if itemlist == self.list1:
 			matches, PW_timer = self.get_matches(ip_or_pred, PW_timer)
 			if self.has_2nd_list:
-				itemList2 = self.list2
+				itemlist2 = self.list2
 			else:
 				self.guess_list2.update(matches)
-				itemList2 = self.guess_list2
+				itemlist2 = self.guess_list2
 			item1 = ip_or_pred.item
 		else:
 			matches, PW_timer = self.get_matches_l2(ip_or_pred, PW_timer)
-			itemList2 = self.list1
+			itemlist2 = self.list1
 			item1 = self.sec_item_in_progress
 		done = True
-		for item2 in itemList2:
+		for item2 in itemlist2:
 			#update votes for consensus for each item pair 
 			match = []
 
-			if itemList == self.list1:
+			if itemlist == self.list1:
 				match = (item1,item2)
 			else:
 				match = (item2,item1)
 
 				
 			if not match in self.votes_for_matches:
-				self.votes_for_matches[match] = (0,0)
+				self.votes_for_matches[match] = [0,0]
 			if match in matches:
 				self.votes_for_matches[match][0] += 1
 			else:
@@ -1163,7 +1162,7 @@ class Join():
 			if not consensus_found:
 				done = False
 			else:
-				consensus_matches += match
+				consensus_matches += [match]
 
 
 			
@@ -1221,7 +1220,7 @@ class Join():
 								self.f_dictionary[1] += [match[1]]
 				self.total_sample_size += len(consensus_matches)
 			return consensus_matches, PW_timer
-		return None
+		return None, PW_timer
 
 	#----------------------- PW Join Helpers -----------------------#
 
@@ -1234,13 +1233,15 @@ class Join():
 	# @remarks : Intended to be called in PW_join(). Currently chooses the number of matches semi-randomly,
 	#	eventually should use data from the crowd.
 	def get_matches(self, ip_pair, timer):
-		print str(ip_pair)
+		if ip_pair.correct_matches == "":
+			ip_pair.set_correct_matches([])
 		if not ip_pair.get_correct_matches():
 			#assumes a normal distribution
 			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
 			matches = []
 			if num_matches < len(self.private_list2):
 				sample = numpy.random.choice(self.private_list2, num_matches, False)
+				sample = sample.tolist()
 			else:
 				sample = self.list2
 			ip_pair.set_correct_matches(sample)
@@ -1295,6 +1296,8 @@ class Join():
 	# @remarks : Intended to be called in PW_join(). Currently chooses the number of matches semi-randomly,
 	#	eventually should use data from the crowd.
 	def get_matches_l2(self, pred, timer):
+		if pred.correct_matches == "":
+			pred.set_correct_matches([])
 		if not pred.get_correct_matches():
 			#assumes a normal distribution
 			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES * (len(self.list1)/len(self.private_list2)), self.STDDEV_MATCHES * (len(self.list1)/len(self.private_list2)), None)))
@@ -1359,12 +1362,13 @@ class Join():
 	# @return timer : the time taken to do said task
 	# @remarks This is what is called in simulate_task() where the task answer and time are retrieved and saved.
 	def main_join(self, task_type, IP_pair=None, predicate=None):
+		
 
 		#if the upcoming task does not require an item from list1 
 		# i.e. small_p or Pairwise on list 2
-		if IP_Pair is None and predicate is None:
+		if IP_pair is None and predicate is None:
 			raise Exception("no IP pair or predicate.")
-		if not IP_Pair:
+		if not IP_pair:
 			if not self.sec_item_in_progress:
 				self.sec_item_in_progress = self.list2[0]
 			#running & managing small predicate evaluation
@@ -1423,9 +1427,10 @@ class Join():
 		#the upcoming task works for a single IP pair, like most tasks
 		else:
 			#running & managing pairwise joins on list1
+			
 			if task_type == "PW":
-				matches, timer = self.PW_join(IP_Pair, self.list1)
-				if any(matches):
+				matches, timer = self.PW_join(IP_pair, self.list1)
+				if matches is not None and any(matches):
 					return None, timer
 				else:
 					return False, timer
@@ -1801,7 +1806,7 @@ class Join():
 			single_max = int(1+math.ceil(toggles.CUT_OFF/2.0))
 			uncertLevel = 2
 			if toggles.BAYES_ENABLED:
-				if self.value > 0:
+				if votes_yes - votes_no > 0:
 					uncertLevel = btdtr(votes_yes+1, votes_no+1, toggles.DECISION_THRESHOLD)
 				else:
 					uncertLevel = btdtr(votes_no+1, votes_yes+1, toggles.DECISION_THRESHOLD)

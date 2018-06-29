@@ -394,7 +394,6 @@ class SimulationTest(TransactionTestCase):
 
 				t = DummyTask(workerID = workerID,
 					start_time = start_task, end_time = end_task)
-				t.save()
 			else:
 				#TODO: figure out exactly how the algorithm needs to handle splitting join processes
 				results, time_taken = curr_join.main_join(task_type, None, predicate)
@@ -423,7 +422,6 @@ class SimulationTest(TransactionTestCase):
 
 				t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
 						start_time=start_task, end_time=end_task)
-				t.save()
 			
 			else:
 				results, time_taken = curr_join.main_join(task_type, chosenIP)
@@ -436,7 +434,7 @@ class SimulationTest(TransactionTestCase):
 				updateCounts(t, chosenIP)
 				#t.refresh_from_db()
 				#chosenIP.refresh_from_db()
-
+		t.save()
 		end = time.time()
 		runTime = end - start
 		self.sim_task_time += runTime
