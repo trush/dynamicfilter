@@ -134,9 +134,20 @@ available (refilled back to task limit). \n
 
 \link dynamicfilterapp.toggles.BATCH_ASSIGNMENT BATCH_ASSIGNMENT \endlink - Assigns jobs in batches, then
 waits for feedback before assigning more. Number of jobs in a batch will be equal to the current max number of active tasks.
-0 - Batching off
-1 - Batching based on a refill limit from ACTIVE_TASKS_ARRAY
-2 - Refills batches after regular periods \n
+  - 0 - Batching off
+  - 1 - Batching based on a refill limit from ACTIVE_TASKS_ARRAY
+  - 2 - Refills batches after regular periods specified in REFILL_PERIOD
+
+\link dynamicfilterapp.toggles.REFILL_PERIOD REFILL_PERIOD \endlink -  if BATCH_ASSIGNMENT is set to 2, algorithm will assign 
+tasks periodically (every time step specified in REFILL_PERIOD). The batch size is in ACTIVE_TASKS_ARRAY \n
+
+\link dynamicfilterapp.toggles.TICKETING_SYS TICKETING_SYS \endlink - Determines how the ticket is given \n
+  - 0 - Ticket is given out to IP pair when the task is assigned and returned when the task has returned true 
+  - 1 - Ticket is given out to the IP pair whose task has failed
+
+\link dynamicfilterapp.toggles.EPSILON EPSILON \endlink - TODO: What does this do? \n
+
+\link dynamicfilterapp.toggles.REWARD REWARD \endlink - TODO: What does this do? \n
 
 \section voteGetting Consensus Settings
 
@@ -253,9 +264,14 @@ number of tasks that can be distributed for a given IP Pair in total. \n
 simulations for every configuration in MULTI_SIM_ARRAY \n
 
 \link dynamicfilterapp.toggles.MULTI_SIM_ARRAY MULTI_SIM_ARRAY \endlink - A list of tuples of form 
-(number of simulations for this configuration, (IP_LIMIT_SYS, ITEM_IP_LIMIT), ACTIVE_TASKS_ARRAY, 
-QUEUE_LENGTH_ARRAY, switch_list, ADAPTIVE_QUEUE_MODE) that will be simulated if MULTI_SIM is true \n
-
+  - number of simulations for this configuration
+  - tuple of (IP_LIMIT_SYS, ITEM_IP_LIMIT)
+  - ACTIVE_TASKS_ARRAY 
+  - QUEUE_LENGTH_ARRAY or PENDING_QUEUE_SIZE
+  - switch_list
+  - ADAPTIVE_QUEUE_MODE
+  - TICKETING_SYS
+  - BATCH_ASSIGNMENT
 
 \section output Output Settings
 \subsection file File Management
