@@ -1707,6 +1707,10 @@ class Join():
 	#	To understand the math computed in this function see: http://www.cs.albany.edu/~jhh/courses/readings/trushkowsky.icde13.enumeration.pdf 
 	def chao_estimator(self):
 		# prepping variables
+		if self.DEBUG:
+			print "**************************************"
+			print "Estimating enumeration"
+			print "**************************************"
 		c_hat = 1-float(len(self.f_dictionary[1]))/self.total_sample_size
 		sum_fis = 0
 		for i in self.f_dictionary:
