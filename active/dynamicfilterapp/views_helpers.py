@@ -179,14 +179,19 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 		chosenPred = np.random.choice(predicates, p=probList)
 
 		if active_joins is not None and chosenPred in active_joins:
-			cur_join = active_joins[chosenPred]
-			task_types = cur_join.assign_join_tasks()
-			if task_types == ["PWl2", "small_p"] or task_types == ["small_p", "PWl2"]:
-				if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
-					chosenPred.set_task_types(task_types)
+			cur_join = active_joins[chosenPred] 
+			if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
+				task_types = cur_join.assign_join_tasks()
+				if "PWl2" in task_types or "small_p" in task_types:
+					chosenPred.set_task_types = task_types
+					return chosenPred
+			if "PWl2" in chosenPred.task_types or "small_p" in chosenPred.task_types or "PJF" in chosenPred.task_types:
 				return chosenPred
 			# return a pred instead of an IP pair
-		# TODO: read and figure out if this is what we want to do for this else case????
+		# TODO: do we want to code it to give up in the middles of a process? right now is keeps assigning tasks until the 
+		# process is over. Note: we might want to do this because then PJFs will be processed before their joins. Con: we jump
+		# around between IP_Pairs normally, but then we go through all the PJF tasks once one of the IP_Pairs trigger the PJF tasks
+		# on list 2.
 
 		pickFrom = incompleteIP.filter(predicate = chosenPred)
 

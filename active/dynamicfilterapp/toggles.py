@@ -76,7 +76,7 @@ REWARD = 1.7
 
 # ************************** JOIN SETTINGS ************************** #
 # ************************************************************************ #
-
+#see the Join class in models.py for more information
 USE_JOINS = True
 ## Settings #-----------------------###############
 
@@ -84,21 +84,22 @@ JOIN_SELECTIVITY = 0.1
 
     ## PJFjoin in particular
 PJF_SELECTIVITY = 0.3
-JOIN_TIME = 40.0 # TODO: RENAME
-TIME_TO_EVAL_PJF = 100.0
+JOIN_TIME = 4.0 
+TIME_TO_EVAL_PJF = 10.0
 
     ## PWJoin in particular
-BASE_FIND_MATCHES = 60.0     #Basic requirement to find some matches
-FIND_SINGLE_MATCH_TIME = 7.0 #cost per match found
+BASE_FIND_MATCHES = 6.0     #Basic requirement to find some matches
+FIND_SINGLE_MATCH_TIME = 0.70 #cost per match found
 AVG_MATCHES = 10.0 #average matches per item
 STDDEV_MATCHES = 2.0 #standard deviation of matches
 
     ## small predicate in particular
 SMALL_P_SELECTIVITY = 0.5
-TIME_TO_EVAL_SMALL_P = 30.0
+TIME_TO_EVAL_SMALL_P = 3.0
 
     ## Other private variables used for simulations
 HAS_LIST2 = False
+EXPLORATION_REQ = 5 #once join has two lists, it will try each path this many times at least
 private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
 
 #denotes how close the actual number of estimated 2nd list items must be found

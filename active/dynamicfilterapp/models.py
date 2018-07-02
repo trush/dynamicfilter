@@ -93,11 +93,9 @@ class Predicate(models.Model):
 	def get_correct_matches(self):
 		return json.loads(self.correct_matches)
 
-	def set_new_task(self, new_task):
+	def remove_task(self):
 		temp = json.loads(self.task_types)
-		temp = [new_task] + temp
-		self.task_types = json.dumps(temp)
-
+		self.task_types = json.dumps(temp[1:])
 
 	def set_task_types(self, inList):
 		self.task_types = json.dumps(inList)
@@ -530,10 +528,9 @@ class IP_Pair(models.Model):
 	def get_join_pairs(self):
 		return json.loads(self.join_pairs)
 
-	def set_new_task(self, new_task):
+	def remove_task(self):
 		temp = json.loads(self.task_types)
-		temp = [new_task] + temp
-		self.task_types = json.dumps(temp)
+		self.task_types = json.dumps(temp[1:])
 
 	def get_task_types(self):
 		return json.loads(self.task_types)
@@ -932,7 +929,15 @@ class Join():
 		self.consensus_items_PW = 0
 		## @remarks The average number of tasks it takes to reach consensus on all the matches for a particular item using PW join
 		self.tasks_for_PW = 0.0
+		## @remarks tracks the number of times each path has been run. Used to manipulate find_costs to ensure exploration
+		## @remarks because paths 1 and 2 and paths 3 and 5 use the same information, they share entries (layout is [(1/2),(3/5),4])
+		self.count_costs = [0,0,0]
 
+		# Concurrency -----------------------#
+
+		## @remarks read as "list2 has not been evaluated (by the prejoin filter)"
+		self.list2_not_eval = True
+		
 		# Results -----------------------#.
 
 		## @remarks These are the results from just performing the pjf followed by the join. Helps us estimate the
@@ -988,6 +993,8 @@ class Join():
 		## @remarks Dictionary that keeps track of how many votes the join matches have based on the consensus
 		# metric used. See find_consensus() for more details. Algorithm matches that of IP_pair consensus finding.
 		self.votes_for_matches = {}
+		## @remarks boolean that keeps track of whether or not the current operation has reached consensus
+		self.done = False
 
 		# TOGGLES -----------------------#
 		self.DEBUG = toggles.DEBUG_FLAG
@@ -1002,6 +1009,16 @@ class Join():
 		timer_val = 0
 		if self.DEBUG:
 			print "************** PJF CHECKING ITEM ****************"
+		if item == None: #if we are not passed an item, we search for one in list2 
+			found_item = False
+			for i in self.list2:
+				if not i in self.evaluated_with_PJF:
+					item = i
+					found_item = True
+					break
+			if not found_item:#if all items are already evaluated, we make a note and return
+				self.list2_not_eval = False
+				return None, 0
 		if(not item in self.evaluated_with_PJF):
 			# save results of PJF to avoid repeated work
 			eval_results,PJF_cost = self.evaluate(PJF,item)
@@ -1015,6 +1032,7 @@ class Join():
 			#check if we have reached consensus
 			consensus_result = self.find_consensus("PJF", item)[0]
 			if consensus_result is not None:
+				self.done = True
 				self.processed_by_PJF += 1
 				# if the item evaluated True for the PFJ then adjust selectivity
 				self.PJF_selectivity_est = (self.PJF_selectivity_est*(self.processed_by_PJF-1)+self.evaluated_with_PJF[i])/self.processed_by_PJF
@@ -1164,8 +1182,17 @@ class Join():
 			else:
 				consensus_matches += [match]
 
-
-			
+		#if there are no matches, we also need to reach consensus on this case
+		if not (item1,None) in self.votes_for_matches:
+			self.votes_for_matches[(item1, None)] = [0,0]
+		if not matches:
+			self.votes_for_matches[(item1, None)][0] += 1
+		else:
+			self.votes_for_matches[(item1, None)][1] += 1
+		if self.find_consensus("join", (item1,None)):
+			itemlist.remove(item1)
+			return [], PW_timer
+				
 		if done:
 			self.consensus_items_PW += 1
 			self.tasks_for_PW = float(self.PW_join_calls)/self.consensus_items_PW
@@ -1368,7 +1395,7 @@ class Join():
 		# i.e. small_p or Pairwise on list 2
 		if IP_pair is None and predicate is None:
 			raise Exception("no IP pair or predicate.")
-		if not IP_pair:
+		if not IP_pair: # when we have a predicate
 			if not self.sec_item_in_progress:
 				self.sec_item_in_progress = self.list2[0]
 			#running & managing small predicate evaluation
@@ -1379,18 +1406,31 @@ class Join():
 					#if we have not yet pairwise joined this 2nd-list item
 					# we just return whether it passes small p and its time
 					results,timer = self.small_pred(self.sec_item_in_progress)
-					self.pending = True #sets pending for PWjoin
+					if self.done and not results:
+						predicate.set_task_types([])
+						self.done = False
+						return False, timer
+					elif self.done:
+						predicate.remove_task()
+						self.done = False
+						self.pending = True #sets pending for PWjoin
+					return None, timer
 				else:
 					#if we have already joined the item, we need to return them iff
-					# their 2nd-list item passes small p
-					self.pending = False #sets pending for next join process
-					if not self.pairwise_pairs:
-						#if there are no pairs, we never run small_pred()
-						return None, 0
-					results, timer = self.small_pred(self.pairwise_pairs[0][1])
-					if results: #2nd-list item passes small p
-						self.results_from_all_join += self.pairwise_pairs
-				return results,timer # returns eval_results, small_p_timer
+					# their 2nd-list item passes small p 
+					if not self.pairwise_pairs: # this case is a safeguard, should already be handled
+						self.pending = False #sets pending for next join process
+						predicate.remove_task() # removes the first task
+						self.done = False
+						return False, 0
+					pair = self.pairwise_pairs.pop()
+					results, timer = self.small_pred(pair[1])
+					if self.done:
+						self.pending = False
+						predicate.remove_task()
+						self.done = False
+						return results, timer
+					return None,timer # returns eval_results, small_p_timer
 			#running & managing pairwise joins on list 2
 			elif task_type == "PWl2":
 				#uses a variable called pending(consider moving to predicate)
@@ -1399,27 +1439,41 @@ class Join():
 					#if we have not yet checked this item with small p
 					# we find and save matches and return whether there are any
 					matches, timer = self.PW_join(predicate, self.list2)
-					#after PWjoin removes this item, the next one is the first in list2
-					self.sec_item_in_progress = self.list2[0]
 					self.pairwise_pairs = matches
 					self.pending = True #sets pending for smallP
-					if any(matches):
+					if any(matches) and self.done:
+						#after PWjoin removes this item, the next one is the first in list2
+						self.sec_item_in_progress = self.list2[0]
+						predicate.remove_task()
+						self.done = False
 						return None, timer
-					else:
+					elif not any(matches) and self.done:
+						#after PWjoin removes this item, the next one is the first in list2
+						self.sec_item_in_progress = self.list2[0]
+						predicate.remove_task()
+						self.done = False
 						return False, timer
+					else: # if it's not done (not reached consensus)
+						return None, timer
 				else:
 					#if we have already checked this 2nd-list item with small p
 					# we execute the join and return its results
-					self.pending = False # sets pending for the next join process
 					#we need to check before joining that we haven't eliminated this
 					# 2nd-list object with small p before we test it
 					if self.sec_item_in_progress in self.failed_by_smallP:
+						self.pending = False
+						predicate.remove_task()
+						self.done = False
 						return False, 0
 					matches,timer = self.PW_join(predicate, self.list2)
 					#after PWjoin removes this item, the next one is the first in list2
-					self.sec_item_in_progress = self.list2[0]
-					self.results_from_all_join += matches #TODO: are these unique matches / no doubles
-					return any(matches), timer # returns matches, PW_timer
+					if self.done:
+						self.sec_item_in_progress = self.list2[0]
+						self.results_from_all_join += matches #TODO: are these unique matches / no doubles
+						self.pending = False
+						self.done = False
+						return any(matches), timer
+					return None, timer # returns matches, PW_timer
 			else:
 				#we throw an exception if we receive an unwanted task type
 				print "Task type was: " + str(task_type)
@@ -1430,23 +1484,34 @@ class Join():
 			
 			if task_type == "PW":
 				matches, timer = self.PW_join(IP_pair, self.list1)
-				if matches is not None and any(matches):
+				if self.done and any(matches):
+					self.done = False
+					IP_pair.remove_task()
 					return None, timer
-				else:
+				elif self.done:
+					self.done = False
+					IP_pair.remove_task()
 					return False, timer
+				else:
+					return None, timer
 			#running & managing prejoin filtration
 			elif task_type == "PJF": # TODO: need to make this break into new tasks, not do all at once
-				#the first time we evaluate a prejoin filter, we filter
-				# the entire second list
-				total_prejoin_timer = 0
-				if list2_not_eval:
-					for i in self.list2:
-						results, prejoin_timer = self.prejoin_filter(i)
-						total_prejoin_timer += prejoin_timer
 				#evaluates the prejoin filter on the item and records the time
 				results, prejoin_timer = self.prejoin_filter(IP_pair.item)
-				total_prejoin_timer += prejoin_timer
-				return None, total_prejoin_timer #returns nothing (?) and the time taken
+				if self.done:
+					IP_pair.remove_task()
+					self.done = False
+				return None, prejoin_timer #returns nothing (?) and the time taken
+			#running and managing prejoin filtration on 2nd-list items
+			elif task_type == "PJF2":
+				#evaluates the prejoin filter on the item and records the time
+				results, prejoin_timer = self.prejoin_filter(None)
+				if self.done:
+					IP_pair.remove_task()
+					self.done = False
+					if self.list2_not_eval:
+						IP_pair.set_task_types(IP_pair.get_task_types() + ["PJF2", "join"])
+				return None, prejoin_timer #returns nothing (?) and the time taken
 			#running & managing normal joins
 			elif task_type == "join":
 				#our current (WILL BE CHANGED) version matches a given item against every
@@ -1522,34 +1587,32 @@ class Join():
 					print str(len(self.failed_by_smallP))
 					print "-------------------------"
 				self.has_2nd_list = True
+			count_costs[3] += 1
 			return ["PW", "small_p"] # path 4
 		else: # if we have both lists
 			cost = self.find_costs()
-			if buffer: # if still in buffer region TODO: think more about this metric
-				if random.random() < 0.5: # 50% chance of going to 1 or 2
-					if cost[0] < cost[1]: # path 1
-						return ["small_p", "PJF", "join"]
-					else: # path 2
-						return ["PJF", "join", "small_p"] # TODO: remember to change these functions + for loop and remove item
-				else: # 50% chance of going to 3 or 4 or 5
-					if cost[2]<cost[3] and cost[2]<cost[4]: # path 3
-						return ["PWl2", "small_p"] # on second list
-					elif cost[3]<cost[2] and cost[3]<cost[4]: # path 4
-						return ["PW", "small_p"] # on first list
-					else: # path 5
-						return ["small_p", "PWl2"] # on second list
-			else: # having escaped the buffer zone
-				minimum = min(cost)
-				if(cost[0] == minimum):# path 1
+			minimum = min(cost)
+			if(cost[0] == minimum):# path 1
+				count_costs[0] += 1
+				if self.list2_not_eval:
+					return ["small_p", "PJF", "PJF2", "join"]
+				else:
 					return ["small_p", "PJF", "join"]
-				elif(cost[1] == minimum):# path 2
+			elif(cost[1] == minimum):# path 2
+				count_costs[0] += 1
+				if self.list2_not_eval:
+					return ["PJF", "PJF2", "join", "small_p"]
+				else:
 					return ["PJF", "join", "small_p"]
-				elif(cost[2] == minimum):# path 3
-					return ["PWl2", "small_p"] # on second list
-				elif(cost[3] == minimum):# path 4:
-					return ["PW", "small_p"] # on first list
-				else:# path 5
-					return ["small_p", "PWl2"] # on second list
+			elif(cost[2] == minimum):# path 3
+				count_costs[1] += 1
+				return ["PWl2", "small_p"] # on second list
+			elif(cost[3] == minimum):# path 4:
+				count_costs[2] += 1
+				return ["PW", "small_p"] # on first list
+			else:# path 5
+				count_costs[1] += 1
+				return ["small_p", "PWl2"] # on second list
 
 	#----------------------- Main Join Helpers -----------------------#
 
@@ -1562,31 +1625,55 @@ class Join():
 	def find_costs(self):
 		""" Finds the cost estimates of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
 		Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
+		#TODO: remove redundant ifs when confident
 		#losp - "likelihood of some pairs" odds of a list2 item matching with at least one item from list1
 		losp = 1 - (1 - self.join_selectivity_est)**(len(self.list1))
 		# COST 1 CALCULATION - small pred then PJF
-		cost_1 = self.small_p_cost_est*(len(self.list2)-len(self.evaluated_with_smallP)) + \
-				self.PJF_cost_est*(self.small_p_selectivity_est *len(self.list2)+(len(self.list1))) + \
-				self.join_cost_est*len(self.list2)*len(self.list1)*self.small_p_selectivity_est*self.PJF_selectivity_est
+		if count_costs[0] > toggles.EXPLORATION_REQ:
+			cost_1 = self.small_p_cost_est*(len(self.list2)-len(self.evaluated_with_smallP)) + \
+					self.PJF_cost_est*(self.small_p_selectivity_est *len(self.list2)+(len(self.list1))) + \
+					self.join_cost_est*len(self.list2)*len(self.list1)*self.small_p_selectivity_est*self.PJF_selectivity_est
+		else:
+			cost_1 = 0
 		# COST 2 CALCULATION - PJF then small pred
-		cost_2 = self.PJF_cost_est*(len(self.list2)+len(self.list1)) + \
-				self.join_cost_est*len(self.list2)*len(self.list1)*self.PJF_selectivity_est+ \
-				self.small_p_cost_est*losp*len(self.list2)
-		# COST 3 CALCULATION - pairwise of second list and then small pred
+		if count_costs[0] > toggles.EXPLORATION_REQ:
+			cost_2 = self.PJF_cost_est*(len(self.list2)+len(self.list1)) + \
+					self.join_cost_est*len(self.list2)*len(self.list1)*self.PJF_selectivity_est+ \
+					self.small_p_cost_est*losp*len(self.list2)
+		else:
+			cost_2 = 0
 		match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
-		avg_matches_est_2 = numpy.mean(self.num_matches_per_item_2)
-		cost_3 = base_cost_est*len(self.list2) + \
-				match_cost_est*avg_matches_est_2*len(self.list2)  + \
-				losp*len(self.list2)*self.small_p_cost_est
+		if any(self.num_matches_per_item_2): #make sure we have the information to find costs
+			# COST 3 CALCULATION - pairwise of second list and then small pred
+			avg_matches_est_2 = numpy.mean(self.num_matches_per_item_2)
+			if count_costs[1] > toggles.EXPLORATION_REQ:
+				cost_3 = base_cost_est*len(self.list2) + \
+						match_cost_est*avg_matches_est_2*len(self.list2)  + \
+						losp*len(self.list2)*self.small_p_cost_est
+			else:
+				cost_3 = 0
+			# COST 5 CALCULATION - small pred then pairwise join on second list
+			if count_costs[1] > toggles.EXPLORATION_REQ:
+				cost_5 = self.small_p_cost_est*(len(self.list2)-len(self.evaluated_with_smallP))+ \
+						self.small_p_selectivity_est*len(self.list2)* (base_cost_est + \
+						match_cost_est*avg_matches_est_2)
+			else:
+				count_costs[4] = 0
+		else: #if we don't have enough information yet, we set the cost of these paths to 0
+			cost_3 = 0
+			cost_5 = 0
 		# COST 4 CALCULATION - pairwise join on first list and then small pred
-		avg_matches_est_1 = numpy.mean(self.num_matches_per_item_1)
-		cost_4 = base_cost_est*len(self.list1)+ \
-				match_cost_est*avg_matches_est_1*len(self.list1) + \
-				self.small_p_cost_est*losp*len(self.list2)
-		# COST 5 CALCULATION - small pred then pairwise join on second list
-		cost_5 = self.small_p_cost_est*(len(self.list2)-len(self.evaluated_with_smallP))+ \
-				self.small_p_selectivity_est*len(self.list2)* (base_cost_est + \
-				match_cost_est*avg_matches_est_2)
+		if any(self.num_matches_per_item_1):
+			if count_costs[2] > toggles.EXPLORATION_REQ:
+				avg_matches_est_1 = numpy.mean(self.num_matches_per_item_1)
+				cost_4 = base_cost_est*len(self.list1)+ \
+						match_cost_est*avg_matches_est_1*len(self.list1) + \
+						self.small_p_cost_est*losp*len(self.list2)
+			else:
+				cost_4
+		else:
+			cost_4 = 0
+		
 		
 		# DEBUGGING 
 		if self.DEBUG:
@@ -1841,3 +1928,10 @@ class Join():
 			#...
 		else:
 			raise Exception("Cannot find consensus for: " + str(for_task))
+
+	def use_item(self):
+		costs = self.find_costs()
+		min_cost = min(costs)
+		if min_cost == costs[0] or min_cost == costs[1] or min_costs == costs[3]:
+			return True	
+		return False
