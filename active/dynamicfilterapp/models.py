@@ -1431,7 +1431,7 @@ class Join():
 						self.pending = False
 						predicate.remove_task()
 						self.done = False
-						return results, timer
+						return any(results), timer
 					return None,timer # returns eval_results, small_p_timer
 			#running & managing pairwise joins on list 2
 			elif task_type == "PWl2":
@@ -1518,48 +1518,63 @@ class Join():
 			elif task_type == "join":
 				#our current (WILL BE CHANGED) version matches a given item against every
 				# item in the second list at once. In the future, should be chunked
-				total_join_timer = 0 #keeps time
-				results = [] #records matching pairs
+				join_timer = 0 #keeps time
+				join_done = True
 				for j in self.list2:
-					eval_TF, join_timer = self.join_items(IP_pair.item,j)
-					total_join_timer += join_timer
-					if eval_TF:
-						results += [[IP_pair.item, j]]
-				if IP_pair.small_p_done:
-					#if the small predicate is done already, return the pairs
-					IP_pair.small_p_done = False #TODO:can we do this
-					return any(results), timer
-				else:
-					#record pairs found in IP pair related to the item
-					# for use in small predicate evaluation
-					IP_pair.set_join_pairs(results)
-					if any(results):
-						return None, timer
-					else:
-						return False, timer
+					consensus_res = find_consensus("join", (IP_pair.item, j))
+					if consensus_res is None and j in self.evaluated_with_PJF:
+						join_done = False
+						eval_TF, join_timer = self.join_items(IP_pair.item,j)
+						if self.done:
+							if IP_pair.small_p_done and find_consensus((IP_pair.item,j)):
+								results_from_all_join += [(IP_pair.item,j)]
+								IP_pair.small_p_done = False #TODO:can we do this
+								self.list1.remove(IP_pair.item)
+								IP_pair.remove_task()
+								self.done = False
+								return True, join_timer
+							elif find_consensus((IP_pair.item,j)):
+								if not IP_pair.join_pairs:
+									IP_pair.set_join_pairs([])
+								IP_pair.set_join_pairs(IP_pair.get_join_pairs() + [(IP_pair.item,j)])
+							self.done = False
+						break
+				if join_done:
+					self.list1.remove(IP_pair.item)
+					IP_pair.remove_task()
+					if IP_pair.small_p_done and not self.list2_not_eval:
+						IP_pair.small_p_done = False
+						return False, join_timer
+				return None, join_timer
 			#runs & manages small predicate for list 1
 			elif task_type == "small_p":
-				#if there aren't any join pairs yet, don't run
+				timer = 0
 				if not IP_pair.join_pairs:
-					total_time = 0
+					all_eval_smallp = True
 					for second_item in self.list2:
-						total_time += self.small_pred(second_item)[1]
-					if any(self.list2):
-						return None, total_time
-					else:
-						return False, total_time
+						if second_item not in self.evaluated_with_smallP:
+							all_eval_smallp = False
+							timer = self.small_pred(second_item)[1]
+							if self.done:
+								self.done = False
+					if all_eval_smallp:
+						IP_pair.remove_task()
+						IP_pair.small_p_done = True
+					return None, timer
 				else:
 					#if we have run our join and have pairs to filter, we do
-					results = [] # records successful pairs
-					total_time = 0 # records time
-					for join_pair in IP_pair.get_join_pairs():
-						eval_result, timer = self.small_pred(join_pair[1])
-						if eval_result:
-							results += [join_pair]
-						total_time += timer
-					IP_pair.small_p_done = True #sets small_p_done for join
-					self.results_from_all_join += results
-					return any(results), total_time
+					all_small = True
+					if IP_pair.get_join_pairs()==[]:
+						return False, 0
+					res, timer = self.small_pred(IP_pair.get_join_pairs()[0][1])
+					if self.done:
+						self.done = False
+						IP_pair.remove_task()
+						IP_pair.set_join_pairs(IP_pair.get_join_pairs()[1:])
+						if res:
+							return res, timer
+						else:
+							return None, timer
 			else:
 				print "Task type was: " + str(task_type)
 				raise Exception("Your Predicate/IP_Pair doesn't match the expected task_types for Join.")
@@ -1737,9 +1752,11 @@ class Join():
 		small_p_timer = 0
 		#first, check if we've already evaluated this item
 		if item in self.evaluated_with_smallP:
-			return True
+			self.done = True
+			return True, 0
 		elif item in self.failed_by_smallP:
-			return False
+			self.done = True
+			return False, 0
 		#if not, evaluate it with the small predicate
 		else:
 			# Update the cost
@@ -1757,6 +1774,7 @@ class Join():
 			#check if we have reached consensus
 			consensus_result = self.find_consensus("small_p", item)[0]
 			if consensus_result is not None:
+				self.done = True
 				# Update the selectivity
 				self.small_p_selectivity_est = (self.small_p_selectivity_est*(self.processed_by_smallP)+eval_results)/(self.processed_by_smallP+1)
 				#increment the number of items 
