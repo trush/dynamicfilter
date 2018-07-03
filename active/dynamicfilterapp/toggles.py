@@ -25,7 +25,7 @@ TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PAT
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
 NUM_QUESTIONS = 2
-NUM_ITEMS = 20
+NUM_ITEMS = 100
 SIN = -1
 SELECTIVITY_GRAPH = False
 switch_list = [(0, (0,0), (0,0))]
@@ -133,22 +133,26 @@ MAX_TASKS_OUT = 40
 MAX_TASKS_COLLECTED = CUT_OFF
 
 MULTI_SIM = True 
-MULTI_SIM_ARRAY = [(10,(0, 1),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],2000,[(0, (.2,.25), (.9,.25))],4,1,1,50),
-(None,None,None,None,None,None,None,None,100),
-(None,None,None,None,None,None,None,None,150),
-(None,None,None,None,None,None,None,None,200),
-(None,None,None,None,[(0,(.1,.25),(.1,.25))],None,None,None,50),
-(None,None,None,None,None,None,None,None,100),
-(None,None,None,None,None,None,None,None,150),
-(None,None,None,None,None,None,None,None,200),
-(None,None,None,None,[(0,(.9,.25),(.9,.25))],None,None,None,50),
-(None,None,None,None,None,None,None,None,100),
-(None,None,None,None,None,None,None,None,150),
-(None,None,None,None,None,None,None,None,200),
-(None,None,None,None,[(0,(.5,.25),(.5,.25))],None,None,None,50),
-(None,None,None,None,None,None,None,None,100),
-(None,None,None,None,None,None,None,None,150),
-(None,None,None,None,None,None,None,None,200)]
+MULTI_SIM_ARRAY = [(10,(0, 1),[(0, 0, 0),(1, 20, 40),(10, 100, 200),(50, 225, 450)],2000,[(0, (.2,.25), (.9,.25))],4,1,1,100),
+(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 100, 200),(50, 350, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 20, 40),(10, 100, 200),(50, 225, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 10, 40),(10, 175, 200),(20, 400, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,[(0, (.1,.25), (.1,.25))],None,None,None,None),
+(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 100, 200),(50, 350, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 20, 40),(10, 100, 200),(50, 225, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 10, 40),(10, 175, 200),(20, 400, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,[(0, (.9,.25), (.9,.25))],None,None,None,None),
+(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 100, 200),(50, 350, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 20, 40),(10, 100, 200),(50, 225, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 10, 40),(10, 175, 200),(20, 400, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,[(0, (.5,.25), (.5,.25))],None,None,None,None),
+(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 100, 200),(50, 350, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 20, 40),(10, 100, 200),(50, 225, 450)],None,None,None,None,None,None),
+(None,None,[(0, 0, 0),(1, 10, 40),(10, 175, 200),(20, 400, 450)],None,None,None,None,None,None)]
 # ************************************************************************ #
 
 
