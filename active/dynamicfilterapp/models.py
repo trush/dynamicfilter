@@ -852,7 +852,8 @@ class Join():
 		# is in assign_join_tasks()
 		self.has_2nd_list = False
 
-		self.list1 = Item.objects.all().values_list()
+		#TODO: this doesn't really work as expected, maybe work with ids or something
+		self.list1 = list(item.item_ID for item in Item.objects.all())
 		if in_list2 == None:
 			self.list2 = []
 		else:
@@ -1190,7 +1191,8 @@ class Join():
 		else:
 			self.votes_for_matches[(item1, None)][1] += 1
 		if self.find_consensus("join", (item1,None)):
-			itemlist.remove(item1)
+			if item1 in itemlist:
+				itemlist.remove(item1)
 			return [], PW_timer
 				
 		if done:
@@ -1573,7 +1575,6 @@ class Join():
 		cost estimates to determine which function to call item by item."""
 		print len(self.results_from_all_join)
 
-		buffer = len(self.results_from_all_join) <= 0.15*len(self.list1)*len(self.list2)
 		buf1 = len(self.results_from_all_join) < .1*len(self.list1)
 		# reconsider these a bit 
 
@@ -1587,31 +1588,31 @@ class Join():
 					print str(len(self.failed_by_smallP))
 					print "-------------------------"
 				self.has_2nd_list = True
-			count_costs[3] += 1
+			self.count_costs[2] += 1
 			return ["PW", "small_p"] # path 4
 		else: # if we have both lists
 			cost = self.find_costs()
 			minimum = min(cost)
 			if(cost[0] == minimum):# path 1
-				count_costs[0] += 1
+				self.count_costs[0] += 1
 				if self.list2_not_eval:
 					return ["small_p", "PJF", "PJF2", "join"]
 				else:
 					return ["small_p", "PJF", "join"]
 			elif(cost[1] == minimum):# path 2
-				count_costs[0] += 1
+				self.count_costs[0] += 1
 				if self.list2_not_eval:
 					return ["PJF", "PJF2", "join", "small_p"]
 				else:
 					return ["PJF", "join", "small_p"]
 			elif(cost[2] == minimum):# path 3
-				count_costs[1] += 1
+				self.count_costs[1] += 1
 				return ["PWl2", "small_p"] # on second list
 			elif(cost[3] == minimum):# path 4:
-				count_costs[2] += 1
+				self.count_costs[2] += 1
 				return ["PW", "small_p"] # on first list
 			else:# path 5
-				count_costs[1] += 1
+				self.count_costs[1] += 1
 				return ["small_p", "PWl2"] # on second list
 
 	#----------------------- Main Join Helpers -----------------------#
@@ -1629,14 +1630,14 @@ class Join():
 		#losp - "likelihood of some pairs" odds of a list2 item matching with at least one item from list1
 		losp = 1 - (1 - self.join_selectivity_est)**(len(self.list1))
 		# COST 1 CALCULATION - small pred then PJF
-		if count_costs[0] > toggles.EXPLORATION_REQ:
+		if self.count_costs[0] > toggles.EXPLORATION_REQ:
 			cost_1 = self.small_p_cost_est*(len(self.list2)-len(self.evaluated_with_smallP)) + \
 					self.PJF_cost_est*(self.small_p_selectivity_est *len(self.list2)+(len(self.list1))) + \
 					self.join_cost_est*len(self.list2)*len(self.list1)*self.small_p_selectivity_est*self.PJF_selectivity_est
 		else:
 			cost_1 = 0
 		# COST 2 CALCULATION - PJF then small pred
-		if count_costs[0] > toggles.EXPLORATION_REQ:
+		if self.count_costs[0] > toggles.EXPLORATION_REQ:
 			cost_2 = self.PJF_cost_est*(len(self.list2)+len(self.list1)) + \
 					self.join_cost_est*len(self.list2)*len(self.list1)*self.PJF_selectivity_est+ \
 					self.small_p_cost_est*losp*len(self.list2)
@@ -1646,25 +1647,25 @@ class Join():
 		if any(self.num_matches_per_item_2): #make sure we have the information to find costs
 			# COST 3 CALCULATION - pairwise of second list and then small pred
 			avg_matches_est_2 = numpy.mean(self.num_matches_per_item_2)
-			if count_costs[1] > toggles.EXPLORATION_REQ:
+			if self.count_costs[1] > toggles.EXPLORATION_REQ:
 				cost_3 = base_cost_est*len(self.list2) + \
 						match_cost_est*avg_matches_est_2*len(self.list2)  + \
 						losp*len(self.list2)*self.small_p_cost_est
 			else:
 				cost_3 = 0
 			# COST 5 CALCULATION - small pred then pairwise join on second list
-			if count_costs[1] > toggles.EXPLORATION_REQ:
+			if self.count_costs[1] > toggles.EXPLORATION_REQ:
 				cost_5 = self.small_p_cost_est*(len(self.list2)-len(self.evaluated_with_smallP))+ \
 						self.small_p_selectivity_est*len(self.list2)* (base_cost_est + \
 						match_cost_est*avg_matches_est_2)
 			else:
-				count_costs[4] = 0
+				self.count_costs[4] = 0
 		else: #if we don't have enough information yet, we set the cost of these paths to 0
 			cost_3 = 0
 			cost_5 = 0
 		# COST 4 CALCULATION - pairwise join on first list and then small pred
 		if any(self.num_matches_per_item_1):
-			if count_costs[2] > toggles.EXPLORATION_REQ:
+			if self.count_costs[2] > toggles.EXPLORATION_REQ:
 				avg_matches_est_1 = numpy.mean(self.num_matches_per_item_1)
 				cost_4 = base_cost_est*len(self.list1)+ \
 						match_cost_est*avg_matches_est_1*len(self.list1) + \

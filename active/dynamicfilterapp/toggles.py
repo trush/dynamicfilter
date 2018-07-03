@@ -273,7 +273,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'MULTI_SIM', 'MULTI_SIM_ARRAY', 'USE_JOINS', 'JOIN_SELECTIVITY', 'PJF_SELECTIVITY',
             'JOIN_TIME', 'TIME_TO_EVAL_PJF', 'BASE_FIND_MATCHES', 'FIND_SINGLE_MATCH_TIME',
             'AVG_MATCHES', 'STDDEV_MATCHES', 'SMALL_P_SELECTIVITY', 'TIME_TO_EVAL_SMALL_P',
-            'HAS_LIST2', 'private_list2', 'THRESHOLD' 
+            'HAS_LIST2', 'private_list2', 'THRESHOLD', 'EXPLORATION_REQ'
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file
