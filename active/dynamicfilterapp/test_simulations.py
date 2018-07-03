@@ -2092,31 +2092,43 @@ class SimulationTest(TransactionTestCase):
 		origQueueLength = toggles.PENDING_QUEUE_SIZE
 		origTicketing = toggles.TICKETING_SYS
 		origBatch = toggles.BATCH_ASSIGNMENT
-			
+		origPeriod = toggles.REFILL_PERIOD
+		
+		numSim = 0
 		settingCount = 0
 		for setting in toggles.MULTI_SIM_ARRAY:
 			tempLength = origQueueLength
 			print "Running setting " + str(settingCount)
 
-			numSim = setting[0]	# number of simulations for current setting
-			toggles.IP_LIMIT_SYS = setting[1][0] 		# predicate limit mode
-			if toggles.IP_LIMIT_SYS >= 2:# for hard, soft limit
-				toggles.ITEM_IP_LIMIT = setting[1][1] 	# predicate limit
-			toggles.ACTIVE_TASKS_ARRAY = setting[2] 	# batch size
-			if isinstance(setting[3], list):
-				toggles.QUEUE_LENGTH_ARRAY = setting[3] 	# adaptive queue length
-			else:
-				toggles.PENDING_QUEUE_SIZE = setting[3]
-				tempLength = setting[3]
-			toggles.switch_list = setting[4]			# predicate selectivity, ambiguity, cost settings
-			toggles.ADAPTIVE_QUEUE_MODE = setting [5]	
-			toggles.TICKETING_SYS = setting[6]
-			toggles.BATCH_ASSIGNMENT = setting[7]
+			if not setting[0] == None:
+				numSim = setting[0]	# number of simulations for current setting
+			if not setting[1] == None:
+				toggles.IP_LIMIT_SYS = setting[1][0] 		# predicate limit mode
+				if toggles.IP_LIMIT_SYS >= 2:# for hard, soft limit
+					toggles.ITEM_IP_LIMIT = setting[1][1] 	# predicate limit
+			if not setting[2] == None:
+				toggles.ACTIVE_TASKS_ARRAY = setting[2] 	# batch size
+			if not setting[3] == None:
+				if isinstance(setting[3], list):
+					toggles.QUEUE_LENGTH_ARRAY = setting[3] 	# adaptive queue length
+				else:
+					toggles.PENDING_QUEUE_SIZE = setting[3]
+					tempLength = setting[3]
+			if not setting[4] == None:
+				toggles.switch_list = setting[4]			# predicate selectivity, ambiguity, cost settings
+			if not setting[5] == None:
+				toggles.ADAPTIVE_QUEUE_MODE = setting [5]	
+			if not setting[6] == None:
+				toggles.TICKETING_SYS = setting[6]
+			if not setting[7] == None:
+				toggles.BATCH_ASSIGNMENT = setting[7]
+			if not setting[8] == None:
+				toggles.REFILL_PERIOD = setting[8]
 
 			# set up output csv file
 			save = []
-			save.append(["Setting:", "Predicate Limit Mode", "Predicate Limit", "Active Task Array", "Queue Array"])
-			save.append(["",toggles.IP_LIMIT_SYS, toggles.ITEM_IP_LIMIT, str(toggles.ACTIVE_TASKS_ARRAY), str(toggles.QUEUE_LENGTH_ARRAY)])
+			save.append(["Setting:", "Predicate Limit Mode", "Predicate Limit", "Active Task Array", "Queue Array", "Switch List", "Adaptive Queue Mode", "Ticketing System", "Batch Assignment", "Refill Period"])
+			save.append(["",toggles.IP_LIMIT_SYS, toggles.ITEM_IP_LIMIT, str(toggles.ACTIVE_TASKS_ARRAY), str(toggles.QUEUE_LENGTH_ARRAY), str(toggles.switch_list), toggles.ADAPTIVE_QUEUE_MODE, toggles.TICKETING_SYS, toggles.BATCH_ASSIGNMENT, toggles.REFILL_PERIOD])
 			save.append(["Run", "Placeholder tasks", "Wasted tasks", "Total tasks", "Time"])
 			
 			for run in range(numSim):
@@ -2132,6 +2144,9 @@ class SimulationTest(TransactionTestCase):
 				runList.append(self.num_real_tasks_array[run])
 				runList.append(self.simulated_time_array[run])
 				save.append(runList)
+
+			for pred in Predicate.objects.all():
+				pred.set_queue_length(tempLength)
 
 			stats = (np.array([self.num_placeholders_array, self.num_waste_array, self.num_real_tasks_array, self.simulated_time_array]))
 			save.append (["mean"])
@@ -2159,6 +2174,7 @@ class SimulationTest(TransactionTestCase):
 		toggles.PENDING_QUEUE_SIZE = origQueueLength
 		toggles.TICKETING_SYS = origTicketing
 		toggles.BATCH_ASSIGNMENT = origBatch
+		togges.REFILL_PERIOD = origPeriod
 			
 
 	def collect_act1_data(self, timed):
