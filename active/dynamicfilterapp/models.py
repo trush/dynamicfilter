@@ -535,6 +535,9 @@ class IP_Pair(models.Model):
 	def get_task_types(self):
 		return json.loads(self.task_types)
 
+	def set_task_types(self, inlist):
+		self.task_types = json.dumps(inlist)
+
 	def is_joinable(self):
 		return self.predicate.joinable
 
@@ -814,6 +817,7 @@ class DummyTask(models.Model):
 	Model representing a task that will be distributed that isn't associated w/ IP Pair
 	"""
 	ip_pair = None
+	predicate = None
 	answer = None
 	workerID = models.CharField(db_index=True, max_length=15)
 
@@ -933,6 +937,8 @@ class Join():
 		## @remarks tracks the number of times each path has been run. Used to manipulate find_costs to ensure exploration
 		## @remarks because paths 1 and 2 and paths 3 and 5 use the same information, they share entries (layout is [(1/2),(3/5),4])
 		self.count_costs = [0,0,0]
+		## @remarks tracks the number of times an item calls each function
+		self.call_dict = {}
 
 		# Concurrency -----------------------#
 
@@ -1051,61 +1057,61 @@ class Join():
 	# @return boolean value of the results of the join, time taken to compute the join
 	# @remarks Join method also updates all relevant estimate variables.
 	def join_items(self, i, j):
-			timer_val = 0
-			if (i,j) in self.results_from_all_join:
-				return True, 0
-			if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
-				# Generate task of current pair
-				# Choose whether to add to num_join_items
-				timer_val += self.JOIN_TIME
-				# If it is accepted in join process
-			should_join = random() < self.JOIN_SELECTIVITY
-			#add a vote to matches for this item
-			if not self.votes_for_matches[(i,j)]:
-				self.votes_for_matches[(i,j)] = [0,0]
-			if eval_results:
-				self.votes_for_matches[(i,j)][0] += 1
-			else:
-				self.votes_for_matches[(i,j)][1] += 1
-			#check if we have reached consensus
-			consensus_result = self.find_consensus("join", (i,j))[0]
-			if consensus_result is not None:
-				self.matches_tasks_for_cons += [ self.votes_for_matches[(i,j)][0] + self.votes_for_matches[(i,j)][1] ]
-				if consensus_result:
-					self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
-					self.processed_by_join += 1
-					self.num_join_items += 1
-					# Adjust join cost estimates
-					self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
-					
-					# DEBUGGING
-					if self.DEBUG:
-						print "ACCEPTED BY JOIN----------"
-						print "TIMER VALUE: " + str(timer_val)
-						print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
-						print "PJF cost estimate: " + str(self.PJF_cost_est)
-						print "Join selectivity estimate: " + str(self.join_selectivity_est)
-						print "Join cost estimate: " + str(self.join_cost_est)
-						print "--------------------------"
-
-					self.results_from_all_join += [(i,j)]
-					return True, timer_val
-				# If it is not accepted in join process
-				self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
+		timer_val = 0
+		if (i,j) in self.results_from_all_join:
+			return True, 0
+		if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
+			# Generate task of current pair
+			# Choose whether to add to num_join_items
+			timer_val += self.JOIN_TIME
+			# If it is accepted in join process
+		should_join = random() < self.JOIN_SELECTIVITY
+		#add a vote to matches for this item
+		if not self.votes_for_matches[(i,j)]:
+			self.votes_for_matches[(i,j)] = [0,0]
+		if eval_results:
+			self.votes_for_matches[(i,j)][0] += 1
+		else:
+			self.votes_for_matches[(i,j)][1] += 1
+		#check if we have reached consensus
+		consensus_result = self.find_consensus("join", (i,j))[0]
+		if consensus_result is not None:
+			self.matches_tasks_for_cons += [ self.votes_for_matches[(i,j)][0] + self.votes_for_matches[(i,j)][1] ]
+			if consensus_result:
+				self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
+				self.processed_by_join += 1
+				self.num_join_items += 1
+				# Adjust join cost estimates
 				self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
 				
 				# DEBUGGING
 				if self.DEBUG:
-					print "MATCHED BUT REJECTED BY JOIN------------"
+					print "ACCEPTED BY JOIN----------"
 					print "TIMER VALUE: " + str(timer_val)
 					print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
 					print "PJF cost estimate: " + str(self.PJF_cost_est)
 					print "Join selectivity estimate: " + str(self.join_selectivity_est)
 					print "Join cost estimate: " + str(self.join_cost_est)
-					print "----------------------------------------"
+					print "--------------------------"
 
-				return False, timer_val
-			return None, timer_val
+				self.results_from_all_join += [(i,j)]
+				return True, timer_val
+			# If it is not accepted in join process
+			self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
+			self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
+			
+			# DEBUGGING
+			if self.DEBUG:
+				print "MATCHED BUT REJECTED BY JOIN------------"
+				print "TIMER VALUE: " + str(timer_val)
+				print "PJF selectivity estimate: " + str(self.PJF_selectivity_est)
+				print "PJF cost estimate: " + str(self.PJF_cost_est)
+				print "Join selectivity estimate: " + str(self.join_selectivity_est)
+				print "Join cost estimate: " + str(self.join_cost_est)
+				print "----------------------------------------"
+
+			return False, timer_val
+		return None, timer_val
 
 	#----------------------- PJF Join Helpers -----------------------#
 	## @param self
@@ -1139,7 +1145,7 @@ class Join():
 	# 	used in the chao estimator.
 	def PW_join(self, ip_or_pred, itemlist):
 		self.PW_join_calls += 1
-		if ip_or_pred.item in self.failed_by_smallP:
+		if type(ip_or_pred) == Predicate and ip_or_pred.item.item_ID in self.failed_by_smallP:
 			raise Exception("Improper removal/addition of " + str(ip_or_pred.item) + " occurred")
 		#Metadata/debug information
 		avg_cost = 0
@@ -1153,9 +1159,9 @@ class Join():
 			if self.has_2nd_list:
 				itemlist2 = self.list2
 			else:
-				self.guess_list2.update(matches)
+				self.guess_list2.update([item2 for (item1,item2) in matches])
 				itemlist2 = self.guess_list2
-			item1 = ip_or_pred.item
+			item1 = ip_or_pred.item.item_ID
 		else:
 			matches, PW_timer = self.get_matches_l2(ip_or_pred, PW_timer)
 			itemlist2 = self.list1
@@ -1163,7 +1169,7 @@ class Join():
 		done = True
 		for item2 in itemlist2:
 			#update votes for consensus for each item pair 
-			match = []
+			match = ()
 
 			if itemlist == self.list1:
 				match = (item1,item2)
@@ -1178,10 +1184,11 @@ class Join():
 			else:
 				self.votes_for_matches[match][1] += 1
 			consensus_found = self.find_consensus("join", match)
-			if not consensus_found:
+			if consensus_found is None:
 				done = False
 			else:
-				consensus_matches += [match]
+				if consensus_found:
+					consensus_matches += [match]
 
 		#if there are no matches, we also need to reach consensus on this case
 		if not (item1,None) in self.votes_for_matches:
@@ -1193,9 +1200,12 @@ class Join():
 		if self.find_consensus("join", (item1,None)):
 			if item1 in itemlist:
 				itemlist.remove(item1)
+			self.done = True
 			return [], PW_timer
-				
+
+		
 		if done:
+			self.done = True
 			self.consensus_items_PW += 1
 			self.tasks_for_PW = float(self.PW_join_calls)/self.consensus_items_PW
 			#save costs and matches for estimates later
@@ -1207,11 +1217,11 @@ class Join():
 				self.num_matches_per_item_2 += [len(consensus_matches)]
 
 			#remove processed item from itemlist
-			if itemlist == self.list1 and ip_or_pred.item in itemlist:
-				self.list1.remove(ip_or_pred.item)
-			elif ip_or_pred.item in itemlist:
-				self.list2.remove(ip_or_pred.item)
-				self.evaluated_with_smallP.remove(ip_or_pred.item)
+			if itemlist == self.list1 and item1 in itemlist:
+				self.list1.remove(item1)
+			elif item1 in itemlist:
+				self.list2.remove(item1)
+				self.evaluated_with_smallP.remove(item1)
 			if self.DEBUG:
 				print "RAN PAIRWISE JOIN ----------"
 				print "PW AVERAGE COST FOR L1: " + str(numpy.mean(self.PW_cost_est_1))
@@ -1264,6 +1274,8 @@ class Join():
 	def get_matches(self, ip_pair, timer):
 		if ip_pair.correct_matches == "":
 			ip_pair.set_correct_matches([])
+			ip_pair.save(update_fields=["correct_matches"])
+		item1 = ip_pair.item.item_ID
 		if not ip_pair.get_correct_matches():
 			#assumes a normal distribution
 			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
@@ -1273,12 +1285,15 @@ class Join():
 				sample = sample.tolist()
 			else:
 				sample = self.list2
+			sample =[x.encode('ascii') for x in sample]
+			ip_pair.refresh_from_db()
 			ip_pair.set_correct_matches(sample)
+			ip_pair.save(update_fields=["correct_matches"])
 			
 			#add num_matches pairs
 			for i in range(len(sample)):
 				item2 = sample[i]
-				matches.append((ip_pair.item, item2))
+				matches.append((item1, item2))
 				timer += self.FIND_SINGLE_MATCH_TIME
 		else:
 			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
@@ -1287,24 +1302,27 @@ class Join():
 			wrong_matches = []
 			total_matches = range(num_matches)
 			for i in total_matches:
-				if random() > 0.9:
+				if random.random() > 0.9:
 					num_matches -= 1
 					num_wrong_matches += 1
 			
-			sample = numpy.random.choice(ip_pair.get_correct_matches(), num_matches, False)
-			wrong_sample = numpy.random.choice(self.private_list2 - ip_pair.get_correct_matches(), num_wrong_matches, False)
+			if num_matches < len(ip_pair.get_correct_matches()):
+				sample = numpy.random.choice(ip_pair.get_correct_matches(), num_matches, False)
+			else:
+				sample = ip_pair.get_correct_matches()
+			wrong_sample = numpy.random.choice([item for item in self.private_list2 if item not in ip_pair.get_correct_matches()], num_wrong_matches, False)
 
 
 			#add num_matches pairs
 			for i in range(len(sample)):
 				item2 = sample[i]
-				matches.append((ip_pair.item, item2))
+				matches.append((item1, item2))
 				timer += self.FIND_SINGLE_MATCH_TIME
 			
 			#add num_matches pairs
 			for i in range(len(wrong_sample)):
 				item2 = wrong_sample[i]
-				matches.append((ip_pair.item, item2))
+				matches.append((item1, item2))
 				timer += self.FIND_SINGLE_MATCH_TIME
 			
 
@@ -1314,6 +1332,7 @@ class Join():
 			print "Time taken to find matches: " + str(timer)
 			print "-----------------------"
 		timer += self.BASE_FIND_MATCHES
+		matches = [(a,x.encode('ascii')) for (a,x) in matches]
 		return matches, timer
 
 	## @param self
@@ -1391,8 +1410,8 @@ class Join():
 	# @return timer : the time taken to do said task
 	# @remarks This is what is called in simulate_task() where the task answer and time are retrieved and saved.
 	def main_join(self, task_type, IP_pair=None, predicate=None):
-		
-
+		print "this IP pair:" + str(IP_pair.id)
+		print "task types:" + str(IP_pair.task_types)
 		#if the upcoming task does not require an item from list1 
 		# i.e. small_p or Pairwise on list 2
 		if IP_pair is None and predicate is None:
@@ -1488,18 +1507,27 @@ class Join():
 				matches, timer = self.PW_join(IP_pair, self.list1)
 				if self.done and any(matches):
 					self.done = False
+					IP_pair.set_join_pairs(matches)
 					IP_pair.remove_task()
+					IP_pair.save(update_fields=["join_pairs", "task_types"])
+					print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+					print "we are here having made progress"
+					if IP_pair.get_task_types() == []:
+						raise Exception("too many deletions")
 					return None, timer
 				elif self.done:
 					self.done = False
 					IP_pair.remove_task()
+					IP_pair.save(update_fields=[ "task_types"])
 					return False, timer
 				else:
+					print "we are here trying to get there"
+					print "we are here with" + str(matches)
 					return None, timer
 			#running & managing prejoin filtration
 			elif task_type == "PJF": # TODO: need to make this break into new tasks, not do all at once
 				#evaluates the prejoin filter on the item and records the time
-				results, prejoin_timer = self.prejoin_filter(IP_pair.item)
+				results, prejoin_timer = self.prejoin_filter(IP_pair.item.item_ID)
 				if self.done:
 					IP_pair.remove_task()
 					self.done = False
@@ -1521,26 +1549,26 @@ class Join():
 				join_timer = 0 #keeps time
 				join_done = True
 				for j in self.list2:
-					consensus_res = find_consensus("join", (IP_pair.item, j))
+					consensus_res = find_consensus("join", (IP_pair.item.item_ID, j))
 					if consensus_res is None and j in self.evaluated_with_PJF:
 						join_done = False
-						eval_TF, join_timer = self.join_items(IP_pair.item,j)
+						eval_TF, join_timer = self.join_items(IP_pair.item.item_ID,j)
 						if self.done:
-							if IP_pair.small_p_done and find_consensus((IP_pair.item,j)):
-								results_from_all_join += [(IP_pair.item,j)]
+							if IP_pair.small_p_done and find_consensus((IP_pair.item.item_ID,j)):
+								results_from_all_join += [(IP_pair.item.item_ID,j)]
 								IP_pair.small_p_done = False #TODO:can we do this
-								self.list1.remove(IP_pair.item)
+								self.list1.remove(IP_pair.item.item_ID)
 								IP_pair.remove_task()
 								self.done = False
 								return True, join_timer
-							elif find_consensus((IP_pair.item,j)):
+							elif find_consensus((IP_pair.item.item_ID,j)):
 								if not IP_pair.join_pairs:
 									IP_pair.set_join_pairs([])
-								IP_pair.set_join_pairs(IP_pair.get_join_pairs() + [(IP_pair.item,j)])
+								IP_pair.set_join_pairs(IP_pair.get_join_pairs() + [(IP_pair.item.item_ID,j)])
 							self.done = False
 						break
 				if join_done:
-					self.list1.remove(IP_pair.item)
+					self.list1.remove(IP_pair.item.item_ID)
 					IP_pair.remove_task()
 					if IP_pair.small_p_done and not self.list2_not_eval:
 						IP_pair.small_p_done = False
@@ -1554,7 +1582,7 @@ class Join():
 					for second_item in self.list2:
 						if second_item not in self.evaluated_with_smallP:
 							all_eval_smallp = False
-							timer = self.small_pred(second_item)[1]
+							ret, timer = self.small_pred(second_item)[1]
 							if self.done:
 								self.done = False
 					if all_eval_smallp:
@@ -1588,7 +1616,7 @@ class Join():
 	def assign_join_tasks(self):
 		""" This is the main join function. It calls PW_join(), PJF_join(), and small_pred(). Uses 
 		cost estimates to determine which function to call item by item."""
-		print len(self.results_from_all_join)
+		print "length" + str(len(self.results_from_all_join))
 
 		buf1 = len(self.results_from_all_join) < .1*len(self.list1)
 		# reconsider these a bit 
@@ -1658,10 +1686,10 @@ class Join():
 					self.small_p_cost_est*losp*len(self.list2)
 		else:
 			cost_2 = 0
-		match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
 		if any(self.num_matches_per_item_2): #make sure we have the information to find costs
 			# COST 3 CALCULATION - pairwise of second list and then small pred
 			avg_matches_est_2 = numpy.mean(self.num_matches_per_item_2)
+			match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
 			if self.count_costs[1] > toggles.EXPLORATION_REQ:
 				cost_3 = base_cost_est*len(self.list2) + \
 						match_cost_est*avg_matches_est_2*len(self.list2)  + \
@@ -1680,6 +1708,7 @@ class Join():
 			cost_5 = 0
 		# COST 4 CALCULATION - pairwise join on first list and then small pred
 		if any(self.num_matches_per_item_1):
+			match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
 			if self.count_costs[2] > toggles.EXPLORATION_REQ:
 				avg_matches_est_1 = numpy.mean(self.num_matches_per_item_1)
 				cost_4 = base_cost_est*len(self.list1)+ \
@@ -1765,14 +1794,14 @@ class Join():
 			#for preliminary testing, we randomly choose whether or not an item passes
 			eval_results = random.random() < self.SMALL_P_SELECTIVITY
 			#add a vote to small_p for this item
-			if not self.votes_for_small_p[item]:
-				self.votes_for_small_p[item] = (0,0)
+			if item not in self.votes_for_small_p:
+				self.votes_for_small_p[item] = [0,0]
 			if eval_results:
 				self.votes_for_small_p[item][0] += 1
 			else:
 				self.votes_for_small_p[item][1] += 1
 			#check if we have reached consensus
-			consensus_result = self.find_consensus("small_p", item)[0]
+			consensus_result = self.find_consensus("small_p", item)
 			if consensus_result is not None:
 				self.done = True
 				# Update the selectivity
@@ -1839,6 +1868,8 @@ class Join():
 	def find_consensus(self, for_task, entry):
 		if for_task == "small_p":
 			votes_yes, votes_no = self.votes_for_small_p[entry]
+			if votes_no + votes_yes < toggles.NUM_CERTAIN_VOTES:
+				return None
 			votes_cast = votes_no+votes_yes
 			larger = max(votes_yes,votes_no)
 			smaller = min(votes_yes,votes_no)
@@ -1853,28 +1884,30 @@ class Join():
 
 			if votes_cast >= toggles.CUT_OFF:
 				#print("Most ambiguity")
-				return larger == votes_yes, 4
+				return larger == votes_yes
 
 			elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
 				#print("Unambiguous")
-				return larger == votes_yes, 1
+				return larger == votes_yes
 
 			elif larger >= single_max:
 				if smaller < single_max*(1.0/3.0): #TODO un-hard-code this part
 					#print("Unambiguous+")
-					return larger == votes_yes, 1
+					return larger == votes_yes
 				elif smaller < single_max*(2.0/3.0):
 					#print("Medium ambiguity")
-					return larger == votes_yes, 2
+					return larger == votes_yes
 				else:
 					#print("Low ambiguity")
-					return larger == votes_yes, 3
+					return larger == votes_yes
 
 			else:
-				return None, 0
+				return None
 			#...
 		elif for_task == "PJF":
 			votes_yes, votes_no = self.votes_for_pjf[entry]
+			if votes_no + votes_yes < toggles.NUM_CERTAIN_VOTES:
+				return None
 			votes_cast = votes_no+votes_yes
 			larger = max(votes_yes,votes_no)
 			smaller = min(votes_yes,votes_no)
@@ -1889,28 +1922,30 @@ class Join():
 
 			if votes_cast >= toggles.CUT_OFF:
 				#print("Most ambiguity")
-				return 4
+				return larger == votes_yes
 
 			elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
 				#print("Unambiguous")
-				return 1
+				return larger == votes_yes
 
 			elif larger >= single_max:
 				if smaller < single_max*(1.0/3.0): #TODO un-hard-code this part
 					#print("Unambiguous+")
-					return 1
+					return larger == votes_yes
 				elif smaller < single_max*(2.0/3.0):
 					#print("Medium ambiguity")
-					return 2
+					return larger == votes_yes
 				else:
 					#print("Low ambiguity")
-					return 3
+					return larger == votes_yes
 
 			else:
-				return 0
+				return None
 			#...
 		elif for_task == "join":
 			votes_yes, votes_no = self.votes_for_matches[entry]
+			if votes_no + votes_yes < toggles.NUM_CERTAIN_VOTES:
+				return None
 			votes_cast = votes_no+votes_yes
 			larger = max(votes_yes,votes_no)
 			smaller = min(votes_yes,votes_no)
@@ -1925,25 +1960,25 @@ class Join():
 
 			if votes_cast >= toggles.CUT_OFF:
 				#print("Most ambiguity")
-				return 4
+				return larger == votes_yes
 
 			elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
 				#print("Unambiguous")
-				return 1
+				return larger == votes_yes
 
 			elif larger >= single_max:
 				if smaller < single_max*(1.0/3.0): #TODO un-hard-code this part
 					#print("Unambiguous+")
-					return 1
+					return larger == votes_yes
 				elif smaller < single_max*(2.0/3.0):
 					#print("Medium ambiguity")
-					return 2
+					return larger == votes_yes
 				else:
 					#print("Low ambiguity")
-					return 3
+					return larger == votes_yes
 
 			else:
-				return 0
+				return None
 			#...
 		else:
 			raise Exception("Cannot find consensus for: " + str(for_task))

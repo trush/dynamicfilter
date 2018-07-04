@@ -155,7 +155,7 @@ DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
 NUM_SIM = 0
-NUM_GRAPH_SIM = 1
+NUM_GRAPH_SIM = 0
 
 SIMULATE_TIME = True # simulate time passing/concurrency
 
