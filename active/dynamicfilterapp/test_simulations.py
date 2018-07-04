@@ -681,14 +681,15 @@ class SimulationTest(TransactionTestCase):
 			else:
 				if pred is not None:
 					#if give_task returns a predicate, then we create a predicate task
-					curr_join = active_joins[ip_pair.predicate]
+					curr_join = active_joins[pred]
 					task_type = pred.task_types[0]
 					task = self.syn_simulate_task(None, workerID, time_clock, switch, self.num_tasks, task_type, curr_join, pred)
 				elif ip_pair is not None and ip_pair.is_joinable():
 					#if give_task returns an ip pair, then we create an ip pair task
 					curr_join = active_joins[ip_pair.predicate]
-					ip_pair.task_types = curr_join.assign_join_tasks()
-					task_type = ip_pair.task_types[0]
+					if ip_pair.task_types == "":
+						raise Exception("we allowed a finished pair to take a new task")
+					task_type = ip_pair.get_task_types()[0]
 					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks, task_type, curr_join, pred)
 				else:
 					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)

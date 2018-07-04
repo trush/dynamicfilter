@@ -65,7 +65,10 @@ def pending_eddy(ID, active_joins = None):
 		incompleteIP = unfinishedList.exclude(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False)
 
 	if toggles.EDDY_SYS == 5:
-		chosenIP = nu_pending_eddy(incompleteIP)
+		if active_joins is not None:
+			chosenIP = nu_pending_eddy(incompleteIP, active_joins)
+		else:
+			chosenIP = nu_pending_eddy(incompleteIP)
 		#check whether ip pair or predicate
 		if type(chosenIP) is Predicate:
 			#TODO:do we need to start()?
@@ -160,6 +163,7 @@ def adaptive_predicate_limit (chosenIP):
 
 def nu_pending_eddy(incompleteIP, active_joins=None):
 	#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
+	print active_joins
 	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
 	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
 	if incompleteIP.exists():
@@ -186,6 +190,7 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 				# if we don't have tasks to do, get some!
 				if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
 					chosenPred.set_task_types(task_types)
+					chosenPred.save(update_fields=["task_types"])
 				# otherwise we should have tasks to do, so return the predicate so that we do them
 				return chosenPred
 			
@@ -208,6 +213,8 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 				chosenIP = minTaskIP
 			chosenIP = choice(pickFrom)
 			if not chosenIP.task_types == "" and chosenIP.get_task_types() == []:
+				print chosenIP.item.item_ID
+				print chosenIP.task_types
 				raise Exception("this ip pair is done")
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
@@ -216,7 +223,9 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 				cur_join = active_joins[chosenIP.predicate]
 				task_types = cur_join.assign_join_tasks()
 				if  chosenIP.task_types == "" or chosenIP.get_task_types() == []:
+					print "nu task types" + str(task_types)
 					chosenIP.set_task_types(task_types)
+					chosenIP.save(update_fields=["task_types"])
 			return chosenIP 
 
 		
