@@ -1945,7 +1945,7 @@ class SimulationTest(TransactionTestCase):
 			save.append(self.pred_active_tasks[pred])
 			graphData1.append( (pred, self.pred_active_tasks[pred]) )
 
-		if not os.path.exists(toggles.OUTPUT_PATH+"activeTasks/"):
+		if not os.path.exists(toggles.OUTPUT_PATH+"active_tasks/"):
 			makedirs(toggles.OUTPUT_PATH+"active_tasks/")
 
 		dest1 = toggles.OUTPUT_PATH + "active_tasks/" + "track_active_tasks_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
@@ -1979,7 +1979,7 @@ class SimulationTest(TransactionTestCase):
 			if not os.path.exists(toggles.OUTPUT_PATH+"queues/"):
 				makedirs(toggles.OUTPUT_PATH+"queues/")
 
-			dest3 = toggles.OUTPUT_PATH + "track_queues_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
+			dest3 = toggles.OUTPUT_PATH + "queues/" + "track_queues_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
 			generic_csv_write(dest3+".csv", save)
 			writtenFiles.append(dest3+'.csv')
 
