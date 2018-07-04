@@ -2111,6 +2111,9 @@ class SimulationTest(TransactionTestCase):
 
 			toggles.OUTPUT_PATH = origDest + "setting_" + str(settingCount) + "/"
 
+			if not os.path.exists(toggles.OUTPUT_PATH):
+				makedirs(toggles.OUTPUT_PATH)
+
 			if not setting[0] == None:
 				numSim = setting[0]	# number of simulations for current setting
 			if not setting[1] == None:
