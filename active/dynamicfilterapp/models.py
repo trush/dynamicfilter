@@ -1788,7 +1788,6 @@ class Join():
 		""" Evaluates the small predicate, adding the results of that into a global dictionary. 
 		Also adjusts the global estimates for the cost and selectivity of the small predicate."""
 		small_p_timer = 0
-		self.call_dict[item][3] += 1
 		#first, check if we've already evaluated this item
 		if item in self.evaluated_with_smallP:
 			self.done = True
@@ -1798,8 +1797,9 @@ class Join():
 			return False, 0
 		#if not, evaluate it with the small predicate
 		else:
+			self.call_dict["small_p"] += 1 # adds to total count of calls to small p
+			self.call_dict[item][3] += 1# adds to total count of calls to small p for this item
 			# Update the cost
-			self.small_p_cost_est = (self.small_p_cost_est*(self.processed_by_smallP)+self.TIME_TO_EVAL_SMALL_P)/(self.processed_by_smallP+1)
 			small_p_timer += self.TIME_TO_EVAL_SMALL_P
 			#for preliminary testing, we randomly choose whether or not an item passes
 			eval_results = random.random() < self.SMALL_P_SELECTIVITY
@@ -1813,11 +1813,12 @@ class Join():
 			#check if we have reached consensus
 			consensus_result = self.find_consensus("small_p", item)
 			if consensus_result is not None:
+				self.avg_cons_cost[3] = (self.avg_cons_cost[3]*(self.cons_count[3])+self.TIME_TO_EVAL_SMALL_P)/(self.cons_count[3]+1)
 				self.done = True
 				# Update the selectivity
-				self.small_p_selectivity_est = (self.small_p_selectivity_est*(self.processed_by_smallP)+eval_results)/(self.processed_by_smallP+1)
+				self.small_p_selectivity_est = (self.small_p_selectivity_est*(self.cons_count[3])+eval_results)/(self.cons_count[3]+1)
 				#increment the number of items 
-				self.processed_by_smallP += 1
+				self.cons_count += 1
 				#if the item does not pass, we remove it from the list entirely
 				if not consensus_results:
 					self.list2.remove(item)
@@ -1831,7 +1832,6 @@ class Join():
 					print "small p cost estimate: " + str(self.small_p_cost_est)
 					print "small p selectivity: " + str(self.small_p_selectivity_est)
 					print "-------------------------"
-				self.small_p_tasks_for_cons += [self.votes_for_small_p[item][0] + self.votes_for_small_p[item][1]]
 				return consensus_results, small_p_timer
 			return None, small_p_timer
 
