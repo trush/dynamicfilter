@@ -1946,7 +1946,7 @@ class SimulationTest(TransactionTestCase):
 			graphData1.append( (pred, self.pred_active_tasks[pred]) )
 
 		if not os.path.exists(toggles.OUTPUT_PATH+"activeTasks/"):
-			makedirs(toggles.OUTPUT_PATH+"activeTasks/")
+			makedirs(toggles.OUTPUT_PATH+"active_tasks/")
 
 		dest1 = toggles.OUTPUT_PATH + "active_tasks/" + "track_active_tasks_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
 
