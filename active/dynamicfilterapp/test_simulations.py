@@ -1945,8 +1945,8 @@ class SimulationTest(TransactionTestCase):
 			save.append(self.pred_active_tasks[pred])
 			graphData1.append( (pred, self.pred_active_tasks[pred]) )
 
-		if not os.path.exists(dest+"activeTasks/"):
-			makedirs(dest+"activeTasks/")
+		if not os.path.exists(toggles.OUTPUT_PATH+"activeTasks/"):
+			makedirs(toggles.OUTPUT_PATH+"activeTasks/")
 
 		dest1 = toggles.OUTPUT_PATH + "active_tasks/" + "track_active_tasks_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
 
@@ -1961,8 +1961,8 @@ class SimulationTest(TransactionTestCase):
 				save.append(self.ticket_nums[pred])
 				graphData2.append( (pred, self.ticket_nums[pred]) )
 
-			if not os.path.exists(dest+"tickets/"):
-				makedirs(dest+"tickets/")
+			if not os.path.exists(toggles.OUTPUT_PATH+"tickets/"):
+				makedirs(toggles.OUTPUT_PATH+"tickets/")
 
 			dest2 = toggles.OUTPUT_PATH + "tickets/" + "track_tickets_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
 			generic_csv_write(dest2+".csv", save)
@@ -1976,8 +1976,8 @@ class SimulationTest(TransactionTestCase):
 				save.append(self.pred_queues[pred])
 				graphData3.append( (pred, self.pred_queues[pred]) )
 
-			if not os.path.exists(dest+"queues/"):
-				makedirs(dest+"queues/")
+			if not os.path.exists(toggles.OUTPUT_PATH+"queues/"):
+				makedirs(toggles.OUTPUT_PATH+"queues/")
 
 			dest3 = toggles.OUTPUT_PATH + "track_queues_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
 			generic_csv_write(dest3+".csv", save)
