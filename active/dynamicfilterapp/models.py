@@ -1066,6 +1066,8 @@ class Join():
 	# @return boolean value of the results of the join, time taken to compute the join
 	# @remarks Join method also updates all relevant estimate variables.
 	def join_items(self, i, j):
+		self.call_dict["join"] += 1 # adds to total count of calls to small p
+		self.call_dict[(i,j)][3] += 1# adds to total count of calls to small p for this item
 		timer_val = 0
 		if (i,j) in self.results_from_all_join:
 			return True, 0
@@ -1082,6 +1084,7 @@ class Join():
 			self.votes_for_matches[(i,j)][0] += 1
 		else:
 			self.votes_for_matches[(i,j)][1] += 1
+		self.avg_task_cost = (self.avg_task_cost * (self.call_dict["join"] - 1) + timer_val) /self.call_dict["join"]
 		#check if we have reached consensus
 		consensus_result = self.find_consensus("join", (i,j))[0]
 		if consensus_result is not None:
@@ -1105,6 +1108,7 @@ class Join():
 
 				self.results_from_all_join += [(i,j)]
 				return True, timer_val
+			self.num_join_items += 1
 			# If it is not accepted in join process
 			self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
 			self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
@@ -1813,6 +1817,7 @@ class Join():
 			#check if we have reached consensus
 			consensus_result = self.find_consensus("small_p", item)
 			if consensus_result is not None:
+
 				self.avg_cons_cost[3] = (self.avg_cons_cost[3]*(self.cons_count[3])+self.TIME_TO_EVAL_SMALL_P)/(self.cons_count[3]+1)
 				self.done = True
 				# Update the selectivity
