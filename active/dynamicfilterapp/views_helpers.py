@@ -179,14 +179,17 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 		chosenPred = np.random.choice(predicates, p=probList)
 
 		if active_joins is not None and chosenPred in active_joins:
-			cur_join = active_joins[chosenPred] 
-			if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
-				task_types = cur_join.assign_join_tasks()
-				if "PWl2" in task_types or "small_p" in task_types:
-					chosenPred.set_task_types = task_types
-					return chosenPred
-			if "PWl2" in chosenPred.task_types or "small_p" in chosenPred.task_types or "PJF" in chosenPred.task_types:
+			cur_join = active_joins[chosenPred]
+			# if we are not using an ip_pair we are using a pred 
+			task_types = cur_join.assign_join_tasks() # note: theoretically is use_item() is False, then assign_join_tasks will be for pred
+			if not cur_join.use_item():
+				# if we don't have tasks to do, get some!
+				if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
+					chosenPred.set_task_types(task_types)
+				# otherwise we should have tasks to do, so return the predicate so that we do them
 				return chosenPred
+			
+				
 			# return a pred instead of an IP pair
 		# TODO: do we want to code it to give up in the middles of a process? right now is keeps assigning tasks until the 
 		# process is over. Note: we might want to do this because then PJFs will be processed before their joins. Con: we jump
