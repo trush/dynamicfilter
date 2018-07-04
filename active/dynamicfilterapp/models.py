@@ -896,10 +896,7 @@ class Join():
 
 			# Costs #
 		
-		## @remarks Estimate of the time cost of the prejoin. Updated in the prejoin_fiter() function and used in find_costs()
-		self.PJF_cost_est = 0.0
-		## @remarks Estimate of the time cost of the join. Updated in the join_items() function and used in find_costs()
-		self.join_cost_est = 0.0
+		
 		## @remarks Keeps track of the costs of performing a pairwise-build join on list1 items. Each entry is for a different item.
 		# Used in conjunction with num_matches_per_item_1 in find_costs()
 		self.PW_cost_est_1 = [] 
@@ -934,10 +931,13 @@ class Join():
 		## @remarks because paths 1 and 2 and paths 3 and 5 use the same information, they share entries (layout is [(1/2),(3/5),4])
 		self.count_costs = [0,0,0]
 		## @remarks tracks the number of calls to each function. Has keys for PJF, small_p, join and PW for the total
-		# number of times those have been called. Also has the number of times an item calls each function in the order: [PJF, JOIN, PW, SMALL_P] 
+		# number of times those have been called. Also has the number of times an item calls each function in the order: [PJF, JOIN, PW, SMALL_P]
+		# keys to the dictionary are all items except for some pairs (these should have only join tasks completed)
 		self.call_dict = {"PJF":0, "small_p":0, "join":0,"PW":0}
 		## @remarks Traacks the number of items that have reached consensus for [PJF, JOIN, PW, SMALL_P]
 		self.cons_count = [0,0,0,0]
+		## @remarks keeps a running average of the tasks needed to reach consensus
+		self.avg_task_cons = [0,0,0,0]
 		
 			# Enumeration Vars #
 
@@ -1089,8 +1089,9 @@ class Join():
 				self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
 				self.processed_by_join += 1
 				self.num_join_items += 1
+				self.avg_task_cons[1] = (self.avg_task_cons[1] * self.cons_count[1] + self.call_dict[(i,j)][1])/(self.cons_count[1] + 1)
 				# Adjust join cost estimates
-				self.join_cost_est = (self.join_cost_est*self.num_join_items+self.JOIN_TIME)/(self.num_join_items+1)
+				self.avg_cons_cost[1] = self.avg_task_cons[1] * self.avg_task_cost[1]
 				
 				# DEBUGGING
 				if self.DEBUG:
