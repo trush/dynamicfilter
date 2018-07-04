@@ -1945,7 +1945,10 @@ class SimulationTest(TransactionTestCase):
 			save.append(self.pred_active_tasks[pred])
 			graphData1.append( (pred, self.pred_active_tasks[pred]) )
 
-		dest1 = toggles.OUTPUT_PATH + "track_active_tasks_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
+		if not os.path.exists(dest+"activeTasks/"):
+			makedirs(dest+"activeTasks/")
+
+		dest1 = toggles.OUTPUT_PATH + "active_tasks/" + "track_active_tasks_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
 
 		generic_csv_write(dest1+".csv", save)
 		writtenFiles = [dest1+".csv"]
@@ -1958,8 +1961,10 @@ class SimulationTest(TransactionTestCase):
 				save.append(self.ticket_nums[pred])
 				graphData2.append( (pred, self.ticket_nums[pred]) )
 
+			if not os.path.exists(dest+"tickets/"):
+				makedirs(dest+"tickets/")
 
-			dest2 = toggles.OUTPUT_PATH + "track_tickets_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
+			dest2 = toggles.OUTPUT_PATH + "tickets/" + "track_tickets_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
 			generic_csv_write(dest2+".csv", save)
 			writtenFiles.append(dest2+".csv")
 
@@ -1970,6 +1975,9 @@ class SimulationTest(TransactionTestCase):
 				save.append([pred])
 				save.append(self.pred_queues[pred])
 				graphData3.append( (pred, self.pred_queues[pred]) )
+
+			if not os.path.exists(dest+"queues/"):
+				makedirs(dest+"queues/")
 
 			dest3 = toggles.OUTPUT_PATH + "track_queues_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
 			generic_csv_write(dest3+".csv", save)
@@ -2093,12 +2101,15 @@ class SimulationTest(TransactionTestCase):
 		origTicketing = toggles.TICKETING_SYS
 		origBatch = toggles.BATCH_ASSIGNMENT
 		origPeriod = toggles.REFILL_PERIOD
+		origDest = toggles.OUTPUT_PATH
 		
 		numSim = 0
 		settingCount = 0
 		for setting in toggles.MULTI_SIM_ARRAY:
 			tempLength = origQueueLength
 			print "Running setting " + str(settingCount)
+
+			toggles.OUTPUT_PATH = origDest + "setting_" + str(settingCount) + "/"
 
 			if not setting[0] == None:
 				numSim = setting[0]	# number of simulations for current setting
@@ -2175,6 +2186,7 @@ class SimulationTest(TransactionTestCase):
 		toggles.TICKETING_SYS = origTicketing
 		toggles.BATCH_ASSIGNMENT = origBatch
 		togges.REFILL_PERIOD = origPeriod
+		toggles.OUTPUT_PATH = origDest
 			
 
 	def collect_act1_data(self, timed):
