@@ -1989,9 +1989,9 @@ class SimulationTest(TransactionTestCase):
 			if file_splitting:
 				if not os.path.exists(toggles.OUTPUT_PATH+"queues/"):
 					makedirs(toggles.OUTPUT_PATH+"queues/")
-				dest2 = toggles.OUTPUT_PATH+"queues/"
+				dest3 = toggles.OUTPUT_PATH+"queues/"
 			else:
-				dest2 = toggles.OUTPUT_PATH
+				dest3 = toggles.OUTPUT_PATH
 
 			dest3 += "track_queues_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
 			generic_csv_write(dest3+".csv", save)
