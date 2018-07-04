@@ -892,14 +892,10 @@ class Join():
 		self.private_list2 = toggles.private_list2
 		
 
-		# Estimates -----------------------#
+		# Data Collection (estimates) -----------------------#
 
-		## @remarks This is the estimate of the selectivity of the prejoin filter. Updated by prejoin_filter() and used in find_costs().
-		self.PJF_selectivity_est = 0.5
-		## @remarks This is the estimate of the selectivity of the join. Updated by join_items() and used in find_costs().
-		self.join_selectivity_est = 0.5
-		## @remarks This is the average number of tasks that it takes to confirm a match.
-		self.matches_tasks_for_cons = []
+			# Costs #
+		
 		## @remarks Estimate of the time cost of the prejoin. Updated in the prejoin_fiter() function and used in find_costs()
 		self.PJF_cost_est = 0.0
 		## @remarks Estimate of the time cost of the join. Updated in the join_items() function and used in find_costs()
@@ -913,33 +909,46 @@ class Join():
 		## @remarks Estimate of the selectivity of the small predicate. Updated in small_pred() based on the cost of
 		# evaluating of eac item.
 		self.small_p_cost_est = 0.0
+		## @remarks The average cost it takes to perform a certain type of task (each entry is a running average), in order [PJF, JOIN, PW, SMALL_P]
+		self.avg_task_cost = [0,0,0,0]
+		
+			# Selectivities #
+		
+		## @remarks This is the estimate of the selectivity of the prejoin filter. Updated by prejoin_filter() and used in find_costs().
+		self.PJF_selectivity_est = 0.5
+		## @remarks This is the estimate of the selectivity of the join. Updated by join_items() and used in find_costs().
+		self.join_selectivity_est = 0.5
 		## @remarks Estimate of the selectivity of the small predicate. Updated in small_pred() based on the evaluation
 		# results of eac item.
 		self.small_p_selectivity_est = 0.0
-		## @remarks This is the average number of tasks it took to reach consensus for an item evaluated by small predicate
-		self.small_p_tasks_for_cons = []
 		## @remarks List of number of matches for each item in list2. Used later with the costs to get a linear
 		# approximation used in cost calculation estimates
+		
+			# Counts # 
+
 		self.num_matches_per_item_1 = []
 		## @remarks List of number of matches for each item in list2. Used later with the costs to get a linear
 		# approximation used in cost calculation estimates
 		self.num_matches_per_item_2 = []
-		## @remarks Used in the enumeration estimate in chao_estimator()
-		self.f_dictionary = { }
-		## @remarks Used in the enumeration estimate in chao_estimator()
-		self.total_sample_size = 0
-		## @remarks The number of PW tasks, aka the number of times that PW_join() has been called
-		self.PW_join_calls = 0
-		## @remarks The number of items that have reach consensus through PW_join().
-		self.consensus_items_PW = 0
-		## @remarks The average number of tasks it takes to reach consensus on all the matches for a particular item using PW join
-		self.tasks_for_PW = 0.0
 		## @remarks tracks the number of times each path has been run. Used to manipulate find_costs to ensure exploration
 		## @remarks because paths 1 and 2 and paths 3 and 5 use the same information, they share entries (layout is [(1/2),(3/5),4])
 		self.count_costs = [0,0,0]
-		## @remarks tracks the number of times an item calls each function
-		self.call_dict = {}
+		## @remarks tracks the number of calls to each function. Has keys for PJF, small_p, join and PW for the total
+		# number of times those have been called. Also has the number of times an item calls each function in the order: [PJF, JOIN, PW, SMALL_P] 
+		self.call_dict = {"PJF":0, "small_p":0, "join":0,"PW":0}
+		## @remarks Traacks the number of items that have reached consensus for [PJF, JOIN, PW, SMALL_P]
+		self.cons_count = [0,0,0,0]
+		
+			# Enumeration Vars #
 
+		## @remarks Used in the enumeration estimate in chao_estimator()
+		self.total_sample_size = 0
+		## @remarks Used in the enumeration estimate in chao_estimator()
+		self.f_dictionary = { }
+		## @remarks Tracks the cost (usually time) it takes to reach consensus on an item for a certain task
+		self.avg_cons_cost = [0,0,0,0]
+		
+		
 		# Concurrency -----------------------#
 
 		## @remarks read as "list2 has not been evaluated (by the prejoin filter)"
@@ -1076,7 +1085,6 @@ class Join():
 		#check if we have reached consensus
 		consensus_result = self.find_consensus("join", (i,j))[0]
 		if consensus_result is not None:
-			self.matches_tasks_for_cons += [ self.votes_for_matches[(i,j)][0] + self.votes_for_matches[(i,j)][1] ]
 			if consensus_result:
 				self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
 				self.processed_by_join += 1
@@ -1779,6 +1787,7 @@ class Join():
 		""" Evaluates the small predicate, adding the results of that into a global dictionary. 
 		Also adjusts the global estimates for the cost and selectivity of the small predicate."""
 		small_p_timer = 0
+		self.call_dict[item][3] += 1
 		#first, check if we've already evaluated this item
 		if item in self.evaluated_with_smallP:
 			self.done = True
