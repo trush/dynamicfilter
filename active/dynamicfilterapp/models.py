@@ -1036,6 +1036,12 @@ class Join():
 				self.list2_not_eval = False
 				return None, 0
 		if(not item in self.evaluated_with_PJF):
+			# Update things for cost estimates and counting function calls
+			self.call_dict["PJF"] += 1
+			if item not in self.call_dict:
+				self.call_dict[item] = [0,0,0,0]
+			self.call_dict[item][0] += 1
+			self.avg_task_cost[0] = self.avg_task_cost[0]
 			# save results of PJF to avoid repeated work
 			eval_results,PJF_cost = self.evaluate(PJF,item)
 			#add a vote to pjf for this item
@@ -1048,6 +1054,10 @@ class Join():
 			#check if we have reached consensus
 			consensus_result = self.find_consensus("PJF", item)[0]
 			if consensus_result is not None:
+				# Update info when reach consensus, how many task it took, etc.
+				self.avg_task_cons[0] = (self.avg_task_cons[0]*self.cons_count[0] + self.call_dict[item][0])/(self.cons_count[0] +1)
+				self.cons_count[0] += 1
+				self.avg_cons_cost = self.avg_task_cons * self.cons_count
 				self.done = True
 				self.processed_by_PJF += 1
 				# if the item evaluated True for the PFJ then adjust selectivity
