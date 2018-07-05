@@ -1705,7 +1705,7 @@ class Join():
 			cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
 					prejoin_cons_cost*(len(self.evaluated_with_smallP) + self.small_p_selectivity_est*(len(self.list2)-len(self.evaluates_with_smallP))) + \
 					join_cons_cost*(len(self.list1)*(len(self.evaluated_with_small_p) + \
-					self.small_p_selectivity_est*(len(self.list1) - len(self.evaluated_with_small_p)))*self.PJF_selectivity_est
+					self.small_p_selectivity_est*(len(self.list1) - len(self.evaluated_with_small_p)))*self.PJF_selectivity_est)
 		else:
 			cost_1 = 0
 		# COST 2 CALCULATION - PJF then small pred
