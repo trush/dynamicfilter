@@ -1041,7 +1041,6 @@ class Join():
 			if item not in self.call_dict:
 				self.call_dict[item] = [0,0,0,0]
 			self.call_dict[item][0] += 1
-			self.avg_task_cost[0] = self.avg_task_cost[0]
 			# save results of PJF to avoid repeated work
 			eval_results,PJF_cost = self.evaluate(PJF,item)
 			#add a vote to pjf for this item
@@ -1051,6 +1050,7 @@ class Join():
 				self.votes_for_pjf[item][0] += 1
 			else:
 				self.votes_for_pjf[item][1] += 1
+			self.avg_task_cost[0] = (self.avg_task_cost[0] * (self.call_dict["PJF"]-1) + PJF_cost)/(self.call_dict["PJF"])
 			#check if we have reached consensus
 			consensus_result = self.find_consensus("PJF", item)[0]
 			if consensus_result is not None:
