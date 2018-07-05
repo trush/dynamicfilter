@@ -1819,13 +1819,15 @@ class Join():
 				self.votes_for_small_p[item][0] += 1
 			else:
 				self.votes_for_small_p[item][1] += 1
+			
+			self.avg_task_cost[3] = (self.avg_task_cost[3] * (self.call_dict["small_p"] - 1) + small_p_timer) /self.call_dict["small_p"]
 			#check if we have reached consensus
 			consensus_result = self.find_consensus("small_p", item)
 			if consensus_result is not None:
 				
 				# Updating things for acost estimates
-				self.avg_cons_cost[3] = self.avg_task_cons[3] + self.avg_task_cons[3]
-				self.avg_task_cons[3] = (self.avg_tasks_cons[3]*self.cons_count[3] + self.call_dict[item][3])/(self.cons_count[3] + 1)
+				self.avg_task_cons[3] = (self.avg_task_cons[3]*self.cons_count[3] + self.call_dict[item][3])/(self.cons_count[3] + 1)
+				self.avg_cons_cost[3] = self.avg_task_cons[3] * self.avg_task_cost[3]
 				self.cons_count[3] += 1
 
 				# Tells main_join that we have reached consensus on the item it sent
@@ -2008,9 +2010,12 @@ class Join():
 		else:
 			raise Exception("Cannot find consensus for: " + str(for_task))
 
+	## @param self
+	# @return boolean : finds the cost of each path and returns whether or not an IP-pair path runs more quickly than a predicate path
 	def use_item(self):
 		costs = self.find_costs()
 		min_cost = min(costs)
+		#paths 1 (costs[0]), 2 (costs[1]), and 4 (costs[3]) are IP-pair paths
 		if min_cost == costs[0] or min_cost == costs[1] or min_costs == costs[3]:
 			return True	
 		return False
