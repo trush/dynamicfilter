@@ -1693,20 +1693,33 @@ class Join():
 		""" Finds the cost estimates of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
 		Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
 		#TODO: remove redundant ifs when confident
+		prejoin_cons_cost = avg_task_cons[0] * avg_task_cost[0]
+		join_cons_cost = avg_task_cons[1] * avg_task_cost[1]
+		small_p_cons_cost = avg_task_cons[3] * avg_task_cost[3]
+
 		#losp - "likelihood of some pairs" odds of a list2 item matching with at least one item from list1
 		losp = 1 - (1 - self.join_selectivity_est)**(len(self.list1))
 		# COST 1 CALCULATION - small pred then PJF
 		if self.count_costs[0] > toggles.EXPLORATION_REQ:
-			cost_1 = self.small_p_cost_est*(len(self.list2)-len(self.evaluated_with_smallP)) + \
-					self.PJF_cost_est*(self.small_p_selectivity_est *len(self.list2)+(len(self.list1))) + \
-					self.join_cost_est*len(self.list2)*len(self.list1)*self.small_p_selectivity_est*self.PJF_selectivity_est
+					# small p cost
+			cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
+					# PJF cost
+					## TODO: with this we need to remove things from evaluated_with_small_p when we remove them from list2
+					prejoin_cons_cost*(len(self.evaluated_with_smallP) + self.small_p_selectivity_est*(len(self.list2)-len(self.evaluates_with_smallP))) + \ 
+					# join cost
+					join_cons_cost*(len(self.list1)*(len(self.evaluated_with_small_p) + \
+					# join cost cont.
+					self.small_p_selectivity_est*(len(self.list1) - len(self.evaluated_with_small_p)))*self.PJF_selectivity_est
 		else:
 			cost_1 = 0
 		# COST 2 CALCULATION - PJF then small pred
 		if self.count_costs[0] > toggles.EXPLORATION_REQ:
-			cost_2 = self.PJF_cost_est*(len(self.list2)+len(self.list1)) + \
-					self.join_cost_est*len(self.list2)*len(self.list1)*self.PJF_selectivity_est+ \
-					self.small_p_cost_est*losp*len(self.list2)
+					# PJF cost 
+			cost_2 = prejoin_cons_cost*(len(self.list2)+len(self.list1)) + \
+					# join cost 
+					join_cons_cost*len(self.list2)*len(self.list1)*self.PJF_selectivity_est+ \
+					# small p cost
+					small_p_cons_cost*losp*len(self.list2)
 		else:
 			cost_2 = 0
 		if any(self.num_matches_per_item_2): #make sure we have the information to find costs
@@ -1714,16 +1727,16 @@ class Join():
 			avg_matches_est_2 = numpy.mean(self.num_matches_per_item_2)
 			match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
 			if self.count_costs[1] > toggles.EXPLORATION_REQ:
-				cost_3 = base_cost_est*len(self.list2) + \
-						match_cost_est*avg_matches_est_2*len(self.list2)  + \
-						losp*len(self.list2)*self.small_p_cost_est
+				cost_3 = base_cost_est*len(self.list2)*avg_task_cons[2] + \
+						match_cost_est*avg_matches_est_2*len(self.list2)*avg_task_cons[2]  + \
+						losp*len(self.list2)*small_p_cons_cost
 			else:
 				cost_3 = 0
 			# COST 5 CALCULATION - small pred then pairwise join on second list
 			if self.count_costs[1] > toggles.EXPLORATION_REQ:
-				cost_5 = self.small_p_cost_est*(len(self.list2)-len(self.evaluated_with_smallP))+ \
-						self.small_p_selectivity_est*len(self.list2)* (base_cost_est + \
-						match_cost_est*avg_matches_est_2)
+				cost_5 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP))+ \
+						(len(self.evaluated_with_smallP) + self.small_p_selectivity_est*(len(self.list2)-len(self.evaluates_with_smallP)))*\
+						(base_cost_est + match_cost_est*avg_matches_est_2)*avg_task_cons[2]
 			else:
 				self.count_costs[4] = 0
 		else: #if we don't have enough information yet, we set the cost of these paths to 0
@@ -1734,9 +1747,9 @@ class Join():
 			match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
 			if self.count_costs[2] > toggles.EXPLORATION_REQ:
 				avg_matches_est_1 = numpy.mean(self.num_matches_per_item_1)
-				cost_4 = base_cost_est*len(self.list1)+ \
-						match_cost_est*avg_matches_est_1*len(self.list1) + \
-						self.small_p_cost_est*losp*len(self.list2)
+				cost_4 = base_cost_est*len(self.list1)*avg_task_cons[2]+ \
+						match_cost_est*avg_matches_est_1*len(self.list1)*avg_task_cons[2] + \
+						small_p_cons_cost*losp*len(self.list2)
 			else:
 				cost_4
 		else:
