@@ -632,6 +632,9 @@ class IP_Pair(models.Model):
 				self.save(update_fields=["value", "num_no"])
 
 			# answer may be none, but we do not update votes for these answers
+			if self.is_joinable():
+				print "we are recording the vote for " + str(self.item.item_ID)
+				print "our value is " + str(self.value)
 
 			self.predicate.update_selectivity()
 			self.predicate.update_avg_tasks()
@@ -644,12 +647,8 @@ class IP_Pair(models.Model):
 		self.save(update_fields=["end_time"])
 
 	def set_done_if_done(self):
-		print "we are here and joinable? " + str(self.is_joinable())
-		print "we are here with ID: " + str(self.item.item_ID)
-		if self.status_votes == toggles.NUM_CERTAIN_VOTES or self.is_joinable() and self.status_votes > 0:
-			raise Exception("we finished one item")
-
-			if self.found_consensus():
+		if self.status_votes == toggles.NUM_CERTAIN_VOTES or self.is_joinable() and self.value != 0:
+			if self.found_consensus() or self.is_joinable() and self.value != 0:
 				self.isDone = True
 				self.save(update_fields=["isDone"])
 				self.predicate.update_ip_count()
@@ -1608,10 +1607,13 @@ class Join():
 					res, timer = self.small_pred(IP_pair.get_join_pairs()[0][1])
 					if self.done:
 						self.done = False
-						IP_pair.remove_task()
 						IP_pair.set_join_pairs(IP_pair.get_join_pairs()[1:])
-						IP_pair.save(update_fields = ["task_types","join_pairs"])
+						IP_pair.save(update_fields = ["join_pairs"])
 						if res:
+							IP_pair.remove_task()
+							IP_pair.save(update_fields = ["task_types"])
+							print "we are here with item " + str(IP_pair.item.item_ID)
+							print "we are here and should have empty task_types " + str(IP_pair.task_types)
 							return res, timer
 						else:
 							return None, timer
@@ -1681,6 +1683,7 @@ class Join():
 		prejoin_cons_cost = self.avg_task_cons[0] * self.avg_task_cost[0]
 		join_cons_cost = self.avg_task_cons[1] * self.avg_task_cost[1]
 		small_p_cons_cost = self.avg_task_cons[3] * self.avg_task_cost[3]
+		cost_1, cost_2, cost_3, cost_4, cost_5 = 0,0,0,0,0
 
 		#losp - "likelihood of some pairs" odds of a list2 item matching with at least one item from list1
 		losp = 1 - (1 - self.selectivity_est[1])**(len(self.list1))
@@ -1691,7 +1694,7 @@ class Join():
 			cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
 					prejoin_cons_cost*(len(self.evaluated_with_smallP) + self.selectivity_est[3]*(len(self.list2)-len(self.evaluates_with_smallP))) + \
 					join_cons_cost*(len(self.list1)*(len(self.evaluated_with_small_p) + \
-					self.selectivity_est[3]*(len(self.list1) - len(self.evaluated_with_small_p)))*self.selectivity_est[0]
+					self.selectivity_est[3]*(len(self.list1) - len(self.evaluated_with_small_p)))*self.selectivity_est[0])
 		else:
 			cost_1 = 0
 		# COST 2 CALCULATION - PJF then small pred

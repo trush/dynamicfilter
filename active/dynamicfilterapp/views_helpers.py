@@ -186,6 +186,7 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 			cur_join = active_joins[chosenPred]
 			# if we are not using an ip_pair we are using a pred 
 			task_types = cur_join.assign_join_tasks() # note: theoretically is use_item() is False, then assign_join_tasks will be for pred
+			print "we are here and do we use an item?"
 			if not cur_join.use_item():
 				# if we don't have tasks to do, get some!
 				if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
@@ -215,6 +216,9 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 			if not chosenIP.task_types == "" and chosenIP.get_task_types() == []:
 				print chosenIP.item.item_ID
 				print chosenIP.task_types
+				print chosenIP.value
+				print chosenIP.num_yes
+				print chosenIP.num_no
 				raise Exception("this ip pair is done")
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
