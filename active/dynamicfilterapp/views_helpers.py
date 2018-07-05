@@ -59,8 +59,8 @@ def pending_eddy(ID):
 	completedTasks = Task.objects.filter(workerID=ID)
 	completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
 	incompleteIP = unfinishedList.exclude(id__in = completedIP)
-	# maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	# incompleteIP = incompleteIP.exclude(id__in=maxReleased)
+	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+	incompleteIP = incompleteIP.exclude(id__in=maxReleased)
 
 	#Limits the number of predicates an item is being evaluated under simultaneously
 	if toggles.IP_LIMIT_SYS >= 2: # hard or soft limit
@@ -443,14 +443,14 @@ def annealingSelectPred(predList):
 
 	if rNum > epsilon:
 		#choose predicate with highest score (fixed for floating point error)
-		maxPredlist = predList.filter(score__lt=maxVal+.0001)&predList.filter(score__lt=maxVal-.0001)
+		maxPredlist = predList.filter(score__lte=maxVal+.0001)&predList.filter(score__gte=maxVal-.0001)
 		chosenPred = random.choice(maxPredlist)
 		chosenPred.inc_count()
 		return chosenPred
 
 	else:
 		#choose random predicate that is not pred with highest score
-		newPredlist = predList.exclude(score__lt=maxVal+.0001)&predList.exclude(score__lt=maxVal-.0001)
+		newPredlist = predList.exclude(score__lte=maxVal+.0001)&predList.exclude(score__gte=maxVal-.0001)
 		if len(newPredlist)!= 0:
 			chosenPred = random.choice(newPredlist)
 			chosenPred.inc_count()
