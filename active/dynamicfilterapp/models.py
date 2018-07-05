@@ -1171,6 +1171,12 @@ class Join():
 	def PW_join(self, ip_or_pred, itemlist):
 		if type(ip_or_pred) == Predicate and ip_or_pred.item.item_ID in self.failed_by_smallP:
 			raise Exception("Improper removal/addition of " + str(ip_or_pred.item) + " occurred")
+		# Update call counts, there is no case where we call this and have no cost so we can update immediately
+		self.call_dict["PW"] += 1
+		if ip_or_pred not in self.call_dict:
+			self.call_dict[ip_or_pred] = [0,0,0,0]
+		self.call_dict[ip_or_pred][2] += 1
+		
 		#Metadata/debug information
 		avg_cost = 0
 		num_items = 0
@@ -1214,6 +1220,9 @@ class Join():
 				if consensus_found:
 					consensus_matches += [match]
 
+		# Before we do any returning we want to update costs
+		self.avg_task_cost[2] = (self.avg_task_cost[2]*(self.call_dict["PW"]-1) + PW_timer)/self.call_dict["PW"]
+
 		#if there are no matches, we also need to reach consensus on this case
 		if not (item1,None) in self.votes_for_matches:
 			self.votes_for_matches[(item1, None)] = [0,0]
@@ -1222,6 +1231,11 @@ class Join():
 		else:
 			self.votes_for_matches[(item1, None)][1] += 1
 		if self.find_consensus("join", (item1,None)):
+			# If we have reached consensus on no matches, save some info on consensus
+			self.avg_task_cons[2] = (self.avg_task_cons[2]*self.cons_count[2] + self.call_dict[item][2])/(self.cons_count[2]+1)
+			self.cons_count[2] += 1
+			self.avg_cons_cost[2] = self.avg_task_cons * self.avg_task_cost
+			# Remove the item and return
 			if item1 in itemlist:
 				itemlist.remove(item1)
 			self.done = True
