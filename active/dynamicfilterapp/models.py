@@ -644,8 +644,10 @@ class IP_Pair(models.Model):
 		self.save(update_fields=["end_time"])
 
 	def set_done_if_done(self):
-
+		print "we are here and joinable? " + str(self.is_joinable())
+		print "we are here with ID: " + str(self.item.item_ID)
 		if self.status_votes == toggles.NUM_CERTAIN_VOTES or self.is_joinable() and self.status_votes > 0:
+			raise Exception("we finished one item")
 
 			if self.found_consensus():
 				self.isDone = True
