@@ -1817,8 +1817,13 @@ class Join():
 			#check if we have reached consensus
 			consensus_result = self.find_consensus("small_p", item)
 			if consensus_result is not None:
+				
+				# Updating things for acost estimates
+				self.avg_cons_cost[3] = self.avg_task_cons[3] + self.avg_task_cons[3]
+				self.avg_task_cons[3] = (self.avg_tasks_cons[3]*self.cons_count[3] + self.call_dict[item][3])/(self.cons_count[3] + 1)
+				self.cons_count[3] += 1
 
-				self.avg_cons_cost[3] = (self.avg_cons_cost[3]*(self.cons_count[3])+self.TIME_TO_EVAL_SMALL_P)/(self.cons_count[3]+1)
+				# Tells main_join that we have reached consensus on the item it sent
 				self.done = True
 				# Update the selectivity
 				self.small_p_selectivity_est = (self.small_p_selectivity_est*(self.cons_count[3])+eval_results)/(self.cons_count[3]+1)
