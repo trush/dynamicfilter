@@ -133,26 +133,12 @@ MAX_TASKS_OUT = 40
 MAX_TASKS_COLLECTED = CUT_OFF
 
 MULTI_SIM = True 
-MULTI_SIM_ARRAY = [(10,(0, 1),[(0, 0, 0),(1, 20, 40),(10, 100, 200),(50, 225, 450)],2000,[(0, (.2,.25), (.9,.25))],4,1,1,100),
-(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 100, 200),(50, 350, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 20, 40),(10, 100, 200),(50, 225, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 10, 40),(10, 175, 200),(20, 400, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,[(0, (.1,.25), (.1,.25))],None,None,None,None),
-(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 100, 200),(50, 350, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 20, 40),(10, 100, 200),(50, 225, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 10, 40),(10, 175, 200),(20, 400, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,[(0, (.9,.25), (.9,.25))],None,None,None,None),
-(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 100, 200),(50, 350, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 20, 40),(10, 100, 200),(50, 225, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 10, 40),(10, 175, 200),(20, 400, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,[(0, (.5,.25), (.5,.25))],None,None,None,None),
-(None,None,[(0, 0, 0),(1, 10, 40),(50, 350, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 100, 200),(50, 350, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 20, 40),(10, 100, 200),(50, 225, 450)],None,None,None,None,None,None),
-(None,None,[(0, 0, 0),(1, 10, 40),(10, 175, 200),(20, 400, 450)],None,None,None,None,None,None)]
+MULTI_SIM_ARRAY = [(10,(3, 2),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],2000,[(0, (.2,.25), (.9,.25))],4,0,1,100),
+                   (None,None,None,None,[(0, (.1,.25), (.1,.25))],None,None,None,None),
+                   (None,None,None,None,[(0, (.9,.25), (.9,.25))],None,None,None,None),
+                   (None,None,None,None,[(0, (.2,.25,2), (.9,.25,2))],None,None,None,None),
+                   (None,None,None,None,[(0, (.9,.25,2), (.9,.25,2))],None,None,None,None),
+                   (None,None,None,None,[(0, (.1,.25,2), (.1,.25,2))],None,None,None,None)]
 # ************************************************************************ #
 
 

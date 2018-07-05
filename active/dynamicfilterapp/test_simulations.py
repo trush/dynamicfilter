@@ -1939,6 +1939,8 @@ class SimulationTest(TransactionTestCase):
 
 		self.run_sim(data)
 
+		file_splitting = True
+
 		save = [self.time_steps_array]
 		graphData1 = [self.time_steps_array]
 		for pred in self.pred_active_tasks:
@@ -1946,7 +1948,14 @@ class SimulationTest(TransactionTestCase):
 			save.append(self.pred_active_tasks[pred])
 			graphData1.append( (pred, self.pred_active_tasks[pred]) )
 
-		dest1 = toggles.OUTPUT_PATH + "track_active_tasks_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
+		if file_splitting:
+			if not os.path.exists(toggles.OUTPUT_PATH+"active_tasks/"):
+				makedirs(toggles.OUTPUT_PATH+"active_tasks/")
+			dest1 = toggles.OUTPUT_PATH+"active_tasks/"
+		else:
+			dest1 = toggles.OUTPUT_PATH
+
+		dest1 += "track_active_tasks_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
 
 		generic_csv_write(dest1+".csv", save)
 		writtenFiles = [dest1+".csv"]
@@ -1959,8 +1968,14 @@ class SimulationTest(TransactionTestCase):
 				save.append(self.ticket_nums[pred])
 				graphData2.append( (pred, self.ticket_nums[pred]) )
 
+			if file_splitting:
+				if not os.path.exists(toggles.OUTPUT_PATH+"tickets/"):
+					makedirs(toggles.OUTPUT_PATH+"tickets/")
+				dest2 = toggles.OUTPUT_PATH+"tickets/"
+			else:
+				dest2 = toggles.OUTPUT_PATH
 
-			dest2 = toggles.OUTPUT_PATH + "track_tickets_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
+			dest2 += "track_tickets_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS) + "_run_" + str(runNum)
 			generic_csv_write(dest2+".csv", save)
 			writtenFiles.append(dest2+".csv")
 
@@ -1972,7 +1987,14 @@ class SimulationTest(TransactionTestCase):
 				save.append(self.pred_queues[pred])
 				graphData3.append( (pred, self.pred_queues[pred]) )
 
-			dest3 = toggles.OUTPUT_PATH + "track_queues_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
+			if file_splitting:
+				if not os.path.exists(toggles.OUTPUT_PATH+"queues/"):
+					makedirs(toggles.OUTPUT_PATH+"queues/")
+				dest3 = toggles.OUTPUT_PATH+"queues/"
+			else:
+				dest3 = toggles.OUTPUT_PATH
+
+			dest3 += "track_queues_output_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
 			generic_csv_write(dest3+".csv", save)
 			writtenFiles.append(dest3+'.csv')
 
@@ -2094,12 +2116,18 @@ class SimulationTest(TransactionTestCase):
 		origTicketing = toggles.TICKETING_SYS
 		origBatch = toggles.BATCH_ASSIGNMENT
 		origPeriod = toggles.REFILL_PERIOD
+		origDest = toggles.OUTPUT_PATH
 		
 		numSim = 0
 		settingCount = 0
 		for setting in toggles.MULTI_SIM_ARRAY:
 			tempLength = origQueueLength
 			print "Running setting " + str(settingCount)
+
+			toggles.OUTPUT_PATH = origDest + "setting_" + str(settingCount) + "/"
+
+			if not os.path.exists(toggles.OUTPUT_PATH):
+				makedirs(toggles.OUTPUT_PATH)
 
 			if not setting[0] == None:
 				numSim = setting[0]	# number of simulations for current setting
@@ -2168,7 +2196,6 @@ class SimulationTest(TransactionTestCase):
 				print (predList)
 				dest2 = toggles.OUTPUT_PATH + "predicate_ticket_histogram_run_" + str(settingCount)
 				graphGen.ticket_distributions(ticketList, predList, dest2, numSim)
-				
 
 			self.reset_arrays()
 
@@ -2185,8 +2212,8 @@ class SimulationTest(TransactionTestCase):
 		toggles.TICKETING_SYS = origTicketing
 		toggles.BATCH_ASSIGNMENT = origBatch
 		toggles.REFILL_PERIOD = origPeriod
-			
-
+		toggles.OUTPUT_PATH = origDest
+	
 	def collect_act1_data(self, timed):
 		if timed:
 			state = "timed"
