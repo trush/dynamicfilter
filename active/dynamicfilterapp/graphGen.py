@@ -131,6 +131,15 @@ def simulated_time_distributions(data, dest):
 
     gen_message(dest)
 
+def ticket_distributions(dataL, legendL, dest, numSim):
+    # print histogram for each predicate's ticket after each simulation of the same setting
+    labels = ("Number of Tickets", "Frequency")
+    title = "Number of Tickets for Predicates in Current Configuration for " + str(numSim) + " Simulations"
+
+    multi_hist_gen(dataL, legendL, dest+".png", labels = labels, title = title, smoothness = True)
+
+    gen_message(dest)
+
 def ips_done(data, dest, time):
     if time:
         num = 1
