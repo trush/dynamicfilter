@@ -908,6 +908,8 @@ class Join():
 		
 			# Selectivities #
 		
+		## @remarks This is the list of selectivity estimates for each task in the order: [PJF, JOIN, PW, SMALL_P]
+		self.selectivity_est = [0.5,0.5,0.5,0.5]
 		## @remarks This is the estimate of the selectivity of the prejoin filter. Updated by prejoin_filter() and used in find_costs().
 		self.PJF_selectivity_est = 0.5
 		## @remarks This is the estimate of the selectivity of the join. Updated by join_items() and used in find_costs().
@@ -930,7 +932,7 @@ class Join():
 		## @remarks tracks the number of calls to each function. Has keys for PJF, small_p, join and PW for the total
 		# number of times those have been called. Also has the number of times an item calls each function in the order: [PJF, JOIN, PW, SMALL_P]
 		# keys to the dictionary are all items except for some pairs (these should have only join tasks completed)
-		self.call_dict = {"PJF":0, "small_p":0, "join":0,"PW":0}
+		self.call_dict = {"PJF":0, "small_p":0, "join":0,"PW":0, "cons join":0}
 		## @remarks Traacks the number of items that have reached consensus for [PJF, JOIN, PW, SMALL_P]
 		self.cons_count = [0,0,0,0]
 		## @remarks keeps a running average of the tasks needed to reach consensus
@@ -970,9 +972,7 @@ class Join():
 		## @remarks This is the number of things that have been processed by the small predicate. It is used to calculate
 		# the average cost estimate for small_pred(). Updated in small_pred(), used in find_costs().
 		self.processed_by_smallP = 0
-		## @remarks This is the number of things that have been processed by the main join. It is used to calculate
-		# the average cost estimate for join_items(). Updated in join_items(), used in find_costs().
-		self.processed_by_join = 0
+
 
 		# Other Variables -----------------------#
 
@@ -1088,8 +1088,8 @@ class Join():
 		consensus_result = self.find_consensus("join", (i,j))[0]
 		if consensus_result is not None:
 			if consensus_result:
-				self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join+1)/(self.processed_by_join+1)
-				self.processed_by_join += 1
+				self.join_selectivity_est = (self.join_selectivity_est*self.cons_count[1]+1)/(self.cons_count[1]+1)
+				self.cons_count[1] += 1
 				self.avg_task_cons[1] = (self.avg_task_cons[1] * self.cons_count[1] + self.call_dict[(i,j)][1])/(self.cons_count[1] + 1)
 
 				# DEBUGGING
@@ -1105,7 +1105,7 @@ class Join():
 				self.results_from_all_join += [(i,j)]
 				return True, timer_val
 			# If it is not accepted in join process
-			self.join_selectivity_est = (self.join_selectivity_est*self.processed_by_join)/(self.processed_by_join+1)
+			self.join_selectivity_est = (self.join_selectivity_est*self.cons_count[1])/(self.cons_count[1]+1)
 			
 			# DEBUGGING
 			if self.DEBUG:
