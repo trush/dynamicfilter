@@ -135,6 +135,7 @@ class SimulationTest(TransactionTestCase):
 	## A dictionary storing the number of tickets each predicate has at each time step
 	# of a timed simulation.
 	ticket_nums = {} # only really makes sense for a single simulation run
+	num_tickets_dict = {} # dictionary of list of final tickets of predicates for multiple simulation runs
 
 	# COMPLETING ITEMS
 	ips_done_array = []
@@ -523,6 +524,7 @@ class SimulationTest(TransactionTestCase):
 		self.num_tasks_array, self.num_real_tasks_array = [], []
 		self.num_incorrect_array, self.update_time_array = [], []
 		self.num_waste_array = []
+		self.num_tickets_dict = {}
 
 	## Experimental function that runs many simulations and slightly changes the simulation
 	# configuration during its run.
@@ -826,7 +828,7 @@ class SimulationTest(TransactionTestCase):
 				self.pred_active_tasks[pred+1] = []
 				self.pred_queues[pred+1] = []
 				self.ticket_nums[pred+1] = []
-
+				
 		# add an entry to save the numbers of placeholder tasks
 		self.pred_active_tasks[0] = []
 
@@ -1224,16 +1226,6 @@ class SimulationTest(TransactionTestCase):
 							for predNum in toggles.CHOSEN_PREDS:
 								predicate = Predicate.objects.get(pk=predNum+1)
 								self.ticketNums[predNum].append(predicate.num_tickets)
-					if toggles.TRACK_SIZE:
-						if toggles.REAL_DATA:
-							for predNum in range(len(toggles.CHOSEN_PREDS)):
-								predicate = Predicate.objects.get(pk=toggles.CHOSEN_PREDS[predNum]+1)
-								self.consensus_size[predNum].append(predicate.consensus_max)
-						else:
-							for predNum in toggles.CHOSEN_PREDS:
-								predicate = Predicate.objects.get(pk=predNum+1)
-								self.consensus_size[predNum].append(predicate.consensus_max)
-
 					if toggles.SELECTIVITY_GRAPH:
 						for predNum in toggles.CHOSEN_PREDS:
 							predicate = Predicate.objects.get(pk=predNum+1)
@@ -1271,6 +1263,12 @@ class SimulationTest(TransactionTestCase):
 
 		if toggles.TRACK_WASTE:
 			self.num_waste_array.append(self.num_waste)
+
+		if toggles.COUNT_TICKETS:
+			for pred in toggles.CHOSEN_PREDS:
+				if (pred+1) not in self.num_tickets_dict:	# for the first simulation of the setting
+					self.num_tickets_dict[pred+1] = []
+				self.num_tickets_dict[pred+1].append(self.ticket_nums[pred+1][-1]) # very last ticket count of the predicate
 
 		if toggles.TEST_ACCURACY:
 			self.get_incorrects()
@@ -1375,6 +1373,9 @@ class SimulationTest(TransactionTestCase):
 			multi_line_graph_gen([range(time_proxy)]*xMultiplier, ticket_nums_shifted, ticketCountsLegend,
 								toggles.OUTPUT_PATH + "ticketCounts" + str(self.sim_num) + ".png",
 								labels = ("time proxy", "Ticket counts"))
+
+			if toggles.DEBUG_FLAG:
+				print ("Wrote file: "+"ticketCounts" + str(self.sim_num) + ".png")
 
 		if toggles.TRACK_SIZE:
 			if not toggles.SIMULATE_TIME:
@@ -2125,12 +2126,12 @@ class SimulationTest(TransactionTestCase):
 			if not setting[8] == None:
 				toggles.REFILL_PERIOD = setting[8]
 
-			# set up output csv file
+			# set up output files
 			save = []
 			save.append(["Setting:", "Predicate Limit Mode", "Predicate Limit", "Active Task Array", "Queue Array", "Switch List", "Adaptive Queue Mode", "Ticketing System", "Batch Assignment", "Refill Period"])
 			save.append(["",toggles.IP_LIMIT_SYS, toggles.ITEM_IP_LIMIT, str(toggles.ACTIVE_TASKS_ARRAY), str(toggles.QUEUE_LENGTH_ARRAY), str(toggles.switch_list), toggles.ADAPTIVE_QUEUE_MODE, toggles.TICKETING_SYS, toggles.BATCH_ASSIGNMENT, toggles.REFILL_PERIOD])
 			save.append(["Run", "Placeholder tasks", "Wasted tasks", "Total tasks", "Time"])
-			
+
 			for run in range(numSim):
 				for pred in Predicate.objects.all():
 					pred.set_queue_length(tempLength)
@@ -2154,13 +2155,22 @@ class SimulationTest(TransactionTestCase):
 			save.append(["standard deivation"])
 			save.append(np.std(stats, axis = 1).tolist())
 
-			self.reset_arrays()
-
-			# output file
-			dest = toggles.OUTPUT_PATH + "multiRunStats"+ str(settingCount)
-			generic_csv_write(dest+".csv", save)
+			# output files
+			dest1 = toggles.OUTPUT_PATH + "multiRunStats"+ str(settingCount)
+			generic_csv_write(dest1+".csv", save)
 			if toggles.DEBUG_FLAG:
-				print "Wrote file: " + dest + ".csv"
+				print "Wrote file: " + dest1 + ".csv"
+
+			if toggles.COUNT_TICKETS and numSim > 0:
+				ticketList = self.num_tickets_dict.values()
+				print (ticketList)
+				predList = self.num_tickets_dict.keys()
+				print (predList)
+				dest2 = toggles.OUTPUT_PATH + "predicate_ticket_histogram_run_" + str(settingCount)
+				graphGen.ticket_distributions(ticketList, predList, dest2, numSim)
+				
+
+			self.reset_arrays()
 
 			settingCount += 1
 
@@ -2174,7 +2184,7 @@ class SimulationTest(TransactionTestCase):
 		toggles.PENDING_QUEUE_SIZE = origQueueLength
 		toggles.TICKETING_SYS = origTicketing
 		toggles.BATCH_ASSIGNMENT = origBatch
-		togges.REFILL_PERIOD = origPeriod
+		toggles.REFILL_PERIOD = origPeriod
 			
 
 	def collect_act1_data(self, timed):
