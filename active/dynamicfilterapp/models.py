@@ -645,7 +645,7 @@ class IP_Pair(models.Model):
 
 	def set_done_if_done(self):
 
-		if self.status_votes == toggles.NUM_CERTAIN_VOTES:
+		if self.status_votes == toggles.NUM_CERTAIN_VOTES or self.is_joinable() and self.status_votes > 0:
 
 			if self.found_consensus():
 				self.isDone = True
@@ -1703,12 +1703,8 @@ class Join():
 		if self.count_costs[0] > toggles.EXPLORATION_REQ:
 					# small p cost
 			cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
-					# PJF cost
-					## TODO: with this we need to remove things from evaluated_with_small_p when we remove them from list2
 					prejoin_cons_cost*(len(self.evaluated_with_smallP) + self.small_p_selectivity_est*(len(self.list2)-len(self.evaluates_with_smallP))) + \ 
-					# join cost
 					join_cons_cost*(len(self.list1)*(len(self.evaluated_with_small_p) + \
-					# join cost cont.
 					self.small_p_selectivity_est*(len(self.list1) - len(self.evaluated_with_small_p)))*self.PJF_selectivity_est
 		else:
 			cost_1 = 0
@@ -1716,9 +1712,7 @@ class Join():
 		if self.count_costs[0] > toggles.EXPLORATION_REQ:
 					# PJF cost 
 			cost_2 = prejoin_cons_cost*(len(self.list2)+len(self.list1)) + \
-					# join cost 
 					join_cons_cost*len(self.list2)*len(self.list1)*self.PJF_selectivity_est+ \
-					# small p cost
 					small_p_cons_cost*losp*len(self.list2)
 		else:
 			cost_2 = 0
