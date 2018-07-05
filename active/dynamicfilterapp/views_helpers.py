@@ -102,6 +102,8 @@ def pending_eddy(ID):
 			#decreasing epsilon-greedy MAB
 			if (toggles.EDDY_SYS == 7):
 				chosenPred = annealingSelectPred(predicates)
+			maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+			incompleteIP = incompleteIP.exclude(id__in=maxReleased)
 			predIPs = incompleteIP.filter(predicate=chosenPred)
 			chosenIP = choice(predIPs)
 	 	else:
@@ -263,24 +265,24 @@ def selectPred(predList):
 
 def annealingSelectPred(predList):
 	predicates=Predicate.objects.all()
-	countList = [(pred.count) for pred in predicates]
+	countList = predicates.values_list('count',flat=True)
 	#countSum is sum of all the times each predicate was picked
 	countSum = sum(countList)
 	epsilon = 1 / math.log(countSum + 0.0000001)
 	rNum = random.random()
-	valueList = np.array([(pred.score) for pred in predList])
+	valueList = np.array(predList.values_list('score',flat=True))
 	maxVal = max(valueList)
 
 	if rNum > epsilon:
-		#choose predicate with highest score
-		maxPredlist = [pred for pred in predList if pred.score == maxVal]
+		#choose predicate with highest score (fixed for floating point error)
+		maxPredlist = predList.filter(score__lt=maxVal+.0001)&predList.filter(score__lt=maxVal-.0001)
 		chosenPred = random.choice(maxPredlist)
 		chosenPred.inc_count()
 		return chosenPred
 
 	else:
 		#choose random predicate that is not pred with highest score
-		newPredlist = [pred for pred in predList if pred.score != maxVal]
+		newPredlist = predList.exclude(score__lt=maxVal+.0001)&predList.exclude(score__lt=maxVal-.0001)
 		if len(newPredlist)!= 0:
 			chosenPred = random.choice(newPredlist)
 			chosenPred.inc_count()
