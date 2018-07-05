@@ -1157,7 +1157,6 @@ class Join():
 	#	In PW_join() we also update cost estimates, removed processed items from corresponding lists, update variabes
 	# 	used in the chao estimator.
 	def PW_join(self, ip_or_pred, itemlist):
-		self.PW_join_calls += 1
 		if type(ip_or_pred) == Predicate and ip_or_pred.item.item_ID in self.failed_by_smallP:
 			raise Exception("Improper removal/addition of " + str(ip_or_pred.item) + " occurred")
 		#Metadata/debug information
@@ -1219,8 +1218,6 @@ class Join():
 		
 		if done:
 			self.done = True
-			self.consensus_items_PW += 1
-			self.tasks_for_PW = float(self.PW_join_calls)/self.consensus_items_PW
 			#save costs and matches for estimates later
 			if itemlist == self.list1:
 				self.PW_cost_est_1 += [PW_timer]
@@ -1514,6 +1511,8 @@ class Join():
 				raise Exception("Your Predicate/IP_Pair doesn't match the expected task_types for Join.")
 		#the upcoming task works for a single IP pair, like most tasks
 		else:
+			print "we are here with an IP_pair: " + str(IP_pair)
+			print "we are here with task_type: " + task_type
 			#running & managing pairwise joins on list1
 			
 			if task_type == "PW":
@@ -1604,7 +1603,6 @@ class Join():
 					return None, timer
 				else:
 					#if we have run our join and have pairs to filter, we do
-					all_small = True
 					if IP_pair.get_join_pairs()==[]:
 						return False, 0
 					res, timer = self.small_pred(IP_pair.get_join_pairs()[0][1])
@@ -1612,10 +1610,13 @@ class Join():
 						self.done = False
 						IP_pair.remove_task()
 						IP_pair.set_join_pairs(IP_pair.get_join_pairs()[1:])
+						IP_pair.save(update_fields = ["task_types","join_pairs"])
 						if res:
 							return res, timer
 						else:
 							return None, timer
+					else:
+						return None, timer
 			else:
 				print "Task type was: " + str(task_type)
 				raise Exception("Your Predicate/IP_Pair doesn't match the expected task_types for Join.")
@@ -1802,6 +1803,8 @@ class Join():
 		#if not, evaluate it with the small predicate
 		else:
 			self.call_dict["small_p"] += 1 # adds to total count of calls to small p
+			if item not in self.call_dict:
+				self.call_dict[item] = [0,0,0,0]
 			self.call_dict[item][3] += 1# adds to total count of calls to small p for this item
 			# Update the cost
 			small_p_timer += self.TIME_TO_EVAL_SMALL_P
@@ -1818,14 +1821,14 @@ class Join():
 			consensus_result = self.find_consensus("small_p", item)
 			if consensus_result is not None:
 
-				self.avg_cons_cost[3] = (self.avg_cons_cost[3]*(self.cons_count[3])+self.TIME_TO_EVAL_SMALL_P)/(self.cons_count[3]+1)
+				self.avg_cons_cost[3] = self.avg_task_cons[3]*self.avg_task_cost[3]
 				self.done = True
 				# Update the selectivity
 				self.small_p_selectivity_est = (self.small_p_selectivity_est*(self.cons_count[3])+eval_results)/(self.cons_count[3]+1)
 				#increment the number of items 
-				self.cons_count += 1
+				self.cons_count[3] += 1
 				#if the item does not pass, we remove it from the list entirely
-				if not consensus_results:
+				if not consensus_result:
 					self.list2.remove(item)
 					self.failed_by_smallP.append(item)
 					print item + " eliminated"
@@ -1837,7 +1840,7 @@ class Join():
 					print "small p cost estimate: " + str(self.small_p_cost_est)
 					print "small p selectivity: " + str(self.small_p_selectivity_est)
 					print "-------------------------"
-				return consensus_results, small_p_timer
+				return consensus_result, small_p_timer
 			return None, small_p_timer
 
 	## @param self
@@ -1891,7 +1894,7 @@ class Join():
 			single_max = int(1+math.ceil(toggles.CUT_OFF/2.0))
 			uncertLevel = 2
 			if toggles.BAYES_ENABLED:
-				if self.value > 0:
+				if votes_yes - votes_no > 0:
 					uncertLevel = btdtr(votes_yes+1, votes_no+1, toggles.DECISION_THRESHOLD)
 				else:
 					uncertLevel = btdtr(votes_no+1, votes_yes+1, toggles.DECISION_THRESHOLD)
@@ -1929,7 +1932,7 @@ class Join():
 			single_max = int(1+math.ceil(toggles.CUT_OFF/2.0))
 			uncertLevel = 2
 			if toggles.BAYES_ENABLED:
-				if self.value > 0:
+				if votes_yes - votes_no > 0:
 					uncertLevel = btdtr(votes_yes+1, votes_no+1, toggles.DECISION_THRESHOLD)
 				else:
 					uncertLevel = btdtr(votes_no+1, votes_yes+1, toggles.DECISION_THRESHOLD)
