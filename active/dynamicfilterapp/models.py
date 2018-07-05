@@ -1173,9 +1173,13 @@ class Join():
 			raise Exception("Improper removal/addition of " + str(ip_or_pred.item) + " occurred")
 		# Update call counts, there is no case where we call this and have no cost so we can update immediately
 		self.call_dict["PW"] += 1
-		if ip_or_pred not in self.call_dict:
-			self.call_dict[ip_or_pred] = [0,0,0,0]
-		self.call_dict[ip_or_pred][2] += 1
+		if type(ip_or_pred) == IP_Pair:
+			item1 = ip_or_pred.item.item_ID
+		else:
+			item1 = sec_item_in_progress
+		if item1 not in self.call_dict:
+			self.call_dict[item1] = [0,0,0,0]
+		self.call_dict[item1][2] += 1
 		
 		#Metadata/debug information
 		avg_cost = 0
@@ -1191,11 +1195,9 @@ class Join():
 			else:
 				self.guess_list2.update([item2 for (item1,item2) in matches])
 				itemlist2 = self.guess_list2
-			item1 = ip_or_pred.item.item_ID
 		else:
 			matches, PW_timer = self.get_matches_l2(ip_or_pred, PW_timer)
 			itemlist2 = self.list1
-			item1 = self.sec_item_in_progress
 		done = True
 		for item2 in itemlist2:
 			#update votes for consensus for each item pair 
@@ -1232,9 +1234,9 @@ class Join():
 			self.votes_for_matches[(item1, None)][1] += 1
 		if self.find_consensus("join", (item1,None)):
 			# If we have reached consensus on no matches, save some info on consensus
-			self.avg_task_cons[2] = (self.avg_task_cons[2]*self.cons_count[2] + self.call_dict[item][2])/(self.cons_count[2]+1)
+			self.avg_task_cons[2] = (self.avg_task_cons[2]*self.cons_count[2] + self.call_dict[item1][2])/(self.cons_count[2]+1)
 			self.cons_count[2] += 1
-			self.avg_cons_cost[2] = self.avg_task_cons * self.avg_task_cost
+			self.avg_cons_cost[2] = self.avg_task_cons[2] * self.avg_task_cost[2]
 			# Remove the item and return
 			if item1 in itemlist:
 				itemlist.remove(item1)
