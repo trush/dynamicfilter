@@ -1693,9 +1693,9 @@ class Join():
 		""" Finds the cost estimates of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
 		Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
 		#TODO: remove redundant ifs when confident
-		prejoin_cons_cost = avg_task_cons[0] * avg_task_cost[0]
-		join_cons_cost = avg_task_cons[1] * avg_task_cost[1]
-		small_p_cons_cost = avg_task_cons[3] * avg_task_cost[3]
+		prejoin_cons_cost = self.avg_task_cons[0] * self.avg_task_cost[0]
+		join_cons_cost = self.avg_task_cons[1] * self.avg_task_cost[1]
+		small_p_cons_cost = self.avg_task_cons[3] * self.avg_task_cost[3]
 
 		#losp - "likelihood of some pairs" odds of a list2 item matching with at least one item from list1
 		losp = 1 - (1 - self.join_selectivity_est)**(len(self.list1))
@@ -1721,8 +1721,8 @@ class Join():
 			avg_matches_est_2 = numpy.mean(self.num_matches_per_item_2)
 			match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
 			if self.count_costs[1] > toggles.EXPLORATION_REQ:
-				cost_3 = base_cost_est*len(self.list2)*avg_task_cons[2] + \
-						match_cost_est*avg_matches_est_2*len(self.list2)*avg_task_cons[2]  + \
+				cost_3 = base_cost_est*len(self.list2)*self.avg_task_cons[2] + \
+						match_cost_est*avg_matches_est_2*len(self.list2)*self.avg_task_cons[2]  + \
 						losp*len(self.list2)*small_p_cons_cost
 			else:
 				cost_3 = 0
@@ -1730,7 +1730,7 @@ class Join():
 			if self.count_costs[1] > toggles.EXPLORATION_REQ:
 				cost_5 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP))+ \
 						(len(self.evaluated_with_smallP) + self.small_p_selectivity_est*(len(self.list2)-len(self.evaluates_with_smallP)))*\
-						(base_cost_est + match_cost_est*avg_matches_est_2)*avg_task_cons[2]
+						(base_cost_est + match_cost_est*avg_matches_est_2)*self.avg_task_cons[2]
 			else:
 				self.count_costs[4] = 0
 		else: #if we don't have enough information yet, we set the cost of these paths to 0
@@ -1741,8 +1741,8 @@ class Join():
 			match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
 			if self.count_costs[2] > toggles.EXPLORATION_REQ:
 				avg_matches_est_1 = numpy.mean(self.num_matches_per_item_1)
-				cost_4 = base_cost_est*len(self.list1)*avg_task_cons[2]+ \
-						match_cost_est*avg_matches_est_1*len(self.list1)*avg_task_cons[2] + \
+				cost_4 = base_cost_est*len(self.list1)*self.avg_task_cons[2]+ \
+						match_cost_est*avg_matches_est_1*len(self.list1)*self.avg_task_cons[2] + \
 						small_p_cons_cost*losp*len(self.list2)
 			else:
 				cost_4
