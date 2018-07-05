@@ -83,30 +83,29 @@ def pending_eddy(ID):
 			if toggles.DEBUG_FLAG:
 				print "Warning: no IP pair for worker "
 
-	# else:
-	# ## standard epsilon-greedy MAB and decreasing epsilon-greedy MAB.
-	# # Chooses a predicate using selectPred if EDDY_SYS = 6 and annealingselectPred if EDDY_SYS = 7.
-	# # chooses an IP with that predicate at random. Once IP is chosen,
-	# # tasks are issued for only that IP until it passes or fails
-	# 	if incompleteIP.exists():
-	# 		startedIPs = incompleteIP.filter(isStarted=True)
-	# 		if len(startedIPs) != 0:
-	# 			incompleteIP = startedIPs
-	# 		predicates = [ip.predicate for ip in incompleteIP]
-	# 		#list of predicates are unique
-	# 		seen = set()
-	# 		seen_add = seen.add
-	# 		predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
-	# 		#standard epsilon-greedy MAB
-	# 		if (toggles.EDDY_SYS == 6):
-	# 			chosenPred = selectPred(predicates)
-	# 		#decreasing epsilon-greedy MAB
-	# 		if (toggles.EDDY_SYS == 7):
-	# 			chosenPred = annealingSelectPred(predicates)
-	# 		predIPs = incompleteIP.filter(predicate=chosenPred)
-	# 		chosenIP = choice(predIPs)
-	# 	else:
-	# 		chosenIP = None
+	else:
+	## standard epsilon-greedy MAB and decreasing epsilon-greedy MAB.
+	# Chooses a predicate using selectPred if EDDY_SYS = 6 and annealingselectPred if EDDY_SYS = 7.
+	# chooses an IP with that predicate at random. Once IP is chosen,
+	# tasks are issued for only that IP until it passes or fails
+		if incompleteIP.exists():
+			startedIPs = incompleteIP.filter(isStarted=True)
+			if len(startedIPs) != 0:
+				incompleteIP = startedIPs
+
+			predicatevalues = incompleteIP.values('predicate')
+			predicates = Predicate.objects.filter(id__in=predicatevalues)
+			
+			#standard epsilon-greedy MAB
+			if (toggles.EDDY_SYS == 6):
+				chosenPred = selectPred(predicates)
+			#decreasing epsilon-greedy MAB
+			if (toggles.EDDY_SYS == 7):
+				chosenPred = annealingSelectPred(predicates)
+			predIPs = incompleteIP.filter(predicate=chosenPred)
+			chosenIP = choice(predIPs)
+	 	else:
+	 		chosenIP = None
 
 
 	if chosenIP is not None:
