@@ -645,7 +645,7 @@ class IP_Pair(models.Model):
 
 	def set_done_if_done(self):
 
-		if self.status_votes == toggles.NUM_CERTAIN_VOTES:
+		if self.status_votes == toggles.NUM_CERTAIN_VOTES or self.is_joinable() and self.status_votes > 0:
 
 			if self.found_consensus():
 				self.isDone = True
@@ -1676,9 +1676,9 @@ class Join():
 		""" Finds the cost estimates of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
 		Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
 		#TODO: remove redundant ifs when confident
-		prejoin_cons_cost = avg_task_cons[0] * avg_task_cost[0]
-		join_cons_cost = avg_task_cons[1] * avg_task_cost[1]
-		small_p_cons_cost = avg_task_cons[3] * avg_task_cost[3]
+		prejoin_cons_cost = self.avg_task_cons[0] * self.avg_task_cost[0]
+		join_cons_cost = self.avg_task_cons[1] * self.avg_task_cost[1]
+		small_p_cons_cost = self.avg_task_cons[3] * self.avg_task_cost[3]
 
 		#losp - "likelihood of some pairs" odds of a list2 item matching with at least one item from list1
 		losp = 1 - (1 - self.selectivity_est[1])**(len(self.list1))
@@ -1687,23 +1687,17 @@ class Join():
 		if calls_to_1 > toggles.EXPLORATION_REQ:
 					# small p cost
 			cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
-					# PJF cost
-					## TODO: with this we need to remove things from evaluated_with_small_p when we remove them from list2
-					prejoin_cons_cost*(len(self.evaluated_with_smallP) + self.selectivity_est[3]*(len(self.list2)-len(self.evaluates_with_smallP))) + \ 
-					# join cost
+					prejoin_cons_cost*(len(self.evaluated_with_smallP) + self.selectivity_est[3]*(len(self.list2)-len(self.evaluates_with_smallP))) + \
 					join_cons_cost*(len(self.list1)*(len(self.evaluated_with_small_p) + \
-					# join cost cont.
 					self.selectivity_est[3]*(len(self.list1) - len(self.evaluated_with_small_p)))*self.selectivity_est[0]
 		else:
 			cost_1 = 0
 		# COST 2 CALCULATION - PJF then small pred
 		calls_to_2 = min(self.cons_count[0], self.cons_count[3])
-		if self.count_costs[0] > toggles.EXPLORATION_REQ:
-					# PJF cost 
+		if calls_to_2 > toggles.EXPLORATION_REQ:
+			# PJF cost 
 			cost_2 = prejoin_cons_cost*(len(self.list2)+len(self.list1)) + \
-					# join cost 
 					join_cons_cost*len(self.list2)*len(self.list1)*self.selectivity_est[0]+ \
-					# small p cost
 					small_p_cons_cost*losp*len(self.list2)
 		else:
 			cost_2 = 0
@@ -1735,8 +1729,8 @@ class Join():
 			if calls_to_4 > toggles.EXPLORATION_REQ:
 				match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
 				avg_matches_est_1 = numpy.mean(self.num_matches_per_item_1)
-				cost_4 = base_cost_est*len(self.list1)*avg_task_cons[2]+ \
-						match_cost_est*avg_matches_est_1*len(self.list1)*avg_task_cons[2] + \
+				cost_4 = base_cost_est*len(self.list1)*self.avg_task_cons[2]+ \
+						match_cost_est*avg_matches_est_1*len(self.list1)*self.avg_task_cons[2] + \
 						small_p_cons_cost*losp*len(self.list2)
 		else:
 			cost_4 = 0
