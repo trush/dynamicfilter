@@ -2191,10 +2191,8 @@ class SimulationTest(TransactionTestCase):
 
 			if toggles.COUNT_TICKETS and numSim > 0:
 				ticketList = self.num_tickets_dict.values()
-				print (ticketList)
 				predList = self.num_tickets_dict.keys()
-				print (predList)
-				dest2 = toggles.OUTPUT_PATH + "predicate_ticket_histogram_run_" + str(settingCount)
+				dest2 = toggles.OUTPUT_PATH + "ticket_histogram_setting_" + str(settingCount)
 				graphGen.ticket_distributions(ticketList, predList, dest2, numSim)
 
 			self.reset_arrays()
