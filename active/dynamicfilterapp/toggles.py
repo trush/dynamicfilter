@@ -134,7 +134,21 @@ MAX_TASKS_COLLECTED = CUT_OFF
 
 MULTI_SIM = True 
 
-MULTI_SIM_ARRAY = [(3,(0, 1),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],2000,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],4,1,1,100,7)]
+MULTI_SIM_ARRAY = [(50,(0, 1),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],2000,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],4,1,1,100,7),
+(None,None,None,None,None,None,None,None,None,8),
+(None,None,None,None,None,None,None,None,None,9),
+(None,None,None,None,None,None,None,None,None,10),
+(None,None,None,None,None,None,None,None,None,11),
+(None,None,None,None,[(0, (.1,.25), (.1,.25), (.1,.25), (.1,.25), (.1,.25), (.1,.25))],None,None,None,None,7),
+(None,None,None,None,None,None,None,None,None,8),
+(None,None,None,None,None,None,None,None,None,9),
+(None,None,None,None,None,None,None,None,None,10),
+(None,None,None,None,None,None,None,None,None,11),
+(None,None,None,None,[(0, (.1,.25), (.1,.25), (.3,.25), (.7,.25), (.9,.25), (.9,.25))],None,None,None,None,7),
+(None,None,None,None,None,None,None,None,None,8),
+(None,None,None,None,None,None,None,None,None,9),
+(None,None,None,None,None,None,None,None,None,10),
+(None,None,None,None,None,None,None,None,None,11)]
 #(# of tests, (limit sys, limit), active task array, queue size/adaptie queue array, switch list, adaptive queue mode, ticketing, batch sys, period, eddy sys)
 # ************************************************************************ #
 
