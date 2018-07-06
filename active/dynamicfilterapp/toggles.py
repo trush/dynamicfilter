@@ -24,11 +24,11 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
-NUM_QUESTIONS = 2
-NUM_ITEMS = 20
+NUM_QUESTIONS = 6
+NUM_ITEMS = 100
 SIN = -1
 SELECTIVITY_GRAPH = False
-switch_list = [(0, (0,0), (0,0))]
+switch_list = [(0, (0,0), (0,0), (0,0), (0,0), (0,0), (0,0))]
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
@@ -48,7 +48,7 @@ else:
 # ************************** ALGORITHM SETTINGS ************************** #
 # ************************************************************************ #
 
-EDDY_SYS = 7
+EDDY_SYS = 11
 ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 150
@@ -134,8 +134,25 @@ MAX_TASKS_COLLECTED = CUT_OFF
 
 MULTI_SIM = True 
 
-MULTI_SIM_ARRAY = [(5,(3, 2),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],2000,[(0, (.1,.25), (.9,.25))],4,0,1,100),
-                   (None,None,None,None,[(0, (.1,.25), (.1,.25))],None,None,None,None)]
+
+
+MULTI_SIM_ARRAY = [(50,(0, 1),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],2000,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],4,1,1,100,7),
+(None,None,None,None,None,None,None,None,None,8),
+(None,None,None,None,None,None,None,None,None,9),
+(None,None,None,None,None,None,None,None,None,10),
+(None,None,None,None,None,None,None,None,None,11),
+(None,None,None,None,[(0, (.1,.25), (.1,.25), (.1,.25), (.1,.25), (.1,.25), (.1,.25))],None,None,None,None,7),
+(None,None,None,None,None,None,None,None,None,8),
+(None,None,None,None,None,None,None,None,None,9),
+(None,None,None,None,None,None,None,None,None,10),
+(None,None,None,None,None,None,None,None,None,11),
+(None,None,None,None,[(0, (.1,.25), (.1,.25), (.3,.25), (.7,.25), (.9,.25), (.9,.25))],None,None,None,None,7),
+(None,None,None,None,None,None,None,None,None,8),
+(None,None,None,None,None,None,None,None,None,9),
+(None,None,None,None,None,None,None,None,None,10),
+(None,None,None,None,None,None,None,None,None,11)]
+#(# of tests, (limit sys, limit), active task array, queue size/adaptie queue array, switch list, adaptive queue mode, ticketing, batch sys, period, eddy sys)
+
 # ************************************************************************ #
 
 
@@ -184,7 +201,7 @@ ABSTRACT_VARIABLE = "NUM_WORKERS"
 ABSTRACT_VALUES = [100, 200]
 
 RUN_TASKS_COUNT = True
-TRACK_IP_PAIRS_DONE = False
+TRACK_IP_PAIRS_DONE = True
 
 TRACK_ACTIVE_TASKS = True # Useful only for simulations with TIME
 TRACK_PLACEHOLDERS = True

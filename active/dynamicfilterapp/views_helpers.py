@@ -59,8 +59,8 @@ def pending_eddy(ID):
 	completedTasks = Task.objects.filter(workerID=ID)
 	completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
 	incompleteIP = unfinishedList.exclude(id__in = completedIP)
-	# maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	# incompleteIP = incompleteIP.exclude(id__in=maxReleased)
+	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+	incompleteIP = incompleteIP.exclude(id__in=maxReleased)
 
 	#Limits the number of predicates an item is being evaluated under simultaneously
 	if toggles.IP_LIMIT_SYS >= 2: # hard or soft limit
