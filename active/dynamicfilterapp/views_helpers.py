@@ -443,14 +443,14 @@ def annealingSelectPred(predList):
 
 	if rNum > epsilon:
 		#choose predicate with highest score (fixed for floating point error)
-		maxPredlist = predList.filter(score__lt=maxVal+.0001)&predList.filter(score__lt=maxVal-.0001)
+		maxPredlist = predList.filter(score__lte=maxVal+.0001)&predList.filter(score__gte=maxVal-.0001)
 		chosenPred = random.choice(maxPredlist)
 		chosenPred.inc_count()
 		return chosenPred
 
 	else:
 		#choose random predicate that is not pred with highest score
-		newPredlist = predList.exclude(score__lt=maxVal+.0001)&predList.exclude(score__lt=maxVal-.0001)
+		newPredlist = predList.exclude(score__lte=maxVal+.0001)&predList.exclude(score__gte=maxVal-.0001)
 		if len(newPredlist)!= 0:
 			chosenPred = random.choice(newPredlist)
 			chosenPred.inc_count()

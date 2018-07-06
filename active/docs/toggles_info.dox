@@ -272,6 +272,8 @@ simulations for every configuration in MULTI_SIM_ARRAY \n
   - ADAPTIVE_QUEUE_MODE
   - TICKETING_SYS
   - BATCH_ASSIGNMENT
+  - REFILL_PERIOD
+  - EDDY_SET
 
 \section output Output Settings
 \subsection file File Management
@@ -285,6 +287,9 @@ of various graphs associated with collecting various types of data. \n
 \link dynamicfilterapp.toggles.PACKING PACKING \endlink - If turned on, will create a folder
 named RUN_NAME that will contain any and all output files, and a file containing all of the
 settings from toggles.py as they were during the simulated runs. \n
+
+\link dynamicfilterapp.toggles.GEN_HIST GEN_HIST \endlink - If turned on, in runMultiSims,
+it outputs a histogram of the number of tasks completed for each setting in the MULTI_SIM_ARRAY. \n
 
 \subsection data Data Collection About Real Data
 

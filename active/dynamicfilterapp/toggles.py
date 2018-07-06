@@ -134,12 +134,8 @@ MAX_TASKS_COLLECTED = CUT_OFF
 
 MULTI_SIM = True 
 
-MULTI_SIM_ARRAY = [(10,(3, 2),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],2000,[(0, (.2,.25), (.9,.25))],4,0,1,100),
-                   (None,None,None,None,[(0, (.1,.25), (.1,.25))],None,None,None,None),
-                   (None,None,None,None,[(0, (.9,.25), (.9,.25))],None,None,None,None),
-                   (None,None,None,None,[(0, (.2,.25,2), (.9,.25,2))],None,None,None,None),
-                   (None,None,None,None,[(0, (.9,.25,2), (.9,.25,2))],None,None,None,None),
-                   (None,None,None,None,[(0, (.1,.25,2), (.1,.25,2))],None,None,None,None)]
+MULTI_SIM_ARRAY = [(5,(3, 2),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],2000,[(0, (.1,.25), (.9,.25))],4,0,1,100),
+                   (None,None,None,None,[(0, (.1,.25), (.1,.25))],None,None,None,None)]
 # ************************************************************************ #
 
 
@@ -162,6 +158,8 @@ if GEN_GRAPHS:
     elif reply == "n":
         print "~~~~~~ Graphing turned off ~~~~~~"
         GEN_GRAPHS = False
+
+GEN_HIST = True         # in multiRunSims
 
 # ___ DATA COLLECTION: REAL DATA ____ #
 RUN_DATA_STATS = True
@@ -225,7 +223,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE', 'TICKETING_SYS',
             'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
             'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS',
-            'DUMMY_TASK_OPTION','GEN_GRAPHS','NUM_ITEMS','SIN', 'QUEUE_SUM',
+            'DUMMY_TASK_OPTION','GEN_GRAPHS','GEN_HIST', 'NUM_ITEMS','SIN', 'QUEUE_SUM',
             'SELECTIVITY_GRAPH','switch_list', 'ITEM_IP_LIMIT', 'IP_LIMIT_SYS',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',

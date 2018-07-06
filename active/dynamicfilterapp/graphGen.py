@@ -140,6 +140,21 @@ def ticket_distributions(dataL, legendL, dest, numSim):
 
     gen_message(dest)
 
+def task_distributions_over_settings (data, dest):
+    # print histogram for each predicate's ticket after each simulation of the same setting
+    dataL = []
+    legendL = []
+    for tup in range(len(data)):
+        legendL.append(data[tup][0]) # settingCount
+        dataL.append(data[tup][1])   # task list
+
+    labels = ("Number of Tasks", "Frequency")
+    title = "Number of Tasks for Different Configurations"
+
+    multi_hist_gen(dataL, legendL, dest+".png", labels = labels, title = title, smoothness = True)
+
+    gen_message(dest)
+
 def ips_done(data, dest, time):
     if time:
         num = 1
