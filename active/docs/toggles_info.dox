@@ -273,7 +273,7 @@ simulations for every configuration in MULTI_SIM_ARRAY \n
   - TICKETING_SYS
   - BATCH_ASSIGNMENT
   - REFILL_PERIOD
-  - EDDY_SET
+  - EDDY_SYS
 
 \section output Output Settings
 \subsection file File Management

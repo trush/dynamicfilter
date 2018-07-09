@@ -1238,6 +1238,9 @@ class SimulationTest(TransactionTestCase):
 					if (switch + 1) < len(toggles.switch_list) and toggles.switch_list[switch + 1][0] == self.num_tasks:
 						switch += 1
 
+				for pred in Predicate.objecs.all():
+					pred.award_wicket()
+
 
 
 		if toggles.DUMMY_TASKS:
@@ -2117,6 +2120,7 @@ class SimulationTest(TransactionTestCase):
 		origBatch = toggles.BATCH_ASSIGNMENT
 		origPeriod = toggles.REFILL_PERIOD
 		origDest = toggles.OUTPUT_PATH
+		origEddy = toggles.EDDY_SYS
 		
 		numSim = 0
 		settingCount = 0
@@ -2155,8 +2159,10 @@ class SimulationTest(TransactionTestCase):
 				toggles.TICKETING_SYS = setting[6]
 			if not setting[7] == None:
 				toggles.BATCH_ASSIGNMENT = setting[7]
-			if not setting[8] == None:
+			if not setting[8] == None:					
 				toggles.REFILL_PERIOD = setting[8]
+			if not setting[9] == None:
+				toggles.EDDY_SYS = setting[9]
 
 			# set up output files
 			save = []
@@ -2165,9 +2171,10 @@ class SimulationTest(TransactionTestCase):
 			save.append(["Run", "Placeholder tasks", "Wasted tasks", "Total tasks", "Time"])
 
 			for run in range(numSim):
+				print ("-" + str(run))
 				for pred in Predicate.objects.all():
 					pred.set_queue_length(tempLength)
-				self.visualizeActiveTasks(data, str(settingCount)+str(run))
+				self.visualizeActiveTasks(data, str(settingCount)+"-"+str(run))
 
 				# write in file
 				runList = []
@@ -2224,6 +2231,7 @@ class SimulationTest(TransactionTestCase):
 		toggles.BATCH_ASSIGNMENT = origBatch
 		toggles.REFILL_PERIOD = origPeriod
 		toggles.OUTPUT_PATH = origDest
+		toggles.EDDY_SYS = origEddy
 	
 	def collect_act1_data(self, timed):
 		if timed:
