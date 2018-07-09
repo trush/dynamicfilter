@@ -217,8 +217,8 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 				print chosenIP.item.item_ID
 				print chosenIP.task_types
 				print chosenIP.value
-				print chosenIP.num_yes
-				print chosenIP.num_no
+				print chosenIP.join_pairs
+				print active_joins[chosenIP.predicate].results_from_all_join
 				raise Exception("this ip pair is done")
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()

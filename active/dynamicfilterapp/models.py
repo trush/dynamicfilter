@@ -1588,7 +1588,7 @@ class Join():
 			#runs & manages small predicate for list 1
 			elif task_type == "small_p":
 				timer = 0
-				if not IP_pair.join_pairs:
+				if "PJF" in IP_pair.get_task_types() or "join" in IP_pair.get_tasks():
 					all_eval_smallp = True
 					for second_item in self.list2:
 						if second_item not in self.evaluated_with_smallP:
@@ -1604,7 +1604,8 @@ class Join():
 					#if we have run our join and have pairs to filter, we do
 					if IP_pair.get_join_pairs()==[]:
 						return False, 0
-					res, timer = self.small_pred(IP_pair.get_join_pairs()[0][1])
+					join_pair = IP_pair.get_join_pairs()[0]
+					res, timer = self.small_pred(join_pair[1])
 					if self.done:
 						self.done = False
 						IP_pair.set_join_pairs(IP_pair.get_join_pairs()[1:])
@@ -1612,12 +1613,18 @@ class Join():
 						if res:
 							IP_pair.remove_task()
 							IP_pair.save(update_fields = ["task_types"])
+							self.results_from_all_join.append(join_pair)
 							print "we are here with item " + str(IP_pair.item.item_ID)
 							print "we are here and should have empty task_types " + str(IP_pair.task_types)
-							return res, timer
+							print res
+							return True, timer
 						else:
+							if IP_pair.get_join_pairs() == []:
+								raise Exception("We should be returning none")
 							return None, timer
 					else:
+						if IP_pair.get_join_pairs() == []:
+							raise Exception("We should be returning none")
 						return None, timer
 			else:
 				print "Task type was: " + str(task_type)
