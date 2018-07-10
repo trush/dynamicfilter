@@ -166,8 +166,8 @@ def adaptive_predicate_limit (chosenIP):
 def nu_pending_eddy(incompleteIP, active_joins=None):
 	print "we are here"
 	#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
-	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
+	# maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+	# incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
 	if incompleteIP.exists():
 		# get a predicate using the ticketing system
 		# make list of possible predicates and remove duplicates

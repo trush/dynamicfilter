@@ -1781,7 +1781,7 @@ class Join():
 			self.JOIN_TIME*len(self.list2)*len(self.list1)*self.PJF_SELECTIVITY+ \
 			self.TIME_TO_EVAL_SMALL_P*real_losp*len(self.list2)
 		# COST 3 CALCULATION - pairwise of second list and then small pred
-		cost_3 = (self.BASE_FIND_MATCHES+self.AVG_MATCHES * (len(self.list1)/len(self.private_list2))*self.FIND_SINGLE_MATCH_TIME)*len(self.list2) + \
+		cost_3 = (self.BASE_FIND_MATCHES+self.AVG_MATCHES * (Item.objects.all().count()/len(self.private_list2))*self.FIND_SINGLE_MATCH_TIME)*len(self.list2) + \
 			real_losp*len(self.list2)*self.TIME_TO_EVAL_SMALL_P
 		# COST 4 CALCULATION - pairwise join on first list and then small pred
 		cost_4 = (self.BASE_FIND_MATCHES+self.AVG_MATCHES*self.FIND_SINGLE_MATCH_TIME)*len(self.list1)+ \

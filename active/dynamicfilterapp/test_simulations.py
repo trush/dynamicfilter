@@ -632,6 +632,7 @@ class SimulationTest(TransactionTestCase):
 	# @returns an Task object or DummyTask object.
 	def issueTask(self, active_tasks, active_joins, b_workers, time_clock, dictionary, switch):
 		# select an available worker who is eligible to do a task in our pool
+		print "We Are Here"
 		workerDone = True
 		a_num = toggles.NUM_WORKERS - len(b_workers)
 		triedWorkers = set()
