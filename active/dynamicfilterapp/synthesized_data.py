@@ -19,7 +19,7 @@ def syn_load_data():
 		
 		#currently randomly set joinability
 		if toggles.USE_JOINS:
-			if(random.random() > 0.5):
+			if(random.random() > 0.0):
 				print "join"
 				pred = Predicate.objects.create(predicate_ID=ID, question=q, joinable=True)
 			else:

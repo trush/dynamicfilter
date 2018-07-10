@@ -48,11 +48,13 @@ def pending_eddy(ID, active_joins = None):
 	"""
 	This function chooses which system to use for choosing the next ip_pair
 	"""
+	print "We are here"
 	start = time.time()
 
 	# if all IP_Pairs are done
 	unfinishedList = IP_Pair.objects.filter(isDone=False)
 	if not unfinishedList:
+		raise Exception("we should'nt be here")
 		return None
 
 	#filter through to find viable ip_pairs to choose from
@@ -162,8 +164,8 @@ def adaptive_predicate_limit (chosenIP):
 
 
 def nu_pending_eddy(incompleteIP, active_joins=None):
+	print "we are here"
 	#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
-	print active_joins
 	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
 	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
 	if incompleteIP.exists():
@@ -185,9 +187,8 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 		if active_joins is not None and chosenPred in active_joins:
 			cur_join = active_joins[chosenPred]
 			# if we are not using an ip_pair we are using a pred 
-			task_types = cur_join.assign_join_tasks() # note: theoretically is use_item() is False, then assign_join_tasks will be for pred
-			print "we are here and do we use an item?"
 			if not cur_join.use_item():
+				task_types = cur_join.assign_join_tasks() # note: theoretically is use_item() is False, then assign_join_tasks will be for pred
 				# if we don't have tasks to do, get some!
 				if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
 					chosenPred.set_task_types(task_types)
@@ -214,12 +215,14 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 				chosenIP = minTaskIP
 			chosenIP = choice(pickFrom)
 			if not chosenIP.task_types == "" and chosenIP.get_task_types() == []:
-				print chosenIP.item.item_ID
-				print chosenIP.task_types
-				print chosenIP.value
-				print chosenIP.join_pairs
-				print active_joins[chosenIP.predicate].results_from_all_join
-				raise Exception("this ip pair is done")
+				#A patch solution. Find root cause?
+				res_list =  active_joins[chosenIP.predicate].results_from_all_join
+				finished = [x for [x,y] in res_list]
+				if chosenIP.item.item_ID in finished:
+					chosenIP.isDone = True
+					chosenIP.save(update_fields=["isDone"])
+					print "we are here adding a placeholder to flag as done"
+					return None
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
 				chosenIP.refresh_from_db()
@@ -258,8 +261,10 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 
 		# if there's literally nothing left to be done, issue a placeholder task
 		else:
+			raise Exception("I have not given an IP")
 			return None
 	else:
+		raise Exception( "Neither have I")
 		return None
 
 
@@ -346,6 +351,7 @@ def annealingSelectPred(predList):
 		return chosenPred
 
 def give_task(active_tasks, workerID, active_joins = None):
+	print "We are here."
 	ip_pair, eddy_time = pending_eddy(workerID, active_joins)
 	if ip_pair is not None:
 		ip_pair.distribute_task()
@@ -473,6 +479,8 @@ def updateCounts(workerTask, chosenIP):
 		chosenIP.refresh_from_db()
 
 		# update stats counting numbers of votes (only if IP not completed)
+		if workerTask.answer == None:
+			print "we are here with no answer and " + str(chosenIP.status_votes) + "votes"
 		chosenIP.record_vote(workerTask)
 		chosenIP.refresh_from_db()
 

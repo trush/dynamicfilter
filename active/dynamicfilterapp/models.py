@@ -631,6 +631,7 @@ class IP_Pair(models.Model):
 
 				self.save(update_fields=["value", "num_no"])
 
+			self.refresh_from_db()
 			# answer may be none, but we do not update votes for these answers
 			if self.is_joinable():
 				print "we are recording the vote for " + str(self.item.item_ID)
@@ -1420,6 +1421,7 @@ class Join():
 	# @remarks This is what is called in simulate_task() where the task answer and time are retrieved and saved.
 	def main_join(self, task_type, IP_pair=None, predicate=None):
 		print "this IP pair:" + str(IP_pair.id)
+		print "item: " + str(IP_pair.item.item_ID)
 		print "task types:" + str(IP_pair.task_types)
 		#if the upcoming task does not require an item from list1 
 		# i.e. small_p or Pairwise on list 2
@@ -1588,7 +1590,7 @@ class Join():
 			#runs & manages small predicate for list 1
 			elif task_type == "small_p":
 				timer = 0
-				if "PJF" in IP_pair.get_task_types() or "join" in IP_pair.get_tasks():
+				if len(IP_pair.get_task_types()) > 1:
 					all_eval_smallp = True
 					for second_item in self.list2:
 						if second_item not in self.evaluated_with_smallP:
@@ -1607,6 +1609,9 @@ class Join():
 					join_pair = IP_pair.get_join_pairs()[0]
 					res, timer = self.small_pred(join_pair[1])
 					if self.done:
+						if IP_pair.item.item_ID in [x for [x,y] in self.results_from_all_join]:
+							for i in range(300):
+								print i
 						self.done = False
 						IP_pair.set_join_pairs(IP_pair.get_join_pairs()[1:])
 						IP_pair.save(update_fields = ["join_pairs"])
@@ -1616,15 +1621,13 @@ class Join():
 							self.results_from_all_join.append(join_pair)
 							print "we are here with item " + str(IP_pair.item.item_ID)
 							print "we are here and should have empty task_types " + str(IP_pair.task_types)
-							print res
+							print "we are printing true"
+							if not res:
+								raise Exception("we should not have changed result here")
 							return True, timer
 						else:
-							if IP_pair.get_join_pairs() == []:
-								raise Exception("We should be returning none")
 							return None, timer
 					else:
-						if IP_pair.get_join_pairs() == []:
-							raise Exception("We should be returning none")
 						return None, timer
 			else:
 				print "Task type was: " + str(task_type)
@@ -1884,6 +1887,8 @@ class Join():
 			print "**************************************"
 			print "Estimating enumeration"
 			print "**************************************"
+		if self.total_sample_size <= 0:
+			return False
 		c_hat = 1-float(len(self.f_dictionary[1]))/self.total_sample_size
 		sum_fis = 0
 		for i in self.f_dictionary:

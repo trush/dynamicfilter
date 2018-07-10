@@ -945,6 +945,8 @@ class SimulationTest(TransactionTestCase):
 				for task in active_tasks:
 					if task.ip_pair == None and task.predicate == None:
 						placeholders += 1
+				if len(active_tasks) == 0:
+					print IP_Pair.objects.filter(isDone = False).count()
 				print "Active tasks: " + str(len(active_tasks)) + " | Placeholders: " + str(placeholders)
 
 				# throw some errors for debugging purposes
