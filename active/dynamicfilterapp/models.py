@@ -948,7 +948,7 @@ class Join():
 		## @remarks This is everything that has been evaluated by the prejoin filter and what it evaluated to. For now, we assume these
 		# are true and false values. Eventualy could be modified to hold "tags" like the county of the metros and hotels and then
 		# cross referenced (ex. if they are equal accept).
-		self.evaluated_with_PJF = { }
+		self.evaluated_with_PJF = {"count1":0, "count2":0}
 
 		## @remarks This is a list of everything that has passed (true) the small predicate. So if we get that item again 
 		# we don't need to redo work.
@@ -1035,6 +1035,10 @@ class Join():
 			#check if we have reached consensus
 			consensus_result = self.find_consensus("PJF", item)[0]
 			if consensus_result is not None:
+				if item in self.list1:
+					self.evaluated_with_PJF["count1"] += 1
+				elif item in self.list2:
+					self.evaluated_with_PJF["count2"] += 1
 				# Update info when reach consensus, how many task it took, etc.
 				self.avg_task_cons[0] = (self.avg_task_cons[0]*self.cons_count[0] + self.call_dict[item][0])/(self.cons_count[0] +1)
 				self.cons_count[0] += 1
@@ -1211,6 +1215,7 @@ class Join():
 			# Remove the item and return
 			if item1 in itemlist:
 				itemlist.remove(item1)
+				self.evaluated_with_PJF["count1"] -= 1
 			self.done = True
 			return [], PW_timer
 
@@ -1228,9 +1233,11 @@ class Join():
 			#remove processed item from itemlist
 			if itemlist == self.list1 and item1 in itemlist:
 				self.list1.remove(item1)
+				self.evaluated_with_PJF["count1"] -= 1
 			elif item1 in itemlist:
 				self.list2.remove(item1)
 				self.evaluated_with_smallP.remove(item1)
+				self.evaluated_with_PJF["count2"] -= 1
 			if self.DEBUG:
 				print "RAN PAIRWISE JOIN ----------"
 				print "PW AVERAGE COST FOR L1: " + str(numpy.mean(self.PW_cost_est_1))
@@ -1699,7 +1706,7 @@ class Join():
 		if calls_to_1 > toggles.EXPLORATION_REQ:
 					# small p cost
 			cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
-					prejoin_cons_cost*("len(self.evaluated_with_smallP) + self.selectivity_est[3]*(len(self.list2)-len(self.evaluated_with_smallP))") + \
+					prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+self.selectivities[3]*(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
 					join_cons_cost*(len(self.list1)*(len(self.evaluated_with_small_p) + \
 					self.selectivity_est[3]*(len(self.list1) - len(self.evaluated_with_small_p)))*self.selectivity_est[0])
 		else:
@@ -1850,6 +1857,7 @@ class Join():
 				#if the item does not pass, we remove it from the list entirely
 				if not consensus_result:
 					self.list2.remove(item)
+					self.evaluated_with_PJF["count2"] -= 1
 					self.failed_by_smallP.append(item)
 					print item + " eliminated"
 				#if the item does pass, we add it to the list of things already evaluated
