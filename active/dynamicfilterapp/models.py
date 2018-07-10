@@ -948,7 +948,7 @@ class Join():
 		## @remarks This is everything that has been evaluated by the prejoin filter and what it evaluated to. For now, we assume these
 		# are true and false values. Eventualy could be modified to hold "tags" like the county of the metros and hotels and then
 		# cross referenced (ex. if they are equal accept).
-		self.evaluated_with_PJF = {"count1":0, "count2":0, "count1_F":0, "count1_T":0, "count2_F":0, "count2_T":0}
+		self.evaluated_with_PJF = {"count1":0, "count2":0}
 
 		## @remarks This is a list of everything that has passed (true) the small predicate. So if we get that item again 
 		# we don't need to redo work.
@@ -993,7 +993,7 @@ class Join():
 		## @remarks boolean that keeps track of whether or not the current operation has reached consensus
 		self.done = False
 
-		# TOGGLES -----------------------#
+		# toggles -----------------------#
 		self.DEBUG = toggles.DEBUG_FLAG
 
 	#----------------------- PJF Join -----------------------# 
@@ -1037,16 +1037,8 @@ class Join():
 			if consensus_result is not None:
 				if item in self.list1:
 					self.evaluated_with_PJF["count1"] += 1
-					if consensus_result:
-						self.evaluated_with_PJF["count1_T"] += 1
-					else:
-						self.evaluated_with_PJF["count1_F"] += 1
 				elif item in self.list2:
 					self.evaluated_with_PJF["count2"] += 1
-						if consensus_result:
-							self.evaluated_with_PJF["count2_T"] += 1
-						else:
-							self.evaluated_with_PJF["count2_F"] += 1
 				# Update info when reach consensus, how many task it took, etc.
 				self.avg_task_cons[0] = (self.avg_task_cons[0]*self.cons_count[0] + self.call_dict[item][0])/(self.cons_count[0] +1)
 				self.cons_count[0] += 1
@@ -1245,18 +1237,10 @@ class Join():
 			if itemlist == self.list1 and item1 in itemlist:
 				self.list1.remove(item1)
 				self.evaluated_with_PJF["count1"] -= 1
-				if self.evaluated_with_PJF[item1]:
-					self.evaluated_with_PJF["count1_T"] -= 1
-				else:
-					self.evaluated_with_PJF["count1_F"] -= 1 
 			elif item1 in itemlist:
 				self.list2.remove(item1)
 				self.evaluated_with_smallP.remove(item1)
 				self.evaluated_with_PJF["count2"] -= 1
-				if self.evaluated_with_PJF[item1]:
-					self.evaluated_with_PJF["count2_T"] -= 1
-				else:
-					self.evaluated_with_PJF["count2_F"] -= 1 
 			if self.DEBUG:
 				print "RAN PAIRWISE JOIN ----------"
 				print "PW AVERAGE COST FOR L1: " + str(numpy.mean(self.PW_cost_est_1))
@@ -1735,8 +1719,7 @@ class Join():
 		if calls_to_2 > toggles.EXPLORATION_REQ:
 			# PJF cost 
 			cost_2 = prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
-					join_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])*(len(self.list2)-self.evaluated_with_PJF["count2"]))*(self.selectivity_est[0])**2+ \
-					join_cons_cost*self.evaluated_with_PJF["count1_T"]*self.evaluated_with_PJF["count2_T"]
+					join_cons_cost*len(self.list1)*len(self.list2)*(self.selectivity_est[0])
 					small_p_cons_cost*losp*len(self.list2)
 		else:
 			cost_2 = 0
@@ -1796,34 +1779,37 @@ class Join():
 		""" Finds the cost estimates of the 5 paths available to go down. Path 1 = PJF w/ small predicate applied early. 
 		Path 2 = PJF w/ small predicate applied later. Path 3 = PW on list 2. Path 4 = PW on list 1. Path 5 = small p then PW on list 2"""
 		#TODO: buffer in case we don't have avg task cons yet
-		prejoin_cons_cost = self.avg_task_cons[0] * TOGGLES.TIME_TO_EVAL_PJF
-		join_cons_cost = self.avg_task_cons[1] * TOGGLES.JOIN_TIME
-		small_p_cons_cost = self.avg_task_cons[3] * TOGGLES.TIME_TO_EVAL_SMALL_P
+		task_for_cons = [10,10,15,10]
+		for i in range(4):
+			if not self.avg_task_cons[i] == 0:
+				task_for_cons[i] = self.avg_task_cons[i]
+		prejoin_cons_cost = self.avg_task_cons[0] * toggles.TIME_TO_EVAL_PJF
+		join_cons_cost = self.avg_task_cons[1] * toggles.JOIN_TIME
+		small_p_cons_cost = self.avg_task_cons[3] * toggles.TIME_TO_EVAL_SMALL_P
 		cost_1, cost_2, cost_3, cost_4, cost_5 = 0,0,0,0,0
 
 		#losp - "likelihood of some pairs" odds of a list2 item matching with at least one item from list1
-		losp = 1 - (1 - TOGGLES.JOIN_SELECTIVITY)**(len(self.list1))
+		losp = 1 - (1 - toggles.JOIN_SELECTIVITY)**(len(self.list1))
 		# COST 1 CALCULATION - small pred then PJF
 		cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
 				prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+TOGGES.SMALL_P_SELECTIVITY*(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
 				join_cons_cost*(len(self.list1)*(len(self.evaluated_with_small_p) + \
-				TOGGLES.SMALL_P_SELECTIVITY*(len(self.list1) - len(self.evaluated_with_small_p)))*TOGGLES.PJF_SELECTIVITY)
+				toggles.SMALL_P_SELECTIVITY*(len(self.list1) - len(self.evaluated_with_small_p)))*toggles.PJF_SELECTIVITY)
 		# COST 2 CALCULATION - PJF, JOIN, SMALL P
 		cost_2 = prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
-				join_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])*(len(self.list2)-self.evaluated_with_PJF["count2"]))*(TOGGLES.PJF_SELECTIVITY)**2+ \
-				join_cons_cost*self.evaluated_with_PJF["count1_T"]*self.evaluated_with_PJF["count2_T"]
+				join_cons_cost*((len(self.list1))*(len(self.list2))*(toggles.PJF_SELECTIVITY)+ \
 				small_p_cons_cost*losp*len(self.list2)
-		# COST 3 CALCULATION - TODO: is this right or do we need to multiply by the ratio of sizes
-		cost_3 = TOGGLES.BASE_FIND_MATCHES*len(self.list2)*avg_task_cons[2] + \
-				TOGGLES.FIND_SINGLE_MATCH_TIME*TOGGLES.AVG_MATCHES*len(self.list2)*avg_task_cons[2]  + \
+		# COST 3 CALCULATION
+		cost_3 = toggles.BASE_FIND_MATCHES*len(self.list2)*avg_task_cons[2] + \
+				toggles.FIND_SINGLE_MATCH_TIME*toggles.AVG_MATCHES(Item.objects.all().count()/len(toggles.private_list2))*len(self.list2)*avg_task_cons[2]  + \
 				losp*len(self.list2)*small_p_cons_cost
 		# COST 5 CALCULATION - SMALL P on second list, PW
 		cost_5 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP))+ \
-				(len(self.evaluated_with_smallP) + TOGGLES.SMALL_P_SELECTIVITY*(len(self.list2)-len(self.evaluates_with_smallP)))*\
-				(TOGGLES.BASE_FIND_MATCHES + TOGGLES.FIND_SINGLE_MATCH_TIME*TOGGLES.AVG_MATCHES)*avg_task_cons[2]
+				(len(self.evaluated_with_smallP) + toggles.SMALL_P_SELECTIVITY*(len(self.list2)-len(self.evaluates_with_smallP)))*\
+				(toggles.BASE_FIND_MATCHES + toggles.FIND_SINGLE_MATCH_TIME*toggles.AVG_MATCHES)*avg_task_cons[2]
 		# COST 4 CALCULATION - PW on second list, SMALL P
-		cost_4 = TOGGLES.BASE_FIND_MATCHES*len(self.list1)*self.avg_task_cons[2]+ \
-				TOGGLES.FIND_SINGLE_MATCH_TIME*TOGGLES.AVG_MATCHES*len(self.list1)*self.avg_task_cons[2] + \
+		cost_4 = toggles.BASE_FIND_MATCHES*len(self.list1)*self.avg_task_cons[2]+ \
+				toggles.FIND_SINGLE_MATCH_TIME*toggles.AVG_MATCHES*len(self.list1)*self.avg_task_cons[2] + \
 				small_p_cons_cost*losp*len(self.list2)
 
 		# DEBUGGING 
