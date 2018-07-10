@@ -454,6 +454,7 @@ class SimulationTest(TransactionTestCase):
 		Replacement = True
 		choice = busyWorkers[0]
 		while (choice in busyWorkers) or (choice in triedWorkers):
+			print "we have been here"
 			## uniform distribution
 			if toggles.DISTRIBUTION_TYPE == 0:
 				choice = str(randint(1,toggles.NUM_WORKERS))
@@ -947,7 +948,20 @@ class SimulationTest(TransactionTestCase):
 					if task.ip_pair == None and task.predicate == None:
 						placeholders += 1
 				if len(active_tasks) == 0:
-					print IP_Pair.objects.filter(isDone = False).count()
+					incomplete = IP_Pair.objects.filter(isDone = False)
+					resl = []
+					c = 0
+					for p in Predicate.objects.all():
+						resl += [[]]
+						resl[c] = active_joins[p].results_from_all_join
+						resl[c] = [x for [x,y] in resl[c]]
+						print resl[c]
+						for ip in incomplete:
+							print ip
+							id = ip.item.item_ID
+							print id in resl[c]
+							print ip.join_pairs
+						c += 1
 				print "Active tasks: " + str(len(active_tasks)) + " | Placeholders: " + str(placeholders)
 
 				# throw some errors for debugging purposes
@@ -1074,6 +1088,8 @@ class SimulationTest(TransactionTestCase):
 				refill = True
 
 				count = len(active_tasks)
+				print "we are here and refill? " + str(refill)
+				print "we are here with task limit " + str(task_limit) + " and active tasks size " + str(active_tasks_size)
 
 				if toggles.BATCH_ASSIGNMENT == 1:
 					if batch_tasks_out >= active_tasks_size:
@@ -1086,12 +1102,15 @@ class SimulationTest(TransactionTestCase):
 				elif toggles.BATCH_ASSIGNMENT == 2:
 					if batch_tasks_out >= active_tasks_size:
 						if time_clock - last_refill < toggles.REFILL_PERIOD:
+							print "help"
 							refill = False
 						else:
 							# print("New batch " + str(time_clock))
 							refill = True
 							batch_tasks_out = len(active_tasks)
 							last_refill = time_clock
+				print "we are here too and refill? " + str(refill)
+				print "we are here with task limit " + str(task_limit) + " and active tasks size " + str(active_tasks_size)
 
 				# decides whether to give out more tasks if tasks per second is less than 1
 				if toggles.TASKS_PER_SECOND:
@@ -1099,6 +1118,7 @@ class SimulationTest(TransactionTestCase):
 						task_limit = np.clip(task_limit+tps,0,active_tasks_size)
 						refill = True
 					else:
+						print "we are here with task limit " + str(task_limit) + " and active tasks size " + str(active_tasks_size)
 						refill = False
 				else:
 					# set up variables to function properly in case fixed active tasks size is being used	
@@ -1107,11 +1127,12 @@ class SimulationTest(TransactionTestCase):
 					task_limit = active_tasks_size
 
 				# fill the active task array with new tasks as long as some IPs need eval
+				print "we are here three and refill? " + str(refill)
 				if refill: #Izzy Note: To ignore runoff placeholders, add and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()
-					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists():
+					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and (IP_Pair.objects.filter(predicate__joinable=True).exists() or IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
-
+						print "We Are Here."
 						task, worker = self.issueTask(active_tasks, active_joins, b_workers, time_clock, dictionary, switch)
 
 						if toggles.BATCH_ASSIGNMENT:

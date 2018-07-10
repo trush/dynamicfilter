@@ -1609,9 +1609,6 @@ class Join():
 					join_pair = IP_pair.get_join_pairs()[0]
 					res, timer = self.small_pred(join_pair[1])
 					if self.done:
-						if IP_pair.item.item_ID in [x for [x,y] in self.results_from_all_join]:
-							for i in range(300):
-								print i
 						self.done = False
 						IP_pair.set_join_pairs(IP_pair.get_join_pairs()[1:])
 						IP_pair.save(update_fields = ["join_pairs"])
@@ -1619,9 +1616,8 @@ class Join():
 							IP_pair.remove_task()
 							IP_pair.save(update_fields = ["task_types"])
 							self.results_from_all_join.append(join_pair)
+							print "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
 							print "we are here with item " + str(IP_pair.item.item_ID)
-							print "we are here and should have empty task_types " + str(IP_pair.task_types)
-							print "we are printing true"
 							if not res:
 								raise Exception("we should not have changed result here")
 							return True, timer
@@ -1702,7 +1698,7 @@ class Join():
 		if calls_to_1 > toggles.EXPLORATION_REQ:
 					# small p cost
 			cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
-					prejoin_cons_cost*("len(self.evaluated_with_smallP) + self.selectivity_est[3]*(len(self.list2)-len(self.evaluated_with_smallP))") + \
+					prejoin_cons_cost*(len(self.evaluated_with_smallP) + self.selectivity_est[3]*(len(self.list2)-len(self.evaluated_with_smallP))) + \
 					join_cons_cost*(len(self.list1)*(len(self.evaluated_with_small_p) + \
 					self.selectivity_est[3]*(len(self.list1) - len(self.evaluated_with_small_p)))*self.selectivity_est[0])
 		else:

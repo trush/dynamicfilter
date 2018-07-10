@@ -221,8 +221,8 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 				if chosenIP.item.item_ID in finished:
 					chosenIP.isDone = True
 					chosenIP.save(update_fields=["isDone"])
-					print "we are here adding a placeholder to flag as done"
-					return None
+				print "we are here adding a placeholder to flag as done"
+				return None
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
 				chosenIP.refresh_from_db()
