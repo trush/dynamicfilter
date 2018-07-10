@@ -1699,7 +1699,7 @@ class Join():
 		if calls_to_1 > toggles.EXPLORATION_REQ:
 					# small p cost
 			cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
-					prejoin_cons_cost*(len(self.evaluated_with_smallP) + self.selectivity_est[3]*(len(self.list2)-len(self.evaluates_with_smallP))) + \
+					prejoin_cons_cost*("len(self.evaluated_with_smallP) + self.selectivity_est[3]*(len(self.list2)-len(self.evaluated_with_smallP))") + \
 					join_cons_cost*(len(self.list1)*(len(self.evaluated_with_small_p) + \
 					self.selectivity_est[3]*(len(self.list1) - len(self.evaluated_with_small_p)))*self.selectivity_est[0])
 		else:
