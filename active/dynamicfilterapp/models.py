@@ -632,10 +632,6 @@ class IP_Pair(models.Model):
 				self.save(update_fields=["value", "num_no"])
 
 			self.refresh_from_db()
-			# answer may be none, but we do not update votes for these answers
-			if self.is_joinable():
-				print "we are recording the vote for " + str(self.item.item_ID)
-				print "our value is " + str(self.value)
 
 			self.predicate.update_selectivity()
 			self.predicate.update_avg_tasks()
@@ -1330,7 +1326,11 @@ class Join():
 				sample = numpy.random.choice(ip_pair.get_correct_matches(), num_matches, False)
 			else:
 				sample = ip_pair.get_correct_matches()
-			wrong_sample = numpy.random.choice([item for item in self.private_list2 if item not in ip_pair.get_correct_matches()], num_wrong_matches, False)
+			badpairs = [item for item in self.private_list2 if item not in ip_pair.get_correct_matches()]
+			if num_wrong_matches < len(badpairs):
+				wrong_sample = numpy.random.choice(badpairs, num_wrong_matches, False)
+			else:
+				wrong_sample = badpairs
 
 
 			#add num_matches pairs
@@ -1430,9 +1430,6 @@ class Join():
 	# @return timer : the time taken to do said task
 	# @remarks This is what is called in simulate_task() where the task answer and time are retrieved and saved.
 	def main_join(self, task_type, IP_pair=None, predicate=None):
-		print "this IP pair:" + str(IP_pair.id)
-		print "item: " + str(IP_pair.item.item_ID)
-		print "task types:" + str(IP_pair.task_types)
 		#if the upcoming task does not require an item from list1 
 		# i.e. small_p or Pairwise on list 2
 		if IP_pair is None and predicate is None:
@@ -1522,8 +1519,6 @@ class Join():
 				raise Exception("Your Predicate/IP_Pair doesn't match the expected task_types for Join.")
 		#the upcoming task works for a single IP pair, like most tasks
 		else:
-			print "we are here with an IP_pair: " + str(IP_pair)
-			print "we are here with task_type: " + task_type
 			#running & managing pairwise joins on list1
 			
 			if task_type == "PW":
@@ -1544,8 +1539,6 @@ class Join():
 					IP_pair.save(update_fields=[ "task_types"])
 					return False, timer
 				else:
-					print "we are here trying to get there"
-					print "we are here with" + str(matches)
 					return None, timer
 			#running & managing prejoin filtration
 			elif task_type == "PJF": # TODO: need to make this break into new tasks, not do all at once
@@ -1614,6 +1607,9 @@ class Join():
 					return None, timer
 				else:
 					#if we have run our join and have pairs to filter, we do
+					if IP_pair.join_pairs == "":
+						IP_pair.set_join_pairs([])
+						IP_pair.save(update_fields = ["join_pairs"])
 					if IP_pair.get_join_pairs()==[]:
 						return False, 0
 					join_pair = IP_pair.get_join_pairs()[0]
@@ -1648,8 +1644,6 @@ class Join():
 	def assign_join_tasks(self):
 		""" This is the main join function. It calls PW_join(), PJF_join(), and small_pred(). Uses 
 		cost estimates to determine which function to call item by item."""
-		print "length" + str(len(self.results_from_all_join))
-
 		buf1 = len(self.results_from_all_join) < .1*len(self.list1)
 		# reconsider these a bit 
 
@@ -1718,7 +1712,7 @@ class Join():
 		if calls_to_2 > toggles.EXPLORATION_REQ:
 			# PJF cost 
 			cost_2 = prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
-					join_cons_cost*len(self.list1)*len(self.list2)*(self.selectivity_est[0])
+					join_cons_cost*len(self.list1)*len(self.list2)*(self.selectivity_est[0]) + \
 					small_p_cons_cost*losp*len(self.list2)
 		else:
 			cost_2 = 0
@@ -1796,7 +1790,7 @@ class Join():
 				toggles.SMALL_P_SELECTIVITY*(len(self.list1) - len(self.evaluated_with_small_p)))*toggles.PJF_SELECTIVITY)
 		# COST 2 CALCULATION - PJF, JOIN, SMALL P
 		cost_2 = prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
-				join_cons_cost*((len(self.list1))*(len(self.list2))*(toggles.PJF_SELECTIVITY)+ \
+				join_cons_cost*(len(self.list1))*(len(self.list2))*(toggles.PJF_SELECTIVITY)+ \
 				small_p_cons_cost*losp*len(self.list2)
 		# COST 3 CALCULATION
 		cost_3 = toggles.BASE_FIND_MATCHES*len(self.list2)*avg_task_cons[2] + \

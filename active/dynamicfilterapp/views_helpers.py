@@ -48,7 +48,6 @@ def pending_eddy(ID, active_joins = None):
 	"""
 	This function chooses which system to use for choosing the next ip_pair
 	"""
-	print "We are here"
 	start = time.time()
 
 	# if all IP_Pairs are done
@@ -164,7 +163,6 @@ def adaptive_predicate_limit (chosenIP):
 
 
 def nu_pending_eddy(incompleteIP, active_joins=None):
-	print "we are here"
 	#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
 	# maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
 	# incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
@@ -214,6 +212,7 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 				minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
 				chosenIP = minTaskIP
 			chosenIP = choice(pickFrom)
+			chosenIP.refresh_from_db()
 			if not chosenIP.task_types == "" and chosenIP.get_task_types() == []:
 				#A patch solution. Find root cause?
 				res_list =  active_joins[chosenIP.predicate].results_from_all_join
@@ -221,7 +220,7 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 				if chosenIP.item.item_ID in finished:
 					chosenIP.isDone = True
 					chosenIP.save(update_fields=["isDone"])
-				print "we are here adding a placeholder to flag as done"
+				print "we are here adding a placeholder to flag " + str(chosenIP) + " as done"
 				return None
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
@@ -230,7 +229,6 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 				cur_join = active_joins[chosenIP.predicate]
 				task_types = cur_join.assign_join_tasks()
 				if  chosenIP.task_types == "" or chosenIP.get_task_types() == []:
-					print "nu task types" + str(task_types)
 					chosenIP.set_task_types(task_types)
 					chosenIP.save(update_fields=["task_types"])
 			return chosenIP 
@@ -261,10 +259,8 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 
 		# if there's literally nothing left to be done, issue a placeholder task
 		else:
-			raise Exception("I have not given an IP")
 			return None
 	else:
-		raise Exception( "Neither have I")
 		return None
 
 
@@ -351,7 +347,6 @@ def annealingSelectPred(predList):
 		return chosenPred
 
 def give_task(active_tasks, workerID, active_joins = None):
-	print "We are here."
 	ip_pair, eddy_time = pending_eddy(workerID, active_joins)
 	if ip_pair is not None:
 		ip_pair.distribute_task()
@@ -479,8 +474,6 @@ def updateCounts(workerTask, chosenIP):
 		chosenIP.refresh_from_db()
 
 		# update stats counting numbers of votes (only if IP not completed)
-		if workerTask.answer == None:
-			print "we are here with no answer and " + str(chosenIP.status_votes) + "votes"
 		chosenIP.record_vote(workerTask)
 		chosenIP.refresh_from_db()
 
