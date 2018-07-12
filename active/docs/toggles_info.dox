@@ -80,7 +80,7 @@ Item System Guide:
   - 1 - Item-started system (Items that have already been started will be preferred when choosing an item.)
   - 2 - Item-almost-false system (Items that are close to being eliminated from the passing set will
         be preferred when choosing an item.)
-  - 3 - Item-inactive system (Items that aren't in the queue will be preferred when choosing an item.)
+  - 3 - Item-inactive system (Items that has the least number of tasks in the queue will be preferred when choosing an item.)
 
 \link dynamicfilterapp.toggles.SLIDING_WINDOW SLIDING_WINDOW \endlink - Determines whether "windowing"
 will be turned on for a Pending Eddy algorithm. (See "Algorithm Design" for details on how this works
@@ -287,9 +287,6 @@ of various graphs associated with collecting various types of data. \n
 \link dynamicfilterapp.toggles.PACKING PACKING \endlink - If turned on, will create a folder
 named RUN_NAME that will contain any and all output files, and a file containing all of the
 settings from toggles.py as they were during the simulated runs. \n
-
-\link dynamicfilterapp.toggles.GEN_HIST GEN_HIST \endlink - If turned on, in runMultiSims,
-it outputs a histogram of the number of tasks completed for each setting in the MULTI_SIM_ARRAY. \n
 
 \subsection data Data Collection About Real Data
 

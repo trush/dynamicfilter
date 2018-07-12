@@ -1940,7 +1940,7 @@ class SimulationTest(TransactionTestCase):
 		if not (toggles.COUNT_TICKETS and toggles.TRACK_QUEUES):
 			raise Exception("Turn on COUNT_TICKETS and SHOW_QUEUES to get complete data")
 
-		self.run_sim(data)
+		self.run_sim(deepcopy(data))
 
 		file_splitting = True
 
@@ -2125,7 +2125,7 @@ class SimulationTest(TransactionTestCase):
 		numSim = 0
 		settingCount = 0
 
-		if toggles.GEN_HIST:
+		if toggles.GEN_GRAPHS:
 			taskList = []
 
 		for setting in toggles.MULTI_SIM_ARRAY:
@@ -2166,8 +2166,8 @@ class SimulationTest(TransactionTestCase):
 
 			# set up output files
 			save = []
-			save.append(["Setting:", "Predicate Limit Mode", "Predicate Limit", "Active Task Array", "Queue Array", "Switch List", "Adaptive Queue Mode", "Ticketing System", "Batch Assignment", "Refill Period"])
-			save.append(["",toggles.IP_LIMIT_SYS, toggles.ITEM_IP_LIMIT, str(toggles.ACTIVE_TASKS_ARRAY), str(toggles.QUEUE_LENGTH_ARRAY), str(toggles.switch_list), toggles.ADAPTIVE_QUEUE_MODE, toggles.TICKETING_SYS, toggles.BATCH_ASSIGNMENT, toggles.REFILL_PERIOD])
+			save.append(["Setting:", "Predicate Limit Mode", "Predicate Limit", "Active Task Array", "Queue Array", "Switch List", "Adaptive Queue Mode", "Ticketing System", "Batch Assignment", "Refill Period", "Eddy Mode"])
+			save.append(["",toggles.IP_LIMIT_SYS, toggles.ITEM_IP_LIMIT, str(toggles.ACTIVE_TASKS_ARRAY), str(toggles.QUEUE_LENGTH_ARRAY), str(toggles.switch_list), toggles.ADAPTIVE_QUEUE_MODE, toggles.TICKETING_SYS, toggles.BATCH_ASSIGNMENT, toggles.REFILL_PERIOD, toggles.EDDY_SYS])
 			save.append(["Run", "Placeholder tasks", "Wasted tasks", "Total tasks", "Time"])
 
 			for run in range(numSim):
@@ -2206,14 +2206,14 @@ class SimulationTest(TransactionTestCase):
 				dest2 = toggles.OUTPUT_PATH + "ticket_histogram_setting_" + str(settingCount)
 				graphGen.ticket_distributions(ticketList, predList, dest2, numSim)
 
-			if toggles.GEN_HIST:
+			if toggles.GEN_GRAPHS:
 				taskList.append([settingCount, self.num_tasks_array])
 
 			self.reset_arrays()
 
 			settingCount += 1
 
-		if toggles.GEN_HIST:
+		if toggles.GEN_GRAPHS:
 			toggles.OUTPUT_PATH = origDest
 			dest3 = toggles.OUTPUT_PATH + "task_histogram"
 			graphGen.task_distributions_over_settings(taskList, dest3)

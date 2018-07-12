@@ -194,7 +194,7 @@ def nu_pending_eddy(incompleteIP):
 			if (toggles.ITEM_SYS == 3): #item_inacive assignment
 				minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
 				minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-				chosenIP = minTaskIP
+				pickFrom = minTaskIP
 			chosenIP = choice(pickFrom)
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
