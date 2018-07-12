@@ -425,6 +425,8 @@ class SimulationTest(TransactionTestCase):
 			
 			else:
 				results, time_taken = curr_join.main_join(task_type, chosenIP)
+				if results is not None:
+					print "we are here and good?" + str(results) + " for " + str(chosenIP)
 				start_time = time_clock + toggles.BUFFER_TIME
 				end_time = start_time + time_taken
 				t = Task(ip_pair=chosenIP, answer=results, workerID=workerID,
@@ -657,6 +659,7 @@ class SimulationTest(TransactionTestCase):
 					task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
 				else:
 					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
+					
 				#task.refresh_from_db()
 			else:
 				# TODO if in mode where we give placeholder tasks, the task should never be None
@@ -691,8 +694,14 @@ class SimulationTest(TransactionTestCase):
 						raise Exception("we allowed a finished pair to take a new task")
 					task_type = ip_pair.get_task_types()[0]
 					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks, task_type, curr_join, pred)
+					res = task.answer
+					if res is not None:
+						print "we are here with a task that is " + str(res)
 				else:
 					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
+					res = task.answer
+					if res is not None:
+						print "we are here with a task that is " + str(res)
 
 		return task, workerID
 
@@ -945,7 +954,7 @@ class SimulationTest(TransactionTestCase):
 				for task in active_tasks:
 					if task.ip_pair == None and task.predicate == None:
 						placeholders += 1
-				print "Active tasks: " + str(len(active_tasks)) + " | Placeholders: " + str(placeholders)
+				
 
 				# throw some errors for debugging purposes
 				#if not (Item.objects.filter(inQueue=True).count() == IP_Pair.objects.filter(inQueue=True).count()):
@@ -1105,11 +1114,13 @@ class SimulationTest(TransactionTestCase):
 
 				# fill the active task array with new tasks as long as some IPs need eval
 				if refill: #Izzy Note: To ignore runoff placeholders, add and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()
-					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists():
+					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and (IP_Pair.objects.filter(predicate__joinable=True).exists() or IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
-
 						task, worker = self.issueTask(active_tasks, active_joins, b_workers, time_clock, dictionary, switch)
+						res = task.answer
+						if res is not None:
+							print "we are here now with a task that is " + str(res)
 
 						if toggles.BATCH_ASSIGNMENT:
 							batch_tasks_out += 1

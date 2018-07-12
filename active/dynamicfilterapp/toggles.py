@@ -92,8 +92,8 @@ PJF_TIME_STD = 2.0
     ## PWJoin in particular
 BASE_FIND_MATCHES = 6.0     #Basic requirement to find some matches
 FIND_SINGLE_MATCH_TIME = 0.70 #cost per match found
-AVG_MATCHES = 10.0 #average matches per item
-STDDEV_MATCHES = 2.0 #standard deviation of matches
+AVG_MATCHES = 2.5 #average matches per item
+STDDEV_MATCHES = 0.75 #standard deviation of matches
 
     ## small predicate in particular
 SMALL_P_SELECTIVITY = 0.5
