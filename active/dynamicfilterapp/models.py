@@ -924,6 +924,15 @@ class Join():
 		self.cons_count = [0,0,0,0]
 		## @remarks keeps a running average of the tasks needed to reach consensus
 		self.avg_task_cons = [0,0,0,0]
+
+			# Simulation Variables #
+
+		##@remarks records the ground truth for small predicate on each item. Set on the first run (at least for simulations)
+		self.sp_ground_truth = {}
+		##@remarks records the ground truth for prejoin filters on each item. Set on the first run (at least for simulations)
+		self.pjf_ground_truth = {}
+		##@remarks records the ground truth for joining items. Set on the first run (at least for simulations)
+		self.join_ground_truth = {}
 		
 			# Enumeration Vars #
 
@@ -1045,7 +1054,7 @@ class Join():
 				self.evaluated_with_PJF[item] = consensus_result
 				self.selectivity_est[0] = (self.selectivity_est[0]*(self.processed_by_PJF-1)+self.evaluated_with_PJF[item])/self.processed_by_PJF
 				# adjust our cost estimates for evaluating PJF
-				timer_val += random.normal(self.TIME_TO_EVAL_PJF,toggles.PJF_TIME_STD,1)[0]
+				timer_val += numpy.random.normal(self.TIME_TO_EVAL_PJF,toggles.PJF_TIME_STD,1)[0]
 				return self.evaluated_with_PJF[item], timer_val	
 		return None, timer_val
 
@@ -1064,13 +1073,23 @@ class Join():
 			return True, 0
 		if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
 			# Generate task of current pair
-			timer_val += random.normal(self.JOIN_TIME, toggles.JOIN_TIME_STD,1)[0]
+			timer_val += numpy.random.normal(self.JOIN_TIME, toggles.JOIN_TIME_STD,1)[0]
 			# If it is accepted in join process
-		should_join = random() < self.JOIN_SELECTIVITY
+			if not item in self.join_ground_truth:
+				#for preliminary testing, we randomly choose whether or not an item passes
+				self.join_ground_truth[i] = random() < self.JOIN_SELECTIVITY
+			if random.random() < toggles.SP_AMBIGUITY:
+				should_join = random.random() < .5
+			else:
+				should_join = self.join_ground_truth[item]
+			
+		else:
+			should_join = False
+			timer_val = 0
 		#add a vote to matches for this item
 		if not self.votes_for_matches[(i,j)]:
 			self.votes_for_matches[(i,j)] = [0,0]
-		if eval_results:
+		if should_join:
 			self.votes_for_matches[(i,j)][0] += 1
 		else:
 			self.votes_for_matches[(i,j)][1] += 1
@@ -1128,7 +1147,14 @@ class Join():
 	# 	the selectivities and time costs are determined by toggles (private instance variables of the join class
 	#	that are already set). In the future prejoin should be able to set these.
 	def evaluate(self, prejoin, item):
-		return random.random()<sqrt(self.PJF_SELECTIVITY),random.normal(self.TIME_TO_EVAL_PJF, toggles.PJF_TIME_STD,1)[0]
+		if not item in self.pjf_ground_truth:
+			#for preliminary testing, we randomly choose whether or not an item passes
+			self.pjf_ground_truth[item] = random.random() < sqrt(self.PJF_SELECTIVITY)
+			if random.random() < toggles.PJF_AMBIGUITY:
+				eval_results = random.random() < .5
+			else:
+				eval_results = self.pjf_ground_truth[item]
+		return eval_results,numpy.random.normal(self.TIME_TO_EVAL_PJF, toggles.PJF_TIME_STD,1)[0]
 
 	#----------------------- PW Join -----------------------#
 
@@ -1842,10 +1868,15 @@ class Join():
 			if item not in self.call_dict:
 				self.call_dict[item] = [0,0,0,0]
 			self.call_dict[item][3] += 1# adds to total count of calls to small p for this item
+			if not item in self.sp_ground_truth:
+				#for preliminary testing, we randomly choose whether or not an item passes
+				self.sp_ground_truth[item] = random.random() < self.SMALL_P_SELECTIVITY
+			if random.random() < toggles.SP_AMBIGUITY:
+				eval_results = random.random() < .5
+			else:
+				eval_results = self.sp_ground_truth[item]
 			# Update the cost
-			small_p_timer += random.normal(self.TIME_TO_EVAL_SMALL_P, toggles.SMALL_P_TIME_STD, 1)[0]
-			#for preliminary testing, we randomly choose whether or not an item passes
-			eval_results = random.random() < self.SMALL_P_SELECTIVITY
+			small_p_timer += numpy.random.normal(self.TIME_TO_EVAL_SMALL_P, toggles.SMALL_P_TIME_STD, 1)[0]
 			#add a vote to small_p for this item
 			if item not in self.votes_for_small_p:
 				self.votes_for_small_p[item] = [0,0]

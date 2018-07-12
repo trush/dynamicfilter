@@ -83,11 +83,13 @@ USE_JOINS = True
 JOIN_SELECTIVITY = 0.1
 JOIN_TIME = 4.0 
 JOIN_TIME_STD = 0.5
+JOIN_AMBIGUITY = 0.0
 
     ## PJFjoin in particular
 PJF_SELECTIVITY = 0.3
 TIME_TO_EVAL_PJF = 10.0
 PJF_TIME_STD = 2.0
+PJF_AMBIGUITY = 0.0
 
     ## PWJoin in particular
 BASE_FIND_MATCHES = 6.0     #Basic requirement to find some matches
@@ -99,6 +101,7 @@ STDDEV_MATCHES = 0.75 #standard deviation of matches
 SMALL_P_SELECTIVITY = 0.5
 TIME_TO_EVAL_SMALL_P = 3.0
 SMALL_P_TIME_STD = 0.5
+SP_AMBIGUITY = 0.0
 
     ## Other private variables used for simulations
 HAS_LIST2 = False
@@ -276,7 +279,8 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'MULTI_SIM', 'MULTI_SIM_ARRAY', 'USE_JOINS', 'JOIN_SELECTIVITY', 'PJF_SELECTIVITY',
             'JOIN_TIME', 'TIME_TO_EVAL_PJF', 'BASE_FIND_MATCHES', 'FIND_SINGLE_MATCH_TIME',
             'AVG_MATCHES', 'STDDEV_MATCHES', 'SMALL_P_SELECTIVITY', 'TIME_TO_EVAL_SMALL_P',
-            'HAS_LIST2', 'private_list2', 'THRESHOLD', 'EXPLORATION_REQ'
+            'HAS_LIST2', 'private_list2', 'THRESHOLD', 'EXPLORATION_REQ', 'JOIN_AMBIGUITY',
+            'SP_AMBIGUITY', 'PJF_AMBIGUITY', 'SMALL_P_TIME_STD', 'JOIN_TIME_STD', 'PJF_TIME_STD'
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file
