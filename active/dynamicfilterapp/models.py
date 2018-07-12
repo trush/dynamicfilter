@@ -866,13 +866,9 @@ class Join():
 
 		## @remarks This is the selectivity of the join and determines whether an item-item tuple passes of fails the join.
 		self.JOIN_SELECTIVITY = toggles.JOIN_SELECTIVITY
-		## @remarks This is the selectivity of the prejoin filter and determines whether a item passes or fails the PJF.
-		self.PJF_SELECTIVITY = toggles.PJF_SELECTIVITY
 		## @remarks This is the time it takes to determine if two items (one from list 1 and one from list2) "pass" the join. The join
 		# is usually performed after the items have gone through the prejoin filter. This is used in join_items() and find_real_costs().
 		self.JOIN_TIME = toggles.JOIN_TIME
-		## @remarks Time it takes to evaluate the prejoin filter for one item of list1 or list 2.
-		self.TIME_TO_EVAL_PJF = toggles.TIME_TO_EVAL_PJF
 		## @remarks Basic requirement to find some matches, cost of generating the task and giving workers time to answer (even if answer is no matches)
 		self.BASE_FIND_MATCHES = toggles.BASE_FIND_MATCHES
 		## @remarks The cost that each match found adds to the total cost of a pairwise join.
@@ -933,6 +929,20 @@ class Join():
 		self.pjf_ground_truth = {}
 		##@remarks records the ground truth for joining items. Set on the first run (at least for simulations)
 		self.join_ground_truth = {}
+		## coments 
+		self.gen_PJF_ground_truth = "PJF1"
+		
+		
+		## @remarks This is the selectivity of the prejoin filter and determines whether a item passes or fails the PJF.
+		self.PJF_SELECTIVITY = toggles.pjf_dict[self.gen_PJF_ground_truth][0]
+		## @remarks Time it takes to evaluate the prejoin filter for one item of list1 or list 2.
+		self.TIME_TO_EVAL_PJF = toggles.pjf_dict[self.gen_PJF_ground_truth][1]
+		## @remarks remark
+		self.PJF_TIME_STD = toggles.PJF_TIME_STD
+
+		self.PJF_AMBIGUITY = toggles.PJF_AMBIGUITY
+		#TODO: replace instances of toggles. with self.
+		
 		
 			# Enumeration Vars #
 
@@ -946,6 +956,8 @@ class Join():
 
 		## @remarks read as "list2 has not been evaluated (by the prejoin filter)"
 		self.list2_not_eval = True
+		## TODO: comment
+		self.use_PJF = None
 		
 		# Results -----------------------#.
 
@@ -996,6 +1008,8 @@ class Join():
 		## @remarks Dictionary that keeps track of how many votes the join matches have based on the consensus
 		# metric used. See find_consensus() for more details. Algorithm matches that of IP_pair consensus finding.
 		self.votes_for_matches = {}
+		## comment
+		self.votes_for_gen_PJF = {}
 		## @remarks boolean that keeps track of whether or not the current operation has reached consensus
 		self.done = False
 
@@ -1071,7 +1085,7 @@ class Join():
 		timer_val = 0
 		if (i,j) in self.results_from_all_join:
 			return True, 0
-		if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
+		if(not use_join or self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
 			# Generate task of current pair
 			timer_val += numpy.random.normal(self.JOIN_TIME, toggles.JOIN_TIME_STD,1)[0]
 			# If it is accepted in join process
@@ -1136,7 +1150,28 @@ class Join():
 	# @return selectivity of a PJF task 
 	# @remarks Generates the PJF, returns the cost of finding the PJF and selectivity fo the PJF
 	def generate_PJF(self):
-		return (15,self.PJF_SELECTIVITY)
+		if random.random() < toggles.GEN_PJF_AMBIGUITY:
+			ans = random.choice(toggles.pjf_dict.keys())
+		else:
+			ans = self.pjf_ground_truth
+		if ans not in self.votes_for_gen_PJF:
+			self.votes_for_gen_PJF[ans] = [0,0]
+		for key in self.votes_for_gen_PJF:
+			if ans is key:
+				self.votes_for_gen_PJF[key][0] += 1
+			else:
+				self.votes_for_get_PJF[key][1] += 1
+			if self.find_consensus("gen_PJF", key):
+				return key, numpy.random.normal(toggles.GEN_PJF_TIME, toggles.GEN_PJF_STD,1)[0]
+			if self.find_consensus("gen_PJF", key) is None:
+				someNone = True
+		# if at cons return ans, time
+		# else return none, time
+		if someNone:
+			return None, numpy.random.normal(toggles.GEN_PJF_TIME, toggles.GEN_PJF_STD,1)[0]
+		else:
+			self.get_PJF = False
+			return False, numpy.random.normal(toggles.GEN_PJF_TIME, toggles.GEN_PJF_STD,1)[0]
 
 	## @param self
 	# @param prejoin : the prejoin instance that determines the time to evaluate the PJF and its selectivity
@@ -1546,7 +1581,15 @@ class Join():
 		#the upcoming task works for a single IP pair, like most tasks
 		else:
 			#running & managing pairwise joins on list1
-			
+			if task_type = "gen_PJF":
+				if self.use_PJF is not None:
+					IP_pair.remove_task()
+					IP_pair.save(update_fields=["task_types"])
+					task_type = IP_pair.get_task_types()[0]
+				else:
+					ans,timer = self.generate_PJF()
+					self.use_PJF = ans
+					return None, timer
 			if task_type == "PW":
 				matches, timer = self.PW_join(IP_pair, self.list1)
 				if self.done and any(matches):
@@ -1689,14 +1732,14 @@ class Join():
 			minimum = min(cost)
 			if(cost[0] == minimum):# path 1
 				if self.list2_not_eval:
-					return ["small_p", "PJF", "PJF2", "join"]
+					return ["gen_PJF", "small_p", "PJF", "PJF2", "join"]
 				else:
-					return ["small_p", "PJF", "join"]
+					return ["gen_PJF","small_p", "PJF", "join"]
 			elif(cost[1] == minimum):# path 2
 				if self.list2_not_eval:
-					return ["PJF", "PJF2", "join", "small_p"]
+					return ["gen_PJF","PJF", "PJF2", "join", "small_p"]
 				else:
-					return ["PJF", "join", "small_p"]
+					return ["gen_PJF","PJF", "join", "small_p"]
 			elif(cost[2] == minimum):# path 3
 				return ["PWl2", "small_p"] # on second list
 			elif(cost[3] == minimum):# path 4:
@@ -1967,120 +2010,46 @@ class Join():
 	def find_consensus(self, for_task, entry):
 		if for_task == "small_p":
 			votes_yes, votes_no = self.votes_for_small_p[entry]
-			if votes_no + votes_yes < toggles.NUM_CERTAIN_VOTES:
-				return None
-			votes_cast = votes_no+votes_yes
-			larger = max(votes_yes,votes_no)
-			smaller = min(votes_yes,votes_no)
-			single_max = int(1+math.ceil(toggles.CUT_OFF/2.0))
-			uncertLevel = 2
-			if toggles.BAYES_ENABLED:
-				if votes_yes - votes_no > 0:
-					uncertLevel = btdtr(votes_yes+1, votes_no+1, toggles.DECISION_THRESHOLD)
-				else:
-					uncertLevel = btdtr(votes_no+1, votes_yes+1, toggles.DECISION_THRESHOLD)
-			#print("Uncertainty: " + str(uncertLevel))
-
-			if votes_cast >= toggles.CUT_OFF:
-				#print("Most ambiguity")
-				return larger == votes_yes
-
-			elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
-				#print("Unambiguous")
-				return larger == votes_yes
-
-			elif larger >= single_max:
-				if smaller < single_max*(1.0/3.0): #TODO un-hard-code this part
-					#print("Unambiguous+")
-					return larger == votes_yes
-				elif smaller < single_max*(2.0/3.0):
-					#print("Medium ambiguity")
-					return larger == votes_yes
-				else:
-					#print("Low ambiguity")
-					return larger == votes_yes
-
-			else:
-				return None
-			#...
 		elif for_task == "PJF":
 			votes_yes, votes_no = self.votes_for_pjf[entry]
-			if votes_no + votes_yes < toggles.NUM_CERTAIN_VOTES:
-				return None
-			votes_cast = votes_no+votes_yes
-			larger = max(votes_yes,votes_no)
-			smaller = min(votes_yes,votes_no)
-			single_max = int(1+math.ceil(toggles.CUT_OFF/2.0))
-			uncertLevel = 2
-			if toggles.BAYES_ENABLED:
-				if votes_yes - votes_no > 0:
-					uncertLevel = btdtr(votes_yes+1, votes_no+1, toggles.DECISION_THRESHOLD)
-				else:
-					uncertLevel = btdtr(votes_no+1, votes_yes+1, toggles.DECISION_THRESHOLD)
-			#print("Uncertainty: " + str(uncertLevel))
-
-			if votes_cast >= toggles.CUT_OFF:
-				#print("Most ambiguity")
-				return larger == votes_yes
-
-			elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
-				#print("Unambiguous")
-				return larger == votes_yes
-
-			elif larger >= single_max:
-				if smaller < single_max*(1.0/3.0): #TODO un-hard-code this part
-					#print("Unambiguous+")
-					return larger == votes_yes
-				elif smaller < single_max*(2.0/3.0):
-					#print("Medium ambiguity")
-					return larger == votes_yes
-				else:
-					#print("Low ambiguity")
-					return larger == votes_yes
-
-			else:
-				return None
-			#...
 		elif for_task == "join":
 			votes_yes, votes_no = self.votes_for_matches[entry]
-			if votes_no + votes_yes < toggles.NUM_CERTAIN_VOTES:
-				return None
-			votes_cast = votes_no+votes_yes
-			larger = max(votes_yes,votes_no)
-			smaller = min(votes_yes,votes_no)
-			single_max = int(1+math.ceil(toggles.CUT_OFF/2.0))
-			uncertLevel = 2
-			if toggles.BAYES_ENABLED:
-				if votes_yes - votes_no > 0:
-					uncertLevel = btdtr(votes_yes+1, votes_no+1, toggles.DECISION_THRESHOLD)
-				else:
-					uncertLevel = btdtr(votes_no+1, votes_yes+1, toggles.DECISION_THRESHOLD)
-			#print("Uncertainty: " + str(uncertLevel))
-
-			if votes_cast >= toggles.CUT_OFF:
-				#print("Most ambiguity")
-				return larger == votes_yes
-
-			elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
-				#print("Unambiguous")
-				return larger == votes_yes
-
-			elif larger >= single_max:
-				if smaller < single_max*(1.0/3.0): #TODO un-hard-code this part
-					#print("Unambiguous+")
-					return larger == votes_yes
-				elif smaller < single_max*(2.0/3.0):
-					#print("Medium ambiguity")
-					return larger == votes_yes
-				else:
-					#print("Low ambiguity")
-					return larger == votes_yes
-
-			else:
-				return None
-			#...
+		elif for_task == "gen_PJF":
+			votes_yes, votes_no = self.votes_for_gen_PJF[entry]
 		else:
 			raise Exception("Cannot find consensus for: " + str(for_task))
+		if votes_no + votes_yes < toggles.NUM_CERTAIN_VOTES:
+			return None
+		votes_cast = votes_no+votes_yes
+		larger = max(votes_yes,votes_no)
+		smaller = min(votes_yes,votes_no)
+		single_max = int(1+math.ceil(toggles.CUT_OFF/2.0))
+		uncertLevel = 2
+		if toggles.BAYES_ENABLED:
+			if votes_yes - votes_no > 0:
+				uncertLevel = btdtr(votes_yes+1, votes_no+1, toggles.DECISION_THRESHOLD)
+			else:
+				uncertLevel = btdtr(votes_no+1, votes_yes+1, toggles.DECISION_THRESHOLD)
+		#print("Uncertainty: " + str(uncertLevel))
+
+		if votes_cast >= toggles.CUT_OFF:
+			#print("Most ambiguity")
+			return larger == votes_yes
+
+		elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
+			#print("Unambiguous")
+			return larger == votes_yes
+
+		elif larger >= single_max:
+			if smaller < single_max*(1.0/3.0): #TODO un-hard-code this part
+				#print("Unambiguous+")
+				return larger == votes_yes
+			elif smaller < single_max*(2.0/3.0):
+				#print("Medium ambiguity")
+				return larger == votes_yes
+			else:
+				#print("Low ambiguity")
+				return larger == votes_yes
 
 	## @param self
 	# @return boolean : finds the cost of each path and returns whether or not an IP-pair path runs more quickly than a predicate path
