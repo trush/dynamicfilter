@@ -81,11 +81,13 @@ USE_JOINS = True
 ## Settings #-----------------------###############
 
 JOIN_SELECTIVITY = 0.1
+JOIN_TIME = 4.0 
+JOIN_TIME_STD = 0.5
 
     ## PJFjoin in particular
 PJF_SELECTIVITY = 0.3
-JOIN_TIME = 4.0 
 TIME_TO_EVAL_PJF = 10.0
+PJF_TIME_STD = 2.0
 
     ## PWJoin in particular
 BASE_FIND_MATCHES = 6.0     #Basic requirement to find some matches
@@ -96,6 +98,7 @@ STDDEV_MATCHES = 2.0 #standard deviation of matches
     ## small predicate in particular
 SMALL_P_SELECTIVITY = 0.5
 TIME_TO_EVAL_SMALL_P = 3.0
+SMALL_P_TIME_STD = 0.5
 
     ## Other private variables used for simulations
 HAS_LIST2 = False

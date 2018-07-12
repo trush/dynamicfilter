@@ -1048,7 +1048,7 @@ class Join():
 				self.evaluated_with_PJF[item] = consensus_result
 				self.selectivity_est[0] = (self.selectivity_est[0]*(self.processed_by_PJF-1)+self.evaluated_with_PJF[item])/self.processed_by_PJF
 				# adjust our cost estimates for evaluating PJF
-				timer_val += self.TIME_TO_EVAL_PJF
+				timer_val += random.normal(self.TIME_TO_EVAL_PJF,toggles.PJF_TIME_STD,1)[0]
 				return self.evaluated_with_PJF[item], timer_val	
 		return None, timer_val
 
@@ -1067,7 +1067,7 @@ class Join():
 			return True, 0
 		if(self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
 			# Generate task of current pair
-			timer_val += self.JOIN_TIME
+			timer_val += random.normal(self.JOIN_TIME, toggles.JOIN_TIME_STD,1)[0]
 			# If it is accepted in join process
 		should_join = random() < self.JOIN_SELECTIVITY
 		#add a vote to matches for this item
@@ -1131,7 +1131,7 @@ class Join():
 	# 	the selectivities and time costs are determined by toggles (private instance variables of the join class
 	#	that are already set). In the future prejoin should be able to set these.
 	def evaluate(self, prejoin, item):
-		return random.random()<sqrt(self.PJF_SELECTIVITY),self.TIME_TO_EVAL_PJF
+		return random.random()<sqrt(self.PJF_SELECTIVITY),random.normal(self.TIME_TO_EVAL_PJF, toggles.PJF_TIME_STD,1)[0]
 
 	#----------------------- PW Join -----------------------#
 
@@ -1783,9 +1783,9 @@ class Join():
 		for i in range(4):
 			if not self.avg_task_cons[i] == 0:
 				task_for_cons[i] = self.avg_task_cons[i]
-		prejoin_cons_cost = self.avg_task_cons[0] * toggles.TIME_TO_EVAL_PJF
-		join_cons_cost = self.avg_task_cons[1] * toggles.JOIN_TIME
-		small_p_cons_cost = self.avg_task_cons[3] * toggles.TIME_TO_EVAL_SMALL_P
+		prejoin_cons_cost = self.avg_task_cons[0] * toggles.TIME_TO_EVAL_PJF # use the real average time
+		join_cons_cost = self.avg_task_cons[1] * toggles.JOIN_TIME # use the real average time
+		small_p_cons_cost = self.avg_task_cons[3] * toggles.TIME_TO_EVAL_SMALL_P # use the real average time
 		cost_1, cost_2, cost_3, cost_4, cost_5 = 0,0,0,0,0
 
 		#losp - "likelihood of some pairs" odds of a list2 item matching with at least one item from list1
@@ -1850,7 +1850,7 @@ class Join():
 				self.call_dict[item] = [0,0,0,0]
 			self.call_dict[item][3] += 1# adds to total count of calls to small p for this item
 			# Update the cost
-			small_p_timer += self.TIME_TO_EVAL_SMALL_P
+			small_p_timer += random.normal(self.TIME_TO_EVAL_SMALL_P, toggles.SMALL_P_TIME_STD, 1)[0]
 			#for preliminary testing, we randomly choose whether or not an item passes
 			eval_results = random.random() < self.SMALL_P_SELECTIVITY
 			#add a vote to small_p for this item
