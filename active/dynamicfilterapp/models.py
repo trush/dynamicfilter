@@ -1091,11 +1091,11 @@ class Join():
 			# If it is accepted in join process
 			if not item in self.join_ground_truth:
 				#for preliminary testing, we randomly choose whether or not an item passes
-				self.join_ground_truth[i] = random() < self.JOIN_SELECTIVITY
+				self.join_ground_truth[(i,j)] = random() < self.JOIN_SELECTIVITY
 			if random.random() < toggles.SP_AMBIGUITY:
 				should_join = random.random() < .5
 			else:
-				should_join = self.join_ground_truth[item]
+				should_join = self.join_ground_truth[(i,j)]
 			
 		else:
 			should_join = False
