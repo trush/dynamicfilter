@@ -90,17 +90,27 @@ def pending_eddy(ID):
 			if toggles.DEBUG_FLAG:
 				print "Warning: no IP pair for worker "
 	elif toggles.EDDY_SYS == 9: 
-		chosenIP = best_pick(incompleteIP)
+		chosenIP = best_predicate_pick(incompleteIP)
 		if chosenIP == None:
 			if toggles.DEBUG_FLAG:
 				print "Warning: no IP pair for worker "
 	elif toggles.EDDY_SYS == 10: 
-		chosenIP = worst_pick(incompleteIP)
+		chosenIP = worst_predicate_pick(incompleteIP)
 		if chosenIP == None:
 			if toggles.DEBUG_FLAG:
 				print "Warning: no IP pair for worker "
 	elif toggles.EDDY_SYS == 11: 
 		chosenIP = random_pick(incompleteIP)
+		if chosenIP == None:
+			if toggles.DEBUG_FLAG:
+				print "Warning: no IP pair for worker "
+	elif toggles.EDDY_SYS == 12: 
+		chosenIP = best_pick(incompleteIP)
+		if chosenIP == None:
+			if toggles.DEBUG_FLAG:
+				print "Warning: no IP pair for worker "
+	elif toggles.EDDY_SYS == 13: 
+		chosenIP = worst_pick(incompleteIP)
 		if chosenIP == None:
 			if toggles.DEBUG_FLAG:
 				print "Warning: no IP pair for worker "
@@ -194,7 +204,7 @@ def nu_pending_eddy(incompleteIP):
 			if (toggles.ITEM_SYS == 3): #item_inacive assignment
 				minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
 				minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-				chosenIP = minTaskIP
+				pickFrom = minTaskIP
 			chosenIP = choice(pickFrom)
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
@@ -273,7 +283,7 @@ def full_knowledge_pick(incompleteIP):
 		return None
 
 
-def best_pick(incompleteIP):
+def best_predicate_pick(incompleteIP):
 		#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
 	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
 	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
@@ -310,7 +320,7 @@ def best_pick(incompleteIP):
 
 		lastResortPick = incompleteIP.exclude(predicate = chosenPred)
 		if lastResortPick.exists():
-			chosenIP = best_pick(lastResortPick)
+			chosenIP = best_predicate_pick(lastResortPick)
 			return chosenIP
 
 		# if there's literally nothing left to be done, issue a placeholder task
@@ -319,7 +329,7 @@ def best_pick(incompleteIP):
 	else:
 		return None
 
-def worst_pick(incompleteIP):
+def worst_predicate_pick(incompleteIP):
 		#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
 	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
 	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
@@ -356,9 +366,86 @@ def worst_pick(incompleteIP):
 
 		lastResortPick = incompleteIP.exclude(predicate = chosenPred)
 		if lastResortPick.exists():
-			chosenIP = worst_pick(lastResortPick)
+			chosenIP = worst_predicate_pick(lastResortPick)
 			return chosenIP
 
+		# if there's literally nothing left to be done, issue a placeholder task
+		else:
+			return None
+	else:
+		return None
+
+def best_pick(incompleteIP):
+		#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
+	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
+	if incompleteIP.exists():
+		ground_false = incompleteIP.filter(true_answer=False)
+		min_false_tasks = ground_false.aggregate(tasks=Min(F('tasks_out')+F('tasks_collected'))).values()[0]
+		min_false = ground_false.extra(where=["tasks_collected + tasks_out = " + str(toggles.NUM_CERTAIN_VOTES)])|ground_false.extra(where=["tasks_collected + tasks_out <= " + str(toggles.NUM_CERTAIN_VOTES)])
+		min_false_items = min_false.aggregate(Min('item__pairs_out')).values()[0]
+
+		if min_false.exists():
+			queue_min = min_false.filter(inQueue=True)
+			item_min = min_false.filter(item__pairs_out=min_false_items)
+			if queue_min.exists():
+				chosenIP = choice(queue_min)
+				print "False " + str(chosenIP)
+				if not chosenIP.is_in_queue:
+					chosenIP.add_to_queue()
+					chosenIP.refresh_from_db()
+				return chosenIP
+			elif item_min.exists():
+				chosenIP = choice(item_min)
+				print "False " + str(chosenIP)
+				if not chosenIP.is_in_queue:
+					chosenIP.add_to_queue()
+					chosenIP.refresh_from_db()
+				return chosenIP
+
+		ground_true = incompleteIP.filter(true_answer=True)
+		min_true_tasks = ground_true.aggregate(Min('tasks_out')).values()[0]
+		min_true = ground_true.filter(tasks_out=min_true_tasks)
+
+		if min_true.exists():
+			chosenIP = choice(min_true)
+			print "True " + str(chosenIP)
+			if not chosenIP.is_in_queue:
+				chosenIP.add_to_queue()
+				chosenIP.refresh_from_db()
+			return chosenIP
+		# if there's literally nothing left to be done, issue a placeholder task
+		else:
+			return None
+	else:
+		return None
+
+def worst_pick(incompleteIP):
+		#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
+	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
+	if incompleteIP.exists():
+		ground_true = incompleteIP.filter(true_answer=True)
+		max_true_tasks = ground_true.aggregate(Max('tasks_out')).values()[0]
+		max_true = ground_true.filter(tasks_out=max_true_tasks)
+
+		if ground_true.exists():
+			chosenIP = choice(max_true)
+			if not chosenIP.is_in_queue:
+				chosenIP.add_to_queue()
+				chosenIP.refresh_from_db()
+			return chosenIP
+
+		ground_false = incompleteIP.filter(true_answer=False)
+		max_false_tasks = ground_false.aggregate(Min('tasks_out')).values()[0]
+		max_false = ground_false.filter(tasks_out=max_false_tasks)
+
+		if ground_false.exists():
+			chosenIP = choice(max_false)
+			if not chosenIP.is_in_queue:
+				chosenIP.add_to_queue()
+				chosenIP.refresh_from_db()
+			return chosenIP
 		# if there's literally nothing left to be done, issue a placeholder task
 		else:
 			return None
@@ -438,8 +525,7 @@ def annealingSelectPred(predList):
 	#countSum is sum of all the times each predicate was picked
 	epsilon = 1 / math.log(timeStep + 0.0000001)
 	rNum = random.random()
-	valueList = np.array(predList.values_list('score',flat=True))
-	maxVal = max(valueList)
+	maxVal = predList.aggregate(Max('score')).values()[0]
 
 	if rNum > epsilon:
 		#choose predicate with highest score (fixed for floating point error)

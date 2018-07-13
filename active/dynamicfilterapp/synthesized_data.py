@@ -29,7 +29,6 @@ def syn_load_data():
 		for i in itemList:
 			ip_pair = IP_Pair.objects.create(item=i, predicate=p)
 
-
 def syn_answer(chosenIP, switch, numTasks):
 	"""
 	make up a fake answer based on global variables
@@ -77,12 +76,30 @@ def syn_answer(chosenIP, switch, numTasks):
 	# lean towards true
 	if chosenIP.true_answer:
 		# decide if the answer is going to be true or false
-		value = decision(1 - chosenIP.predicate.trueAmbiguity)
+		value = decision(chosenIP.predicate.trueAmbiguity)
 	# lean towards false
 	else:
-		value = decision(chosenIP.predicate.trueAmbiguity)
+		value = decision(1 - chosenIP.predicate.trueAmbiguity)
 
 	return value, cost_multiplier
+
+def syn_init():
+	"""
+	Initialize predicate and IP values, so they can be used by clairvoyant algorithms
+	"""
+	timeStepInfo = toggles.switch_list[0]
+
+	for predNum in toggles.CHOSEN_PREDS:
+
+		pred = Predicate.objects.get(pk=predNum+1)
+		predInfo = timeStepInfo[predNum+1]
+		pred.setTrueSelectivity(predInfo[0])
+		pred.setTrueAmbiguity(predInfo[1])
+
+	# if this is the first time we've seen this pair, it needs a true answer
+	for ip_pair in IP_Pair.objects.all():
+		ip_pair.give_true_answer()
+		ip_pair.refresh_from_db(fields=["true_answer"])
 
 def getSinValue(sinInfo, numTasks):
 	period = sinInfo[2]

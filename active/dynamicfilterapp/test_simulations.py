@@ -789,6 +789,9 @@ class SimulationTest(TransactionTestCase):
 		tps_start = 3
 		secs = 0 # used to count time steps when tasks per second is less than 1
 
+		if not toggles.REAL_DATA:
+			syn_init()
+
 		if toggles.ADAPTIVE_QUEUE_MODE < 4 and toggles.ADAPTIVE_QUEUE:
 			for pred in Predicate.objects.all():
 				pred.set_queue_length(toggles.QUEUE_LENGTH_ARRAY[0][1])
@@ -1940,7 +1943,7 @@ class SimulationTest(TransactionTestCase):
 		if not (toggles.COUNT_TICKETS and toggles.TRACK_QUEUES):
 			raise Exception("Turn on COUNT_TICKETS and SHOW_QUEUES to get complete data")
 
-		self.run_sim(data)
+		self.run_sim(deepcopy(data))
 
 		file_splitting = True
 

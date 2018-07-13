@@ -506,7 +506,7 @@ class IP_Pair(models.Model):
 
 	def give_true_answer(self):
 		probability = self.predicate.trueSelectivity
-		self.true_answer = (random.random() > probability)
+		self.true_answer = (random.random() < probability)
 		self.save(update_fields=["true_answer"])
 
 	def __str__(self):
