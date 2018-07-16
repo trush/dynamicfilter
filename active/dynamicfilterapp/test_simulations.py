@@ -2206,8 +2206,10 @@ class SimulationTest(TransactionTestCase):
 			if toggles.COUNT_TICKETS and numSim > 0:
 				ticketList = self.num_tickets_dict.values()
 				predList = self.num_tickets_dict.keys()
-				dest2 = toggles.OUTPUT_PATH + "ticket_histogram_setting_" + str(settingCount)
-				graphGen.ticket_distributions(ticketList, predList, dest2, numSim)
+				generic_csv_write(toggles.OUTPUT_PATH + "ticket_count_setting_"+str(settingCount)+".csv", ticketList)
+				if toggles.GEN_GRAPHS:
+					dest2 = toggles.OUTPUT_PATH + "ticket_histogram_setting_" + str(settingCount)
+					graphGen.ticket_distributions(ticketList, predList, dest2, numSim)
 
 			if toggles.GEN_GRAPHS:
 				taskList.append([settingCount, self.num_tasks_array])
