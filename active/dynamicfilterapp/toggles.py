@@ -25,7 +25,7 @@ TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PAT
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
 NUM_QUESTIONS = 6
-NUM_ITEMS = 100
+NUM_ITEMS = 150
 SIN = -1
 SELECTIVITY_GRAPH = False
 switch_list = [(0, (0,0), (0,0), (0,0), (0,0), (0,0), (0,0))]
@@ -136,7 +136,14 @@ MULTI_SIM = True
 
 
 
-MULTI_SIM_ARRAY = [(5,(0, 1),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],2000,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],4,1,1,100,5)]
+MULTI_SIM_ARRAY = [(15,(0, 1),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],150,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],4,1,1,100,5),
+(None, None, None, 113, None, None, None, None, None, None),
+(None, None, None, 75, None, None, None, None, None, None),
+(None, None, None, 38, None, None, None, None, None, None),
+(15,(0, 1),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],150,[(0, (.5,.25,1), (.5,.25,1), (.5,.25,2), (.5,.25,2), (.5,.25,3), (.5,.25,3))],4,1,1,100,5),
+(None, None, None, 113, None, None, None, None, None, None),
+(None, None, None, 75, None, None, None, None, None, None),
+(None, None, None, 38, None, None, None, None, None, None)]
 #(# of tests, (limit sys, limit), active task array, queue size/adaptie queue array, switch list, adaptive queue mode, ticketing, batch sys, period, eddy sys)
 
 # ************************************************************************ #
