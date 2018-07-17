@@ -71,6 +71,11 @@ class SimulationTest(TransactionTestCase):
 	## An array of "real" task-counts for multiple simulation runs.
 	num_real_tasks_array = []
 
+	## Calculates the "true" selectivity for each predicate during a simulated run (percentage of true IP pairs for each predicate)
+	simulated_selectivies = []
+	## An array of "true" selectivities for multiple runs
+	multiple_simulated_selectivities = []
+
 	no_tasks_to_give = 0 # TODO: Do we need this?
 	no_tasks_to_give_array = [] # TODO: Do we need this?
 
@@ -501,13 +506,14 @@ class SimulationTest(TransactionTestCase):
 		self.sim_task_time_array.append(self.sim_task_time)
 		self.run_sim_time_array.append(self.run_sim_time)
 		self.update_time_array.append(self.update_time)
+		self.multiple_simulated_selectivities.append(self.simulated_selectivies)
 		self.num_tasks, self.num_incorrect, self.num_placeholders = 0, 0, 0
 		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time, self.update_time = 0, 0, 0, 0, 0
 		self.simulated_time, self.cum_work_time, self.cum_placeholder_time = 0, 0, 0
 		self.ticket_nums, self.ips_done_array, self.ips_tasks_array = {}, [], []
 		self.no_tasks_to_give, self.ips_times_array = 0, []
 		self.placeholder_change_count, self.num_tasks_change_count = [0], [0]
-		self.pred_active_tasks, self.time_steps_array = {}, []
+		self.pred_active_tasks, self.time_steps_array, self.simulated_selectivies = {}, [], []
 		self.pred_queues = {}
 		self.num_waste = 0
 
@@ -523,7 +529,7 @@ class SimulationTest(TransactionTestCase):
 		self.cum_placeholder_time_array, self.num_placeholders_array = [], []
 		self.num_tasks_array, self.num_real_tasks_array = [], []
 		self.num_incorrect_array, self.update_time_array = [], []
-		self.num_waste_array = []
+		self.num_waste_array, self.multiple_simulated_selectivities = [], []
 		self.num_tickets_dict = {}
 
 	## Experimental function that runs many simulations and slightly changes the simulation
@@ -1424,8 +1430,11 @@ class SimulationTest(TransactionTestCase):
 			if toggles.GEN_GRAPHS:
 				graphGen.item_routing(routingL[0],routingL[1], labels, dest)
 
-
-
+		if toggles.TRACK_SELECTIVITIES and not toggles.REAL_DATA:
+			for i in range(Predicate.objects.all().count()):
+				pred = Predicate.objects.filter(pk = i+1)
+				true_pairs = IP_Pair.objects.filter(predicate=pred,true_answer=True)
+				self.simulated_selectivies.append(true_pairs.count()/float(toggles.NUM_ITEMS))
 		# if we're multi routing
 		if toggles.RUN_MULTI_ROUTING:
 			ROUTING_ARRAY.append(routingC) #add the new counts to our running list of counts
@@ -2211,6 +2220,19 @@ class SimulationTest(TransactionTestCase):
 
 			if toggles.GEN_GRAPHS:
 				taskList.append([settingCount, self.num_tasks_array])
+
+			if toggles.TRACK_SELECTIVITIES and not toggles.REAL_DATA:
+				dest = toggles.OUTPUT_PATH + "precise_selectivites_"+str(settingCount)
+				csv_dest = dest_resolver(dest+".csv")
+				predList = np.sort(Predicate.objects.all().values_list("pk",flat=True))
+
+				dataToWrite = [predList]
+				for i in range(len(self.multiple_simulated_selectivities)):
+					dataToWrite.append(self.multiple_simulated_selectivities[i])
+					print self.multiple_simulated_selectivities[i]
+				generic_csv_write(csv_dest, dataToWrite)
+				if toggles.DEBUG_FLAG:
+					print "Wrote File: " + csv_dest
 
 			self.reset_arrays()
 

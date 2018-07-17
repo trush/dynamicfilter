@@ -68,7 +68,7 @@ def syn_answer(chosenIP, switch, numTasks):
 			pred.setTrueAmbiguity(predInfo[1])
 
 	# if this is the first time we've seen this pair, it needs a true answer
-	if ((chosenIP.num_no == 0) and (chosenIP.num_yes == 0)):
+	if ((chosenIP.num_no == 0) and (chosenIP.num_yes == 0)) and not (toggles.EDDY_SYS == 12 or toggles.EDDY_SYS == 13):
 		chosenIP.give_true_answer()
 		chosenIP.refresh_from_db(fields=["true_answer"])
 

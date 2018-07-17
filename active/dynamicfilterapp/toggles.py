@@ -37,7 +37,7 @@ switch_list = [(0, (0,0), (0,0), (0,0), (0,0), (0,0), (0,0))]
 
 # ___ PREDICATES (FOR REAL OR SYNTHETIC) ____ #
 if REAL_DATA:
-    CHOSEN_PREDS = [0,1]
+    CHOSEN_PREDS = [0,1,2,3,4]
 else:
     CHOSEN_PREDS = range(len(switch_list[0]) - 1)
 
@@ -136,21 +136,7 @@ MULTI_SIM = True
 
 
 
-MULTI_SIM_ARRAY = [(50,(0, 1),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],2000,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],4,1,1,100,7),
-(None,None,None,None,None,None,None,None,None,8),
-(None,None,None,None,None,None,None,None,None,9),
-(None,None,None,None,None,None,None,None,None,10),
-(None,None,None,None,None,None,None,None,None,11),
-(None,None,None,None,[(0, (.1,.25), (.1,.25), (.1,.25), (.1,.25), (.1,.25), (.1,.25))],None,None,None,None,7),
-(None,None,None,None,None,None,None,None,None,8),
-(None,None,None,None,None,None,None,None,None,9),
-(None,None,None,None,None,None,None,None,None,10),
-(None,None,None,None,None,None,None,None,None,11),
-(None,None,None,None,[(0, (.1,.25), (.1,.25), (.3,.25), (.7,.25), (.9,.25), (.9,.25))],None,None,None,None,7),
-(None,None,None,None,None,None,None,None,None,8),
-(None,None,None,None,None,None,None,None,None,9),
-(None,None,None,None,None,None,None,None,None,10),
-(None,None,None,None,None,None,None,None,None,11)]
+MULTI_SIM_ARRAY = [(5,(0, 1),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],2000,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],4,1,1,100,5)]
 #(# of tests, (limit sys, limit), active task array, queue size/adaptie queue array, switch list, adaptive queue mode, ticketing, batch sys, period, eddy sys)
 
 # ************************************************************************ #
@@ -201,11 +187,12 @@ ABSTRACT_VARIABLE = "NUM_WORKERS"
 ABSTRACT_VALUES = [100, 200]
 
 RUN_TASKS_COUNT = True
-TRACK_IP_PAIRS_DONE = True
+TRACK_IP_PAIRS_DONE = False
 
 TRACK_ACTIVE_TASKS = True # Useful only for simulations with TIME
 TRACK_PLACEHOLDERS = True
 TRACK_WASTE = True  # Tracks tasks leftover from finished items
+TRACK_SELECTIVITIES = True # Mostly made for when REAL_DATA = False
 
 EDDY_SET = [5]       # Used only when TRACK_ACTIVE_TASKS is true   
 QUEUE_SET = [40] 
@@ -256,7 +243,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'SELECTIVITY_GRAPH', 'CONSENSUS_STATUS_LIMITS', 'ACCURACY_COUNT', 'TRACK_SIZE',
             'ADAPTIVE_CONSENSUS', 'CONSENSUS_SIZE_LIMITS', 'RENO_BONUS_RATIO', 'BAYES_ENABLED', 'RESIZE_ACTIVE_TASKS',
             'TASKS_PER_SECOND', 'EPSILON', 'REWARD',
-            'MULTI_SIM', 'MULTI_SIM_ARRAY'
+            'MULTI_SIM', 'MULTI_SIM_ARRAY', 'TRACK_SELECTIVITIES'
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file
