@@ -5,7 +5,7 @@ from random import randint, choice
 from math import exp
 from django.db.models import Q
 from django.db.models import F
-from django.db.models import Min
+from django.db.models import Min, Max
 
 from toggles import *
 
