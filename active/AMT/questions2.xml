@@ -14,14 +14,16 @@
   <label style="font-size: 12px; font-family: lora; background-color: yellow;" for="consent">I agree to participate in this study</label>
 <h1 style="font-size: 12px; font-family: lora; background-color: yellow;">Please do not submit this hit without checking the box above. If you do not consent, return this hit</h1>
 <h1>&nbsp;</h1>
-<h2>Do this hotel and this metro station match based on the following condition?</h2>
+<h2>Below are a hotel and a metro station with a yes or no question. Please answer to the best of your ability.</h2>
 <h3> Hotel: XXX(ITEM_NAME_HERE)XXX</h3>
 <h3> metro station: Convention Center Station</h3>
-<h3> Condition: The hotel is within 1 mile of the metro station </h3>
+<h3> Question: Is the hotel within 1 mile of the metro station?</h3>
 <div>
- <input type="radio" name="answer" value="yes"> Matches<br>
- <input type="radio" name="answer" value="no"> Does not match<br>
+ <input type="radio" name="answer" value="yes"> Yes<br>
+ <input type="radio" name="answer" value="no"> No<br>
 </div>
+<h3>Comments or Questions (Optional):</h3>
+<textarea rows="4" columns="50"></textarea>
 <p><input type='submit' id='submitButton' value='Submit' /></p></form>
 <script language='Javascript'>turkSetAssignmentID();</script>
 </body></html>

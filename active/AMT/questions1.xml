@@ -19,6 +19,8 @@
 <div>
  <input type='text' name='hotel zip' placeholder='Type in your answer here'>
 </div>
+<h3>Comments or Questions (Optional):</h3>
+<textarea rows="4" columns="50"></textarea>
 <p><input type='submit' id='submitButton' value='Submit' /></p></form>
 <script language='Javascript'>turkSetAssignmentID();</script>
 </body></html>
