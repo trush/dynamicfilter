@@ -9,6 +9,11 @@
 </head>
 <body>
 <form name='mturk_form' method='post' id='mturk_form' action='https://www.mturk.com/mturk/externalSubmit'><input type='hidden' value='' name='assignmentId' id='assignmentId'/>
+<h1 style="font-size: 12px; font-family: lora; background-color: yellow;">Disclaimer: This task is part of a research project to determine the difficulty of various questions. Our goal is to determine the best way to answer questions about related items with the crowd. Please indicate your consent here</h1>
+  <input id="consent" name="consent" type="checkbox" />
+  <label style="font-size: 12px; font-family: lora; background-color: yellow;" for="consent">I agree to participate in this study</label>
+<h1 style="font-size: 12px; font-family: lora; background-color: yellow;">Please do not submit this hit without checking the box above. If you do not consent, return this hit</h1>
+<h1>&nbsp;</h1>
 <h2>Do this hotel and this metro station match based on the following condition?</h2>
 <h3> Hotel: XXX(ITEM_NAME_HERE)XXX</h3>
 <h3> metro station: Convention Center Station</h3>
