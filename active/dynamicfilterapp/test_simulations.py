@@ -396,11 +396,11 @@ class SimulationTest(TransactionTestCase):
 					start_time = start_task, end_time = end_task)
 			else:
 				#TODO: figure out exactly how the algorithm needs to handle splitting join processes
-				results, time_taken = curr_join.main_join(task_type, None, predicate)
+				results, time_taken, advance = curr_join.main_join(task_type, None, predicate)
 				start_time = time_clock + toggles.BUFFER_TIME
 				end_time = start_time + time_taken
 				t = Task(predicate=predicate, answer=results, workerID=workerID,
-					start_time=start_time, end_time=end_time)
+					start_time=start_time, end_time=end_time, type_done = advance)
 		else:
 			chosenIP.refresh_from_db()
 			if not chosenIP.is_joinable():
@@ -424,13 +424,13 @@ class SimulationTest(TransactionTestCase):
 						start_time=start_task, end_time=end_task)
 			
 			else:
-				results, time_taken = curr_join.main_join(task_type, chosenIP)
+				results, time_taken, advance = curr_join.main_join(task_type, chosenIP)
 				if results is not None:
 					print "we are here and good?" + str(results) + " for " + str(chosenIP)
 				start_time = time_clock + toggles.BUFFER_TIME
 				end_time = start_time + time_taken
 				t = Task(ip_pair=chosenIP, answer=results, workerID=workerID,
-					start_time=start_time, end_time=end_time)
+					start_time=start_time, end_time=end_time, type_done = advance)
 
 			if not toggles.SIMULATE_TIME:
 				updateCounts(t, chosenIP)

@@ -65,7 +65,7 @@ ADAPTIVE_QUEUE_MODE = 0
 QUEUE_LENGTH_ARRAY = [(0, 4), (3, 15), (10, 30)] # settings for above mode [(#tickets,qlength)]
 ACTIVE_TASKS_ARRAY = [(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)] #Only matters (atm) if batch assignment on
 #[(0,0,0),(1,10,40),(10,75,100),(20,150,200),(40,350,450)]
-BATCH_ASSIGNMENT = 2 # 0 - No batches, 1 - Refill limit, 2 - Periodic refill
+BATCH_ASSIGNMENT = 1 # 0 - No batches, 1 - Refill limit, 2 - Periodic refill
 REFILL_PERIOD = 100
 
 EPSILON = 0.7

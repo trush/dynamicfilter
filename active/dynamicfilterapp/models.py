@@ -511,10 +511,17 @@ class IP_Pair(models.Model):
 	num_no = models.IntegerField(default=0)#TODO:change to floats for joins?
 	num_yes = models.IntegerField(default=0)
 	isDone = models.BooleanField(db_index=True, default=False)
+	join_fins = models.CharField(default = json.dumps([False, False, False, False, False, False]), max_length = 60)
 
 	join_pairs = models.CharField(default = "", max_length = 400)
 	small_p_done = models.BooleanField(default=False)
 	correct_matches = models.CharField(default = "", max_length = 300)
+
+	def set_join_fins(self, inlist):
+		self.join_fins = json.dumps(inlist)
+
+	def get_join_fins(self):
+		return json.loads(self.join_fins)
 
 	def set_correct_matches(self, inlist):
 		self.correct_matches = json.dumps(inlist)
@@ -610,6 +617,12 @@ class IP_Pair(models.Model):
 	def record_vote(self, workerTask):
 		# add vote to tally only if appropriate
 		if not self.isDone:
+
+			if self.is_joinable() and workerTask.type_done:
+				print "we have finished a task " + str(self.task_types) + " " + str(self)
+				self.remove_task()
+				self.save(update_fields=["task_types"])
+
 			self.status_votes += 1
 			self.save(update_fields=["status_votes"])
 
@@ -646,6 +659,7 @@ class IP_Pair(models.Model):
 	def set_done_if_done(self):
 		if self.status_votes == toggles.NUM_CERTAIN_VOTES or self.is_joinable() and self.value != 0:
 			if self.found_consensus() or self.is_joinable() and self.value != 0:
+				
 				self.isDone = True
 				self.save(update_fields=["isDone"])
 				self.predicate.update_ip_count()
@@ -798,6 +812,7 @@ class Task(models.Model):
 	answer = models.NullBooleanField(default=None)
 	workerID = models.CharField(db_index=True, max_length=15)
 	task_type = models.CharField(default = "default", max_length=15)
+	type_done = models.BooleanField(default = False)
 
 	#used for simulating task completion having DURATION
 	start_time = models.IntegerField(default=0)
@@ -1152,15 +1167,16 @@ class Join():
 	def generate_PJF(self):
 		if random.random() < toggles.GEN_PJF_AMBIGUITY:
 			ans = random.choice(toggles.pjf_dict.keys())
+
 		else:
-			ans = self.pjf_ground_truth
-		if ans not in self.votes_for_gen_PJF:
+			ans = self.gen_pjf_ground_truth
+		if not ans in self.votes_for_gen_PJF.keys():
 			self.votes_for_gen_PJF[ans] = [0,0]
-		for key in self.votes_for_gen_PJF:
+		for key in self.votes_for_gen_PJF.keys():
 			if ans is key:
 				self.votes_for_gen_PJF[key][0] += 1
 			else:
-				self.votes_for_get_PJF[key][1] += 1
+				self.votes_for_gen_PJF[key][1] += 1
 			if self.find_consensus("gen_PJF", key):
 				return key, numpy.random.normal(toggles.GEN_PJF_TIME, toggles.GEN_PJF_STD,1)[0]
 			if self.find_consensus("gen_PJF", key) is None:
@@ -1507,30 +1523,30 @@ class Join():
 					# we just return whether it passes small p and its time
 					results,timer = self.small_pred(self.sec_item_in_progress)
 					if self.done and not results:
-						predicate.set_task_types([])
+						#TODO: make predicate reset
 						self.done = False
-						return False, timer
+						return False, timer, True
 					elif self.done:
-						predicate.remove_task()
 						self.done = False
 						self.pending = True #sets pending for PWjoin
-					return None, timer
+						return None, timer, True
+					return None, timer, False
 				else:
 					#if we have already joined the item, we need to return them iff
 					# their 2nd-list item passes small p 
 					if not self.pairwise_pairs: # this case is a safeguard, should already be handled
 						self.pending = False #sets pending for next join process
-						predicate.remove_task() # removes the first task
+						#TODO: make predicate reset
 						self.done = False
-						return False, 0
+						return False, 0, True
 					pair = self.pairwise_pairs.pop()
 					results, timer = self.small_pred(pair[1])
 					if self.done:
 						self.pending = False
-						predicate.remove_task()
+						#TODO: make predicate reset
 						self.done = False
-						return any(results), timer
-					return None,timer # returns eval_results, small_p_timer
+						return any(results), timer, True
+					return None,timer, False # returns eval_results, small_p_timer
 			#running & managing pairwise joins on list 2
 			elif task_type == "PWl2":
 				#uses a variable called pending(consider moving to predicate)
@@ -1544,17 +1560,17 @@ class Join():
 					if any(matches) and self.done:
 						#after PWjoin removes this item, the next one is the first in list2
 						self.sec_item_in_progress = self.list2[0]
-						predicate.remove_task()
+						#TODO: make predicate reset
 						self.done = False
-						return None, timer
+						return None, timer, True
 					elif not any(matches) and self.done:
 						#after PWjoin removes this item, the next one is the first in list2
 						self.sec_item_in_progress = self.list2[0]
-						predicate.remove_task()
+						#TODO: make predicate reset
 						self.done = False
-						return False, timer
+						return False, timer, True
 					else: # if it's not done (not reached consensus)
-						return None, timer
+						return None, timer, False
 				else:
 					#if we have already checked this 2nd-list item with small p
 					# we execute the join and return its results
@@ -1562,18 +1578,20 @@ class Join():
 					# 2nd-list object with small p before we test it
 					if self.sec_item_in_progress in self.failed_by_smallP:
 						self.pending = False
-						predicate.remove_task()
+						#TODO: make predicate reset
 						self.done = False
-						return False, 0
+						return False, 0, True
 					matches,timer = self.PW_join(predicate, self.list2)
 					#after PWjoin removes this item, the next one is the first in list2
 					if self.done:
 						self.sec_item_in_progress = self.list2[0]
 						self.results_from_all_join += matches #TODO: are these unique matches / no doubles
+						predicate.save(update_fields=["join_pairs"])
+						#TODO: make predicate reset
 						self.pending = False
 						self.done = False
-						return any(matches), timer
-					return None, timer # returns matches, PW_timer
+						return any(matches), timer, True
+					return None, timer, False # returns matches, PW_timer
 			else:
 				#we throw an exception if we receive an unwanted task type
 				print "Task type was: " + str(task_type)
@@ -1581,52 +1599,81 @@ class Join():
 		#the upcoming task works for a single IP pair, like most tasks
 		else:
 			#running & managing pairwise joins on list1
-			if task_type = "gen_PJF":
+			if task_type == "gen_PJF":
 				if self.use_PJF is not None:
-					IP_pair.remove_task()
-					IP_pair.save(update_fields=["task_types"])
 					task_type = IP_pair.get_task_types()[0]
+					if notIP_pair.get_join_fins()[0]:
+						IP_pair.set_join_fins([True, False, False, False, False, False])
+						IP_pair.save(update_fields = ["join_fins"])
+						return None, 0, True
+					else:
+						return None, 0, False
 				else:
 					ans,timer = self.generate_PJF()
 					self.use_PJF = ans
-					return None, timer
+					if self.use_PJF is not None:
+						if not IP_pair.get_join_fins()[0]:
+							IP_pair.set_join_fins([True, False, False, False, False, False])
+							IP_pair.save(update_fields = ["join_fins"])
+							return None, timer, True
+						else:
+							return None, timer, False
+					return None, timer, False
 			if task_type == "PW":
 				matches, timer = self.PW_join(IP_pair, self.list1)
 				if self.done and any(matches):
 					self.done = False
 					IP_pair.set_join_pairs(matches)
-					IP_pair.remove_task()
-					IP_pair.save(update_fields=["join_pairs", "task_types"])
+					IP_pair.save(update_fields=["join_pairs"])
 					print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
 					print "we are here having made progress"
 					if IP_pair.get_task_types() == []:
 						raise Exception("too many deletions")
-					return None, timer
+					if not IP_pair.get_join_fins()[1]:
+						IP_pair.set_join_fins([False, True, False, False, False, False])
+						IP_pair.save(update_fields = ["join_fins"])
+						return None, timer, True
+					else:
+						return None, timer, False
 				elif self.done:
 					self.done = False
-					IP_pair.remove_task()
-					IP_pair.save(update_fields=[ "task_types"])
-					return False, timer
+					if not IP_pair.get_join_fins()[1]:
+						IP_pair.set_join_fins([False, True, False, False, False, False])
+						IP_pair.save(update_fields = ["join_fins"])
+						return False, timer, True
+					else:
+						return False, timer, False
 				else:
-					return None, timer
+					return None, timer, False
 			#running & managing prejoin filtration
 			elif task_type == "PJF": # TODO: need to make this break into new tasks, not do all at once
 				#evaluates the prejoin filter on the item and records the time
 				results, prejoin_timer = self.prejoin_filter(IP_pair.item.item_ID)
 				if self.done:
-					IP_pair.remove_task()
 					self.done = False
-				return None, prejoin_timer #returns nothing (?) and the time taken
+					if not IP_pair.get_join_fins()[2]:
+						IP_pair.set_join_fins([False, False, True, False, False, False])
+						IP_pair.save(update_fields = ["join_fins"])
+						return None, prejoin_timer, True
+					else:
+						return None, prejoin_timer, False
+				return None, prejoin_timer, False #returns nothing (?) and the time taken
 			#running and managing prejoin filtration on 2nd-list items
 			elif task_type == "PJF2":
 				#evaluates the prejoin filter on the item and records the time
 				results, prejoin_timer = self.prejoin_filter(None)
 				if self.done:
-					IP_pair.remove_task()
 					self.done = False
 					if self.list2_not_eval:
 						IP_pair.set_task_types(IP_pair.get_task_types() + ["PJF2", "join"])
-				return None, prejoin_timer #returns nothing (?) and the time taken
+						IP_pair.save(update_fields=["task_types"])
+					if not IP_pair.get_join_fins()[3]:
+						IP_pair.set_join_fins([False, False, False, True, False, False])
+						IP_pair.save(update_fields = ["join_fins"])
+						return None, prejoin_timer, True
+					else:
+						return None, prejoin_timer, False
+				return None, prejoin_timer, False #returns nothing and the time taken
 			#running & managing normal joins
 			elif task_type == "join":
 				#our current (WILL BE CHANGED) version matches a given item against every
@@ -1643,22 +1690,31 @@ class Join():
 								results_from_all_join += [(IP_pair.item.item_ID,j)]
 								IP_pair.small_p_done = False #TODO:can we do this
 								self.list1.remove(IP_pair.item.item_ID)
-								IP_pair.remove_task()
 								self.done = False
-								return True, join_timer
+								if not IP_pair.get_join_fins()[4]:
+									IP_pair.set_join_fins([False, False, False, False, True, False])
+									IP_pair.save(update_fields = ["join_fins"])
+									return True, join_timer, True
+								else:
+									return True, join_timer, False
 							elif find_consensus((IP_pair.item.item_ID,j)):
 								if not IP_pair.join_pairs:
 									IP_pair.set_join_pairs([])
 								IP_pair.set_join_pairs(IP_pair.get_join_pairs() + [(IP_pair.item.item_ID,j)])
+								IP_pair.save(update_fields = ["join_pairs"])
 							self.done = False
 						break
 				if join_done:
 					self.list1.remove(IP_pair.item.item_ID)
-					IP_pair.remove_task()
 					if IP_pair.small_p_done and not self.list2_not_eval:
 						IP_pair.small_p_done = False
-						return False, join_timer
-				return None, join_timer
+						if not IP_pair.get_join_fins()[4]:
+							IP_pair.set_join_fins([False, False, False, False, True, False])
+							IP_pair.save(update_fields = ["join_fins"])
+							return False, join_timer, True
+						else:
+							return False, join_timer, False
+				return None, join_timer, False
 			#runs & manages small predicate for list 1
 			elif task_type == "small_p":
 				timer = 0
@@ -1671,16 +1727,26 @@ class Join():
 							if self.done:
 								self.done = False
 					if all_eval_smallp:
-						IP_pair.remove_task()
 						IP_pair.small_p_done = True
-					return None, timer
+						if not IP_pair.get_join_fins()[5]:
+							IP_pair.set_join_fins([False, False, False, False, False, True])
+							IP_pair.save(update_fields = ["join_fins"])
+							return None, timer, True
+						else:
+							return None, timer, False
+					return None, timer, False
 				else:
 					#if we have run our join and have pairs to filter, we do
 					if IP_pair.join_pairs == "":
 						IP_pair.set_join_pairs([])
 						IP_pair.save(update_fields = ["join_pairs"])
 					if IP_pair.get_join_pairs()==[]:
-						return False, 0
+						if not IP_pair.get_join_fins()[5]:
+							IP_pair.set_join_fins([False, False, False, False, False, True])
+							IP_pair.save(update_fields = ["join_fins"])
+							return False, 0, True
+						else:
+							return False, 0, False
 					join_pair = IP_pair.get_join_pairs()[0]
 					res, timer = self.small_pred(join_pair[1])
 					if self.done:
@@ -1688,18 +1754,21 @@ class Join():
 						IP_pair.set_join_pairs(IP_pair.get_join_pairs()[1:])
 						IP_pair.save(update_fields = ["join_pairs"])
 						if res:
-							IP_pair.remove_task()
-							IP_pair.save(update_fields = ["task_types"])
 							self.results_from_all_join.append(join_pair)
 							print "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
 							print "we are here with item " + str(IP_pair.item.item_ID)
 							if not res:
 								raise Exception("we should not have changed result here")
-							return True, timer
+							if not IP_pair.get_join_fins()[5]:
+								IP_pair.set_join_fins([False, False, False, False, False, True])
+								IP_pair.save(update_fields = ["join_fins"])
+								return True, timer, True
+							else:
+								return True, timer, False
 						else:
-							return None, timer
+							return None, timer, False
 					else:
-						return None, timer
+						return None, timer, False
 			else:
 				print "Task type was: " + str(task_type)
 				raise Exception("Your Predicate/IP_Pair doesn't match the expected task_types for Join.")

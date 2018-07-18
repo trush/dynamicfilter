@@ -210,18 +210,14 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 			if (toggles.ITEM_SYS == 3): #item_inacive assignment
 				minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
 				minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-				chosenIP = minTaskIP
+				pickFrom = minTaskIP
 			chosenIP = choice(pickFrom)
 			chosenIP.refresh_from_db()
 			if not chosenIP.task_types == "" and chosenIP.get_task_types() == []:
 				#A patch solution. Find root cause?
-				res_list =  active_joins[chosenIP.predicate].results_from_all_join
-				finished = [x for [x,y] in res_list]
-				if chosenIP.item.item_ID in finished:
-					chosenIP.isDone = True
-					chosenIP.save(update_fields=["isDone"])
-				print "we are here adding a placeholder to flag " + str(chosenIP) + " as done"
-				return None
+				print chosenIP
+				print chosenIP.isDone
+				raise Exception("this task is done")
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
 				chosenIP.refresh_from_db()
