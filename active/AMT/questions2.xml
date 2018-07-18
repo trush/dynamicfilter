@@ -1,0 +1,28 @@
+<HTMLQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2011-11-11/HTMLQuestion.xsd">
+<HTMLContent><![CDATA[
+<!-- YOUR HTML BEGINS -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+<script type='text/javascript' src='https://s3.amazonaws.com/mturk-public/externalHIT_v1.js'></script>
+</head>
+<body>
+<form name='mturk_form' method='post' id='mturk_form' action='https://www.mturk.com/mturk/externalSubmit'><input type='hidden' value='' name='assignmentId' id='assignmentId'/>
+<h2>Do this hotel and this metro station match based on the following condition?</h2>
+<h3> Hotel: XXX(ITEM_NAME_HERE)XXX</h3>
+<h3> metro station: Convention Center Station</h3>
+<h3> Condition: The hotel is within 1 mile of the metro station </h3>
+<div>
+ <input type="radio" name="answer" value="yes"> Matches<br>
+ <input type="radio" name="answer" value="no"> Does not match<br>
+</div>
+<p><input type='submit' id='submitButton' value='Submit' /></p></form>
+<script language='Javascript'>turkSetAssignmentID();</script>
+</body></html>
+<!-- YOUR HTML ENDS -->
+]]>
+</HTMLContent>
+<FrameHeight>600</FrameHeight>
+</HTMLQuestion>
+ 

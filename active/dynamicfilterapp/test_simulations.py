@@ -195,9 +195,12 @@ class SimulationTest(TransactionTestCase):
 
 		itemList = Item.objects.all()
 		for p in predicates:
-			for i in itemList:
+			for i in  :
 				ip_pair = IP_Pair(item=i, predicate=p)
 				ip_pair.save()
+
+
+		
 
 		# make a dictionary of all the ip_pairs and their values
 		sampleData = self.get_sample_answer_dict(toggles.INPUT_PATH + toggles.IP_PAIR_DATA_FILE)
@@ -284,7 +287,7 @@ class SimulationTest(TransactionTestCase):
 				key = (Item.objects.get(name = line[0]),
 					Predicate.objects.get(pk = i+1))
 				value = line[i+1]
-				correctAnswers[key] = value
+				correctAnswers[key] = value 
 
 		return correctAnswers
 
@@ -296,7 +299,7 @@ class SimulationTest(TransactionTestCase):
 	# task will be issued.
 	# @param workerID The ID of the worker that pick_worker() selected
 	# @param time_clock The "time" at which the task is being simulated -- is used to figure out
-	# when the task will be "started" and when it will finish.
+	# when the task  will be "started" and when it will finish.
 	# @param dictionary The dictionary of possible worker responses for the given IP pair
 	# loaded in by get_sample_answer_dict()
 	# @returns the Task object that was simulated.

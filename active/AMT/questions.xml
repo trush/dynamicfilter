@@ -1,0 +1,38 @@
+<HTMLQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2011-11-11/HTMLQuestion.xsd">
+<HTMLContent><![CDATA[
+<!-- YOUR HTML BEGINS -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+<script type='text/javascript' src='https://s3.amazonaws.com/mturk-public/externalHIT_v1.js'></script>
+</head>
+<body>
+<form name='mturk_form' method='post' id='mturk_form' action='https://www.mturk.com/mturk/externalSubmit'><input type='hidden' value='' name='assignmentId' id='assignmentId'/>
+<h2>What metro stations are within 1 mile of this hotel? Enter responses into the text fields below. You are neither required nor expected to fill all of these. They exist as an upper bound.</h2>
+<h3> Hotel: XXX(ITEM_NAME_HERE)XXX</h3>
+<div>
+ <input type='text' name='metro 1' placeholder='Type in your answer here'>
+ <input type='text' name='metro 2' placeholder='Type in your answer here'>
+ <input type='text' name='metro 3' placeholder='Type in your answer here'>
+ <input type='text' name='metro 4' placeholder='Type in your answer here'>
+ <input type='text' name='metro 5' placeholder='Type in your answer here'>
+ <input type='text' name='metro 6' placeholder='Type in your answer here'>
+ <input type='text' name='metro 7' placeholder='Type in your answer here'>
+ <input type='text' name='metro 8' placeholder='Type in your answer here'>
+ <input type='text' name='metro 9' placeholder='Type in your answer here'>
+ <input type='text' name='metro 10' placeholder='Type in your answer here'>
+ <input type='text' name='metro 11' placeholder='Type in your answer here'>
+ <input type='text' name='metro 12' placeholder='Type in your answer here'>
+ <input type='text' name='metro 13' placeholder='Type in your answer here'>
+ <input type='text' name='metro 14' placeholder='Type in your answer here'>
+ <input type='text' name='metro 15' placeholder='Type in your answer here'>
+</div>
+<p><input type='submit' id='submitButton' value='Submit' /></p></form>
+<script language='Javascript'>turkSetAssignmentID();</script>
+</body></html>
+<!-- YOUR HTML ENDS -->
+]]>
+</HTMLContent>
+<FrameHeight>600</FrameHeight>
+</HTMLQuestion>
