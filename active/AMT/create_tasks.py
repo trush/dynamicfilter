@@ -1,14 +1,12 @@
 ###NOTES: install boto3 and xmltodict through pip before using. Replace pubkey and privkey with real keys.
 
-
 import boto3
 MTURK_SANDBOX = 'https://mturk-requester-sandbox.us-east-1.amazonaws.com'
 
 mturk = boto3.client('mturk',
   aws_access_key_id = pubkey,
   aws_secret_access_key = privkey,
-  region_name='us-east-1',
-  endpoint_url = MTURK_SANDBOX
+  region_name='us-east-1'
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my Sandbox account"
 
@@ -22,8 +20,8 @@ for line in f:
    question = str(open(name='questions.xml',mode='r').read())
    question = question.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
    new_hit = mturk.create_hit(
-       Title = 'Match metro stations to hotels based on proximity',
-       Description = 'Find metro stations within 1 mile of the given hotel',
+       Title = 'Match metro, subway, and train stations to hotels based on proximity',
+       Description = 'Find metro, subway, and train stations within 1 mile of the given hotel',
        Keywords = 'text, enumeration, matching',
        QualificationRequirements = [{
             'QualificationTypeId':"000000000000000000L0",
@@ -37,7 +35,7 @@ for line in f:
        Question = question,
    ) ## averages 4-6 minutes
    print "A new HIT has been created. You can preview it here:"
-   print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
+   print "https://worker.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
    print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
   #  question1 = str(open(name='questions1.xml',mode='r').read())
