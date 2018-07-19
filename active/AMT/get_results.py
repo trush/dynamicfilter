@@ -2,6 +2,8 @@
 
 
 import boto3
+import string
+import datetime
 MTURK_SANDBOX = 'https://mturk-requester-sandbox.us-east-1.amazonaws.com'
 
 mturk = boto3.client('mturk',
@@ -22,28 +24,50 @@ csv = open('HIT_IDs.csv', "r")
 import xmltodict
 # Use the hit_id previously created
 
+results = open('HIT_RESULTS.csv', "w") 
+flag = False
+
 for row in csv:
-    hit_id = row.rstrip("\n")
+    [hit_id, hotel] = [x.strip() for x in row.split(',')]
     # We are only publishing this task to one Worker
     # So we will get back an array with one item if it has been completed
     worker_results = mturk.list_assignments_for_hit(HITId=hit_id, AssignmentStatuses=['Submitted'])
-    print worker_results
 
     if worker_results['NumResults'] > 0:
         for assignment in worker_results['Assignments']:
+            newRow = str((assignment["SubmitTime"] - assignment["AcceptTime"]).total_seconds()) + ", " + assignment["AssignmentStatus"] + ", " + assignment["WorkerId"] + "," + assignment["HITId"]
             xml_doc = xmltodict.parse(assignment['Answer'])
             
             print "Worker's answer was:"
             if type(xml_doc['QuestionFormAnswers']['Answer']) is list:
                 # Multiple fields in HIT layout
                 for answer_field in xml_doc['QuestionFormAnswers']['Answer']:
+                    if answer_field['QuestionIdentifier'] == 'consent':
+                        if answer_field['FreeText'] == 'on':
+                            newRow += (", consent given")
+                            newRow += (", [")
+                            continue
+                        else:
+                            newRow += ("INADMISSABLE")
+                            break
+                    if answer_field['QuestionIdentifier'] == 'comments':
+                        newRow = newRow[:-2]
+                        if answer_field['FreeText'] is not None:
+                            newRow += "], " + answer_field['FreeText']
+                        else:
+                            newRow += "], no comment"
+                        break
                     print "For input field: " + answer_field['QuestionIdentifier']
                     if answer_field['FreeText'] is not None:
+                        newRow += (answer_field['FreeText'].lower() + "| ")
                         print "Submitted answer: " + answer_field['FreeText']
+                newRow += "\n"
+                results.write(newRow)
             else:
                 # One field found in HIT layout
                 print "For input field: " + xml_doc['QuestionFormAnswers']['Answer']['QuestionIdentifier']
                 print "Submitted answer: " + xml_doc['QuestionFormAnswers']['Answer']['FreeText']
+            results.write("\n")
     else:
         print "No results ready yet"
 

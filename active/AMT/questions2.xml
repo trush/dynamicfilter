@@ -23,7 +23,7 @@
  <input type="radio" name="answer" value="no"> No<br>
 </div>
 <h3>Comments or Questions (Optional):</h3>
-<textarea rows="4" columns="50"></textarea>
+<textarea rows="4" columns="50" name = "comments"></textarea>
 <p><input type='submit' id='submitButton' value='Submit' /></p></form>
 <script language='Javascript'>turkSetAssignmentID();</script>
 </body></html>

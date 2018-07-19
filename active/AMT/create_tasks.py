@@ -18,20 +18,21 @@ f = open('Hotel_items.csv')
 for line in f:
    line = line.rstrip('\n')
    hotel = line
+   print hotel
    question = str(open(name='questions.xml',mode='r').read())
    question = question.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
    new_hit = mturk.create_hit(
        Title = 'Match metro stations to hotels based on proximity',
        Description = 'Find metro stations within 1 mile of the given hotel',
-       Keywords = 'text, quick, enumeration',
+       Keywords = 'text, enumeration, matching',
        QualificationRequirements = [{
             'QualificationTypeId':"000000000000000000L0",
             'Comparator':"GreaterThan",
             'IntegerValues':[90]}],
        Reward = '0.15',
-       MaxAssignments = 9,
+       MaxAssignments = 10,
        LifetimeInSeconds = 172800,
-       AssignmentDurationInSeconds = 14400,
+       AssignmentDurationInSeconds = 600,
        AutoApprovalDelayInSeconds = 172800,
        Question = question,
    ) ## averages 4-6 minutes
@@ -74,8 +75,8 @@ for line in f:
    # print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
 
-   row = new_hit['HIT']['HITId'] + '\n'
-   csv.write(row)
+   row = new_hit['HIT']['HITId']
+   csv.write(row + ", " + hotel + "\n")
 # Remember to modify the URL above when you're publishing
 # HITs to the live marketplace.
 # Use: https://worker.mturk.com/mturk/preview?groupId=
