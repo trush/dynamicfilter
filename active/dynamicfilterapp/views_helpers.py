@@ -241,6 +241,10 @@ def nu_pending_eddy(incompleteIP):
 				# print "*"*10 + " Condition 1 invoked " + "*"*10
 				# assign a task from one of the IP pairs within the queue
 				if pickFromFirst.exists():
+					if (toggles.ITEM_SYS == 3): #item_inacive assignment
+						minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
+						minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+						pickFrom = minTaskIP
 					# print "*"*10 + " Condition 2 invoked " + "*"*10
 					chosenIP = choice(pickFromFirst)
 					if not chosenIP.is_in_queue:
@@ -253,6 +257,10 @@ def nu_pending_eddy(incompleteIP):
 
 			# find something for that predicate that isn't being worked on yet and add it
 			if pickFrom.filter(predicate = chosenPred).exists():
+				if (toggles.ITEM_SYS == 3): #item_inacive assignment
+					minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
+					minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+					pickFrom = minTaskIP
 				# print "*"*10 + " Condition 4 invoked " + "*"*10
 				chosenIP = choice(pickFrom.filter(predicate=chosenPred))
 				if not chosenIP.is_in_queue:
@@ -262,6 +270,10 @@ def nu_pending_eddy(incompleteIP):
 
 			# if we can't refill the queue right now, do something from within the queue
 			if pickFromFirst.exists():
+				if (toggles.ITEM_SYS == 3): #item_inacive assignment
+					minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
+					minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+					pickFrom = minTaskIP
 				# print "*"*10 + " Condition 6 invoked " + "*"*10
 				chosenIP = choice(pickFromFirst)
 				if not chosenIP.is_in_queue:
@@ -277,6 +289,10 @@ def nu_pending_eddy(incompleteIP):
 			lastResortPick = incompleteIP.exclude(predicate = chosenPred)
 
 			if lastResortPick.exists():
+				if (toggles.ITEM_SYS == 3): #item_inacive assignment
+					minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
+					minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+					pickFrom = minTaskIP
 				chosenIP = choice(lastResortPick) # random choice from what's available
 				if not chosenIP.is_in_queue:
 					chosenIP.add_to_queue()
