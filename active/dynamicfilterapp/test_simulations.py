@@ -25,6 +25,7 @@ import csv
 import time
 from copy import deepcopy
 from scipy.special import btdtr
+from scipy import stats
 
 # Global Variables for Item Routing tests
 HAS_RUN_ITEM_ROUTING = False #keeps track of if a routing test has ever run
@@ -2071,7 +2072,7 @@ class SimulationTest(TransactionTestCase):
 				print "Wrote File: " + csv_dest
 
 			if toggles.GEN_GRAPHS:
-				bar_graph_gen(self.tasks_routed,range(len(self.tasks_routed)),dest+".png",('Predicate','Tasks'))
+				graphGen.task_count(self.tasks_routed,range(len(self.tasks_routed)),dest)
 
 		self.reset_database()
 
@@ -2267,6 +2268,7 @@ class SimulationTest(TransactionTestCase):
 				if toggles.GEN_GRAPHS:
 					pass
 
+			#task bar graph for current setting
 			if toggles.TASK_ROUTING:
 				dest = toggles.OUTPUT_PATH + "overall_predicate_routing_"+str(settingCount)
 				csv_dest = dest_resolver(dest+".csv")
@@ -2280,15 +2282,27 @@ class SimulationTest(TransactionTestCase):
 
 				if toggles.GEN_GRAPHS:
 					sum_vector = np.array([0]*len(self.recent_predicates))
+					# summation of tasks
 					for routed_arrays in self.multiple_tasks_routed:
 						new_vector = np.array(routed_arrays)
 						sum_vector += new_vector
-					bar_graph_gen(sum_vector.tolist(),range(len(self.recent_predicates)),dest+".png",('Predicate','Tasks'))
+					sum_list = sum_vector.tolist()
+					pred_list = range(len(self.recent_predicates))
+
+					# std dev of task count over multiple simulations
+					stddev_list=[]
+					for pred in range(len(self.recent_predicates)):
+						task_count_array = []
+						for routed_arrays in self.multiple_tasks_routed:
+							task_count_array.append(routed_arrays[pred])
+						stddev_list.append(np.std(task_count_array))
+					graphGen.task_count_over_settings(sum_list, pred_list, dest, stddev_list, numSim)
 
 			self.reset_arrays()
 
 			settingCount += 1
 
+		#task histogram over multiple settings
 		if toggles.GEN_GRAPHS:
 			toggles.OUTPUT_PATH = origDest
 			dest3 = toggles.OUTPUT_PATH + "task_histogram"
