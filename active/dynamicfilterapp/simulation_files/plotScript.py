@@ -73,6 +73,8 @@ def generic_csv_read(filename):
     toRead.close()
     return retArray
 
+
+
 ## Generates a single histogram from data
 # @param data a python iterable storing integer/float data
 # @param dest a path + filename for the output grapn (ending in .png)
@@ -141,6 +143,9 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='', xRange=
 
     plt.savefig(dest_resolver(dest))
     plt.close(fig)
+
+
+
 
 ## Generates a plot containing a line-graph
 # @param xpoints a python iterable containing the x values of each point
@@ -253,6 +258,9 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     plt.savefig(dest_resolver(dest))
     plt.close(fig)
 
+
+
+
 ## Generates a set of bargraphs
 # @param data a python iterable storing integer/float data for the height of each bar
 # @param legend a string for the label under each bar
@@ -261,9 +269,8 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
 # defaults to no labels
 # @ param title a string to use as the graph's title. defaults to no title
 # @param stderr a python iterable of the y-error bars desired for the top of each bar
-# @param xRange sets the minimum and maximum value of the x axis (xMin, xMax) Defaults to (None, None)
 # @param yRange sets the minimum and maximum value of the y axis (yMin, yMax) Defaults to (None, None), ymax to defaults to a bit above the max y-value
-def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = None, xRange=(None,None), yRange=(None,None)):
+def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = None, yRange=(None,None)):
     """
     Generate a bargraph from a list of heights and a list of names optional parameters:
         labels a touple in the format ('x-axis label', 'y-axis label')
@@ -289,7 +296,6 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
     plt.ylabel(labels[1])
 
     # range of axes
-    plt.xlim(xRange)
     plt.ylim(yRange)
     if yRange[1] is None: # if user has not defined ymax
         # puff up the y axis some
@@ -301,7 +307,7 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
     plt.savefig(dest_resolver(dest))
     plt.close(fig)
 
-def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',split='vertical', stderrL = None, fig_size = None, tight=False, xRange=(None,None), yRange=(None,None)):
+def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',split='vertical', stderrL = None, fig_size = None, tight=False, yRange=(None,None)):
     knownSplits=('vertical','horizontal')
     if len(dataL)<= 1:
         raise ValueError("not enough data!")
@@ -344,7 +350,6 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
     plt.ylabel(labels[1])
 
     # range of axes
-    plt.xlim(xRange)
     plt.ylim(yRange)
     if yRange[1] is None: # if user has not defined ymax
         # puff up the y axis some
@@ -367,12 +372,12 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
 # @ param title a string to use as the graph's title. defaults to no title
 # @param xRange sets the minimum and maximum value of the x axis (xMin, xMax) Defaults to (None, None)
 # @param yRange sets the minimum and maximum value of the y axis (yMin, yMax) Defaults to (None, None), ymax to defaults to a bit above the max y-value
-def stats_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = '', xRange=(None,None), yRange=(None,None)):
+def stats_bar_graph_gen(dataL, legend, dest, labels = ('',''), title = '', yRange=(None,None)):
     avg, std = [],[]
     for L in dataL:
         avg.append(np.mean(L))
         std.append(np.std(L))
-    bar_graph_gen(avg, legend, dest, labels = labels, title = title, stderr = std, xRange=xRange, yRange=yRange)
+    bar_graph_gen(avg, legend, dest, labels = labels, title = title, stderr = std, yRange=yRange)
 
 def packageMaker(dest,conf):
     """Generates a "package" for the current simulation"""
