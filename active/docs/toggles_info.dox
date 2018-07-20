@@ -349,6 +349,14 @@ running count of how many placeholder tasks are released over the course of a si
 running count of wasted tasks - number of active tasks that were in a queue when an item was
 completed \n
 
+\link dynamicfilterapp.toggles.TRACK_SELECTIVITIES TRACK_SELECTIVITIES  \endlink - Tracks the
+proportion of IP pairs for a certain predicates whose value is true to the total number of items,
+in simulated runs. \n
+
+\link dynamicfilterapp.toggles.TASK_ROUTING TASK_ROUTING  \endlink - Tracks the
+number of tasks routed to each predicate over the course of a single simulation AND multiple runs
+over a single setting \n
+
 \link dynamicfilterapp.toggles.EDDY_SET EDDY_SET  \endlink - List of integers (values for toggle 
 EDDY_SYS) that is taken in as an input for visualizeMultiRuns in test_simulations.py. Requires 
 TRACK_ACTIVE_TASKS to be turned on. \n

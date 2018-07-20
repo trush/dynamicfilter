@@ -381,27 +381,14 @@ def best_pick(incompleteIP):
 	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
 	if incompleteIP.exists():
 		ground_false = incompleteIP.filter(true_answer=False)
-		min_false_tasks = ground_false.aggregate(tasks=Min(F('tasks_out')+F('tasks_collected'))).values()[0]
-		min_false = ground_false.extra(where=["tasks_collected + tasks_out = " + str(toggles.NUM_CERTAIN_VOTES)])|ground_false.extra(where=["tasks_collected + tasks_out <= " + str(toggles.NUM_CERTAIN_VOTES)])
-		min_false_items = min_false.aggregate(Min('item__pairs_out')).values()[0]
 
-		if min_false.exists():
-			queue_min = min_false.filter(inQueue=True)
-			item_min = min_false.filter(item__pairs_out=min_false_items)
-			if queue_min.exists():
-				chosenIP = choice(queue_min)
-				print "False " + str(chosenIP)
-				if not chosenIP.is_in_queue:
-					chosenIP.add_to_queue()
-					chosenIP.refresh_from_db()
-				return chosenIP
-			elif item_min.exists():
-				chosenIP = choice(item_min)
-				print "False " + str(chosenIP)
-				if not chosenIP.is_in_queue:
-					chosenIP.add_to_queue()
-					chosenIP.refresh_from_db()
-				return chosenIP
+		if ground_false.exists():
+			chosenIP = choice(ground_false)
+			#print "False " + str(chosenIP)
+			if not chosenIP.is_in_queue:
+				chosenIP.add_to_queue()
+				chosenIP.refresh_from_db()
+			return chosenIP
 
 		ground_true = incompleteIP.filter(true_answer=True)
 		min_true_tasks = ground_true.aggregate(Min('tasks_out')).values()[0]
@@ -409,7 +396,7 @@ def best_pick(incompleteIP):
 
 		if min_true.exists():
 			chosenIP = choice(min_true)
-			print "True " + str(chosenIP)
+			#print "True " + str(chosenIP)
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
 				chosenIP.refresh_from_db()
@@ -680,9 +667,8 @@ def updateCounts(workerTask, chosenIP):
 		chosenIP.refresh_from_db()
 
 		# if we're using queueing, remove the IP pair from the queue if appropriate
-		if toggles.EDDY_SYS == 1 or toggles.EDDY_SYS == 5:
-			chosenIP.remove_from_queue()
-			chosenIP.refresh_from_db()
+		chosenIP.remove_from_queue()
+		chosenIP.refresh_from_db()
 
 		chosenIP.refresh_from_db()
 		chosenIP.predicate.refresh_from_db()

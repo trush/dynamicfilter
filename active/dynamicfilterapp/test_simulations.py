@@ -4,6 +4,7 @@
 from django.db import models
 from django.test import TransactionTestCase
 from django.db.models import F
+from django.db.models import Sum
 
 # # What we wrote
 from views_helpers import *
@@ -72,9 +73,9 @@ class SimulationTest(TransactionTestCase):
 	num_real_tasks_array = []
 
 	## Calculates the "true" selectivity for each predicate during a simulated run (percentage of true IP pairs for each predicate)
-	simulated_selectivies = []
+	precise_selectivities = []
 	## An array of "true" selectivities for multiple runs
-	multiple_simulated_selectivities = []
+	multiple_precise_selectivities = []
 
 	no_tasks_to_give = 0 # TODO: Do we need this?
 	no_tasks_to_give_array = [] # TODO: Do we need this?
@@ -133,9 +134,17 @@ class SimulationTest(TransactionTestCase):
 	# a simulation.
 	cum_placeholder_time_array = []
 
+	## How many tasks are routed to each predicate in a single run
+	tasks_routed = []
+	## How many tasks are routed to each predicate, for several runs
+	multiple_tasks_routed = []
+
 	## An array that will add an entry at every time step that is actually simulated (not those that are skipped)
 	# useful as an x axis for graphs of some quality of a simulation vs. simulated time.
 	time_steps_array = []
+
+	## The most recent predicate selectivities from a simulation run
+	recent_selectivites = []
 
 	## A dictionary storing the number of tickets each predicate has at each time step
 	# of a timed simulation.
@@ -494,6 +503,7 @@ class SimulationTest(TransactionTestCase):
 		SAMPLING_ARRAY = []
 		Task.objects.all().delete()
 		DummyTask.objects.all().delete()
+		self.recent_predicates = [pred.trueSelectivity for pred in Predicate.objects.all().order_by('pk')]
 		for i in Item.objects.all():
 			i.reset()
 		for p in Predicate.objects.all():
@@ -506,14 +516,15 @@ class SimulationTest(TransactionTestCase):
 		self.sim_task_time_array.append(self.sim_task_time)
 		self.run_sim_time_array.append(self.run_sim_time)
 		self.update_time_array.append(self.update_time)
-		self.multiple_simulated_selectivities.append(self.simulated_selectivies)
+		self.multiple_tasks_routed.append(self.tasks_routed)
+		self.multiple_precise_selectivities.append(self.precise_selectivities)
 		self.num_tasks, self.num_incorrect, self.num_placeholders = 0, 0, 0
 		self.run_sim_time, self.pending_eddy_time, self.sim_task_time, self.worker_done_time, self.update_time = 0, 0, 0, 0, 0
 		self.simulated_time, self.cum_work_time, self.cum_placeholder_time = 0, 0, 0
 		self.ticket_nums, self.ips_done_array, self.ips_tasks_array = {}, [], []
-		self.no_tasks_to_give, self.ips_times_array = 0, []
+		self.no_tasks_to_give, self.ips_times_array, self.tasks_routed = 0, [], []
 		self.placeholder_change_count, self.num_tasks_change_count = [0], [0]
-		self.pred_active_tasks, self.time_steps_array, self.simulated_selectivies = {}, [], []
+		self.pred_active_tasks, self.time_steps_array, self.precise_selectivities = {}, [], []
 		self.pred_queues = {}
 		self.num_waste = 0
 
@@ -528,9 +539,9 @@ class SimulationTest(TransactionTestCase):
 		self.simulated_time_array, self.cum_work_time_array = [], []
 		self.cum_placeholder_time_array, self.num_placeholders_array = [], []
 		self.num_tasks_array, self.num_real_tasks_array = [], []
-		self.num_incorrect_array, self.update_time_array = [], []
-		self.num_waste_array, self.multiple_simulated_selectivities = [], []
-		self.num_tickets_dict = {}
+		self.num_incorrect_array, self.update_time_array, self.multiple_tasks_routed = [], [], []
+		self.num_waste_array, self.multiple_precise_selectivities = [], []
+		self.num_tickets_dict, self.recent_predicates = {}, []
 
 	## Experimental function that runs many simulations and slightly changes the simulation
 	# configuration during its run.
@@ -783,7 +794,6 @@ class SimulationTest(TransactionTestCase):
 		noTasks = 0
 		scores = []
 		ticketNums = []
-		selectivities = []
 		used_tasks = 0
 		batch_tasks_out = toggles.ACTIVE_TASKS_SIZE
 		refill_mark = 0
@@ -1434,7 +1444,14 @@ class SimulationTest(TransactionTestCase):
 			for i in range(Predicate.objects.all().count()):
 				pred = Predicate.objects.filter(pk = i+1)
 				true_pairs = IP_Pair.objects.filter(predicate=pred,true_answer=True)
-				self.simulated_selectivies.append(true_pairs.count()/float(toggles.NUM_ITEMS))
+				self.precise_selectivities.append(true_pairs.count()/float(toggles.NUM_ITEMS))
+
+		if toggles.TASK_ROUTING:
+			for i in range(Predicate.objects.all().count()):
+				pred = Predicate.objects.filter(pk = i+1)
+				ip_pairs_task_counts = IP_Pair.objects.filter(predicate=pred).aggregate(total_tasks=Sum(F('tasks_collected')+F('tasks_out')))
+				self.tasks_routed.append(ip_pairs_task_counts.values()[0])
+
 		# if we're multi routing
 		if toggles.RUN_MULTI_ROUTING:
 			ROUTING_ARRAY.append(routingC) #add the new counts to our running list of counts
@@ -2042,8 +2059,21 @@ class SimulationTest(TransactionTestCase):
 				# 	labels = ("Time Steps", "Number IP Pairs Completed"),
 				# 	title = "Number IP Pairs Done vs. Time")
 
+		if toggles.TASK_ROUTING:
+			self.recent_predicates = [pred.trueSelectivity for pred in Predicate.objects.all().order_by('pk')]
+			dest = toggles.OUTPUT_PATH + "predicate_routing_" + str(runNum)
+			csv_dest = dest_resolver(dest+".csv")
+
+			dataToWrite = [self.recent_predicates]
+			dataToWrite.append(self.tasks_routed)
+			generic_csv_write(csv_dest, dataToWrite)
+			if toggles.DEBUG_FLAG:
+				print "Wrote File: " + csv_dest
+
+			if toggles.GEN_GRAPHS:
+				bar_graph_gen(self.tasks_routed,range(len(self.tasks_routed)),dest+".png",('Predicate','Tasks'))
+
 		self.reset_database()
-		
 
 	## \todo write this docstring
 	def visualizeMultiRuns(self, data, queueSet, activeTasksSet, eddySet):
@@ -2226,15 +2256,34 @@ class SimulationTest(TransactionTestCase):
 			if toggles.TRACK_SELECTIVITIES and not toggles.REAL_DATA:
 				dest = toggles.OUTPUT_PATH + "precise_selectivites_"+str(settingCount)
 				csv_dest = dest_resolver(dest+".csv")
-				predList = np.sort(Predicate.objects.all().values_list("pk",flat=True))
 
-				dataToWrite = [predList]
-				for i in range(len(self.multiple_simulated_selectivities)):
-					dataToWrite.append(self.multiple_simulated_selectivities[i])
-					print self.multiple_simulated_selectivities[i]
+				dataToWrite = [self.recent_predicates]
+				for i in range(len(self.multiple_precise_selectivities)):
+					dataToWrite.append(self.multiple_precise_selectivities[i])
 				generic_csv_write(csv_dest, dataToWrite)
 				if toggles.DEBUG_FLAG:
 					print "Wrote File: " + csv_dest
+
+				if toggles.GEN_GRAPHS:
+					pass
+
+			if toggles.TASK_ROUTING:
+				dest = toggles.OUTPUT_PATH + "overall_predicate_routing_"+str(settingCount)
+				csv_dest = dest_resolver(dest+".csv")
+
+				dataToWrite = [self.recent_predicates]
+				for i in range(len(self.multiple_tasks_routed)):
+					dataToWrite.append(self.multiple_tasks_routed[i])
+				generic_csv_write(csv_dest, dataToWrite)
+				if toggles.DEBUG_FLAG:
+					print "Wrote File: " + csv_dest
+
+				if toggles.GEN_GRAPHS:
+					sum_vector = np.array([0]*len(self.recent_predicates))
+					for routed_arrays in self.multiple_tasks_routed:
+						new_vector = np.array(routed_arrays)
+						sum_vector += new_vector
+					bar_graph_gen(sum_vector.tolist(),range(len(self.recent_predicates)),dest+".png",('Predicate','Tasks'))
 
 			self.reset_arrays()
 

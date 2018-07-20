@@ -476,7 +476,7 @@ class IP_Pair(models.Model):
 
 	# tasks out at a given point in time
 	tasks_out = models.IntegerField(default=0)
-	# tasks that have been released overall
+	# tasks that have been collected overall
 	tasks_collected=models.IntegerField(default=0)
 	# running cumulation of votes
 	value = models.FloatField(default=0.0)
