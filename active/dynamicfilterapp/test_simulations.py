@@ -2245,7 +2245,7 @@ class SimulationTest(TransactionTestCase):
 
 			if toggles.COUNT_TICKETS and numSim > 0:
 				ticketList = self.num_tickets_dict.values()
-				predList = self.num_tickets_dict.keys()
+				predList = range(len(self.recent_predicates))
 				generic_csv_write(toggles.OUTPUT_PATH + "ticket_count_setting_"+str(settingCount)+".csv", ticketList)
 				if toggles.GEN_GRAPHS:
 					dest2 = toggles.OUTPUT_PATH + "ticket_histogram_setting_" + str(settingCount)
@@ -2288,15 +2288,7 @@ class SimulationTest(TransactionTestCase):
 						sum_vector += new_vector
 					sum_list = sum_vector.tolist()
 					pred_list = range(len(self.recent_predicates))
-
-					# std dev of task count over multiple simulations
-					stddev_list=[]
-					for pred in range(len(self.recent_predicates)):
-						task_count_array = []
-						for routed_arrays in self.multiple_tasks_routed:
-							task_count_array.append(routed_arrays[pred])
-						stddev_list.append(np.std(task_count_array))
-					graphGen.task_count_over_settings(sum_list, pred_list, dest, stddev_list, numSim)
+					graphGen.task_count_over_settings(sum_list, pred_list, dest, numSim)
 
 			self.reset_arrays()
 

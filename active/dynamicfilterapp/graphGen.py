@@ -165,11 +165,11 @@ def task_count(data, legend, dest):
     gen_message(dest)
 
 
-def task_count_over_settings(data, legend, dest, stderr, numSim):
+def task_count_over_settings(data, legend, dest, numSim):
     labels = ('Predicates', 'Tasks')
     title = 'Number of Tasks for Predicates with Current Configuration over ' +str(numSim) +'Simlations'
 
-    bar_graph_gen(data, legend, dest+".png", labels = labels, title = title, stderr=stderr)
+    bar_graph_gen(data, legend, dest+".png", labels = labels, title = title)
 
     gen_message(dest)
 
