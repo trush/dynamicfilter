@@ -86,6 +86,13 @@ class Predicate(models.Model):
 	task_types = models.CharField(default="", max_length = 400)
 	correct_matches = models.CharField(default = "", max_length = 1000)
 	tasks_out = models.IntegerField(default = 0)
+	times_taken = models.CharField(default = "", max_length = 9000)
+
+	def set_times_taken(self, inlist):
+		self.times_taken = json.dumps(inlist)
+	
+	def get_times_taken(self):
+		return json.loads(self.times_taken)
 
 	def set_correct_matches(self, inlist):
 		self.correct_matches = json.dumps(inlist)
@@ -106,7 +113,7 @@ class Predicate(models.Model):
 	def distribute_task(self):
 		#If the predicate is joinable, we need to increment its join progress
 		self.tasks_out += 1
-		self.save(update_fields = ["tasks_out"]) #"tasks_released"
+		self.save(update_fields = ["tasks_out"]) #"tasks_release	d"
 
 	# lottery system variables
 	num_tickets = models.IntegerField(default=1)
@@ -2141,3 +2148,14 @@ class Join():
 		if min_cost == costs[0] or min_cost == costs[1] or min_cost == costs[3] and not min_cost == costs[2]:
 			return True	
 		return False
+
+	def clear_ips(self, pred):
+		ips = IP_Pair.objects.filter(predicate = pred).filter(isDone = False)
+		for ip in ips:
+			itid = ip.item.item_ID
+			if itid in [x for (x,y) in results_from_all_join]:
+				t = Task(ip_pair=ip, answer=True, workerID="\"\"")
+				ip.record_vote(t)
+			else:
+				t = Task(ip_pair=ip, answer=False, workerID="\"\"")
+				ip.record_vote(t)
