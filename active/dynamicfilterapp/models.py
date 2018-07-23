@@ -84,7 +84,7 @@ class Predicate(models.Model):
 	#is this a "join-like" predicate?
 	joinable = models.BooleanField(default = False)
 	task_types = models.CharField(default="", max_length = 400)
-	correct_matches = models.CharField(default = "", max_length = 300)
+	correct_matches = models.CharField(default = "", max_length = 1000)
 	tasks_out = models.IntegerField(default = 0)
 
 	def set_correct_matches(self, inlist):
@@ -1058,9 +1058,9 @@ class Join():
 				self.call_dict[item] = [0,0,0,0]
 			self.call_dict[item][0] += 1
 			# save results of PJF to avoid repeated work
-			eval_results,PJF_cost = self.evaluate(PJF,item)
+			eval_results,PJF_cost = self.evaluate(item)
 			#add a vote to pjf for this item
-			if not self.votes_for_pjf[item]:
+			if not item in self.votes_for_pjf.keys():
 				self.votes_for_pjf[item] = [0,0]
 			if eval_results:
 				self.votes_for_pjf[item][0] += 1
@@ -1068,7 +1068,7 @@ class Join():
 				self.votes_for_pjf[item][1] += 1
 			self.avg_task_cost[0] = (self.avg_task_cost[0] * (self.call_dict["PJF"]-1) + PJF_cost)/(self.call_dict["PJF"])
 			#check if we have reached consensus
-			consensus_result = self.find_consensus("PJF", item)[0]
+			consensus_result = self.find_consensus("PJF", item)
 			if consensus_result is not None:
 				if item in self.list1:
 					self.evaluated_with_PJF["count1"] += 1
@@ -1169,7 +1169,7 @@ class Join():
 			ans = random.choice(toggles.pjf_dict.keys())
 
 		else:
-			ans = self.gen_pjf_ground_truth
+			ans = self.gen_PJF_ground_truth
 		if not ans in self.votes_for_gen_PJF.keys():
 			self.votes_for_gen_PJF[ans] = [0,0]
 		for key in self.votes_for_gen_PJF.keys():
@@ -1197,14 +1197,14 @@ class Join():
 	#	prejoin_filter() where evaluate() is called. Note: Currently the prejoin parameter serves no purpose,
 	# 	the selectivities and time costs are determined by toggles (private instance variables of the join class
 	#	that are already set). In the future prejoin should be able to set these.
-	def evaluate(self, prejoin, item):
+	def evaluate(self, item):
 		if not item in self.pjf_ground_truth:
 			#for preliminary testing, we randomly choose whether or not an item passes
-			self.pjf_ground_truth[item] = random.random() < sqrt(self.PJF_SELECTIVITY)
-			if random.random() < toggles.PJF_AMBIGUITY:
-				eval_results = random.random() < .5
-			else:
-				eval_results = self.pjf_ground_truth[item]
+			self.pjf_ground_truth[item] = random.random() < math.sqrt(self.PJF_SELECTIVITY)
+		if random.random() < toggles.PJF_AMBIGUITY:
+			eval_results = random.random() < .5
+		else:
+			eval_results = self.pjf_ground_truth[item]
 		return eval_results,numpy.random.normal(self.TIME_TO_EVAL_PJF, toggles.PJF_TIME_STD,1)[0]
 
 	#----------------------- PW Join -----------------------#
@@ -1219,14 +1219,14 @@ class Join():
 	#	In PW_join() we also update cost estimates, removed processed items from corresponding lists, update variabes
 	# 	used in the chao estimator.
 	def PW_join(self, ip_or_pred, itemlist):
-		if type(ip_or_pred) == Predicate and ip_or_pred.item.item_ID in self.failed_by_smallP:
+		if type(ip_or_pred) == IP_Pair and ip_or_pred.item.item_ID in self.failed_by_smallP:
 			raise Exception("Improper removal/addition of " + str(ip_or_pred.item) + " occurred")
 		# Update call counts, there is no case where we call this and have no cost so we can update immediately
 		self.call_dict["PW"] += 1
 		if type(ip_or_pred) == IP_Pair:
 			item1 = ip_or_pred.item.item_ID
 		else:
-			item1 = sec_item_in_progress
+			item1 = self.sec_item_in_progress
 		if item1 not in self.call_dict:
 			self.call_dict[item1] = [0,0,0,0]
 		self.call_dict[item1][2] += 1
@@ -1379,9 +1379,6 @@ class Join():
 			else:
 				sample = self.list2
 			sample =[x.encode('ascii') for x in sample]
-			ip_pair.refresh_from_db()
-			ip_pair.set_correct_matches(sample)
-			ip_pair.save(update_fields=["correct_matches"])
 			
 			#add num_matches pairs
 			for i in range(len(sample)):
@@ -1449,14 +1446,17 @@ class Join():
 			matches = []
 			if num_matches < len(self.list1):
 				sample = numpy.random.choice(self.list1, num_matches, False)
+				sample = sample.tolist()
 			else:
 				sample = self.list1
+			pred.refresh_from_db()
 			pred.set_correct_matches(sample)
+			pred.save(update_fields=["correct_matches"])
 			
 			#add num_matches pairs
 			for i in range(len(sample)):
 				item2 = sample[i]
-				matches.append((item2, sec_item_in_progress))
+				matches.append((item2, self.sec_item_in_progress))
 				timer += self.FIND_SINGLE_MATCH_TIME
 		else:
 			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
@@ -1469,20 +1469,29 @@ class Join():
 					num_matches -= 1
 					num_wrong_matches += 1
 			
-			sample = numpy.random.choice(pred.get_correct_matches(), num_matches, False)
-			wrong_sample = numpy.random.choice(self.list1 - pred.get_correct_matches(), num_wrong_matches, False)
+
+			
+			if num_matches < len(pred.get_correct_matches()):
+				sample = numpy.random.choice(pred.get_correct_matches(), num_matches, False)
+			else:
+				sample = pred.get_correct_matches()
+			badpairs = [item for item in self.private_list2 if item not in pred.get_correct_matches()]
+			if num_wrong_matches < len(badpairs):
+				wrong_sample = numpy.random.choice(badpairs, num_wrong_matches, False)
+			else:
+				wrong_sample = badpairs
 
 
 			#add num_matches pairs
 			for i in range(len(sample)):
 				item2 = sample[i]
-				matches.append((item2,sec_item_in_progress))
+				matches.append((item1, item2))
 				timer += self.FIND_SINGLE_MATCH_TIME
 			
 			#add num_matches pairs
 			for i in range(len(wrong_sample)):
 				item2 = wrong_sample[i]
-				matches.append((item2, sec_item_in_progress))
+				matches.append((item1, item2))
 				timer += self.FIND_SINGLE_MATCH_TIME
 			
 
@@ -1557,7 +1566,7 @@ class Join():
 					matches, timer = self.PW_join(predicate, self.list2)
 					self.pairwise_pairs = matches
 					self.pending = True #sets pending for smallP
-					if any(matches) and self.done:
+					if self.done and any(matches):
 						#after PWjoin removes this item, the next one is the first in list2
 						self.sec_item_in_progress = self.list2[0]
 						#TODO: make predicate reset
@@ -1602,7 +1611,7 @@ class Join():
 			if task_type == "gen_PJF":
 				if self.use_PJF is not None:
 					task_type = IP_pair.get_task_types()[0]
-					if notIP_pair.get_join_fins()[0]:
+					if not IP_pair.get_join_fins()[0]:
 						IP_pair.set_join_fins([True, False, False, False, False, False])
 						IP_pair.save(update_fields = ["join_fins"])
 						return None, 0, True
@@ -1771,6 +1780,10 @@ class Join():
 						return None, timer, False
 			else:
 				print "Task type was: " + str(task_type)
+				if IP_pair is not None:
+					print "for" + str(IP_pair)
+				else:
+					print "for" + str(predicate)
 				raise Exception("Your Predicate/IP_Pair doesn't match the expected task_types for Join.")
 	
 	## @param self
@@ -1840,9 +1853,9 @@ class Join():
 		if calls_to_1 > toggles.EXPLORATION_REQ:
 					# small p cost
 			cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
-					prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+self.selectivities[3]*(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
-					join_cons_cost*(len(self.list1)*(len(self.evaluated_with_small_p) + \
-					self.selectivity_est[3]*(len(self.list1) - len(self.evaluated_with_small_p)))*self.selectivity_est[0])
+					prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+self.selectivity_est[3]*(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
+					join_cons_cost*(len(self.list1)*(len(self.evaluated_with_smallP) + \
+					self.selectivity_est[3]*(len(self.list1) - len(self.evaluated_with_smallP)))*self.selectivity_est[0])
 		else:
 			cost_1 = 0
 		# COST 2 CALCULATION - PJF then small pred
@@ -1860,8 +1873,8 @@ class Join():
 			if calls_to_3 > toggles.EXPLORATION_REQ:
 				avg_matches_est_2 = numpy.mean(self.num_matches_per_item_2)
 				match_cost_est, base_cost_est = numpy.polyfit(self.num_matches_per_item_1+self.num_matches_per_item_2, self.PW_cost_est_1+self.PW_cost_est_2,1)
-				cost_3 = base_cost_est*len(self.list2)*avg_task_cons[2] + \
-						match_cost_est*avg_matches_est_2*len(self.list2)*avg_task_cons[2]  + \
+				cost_3 = base_cost_est*len(self.list2)*self.avg_task_cons[2] + \
+						match_cost_est*avg_matches_est_2*len(self.list2)*self.avg_task_cons[2]  + \
 						losp*len(self.list2)*small_p_cons_cost
 			else:
 				cost_3 = 0
@@ -1869,8 +1882,8 @@ class Join():
 			calls_to_5 = min(self.cons_count[3], self.cons_count[2])
 			if calls_to_5 > toggles.EXPLORATION_REQ:
 				cost_5 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP))+ \
-						(len(self.evaluated_with_smallP) + self.selectivity_est[3]*(len(self.list2)-len(self.evaluates_with_smallP)))*\
-						(base_cost_est + match_cost_est*avg_matches_est_2)*avg_task_cons[2]
+						(len(self.evaluated_with_smallP) + self.selectivity_est[3]*(len(self.list2)-len(self.evaluated_with_smallP)))*\
+						(base_cost_est + match_cost_est*avg_matches_est_2)*self.avg_task_cons[2]
 			else:
 				cost_5 = 0
 		else: #if we don't have enough information yet, we set the cost of these paths to 0
@@ -1923,21 +1936,21 @@ class Join():
 		losp = 1 - (1 - toggles.JOIN_SELECTIVITY)**(len(self.list1))
 		# COST 1 CALCULATION - small pred then PJF
 		cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
-				prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+TOGGES.SMALL_P_SELECTIVITY*(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
-				join_cons_cost*(len(self.list1)*(len(self.evaluated_with_small_p) + \
-				toggles.SMALL_P_SELECTIVITY*(len(self.list1) - len(self.evaluated_with_small_p)))*toggles.PJF_SELECTIVITY)
+				prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+toggles.SMALL_P_SELECTIVITY*(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
+				join_cons_cost*(len(self.list1)*(len(self.evaluated_with_smallP) + \
+				toggles.SMALL_P_SELECTIVITY*(len(self.list1) - len(self.evaluated_with_smallP)))*toggles.PJF_SELECTIVITY)
 		# COST 2 CALCULATION - PJF, JOIN, SMALL P
 		cost_2 = prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
 				join_cons_cost*(len(self.list1))*(len(self.list2))*(toggles.PJF_SELECTIVITY)+ \
 				small_p_cons_cost*losp*len(self.list2)
 		# COST 3 CALCULATION
-		cost_3 = toggles.BASE_FIND_MATCHES*len(self.list2)*avg_task_cons[2] + \
-				toggles.FIND_SINGLE_MATCH_TIME*toggles.AVG_MATCHES(Item.objects.all().count()/len(toggles.private_list2))*len(self.list2)*avg_task_cons[2]  + \
+		cost_3 = toggles.BASE_FIND_MATCHES*len(self.list2)*self.avg_task_cons[2] + \
+				toggles.FIND_SINGLE_MATCH_TIME*toggles.AVG_MATCHES*(Item.objects.all().count()/len(toggles.private_list2))*len(self.list2)*self.avg_task_cons[2]  + \
 				losp*len(self.list2)*small_p_cons_cost
 		# COST 5 CALCULATION - SMALL P on second list, PW
 		cost_5 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP))+ \
-				(len(self.evaluated_with_smallP) + toggles.SMALL_P_SELECTIVITY*(len(self.list2)-len(self.evaluates_with_smallP)))*\
-				(toggles.BASE_FIND_MATCHES + toggles.FIND_SINGLE_MATCH_TIME*toggles.AVG_MATCHES)*avg_task_cons[2]
+				(len(self.evaluated_with_smallP) + toggles.SMALL_P_SELECTIVITY*(len(self.list2)-len(self.evaluated_with_smallP)))*\
+				(toggles.BASE_FIND_MATCHES + toggles.FIND_SINGLE_MATCH_TIME*toggles.AVG_MATCHES)*self.avg_task_cons[2]
 		# COST 4 CALCULATION - PW on second list, SMALL P
 		cost_4 = toggles.BASE_FIND_MATCHES*len(self.list1)*self.avg_task_cons[2]+ \
 				toggles.FIND_SINGLE_MATCH_TIME*toggles.AVG_MATCHES*len(self.list1)*self.avg_task_cons[2] + \
@@ -1951,7 +1964,6 @@ class Join():
 			print "COST 3 = " + str(cost_3)
 			print "COST 4 = " + str(cost_4)
 			print "COST 5 = " + str(cost_5)
-			self.find_real_costs()
 			print "----------------------------"
 
 		return [cost_1, cost_2, cost_3, cost_4, cost_5]
@@ -2126,6 +2138,6 @@ class Join():
 		costs = self.find_costs()
 		min_cost = min(costs)
 		#paths 1 (costs[0]), 2 (costs[1]), and 4 (costs[3]) are IP-pair paths
-		if min_cost == costs[0] or min_cost == costs[1] or min_costs == costs[3]:
+		if min_cost == costs[0] or min_cost == costs[1] or min_cost == costs[3] and not min_cost == costs[2]:
 			return True	
 		return False

@@ -195,7 +195,7 @@ class SimulationTest(TransactionTestCase):
 
 		itemList = Item.objects.all()
 		for p in predicates:
-			for i in  :
+			for i in itemList:
 				ip_pair = IP_Pair(item=i, predicate=p)
 				ip_pair.save()
 
@@ -688,7 +688,7 @@ class SimulationTest(TransactionTestCase):
 				if pred is not None:
 					#if give_task returns a predicate, then we create a predicate task
 					curr_join = active_joins[pred]
-					task_type = pred.task_types[0]
+					task_type = pred.get_task_types()[0]
 					task = self.syn_simulate_task(None, workerID, time_clock, switch, self.num_tasks, task_type, curr_join, pred)
 				elif ip_pair is not None and ip_pair.is_joinable():
 					#if give_task returns an ip pair, then we create an ip pair task

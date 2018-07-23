@@ -225,6 +225,8 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 				cur_join = active_joins[chosenIP.predicate]
 				task_types = cur_join.assign_join_tasks()
 				if  chosenIP.task_types == "" or chosenIP.get_task_types() == []:
+					if "PWl2" in task_types:
+						raise Exception("assigning predicate tasks to IP pairs")
 					chosenIP.set_task_types(task_types)
 					chosenIP.save(update_fields=["task_types"])
 			return chosenIP 

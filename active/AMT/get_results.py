@@ -9,8 +9,7 @@ MTURK_SANDBOX = 'https://mturk-requester-sandbox.us-east-1.amazonaws.com'
 mturk = boto3.client('mturk',
   aws_access_key_id = pubkey,
   aws_secret_access_key = privkey,
-  region_name='us-east-1',
-  endpoint_url = MTURK_SANDBOX
+  region_name='us-east-1'
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my Sandbox account"
 

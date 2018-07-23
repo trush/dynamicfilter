@@ -6,7 +6,7 @@ import responseTimeDistribution
 
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
-DEBUG_FLAG = False
+DEBUG_FLAG = True
 SIM_TIME_STEP = 60
 # ************************************************************************ #
 
@@ -104,7 +104,7 @@ SMALL_P_TIME_STD = 0.5
 SP_AMBIGUITY = 0.0
 
     ## Other private variables used for simulations
-HAS_LIST2 = False
+HAS_LIST2 = True
 EXPLORATION_REQ = 5 #once join has two lists, it will try each path this many times at least
 private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
 pjf_dict = {"PJF1": (0.1, 10.0), "PJF2": (0.75, 2.0), "PJF3": (0.35, 14.0), "PJF4": (0.66, 7.0)}
