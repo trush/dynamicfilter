@@ -1066,10 +1066,11 @@ class SimulationTest(TransactionTestCase):
 						elif task.predicate != None:
 							task.refresh_from_db()
 							task.predicate.refresh_from_db()
+							start = time.time()
 							res = active_joins[task.predicate].is_done()
 							if res is not None:
 								active_joins[task.predicate].clear_ips(task.predicate)
-							self.update_time += ...
+							self.update_time += time.time() - start
 						else:
 							self.update_time += updateCounts(task, task.ip_pair)
 						#task.refresh_from_db()

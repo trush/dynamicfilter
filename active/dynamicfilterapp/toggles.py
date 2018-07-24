@@ -80,41 +80,46 @@ REWARD = 1.7
 USE_JOINS = True
 ## Settings #-----------------------###############
 
-JOIN_SELECTIVITY = 0.1
-JOIN_TIME = 4.0 
-JOIN_TIME_STD = 0.5
-JOIN_AMBIGUITY = 0.0
+if not REAL_DATA:
+        ## join data
+    JOIN_SELECTIVITY = 0.1
+    JOIN_TIME = 4.0 
+    JOIN_TIME_STD = 0.5
+    JOIN_AMBIGUITY = 0.0
 
-    ## PJFjoin in particular
-PJF_SELECTIVITY = 0.3
-TIME_TO_EVAL_PJF = 10.0
-PJF_TIME_STD = 2.0
-PJF_AMBIGUITY = 0.0
+        ## PJFjoin in particular
+    PJF_SELECTIVITY = 0.3
+    TIME_TO_EVAL_PJF = 10.0
+    PJF_TIME_STD = 2.0
+    PJF_AMBIGUITY = 0.0
 
-    ## PWJoin in particular
-BASE_FIND_MATCHES = 6.0     #Basic requirement to find some matches
-FIND_SINGLE_MATCH_TIME = 0.70 #cost per match found
-AVG_MATCHES = 2.5 #average matches per item
-STDDEV_MATCHES = 0.75 #standard deviation of matches
+        ## PWJoin in particular
+    BASE_FIND_MATCHES = 6.0     #Basic requirement to find some matches
+    FIND_SINGLE_MATCH_TIME = 0.70 #cost per match found
+    AVG_MATCHES = 2.5 #average matches per item
+    STDDEV_MATCHES = 0.75 #standard deviation of matches
 
-    ## small predicate in particular
-SMALL_P_SELECTIVITY = 0.5
-TIME_TO_EVAL_SMALL_P = 3.0
-SMALL_P_TIME_STD = 0.5
-SP_AMBIGUITY = 0.0
+        ## small predicate in particular
+    SMALL_P_SELECTIVITY = 0.5
+    TIME_TO_EVAL_SMALL_P = 3.0
+    SMALL_P_TIME_STD = 0.5
+    SP_AMBIGUITY = 0.0
 
-    ## Other private variables used for simulations
-HAS_LIST2 = True
-EXPLORATION_REQ = 5 #once join has two lists, it will try each path this many times at least
-private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
-pjf_dict = {"PJF1": (0.1, 10.0), "PJF2": (0.75, 2.0), "PJF3": (0.35, 14.0), "PJF4": (0.66, 7.0)}
-GEN_PJF_AMBIGUITY = 0.1
-GEN_PJF_TIME = 5.0
-GEN_PJF_STD = 1.0
+        ## Other private variables used for simulations
+    HAS_LIST2 = True
+    EXPLORATION_REQ = 5 #once join has two lists, it will try each path this many times at least
+    private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
+    pjf_dict = {"PJF1": (0.1, 10.0), "PJF2": (0.75, 2.0), "PJF3": (0.35, 14.0), "PJF4": (0.66, 7.0)}
+    GEN_PJF_AMBIGUITY = 0.1
+    GEN_PJF_TIME = 5.0
+    GEN_PJF_STD = 1.0
 
-#denotes how close the actual number of estimated 2nd list items must be found
-# to the estimated number for species estimation
-THRESHOLD = 0.1
+    #denotes how close the actual number of estimated 2nd list items must be found
+    # to the estimated number for species estimation
+    THRESHOLD = 0.1
+
+if REAL_DATA:
+    JOIN_ANS = 
 
 
 # ************************************************************************ #
