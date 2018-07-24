@@ -472,12 +472,12 @@ def updateCounts(workerTask, chosenIP):
 		chosenIP.refresh_from_db()
 
 		# update stats counting numbers of votes (only if IP not completed)
-		chosenIP.record_vote(workerTask)
+		chosenIP.record_vote(workerTask) #TODO
 		chosenIP.refresh_from_db()
 
 		# if we're using queueing, remove the IP pair from the queue if appropriate
 		if toggles.EDDY_SYS == 1 or toggles.EDDY_SYS == 5:
-			chosenIP.remove_from_queue()
+			chosenIP.remove_from_queue() #TODO
 			chosenIP.refresh_from_db()
 
 		chosenIP.refresh_from_db()
@@ -485,10 +485,10 @@ def updateCounts(workerTask, chosenIP):
 
 		# change queue length accordingly if appropriate
 		if toggles.ADAPTIVE_QUEUE:
-			chosenIP.predicate.adapt_queue_length()
+			chosenIP.predicate.adapt_queue_length() #TODO
 			chosenIP.predicate.refresh_from_db()
 
-		chosenIP.predicate.check_queue_full()
+		chosenIP.predicate.check_queue_full() #TODO
 		chosenIP.predicate.refresh_from_db()
 		end = time.time()
 		return end-start

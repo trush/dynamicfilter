@@ -171,14 +171,24 @@ class SimulationTest(TransactionTestCase):
 		# read in the questions
 		ID = 0
 		f = open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_questions.csv', 'r')
+		times = open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_times.csv', 'r')
+		time_array =[]
+		for time in times:
+			time_array += [time]
+		index=0
 		for line in f:
 			line = line.rstrip('\n')
 			q = Question(question_ID=ID, question_text=line)
 			q.save()
 			pred = Predicate(predicate_ID=ID, question=q)
+			#set processing times
+			pred.set_times_taken(time_array[index].rstrip('\n'))
+			index+=1
+			#save
 			pred.save()
 			ID += 1
 		f.close()
+		times.close()
 
 		# read in the items
 		ID = 0
@@ -338,13 +348,20 @@ class SimulationTest(TransactionTestCase):
 				#print len(dictionary[chosenIP])
 				dictionary[chosenIP].remove(value)
 			if toggles.SIMULATE_TIME:
+				if type(chosenIP) is Predicate:
+					chosenPred = chosenIP
+				elif type(chosenIP) is IP_Pair:
+					chosenPred = chosenIP.predicate
 				if value :
 					#worker said true, take from true distribution
-					work_time = choice(toggles.TRUE_TIMES)
+					# NOTE: previous version used choice(toggles.TRUE_TIMES) but 
+					# now uses times that are connected to particular predicates
+					work_time = choice(chosenPred.get_times_taken())
 				else:
 					#worker said false, take from false distribution
-					work_time = choice(toggles.FALSE_TIMES)
-
+					# NOTE: previous version used choice(toggles.FALSE_TIMES) but 
+					# now uses times that are connected to particular predicates
+					work_time = choice(chosenPred.get_times_taken())
 				start_task = time_clock + toggles.BUFFER_TIME
 				end_task = start_task + work_time
 				self.cum_work_time += work_time
@@ -352,7 +369,11 @@ class SimulationTest(TransactionTestCase):
 				start_task = 0
 				end_task = 0
 
-			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+			if type(chosenIP) is Predicate:
+				t = Task(predicate=chosenIP, answer=value, workerID=workerID,
+					start_time=start_task, end_time=end_task)
+			elif type(chosenIP) is IP_Pair:
+				t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
 					start_time=start_task, end_time=end_task)
 			t.save()
 
@@ -1045,8 +1066,10 @@ class SimulationTest(TransactionTestCase):
 						elif task.predicate != None:
 							task.refresh_from_db()
 							task.predicate.refresh_from_db()
-							pair_complete = task.predicate.isDone
-							self.update_time += updateCounts(task, task.predicate)
+							res = active_joins[task.predicate].is_done()
+							if res is not None:
+								active_joins[task.predicate].clear_ips(task.predicate)
+							self.update_time += ...
 						else:
 							self.update_time += updateCounts(task, task.ip_pair)
 						#task.refresh_from_db()
