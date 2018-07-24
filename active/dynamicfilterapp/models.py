@@ -1440,6 +1440,7 @@ class Join():
 	def get_matches_l2(self, pred, timer):
 		if pred.correct_matches == "":
 			pred.set_correct_matches([])
+		item2 = self.sec_item_in_progress
 		if not pred.get_correct_matches():
 			#assumes a normal distribution
 			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES * (len(self.list1)/len(self.private_list2)), self.STDDEV_MATCHES * (len(self.list1)/len(self.private_list2)), None)))
@@ -1465,7 +1466,7 @@ class Join():
 			wrong_matches = []
 			total_matches = range(num_matches)
 			for i in total_matches:
-				if random() > 0.9:
+				if random.random() > 0.9:
 					num_matches -= 1
 					num_wrong_matches += 1
 			
@@ -1484,13 +1485,13 @@ class Join():
 
 			#add num_matches pairs
 			for i in range(len(sample)):
-				item2 = sample[i]
+				item1 = sample[i]
 				matches.append((item1, item2))
 				timer += self.FIND_SINGLE_MATCH_TIME
 			
 			#add num_matches pairs
 			for i in range(len(wrong_sample)):
-				item2 = wrong_sample[i]
+				item1 = wrong_sample[i]
 				matches.append((item1, item2))
 				timer += self.FIND_SINGLE_MATCH_TIME
 			
@@ -1564,21 +1565,23 @@ class Join():
 					#if we have not yet checked this item with small p
 					# we find and save matches and return whether there are any
 					matches, timer = self.PW_join(predicate, self.list2)
-					self.pairwise_pairs = matches
-					self.pending = True #sets pending for smallP
 					if self.done and any(matches):
 						#after PWjoin removes this item, the next one is the first in list2
 						self.sec_item_in_progress = self.list2[0]
 						#TODO: make predicate reset
 						self.done = False
 						return None, timer, True
-					elif not any(matches) and self.done:
+					elif self.done and not any(matches):
 						#after PWjoin removes this item, the next one is the first in list2
 						self.sec_item_in_progress = self.list2[0]
 						#TODO: make predicate reset
 						self.done = False
+						self.pairwise_pairs = matches
+						self.pending = True #sets pending for smallP
 						return False, timer, True
 					else: # if it's not done (not reached consensus)
+						self.pairwise_pairs = matches
+						self.pending = True #sets pending for smallP
 						return None, timer, False
 				else:
 					#if we have already checked this 2nd-list item with small p
@@ -1595,7 +1598,6 @@ class Join():
 					if self.done:
 						self.sec_item_in_progress = self.list2[0]
 						self.results_from_all_join += matches #TODO: are these unique matches / no doubles
-						predicate.save(update_fields=["join_pairs"])
 						#TODO: make predicate reset
 						self.pending = False
 						self.done = False
