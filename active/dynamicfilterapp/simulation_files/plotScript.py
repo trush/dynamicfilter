@@ -342,7 +342,17 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
             return
         else:
             raise e
-    plt.xticks(pos,xL)
+    numMarkers = 10
+    rxLabels = np.arange(0,len(dataL[0]),len(dataL[0]//numMarkers))
+    xLabels = []
+    labelIndex = 0
+    while len(xLabels) < len(xL):
+        if len(xLabels) < rxLabels[-1] and len(xLabels) == rxLabels[labelIndex]:
+            xLabels.append(rxLabels[labelIndex])
+            ++labelIndex
+        else:
+            xLabels.append("")
+    plt.xticks(pos,[""]len(dataL[0]))
     plt.legend()
 
     # Label the axes
