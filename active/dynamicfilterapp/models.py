@@ -1107,13 +1107,13 @@ class Join():
 		timer_val = 0
 		if (i,j) in self.results_from_all_join:
 			return True, 0
-		if(not use_join or self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
+		if(not self.use_PJF or self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
 			# Generate task of current pair
 			timer_val += numpy.random.normal(self.JOIN_TIME, toggles.JOIN_TIME_STD,1)[0]
 			# If it is accepted in join process
-			if not item in self.join_ground_truth:
+			if not (i,j) in self.join_ground_truth:
 				#for preliminary testing, we randomly choose whether or not an item passes
-				self.join_ground_truth[(i,j)] = random() < self.JOIN_SELECTIVITY
+				self.join_ground_truth[(i,j)] = random.random() < self.JOIN_SELECTIVITY
 			if random.random() < toggles.SP_AMBIGUITY:
 				should_join = random.random() < .5
 			else:
@@ -1123,7 +1123,7 @@ class Join():
 			should_join = False
 			timer_val = 0
 		#add a vote to matches for this item
-		if not self.votes_for_matches[(i,j)]:
+		if (i,j) not in self.votes_for_matches:
 			self.votes_for_matches[(i,j)] = [0,0]
 		if should_join:
 			self.votes_for_matches[(i,j)][0] += 1
@@ -1131,7 +1131,7 @@ class Join():
 			self.votes_for_matches[(i,j)][1] += 1
 		self.avg_task_cost[1] = (self.avg_task_cost[1] * (self.call_dict["join"] - 1) + timer_val) /self.call_dict["join"]
 		#check if we have reached consensus
-		consensus_result = self.find_consensus("join", (i,j))[0]
+		consensus_result = self.find_consensus("join", (i,j))
 		if consensus_result is not None:
 			if consensus_result:
 				self.selectivity_est[1] = (self.selectivity_est[1]*self.cons_count[1]+1)/(self.cons_count[1]+1)
@@ -1529,6 +1529,7 @@ class Join():
 		if IP_pair is None and predicate is None:
 			raise Exception("no IP pair or predicate.")
 		if not IP_pair: # when we have a predicate
+			print "we are here with task types??????? " + str(predicate.get_task_types()) + str(predicate)
 			if not self.sec_item_in_progress:
 				self.sec_item_in_progress = self.list2[0]
 			#running & managing small predicate evaluation
@@ -1574,13 +1575,15 @@ class Join():
 					matches, timer = self.PW_join(predicate, self.list2)
 					if self.done and any(matches):
 						#after PWjoin removes this item, the next one is the first in list2
-						self.sec_item_in_progress = self.list2[0]
+						if len(self.list2) > 0:
+							self.sec_item_in_progress = self.list2[0]
 						#TODO: make predicate reset
 						self.done = False
 						return None, timer, True
 					elif self.done and not any(matches):
 						#after PWjoin removes this item, the next one is the first in list2
-						self.sec_item_in_progress = self.list2[0]
+						if len(self.list2) > 0:
+							self.sec_item_in_progress = self.list2[0]
 						#TODO: make predicate reset
 						self.done = False
 						self.pairwise_pairs = matches
@@ -1603,7 +1606,8 @@ class Join():
 					matches,timer = self.PW_join(predicate, self.list2)
 					#after PWjoin removes this item, the next one is the first in list2
 					if self.done:
-						self.sec_item_in_progress = self.list2[0]
+						if len(self.list2) > 0:
+							self.sec_item_in_progress = self.list2[0]
 						self.results_from_all_join += matches #TODO: are these unique matches / no doubles
 						#TODO: make predicate reset
 						self.pending = False
@@ -1699,7 +1703,7 @@ class Join():
 				join_timer = 0 #keeps time
 				join_done = True
 				for j in self.list2:
-					consensus_res = find_consensus("join", (IP_pair.item.item_ID, j))
+					consensus_res = self.find_consensus("join", (IP_pair.item.item_ID, j))
 					if consensus_res is None and j in self.evaluated_with_PJF:
 						join_done = False
 						eval_TF, join_timer = self.join_items(IP_pair.item.item_ID,j)
@@ -1746,9 +1750,11 @@ class Join():
 								self.done = False
 					if all_eval_smallp:
 						IP_pair.small_p_done = True
+						IP_pair.save(update_fields = ['small_p_done'])
 						if not IP_pair.get_join_fins()[5]:
 							IP_pair.set_join_fins([False, False, False, False, False, True])
 							IP_pair.save(update_fields = ["join_fins"])
+							print "we are here and finishing smallp on " + str(IP_pair)
 							return None, timer, True
 						else:
 							return None, timer, False
@@ -1858,7 +1864,7 @@ class Join():
 		#losp - "likelihood of some pairs" odds of a list2 item matching with at least one item from list1
 		losp = 1 - (1 - self.selectivity_est[1])**(len(self.list1))
 		# COST 1 CALCULATION - small pred then PJF
-		calls_to_1 = min(self.cons_count[3],self.cons_count[0]) # num cons items reach by small p and  PJF
+		calls_to_1 = min(self.cons_count[3],self.cons_count[0],self.cons_count[1]) # num cons items reach by small p and PJF
 		if calls_to_1 > toggles.EXPLORATION_REQ:
 					# small p cost
 			cost_1 = small_p_cons_cost*(len(self.list2)-len(self.evaluated_with_smallP)) + \
@@ -1868,7 +1874,7 @@ class Join():
 		else:
 			cost_1 = 0
 		# COST 2 CALCULATION - PJF then small pred
-		calls_to_2 = min(self.cons_count[0], self.cons_count[3])
+		calls_to_2 = min(self.cons_count[0], self.cons_count[3], self.cons_count[1])
 		if calls_to_2 > toggles.EXPLORATION_REQ:
 			# PJF cost 
 			cost_2 = prejoin_cons_cost*((len(self.list1)-self.evaluated_with_PJF["count1"])+(len(self.list2)-self.evaluated_with_PJF["count2"])) + \
@@ -2043,7 +2049,8 @@ class Join():
 						else:
 							self.evaluated_with_PJF["count2_F"] -= 1
 					self.failed_by_smallP.append(item)
-					print item + " eliminated"
+					print item + " eliminated for"
+					print str(self.failed_by_smallP) + " eliminated so far"
 				#if the item does pass, we add it to the list of things already evaluated
 				else:
 					self.evaluated_with_smallP.append(item)
@@ -2061,7 +2068,10 @@ class Join():
 	# 	Should be run after any item is processed
 	def is_done(self):
 		#check whether list1 is empty or if we have already built list2 but it is empty
+		if toggles.DEBUG_FLAG:
+			print self.call_dict
 		if not self.list1 or self.has_2nd_list and not self.list2:
+			print "We believe we are done with " + str(self.list1) + str(self.list2)
 			return self.results_from_all_join
 		return None
 
@@ -2099,13 +2109,25 @@ class Join():
 	#	would return true if the the item passed the task a certain number of times TODO: clarify
 	def find_consensus(self, for_task, entry):
 		if for_task == "small_p":
-			votes_yes, votes_no = self.votes_for_small_p[entry]
+			if entry in self.votes_for_small_p:
+				votes_yes, votes_no = self.votes_for_small_p[entry]
+			else:
+				None
 		elif for_task == "PJF":
-			votes_yes, votes_no = self.votes_for_pjf[entry]
+			if entry in self.votes_for_pjf:
+				votes_yes, votes_no = self.votes_for_pjf[entry]
+			else:
+				return None
 		elif for_task == "join":
-			votes_yes, votes_no = self.votes_for_matches[entry]
+			if entry in self.votes_for_matches:
+				votes_yes, votes_no = self.votes_for_matches[entry]
+			else:
+				return None
 		elif for_task == "gen_PJF":
-			votes_yes, votes_no = self.votes_for_gen_PJF[entry]
+			if entry in self.votes_for_gen_PJF:
+				votes_yes, votes_no = self.votes_for_gen_PJF[entry]
+			else:
+				return None
 		else:
 			raise Exception("Cannot find consensus for: " + str(for_task))
 		if votes_no + votes_yes < toggles.NUM_CERTAIN_VOTES:
@@ -2152,10 +2174,11 @@ class Join():
 		return False
 
 	def clear_ips(self, pred):
+		print "CLEARING IPS " + str(self.is_done())
 		ips = IP_Pair.objects.filter(predicate = pred).filter(isDone = False)
 		for ip in ips:
 			itid = ip.item.item_ID
-			if itid in [x for (x,y) in results_from_all_join]:
+			if itid in [x for (x,y) in self.results_from_all_join]:
 				t = Task(ip_pair=ip, answer=True, workerID="\"\"")
 				ip.record_vote(t)
 			else:

@@ -480,6 +480,7 @@ class SimulationTest(TransactionTestCase):
 		Replacement = True
 		choice = busyWorkers[0]
 		while (choice in busyWorkers) or (choice in triedWorkers):
+			print "help"
 			## uniform distribution
 			if toggles.DISTRIBUTION_TYPE == 0:
 				choice = str(randint(1,toggles.NUM_WORKERS))
@@ -891,7 +892,7 @@ class SimulationTest(TransactionTestCase):
 		for pred in Predicate.objects.all():
 			if pred.joinable:
 				if toggles.HAS_LIST2:
-					active_joins[pred] = Join(toggles.private_list2)
+					active_joins[pred] = Join(deepcopy(toggles.private_list2))
 				else:
 					active_joins[pred] = Join()
 
@@ -951,7 +952,10 @@ class SimulationTest(TransactionTestCase):
 								raise Exception ("Too many votes cast for IP Pair " + str(ip.id))
 
 							if (ip.tasks_out == 0) and ip.isDone and ip.inQueue:
-								raise Exception ("IP Pair " + str(ip.id) + " has no tasks out and is done, still in queue")
+								if ip.is_joinable() and ip.predicate in active_joins and active_joins[ip.predicate].is_done() is not None:
+									pass
+								else:
+									raise Exception ("IP Pair " + str(ip.id) + " has no tasks out and is done, still in queue")
 						if toggles.EDDY_SYS == 2:
 							for task in active_tasks:
 								if task.ip_pair is not None:
@@ -1145,9 +1149,7 @@ class SimulationTest(TransactionTestCase):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 						task, worker = self.issueTask(active_tasks, active_joins, b_workers, time_clock, dictionary, switch)
-						res = task.answer
-						if res is not None:
-							print "we are here now with a task that is " + str(res)
+						
 
 						if toggles.BATCH_ASSIGNMENT:
 							batch_tasks_out += 1

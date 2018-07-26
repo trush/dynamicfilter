@@ -6,7 +6,7 @@ import responseTimeDistribution
 
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
-DEBUG_FLAG = True
+DEBUG_FLAG = False
 SIM_TIME_STEP = 60
 # ************************************************************************ #
 
@@ -118,9 +118,6 @@ if not REAL_DATA:
     # to the estimated number for species estimation
     THRESHOLD = 0.1
 
-if REAL_DATA:
-    JOIN_ANS = 
-
 
 # ************************************************************************ #
 
@@ -163,7 +160,7 @@ CUBIC_B = (0.8)
 # ************************** SIMULATION SETTINGS ************************* #
 # ************************************************************************ #
 
-NUM_WORKERS = 1000
+NUM_WORKERS = 100000
 DISTRIBUTION_TYPE = 0            # tells pick_worker how to choose workers
 DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
