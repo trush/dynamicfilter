@@ -344,12 +344,9 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
             raise e
     numMarkers = 10
     rxLabels = np.arange(0,len(dataL[0]),len(dataL[0])//numMarkers).tolist()
-    print rxLabels
     xLabels = []
     labelIndex = 0
     while len(xLabels) < len(xL):
-        print len(xLabels)
-        print rxLabels[labelIndex]
         if len(xLabels) < rxLabels[-1] and len(xLabels) == rxLabels[labelIndex]:
             xLabels.append(rxLabels[labelIndex]*20)
             labelIndex = labelIndex + 1
