@@ -449,8 +449,6 @@ class SimulationTest(TransactionTestCase):
 			
 			else:
 				results, time_taken, advance = curr_join.main_join(task_type, chosenIP)
-				if results is not None:
-					print "we are here and good?" + str(results) + " for " + str(chosenIP)
 				start_time = time_clock + toggles.BUFFER_TIME
 				end_time = start_time + time_taken
 				t = Task(ip_pair=chosenIP, answer=results, workerID=workerID,
@@ -480,7 +478,6 @@ class SimulationTest(TransactionTestCase):
 		Replacement = True
 		choice = busyWorkers[0]
 		while (choice in busyWorkers) or (choice in triedWorkers):
-			print "help"
 			## uniform distribution
 			if toggles.DISTRIBUTION_TYPE == 0:
 				choice = str(randint(1,toggles.NUM_WORKERS))
@@ -720,13 +717,9 @@ class SimulationTest(TransactionTestCase):
 					task_type = ip_pair.get_task_types()[0]
 					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks, task_type, curr_join, pred)
 					res = task.answer
-					if res is not None:
-						print "we are here with a task that is " + str(res)
 				else:
 					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
 					res = task.answer
-					if res is not None:
-						print "we are here with a task that is " + str(res)
 
 		return task, workerID
 
@@ -779,6 +772,7 @@ class SimulationTest(TransactionTestCase):
 		while(ip_pair != None):
 
 			# only increment if worker is actually doing a task
+
 			workerID = self.pick_worker([0], [0])
 			#workerDone = worker_done(workerID)[0]
 
@@ -1071,6 +1065,8 @@ class SimulationTest(TransactionTestCase):
 							task.refresh_from_db()
 							task.predicate.refresh_from_db()
 							start = time.time()
+							task.predicate.add_total_task()
+							task.predicate.add_total_time()
 							res = active_joins[task.predicate].is_done()
 							if res is not None:
 								active_joins[task.predicate].clear_ips(task.predicate)
@@ -1148,6 +1144,7 @@ class SimulationTest(TransactionTestCase):
 					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and (IP_Pair.objects.filter(predicate__joinable=True).exists() or IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
+
 						task, worker = self.issueTask(active_tasks, active_joins, b_workers, time_clock, dictionary, switch)
 						
 

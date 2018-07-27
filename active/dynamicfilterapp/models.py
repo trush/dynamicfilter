@@ -222,8 +222,12 @@ class Predicate(models.Model):
 		self.save(update_fields=["trueAmbiguity"])
 
 	def update_cost(self):
+		#TODO: fix for predicate tasks to be meaningful
 		self.refresh_from_db(fields=["avg_tasks_per_pair"])
-		self.cost = self.avg_tasks_per_pair/float(toggles.CUT_OFF)# * (self.avg_completion_time/100)
+		if self.avg_tasks_per_pair != 0:
+			self.cost = self.avg_tasks_per_pair/float(toggles.CUT_OFF)# * (self.avg_completion_time/100)
+		else:
+			self.cost = 1
 		self.save(update_fields=["cost"])
 
 	def update_rank(self):
@@ -321,7 +325,12 @@ class Predicate(models.Model):
 		self.save(update_fields=["num_ip_complete"])
 
 	def update_avg_tasks(self):
-		self.avg_tasks_per_pair = self.totalTasks / float(IP_Pair.objects.filter(isStarted=True, predicate=self).count())
+		#TODO: fix for mixed predicate/IP pair tasks
+		startedTasks = float(IP_Pair.objects.filter(isStarted=True, predicate=self).count())
+		if startedTasks > 0:
+			self.avg_tasks_per_pair = self.totalTasks / startedTasks
+		else:
+			self.avg_tasks_per_pair = 0
 		self.save(update_fields=["avg_tasks_per_pair"])
 
 
@@ -1057,6 +1066,7 @@ class Join():
 					break
 			if not found_item:#if all items are already evaluated, we make a note and return
 				self.list2_not_eval = False
+				self.done =True
 				return None, 0
 		if(not item in self.evaluated_with_PJF):
 			# Update things for cost estimates and counting function calls
@@ -1320,7 +1330,8 @@ class Join():
 				self.evaluated_with_PJF["count1"] -= 1
 			elif item1 in itemlist:
 				self.list2.remove(item1)
-				self.evaluated_with_smallP.remove(item1)
+				if item1 in self.evaluated_with_smallP:
+					self.evaluated_with_smallP.remove(item1)
 				self.evaluated_with_PJF["count2"] -= 1
 			if self.DEBUG:
 				print "RAN PAIRWISE JOIN ----------"
@@ -1524,12 +1535,13 @@ class Join():
 	# @return timer : the time taken to do said task
 	# @remarks This is what is called in simulate_task() where the task answer and time are retrieved and saved.
 	def main_join(self, task_type, IP_pair=None, predicate=None):
+		print "at the top of main_join with task_type: " + str(task_type)
+		print "ip: " + str(IP_pair) + " or pred: " + str(predicate)
 		#if the upcoming task does not require an item from list1 
 		# i.e. small_p or Pairwise on list 2
 		if IP_pair is None and predicate is None:
 			raise Exception("no IP pair or predicate.")
 		if not IP_pair: # when we have a predicate
-			print "we are here with task types??????? " + str(predicate.get_task_types()) + str(predicate)
 			if not self.sec_item_in_progress:
 				self.sec_item_in_progress = self.list2[0]
 			#running & managing small predicate evaluation
@@ -1692,6 +1704,8 @@ class Join():
 					if not IP_pair.get_join_fins()[3]:
 						IP_pair.set_join_fins([False, False, False, True, False, False])
 						IP_pair.save(update_fields = ["join_fins"])
+						print "***********************************************************************************************"
+						print "PJF on 2ndary done " + str(self.sec_item_in_progress)
 						return None, prejoin_timer, True
 					else:
 						return None, prejoin_timer, False
@@ -1716,6 +1730,8 @@ class Join():
 								if not IP_pair.get_join_fins()[4]:
 									IP_pair.set_join_fins([False, False, False, False, True, False])
 									IP_pair.save(update_fields = ["join_fins"])
+									print "***********************************************************************************************"
+									print "join on item done " + str(IP_Pair)
 									return True, join_timer, True
 								else:
 									return True, join_timer, False
@@ -1727,15 +1743,18 @@ class Join():
 							self.done = False
 						break
 				if join_done:
-					self.list1.remove(IP_pair.item.item_ID)
 					if IP_pair.small_p_done and not self.list2_not_eval:
 						IP_pair.small_p_done = False
 						if not IP_pair.get_join_fins()[4]:
+							self.list1.remove(IP_pair.item.item_ID)
 							IP_pair.set_join_fins([False, False, False, False, True, False])
 							IP_pair.save(update_fields = ["join_fins"])
+							print "***********************************************************************************************"
+							print "join on item done " + str(IP_Pair)
 							return False, join_timer, True
 						else:
 							return False, join_timer, False
+					#else case handled in loop
 				return None, join_timer, False
 			#runs & manages small predicate for list 1
 			elif task_type == "small_p":
@@ -1754,7 +1773,6 @@ class Join():
 						if not IP_pair.get_join_fins()[5]:
 							IP_pair.set_join_fins([False, False, False, False, False, True])
 							IP_pair.save(update_fields = ["join_fins"])
-							print "we are here and finishing smallp on " + str(IP_pair)
 							return None, timer, True
 						else:
 							return None, timer, False
@@ -1826,6 +1844,8 @@ class Join():
 			return ["PW", "small_p"] # path 4
 		else: # if we have both lists
 			cost = self.find_costs()
+
+
 			minimum = min(cost)
 			if(cost[0] == minimum):# path 1
 				if self.list2_not_eval:
@@ -1916,7 +1936,7 @@ class Join():
 		else:
 			cost_4 = 0
 		
-		
+
 		# DEBUGGING 
 		if self.DEBUG:
 			print "FIND COSTS ESTIMATES -------"

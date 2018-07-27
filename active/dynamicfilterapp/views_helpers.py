@@ -53,7 +53,7 @@ def pending_eddy(ID, active_joins = None):
 	# if all IP_Pairs are done
 	unfinishedList = IP_Pair.objects.filter(isDone=False)
 	if not unfinishedList:
-		raise Exception("we should'nt be here")
+		raise Exception("we shouldn't be here")
 		return None
 
 	#filter through to find viable ip_pairs to choose from
@@ -120,6 +120,8 @@ def pending_eddy(ID, active_joins = None):
 	# 	else:
 	# 		chosenIP = None
 
+	if chosenIP is None:
+		print "we do not have a real task"
 
 	if chosenIP is not None:
 		chosenIP.start()#TODO:don't do this if predicate
