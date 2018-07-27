@@ -167,7 +167,7 @@ def task_count(data, legend, dest):
 
 def task_count_over_settings(data, legend, dest, numSim):
     labels = ('Predicates', 'Tasks')
-    title = 'Number of Tasks for Predicates with Current Configuration over ' +str(numSim) +'Simlations'
+    title = 'Number of Tasks for Predicates with Current Configuration over ' + str(numSim) +'Simulations'
 
     bar_graph_gen(data, legend, dest+".png", labels = labels, title = title)
 
@@ -182,7 +182,7 @@ def ips_done(data, dest, time):
         caption = "Number of Tasks Completed"
     labels = (caption, "Number IP Pairs Completed")
     title = "Number IP Pairs Done vs. " + caption + " During 1 Simulation"
-    line_graph_gen(data[0], data[num], dest+".png", labels=labels, title=title)
+    line_graph_gen(data[num], data[0], dest+".png", labels=labels, title=title)
 
     gen_message(dest)
 

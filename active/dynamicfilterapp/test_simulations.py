@@ -2045,7 +2045,7 @@ class SimulationTest(TransactionTestCase):
 			dest = toggles.OUTPUT_PATH + "ip_done_vs_tasks_q_" + str(toggles.PENDING_QUEUE_SIZE) + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE) + "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
 			csv_dest = dest_resolver(dest+".csv")
 
-			dataToWrite = [self.ips_tasks_array, self.time_steps_array, self.ips_done_array]
+			dataToWrite = [self.ips_done_array, self.time_steps_array, self.ips_tasks_array]
 			generic_csv_write(csv_dest, dataToWrite) # saves a csv
 			if toggles.DEBUG_FLAG:
 				print "Wrote File: " + csv_dest

@@ -139,7 +139,7 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='', xRange=
     if yRange[1] is None: # if user has not defined ymax
         # puff up the y axis some
         y_max = plt.axis()[3]
-        plt.ylim(ymax=y_max*1.25)
+        plt.ylim(ymax=y_max*1.1)
 
     plt.savefig(dest_resolver(dest))
     plt.close(fig)
@@ -241,7 +241,7 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
     if yRange[1] is None: # if user has not defined ymax
         # puff up the y axis some
         y_max = plt.axis()[3]
-        plt.ylim(ymax=y_max*1.25)
+        plt.ylim(ymax=y_max*1.1)
 
     # Title the graph
     plt.title(title)
@@ -300,7 +300,7 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
     if yRange[1] is None: # if user has not defined ymax
         # puff up the y axis some
         y_max = plt.axis()[3]
-        plt.ylim(ymax=y_max*1.25)
+        plt.ylim(ymax=y_max*1.1)
 
     # Title the graph
     plt.title(title)
@@ -342,7 +342,17 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
             return
         else:
             raise e
-    plt.xticks(pos,xL)
+    numMarkers = 10
+    rxLabels = np.arange(0,len(dataL[0]),len(dataL[0])//numMarkers).tolist()
+    xLabels = []
+    labelIndex = 0
+    while len(xLabels) < len(xL):
+        if len(xLabels) < rxLabels[-1] and len(xLabels) == rxLabels[labelIndex]:
+            xLabels.append(rxLabels[labelIndex]*20)
+            labelIndex = labelIndex + 1
+        else:
+            xLabels.append("")
+    plt.xticks(pos,xLabels)
     plt.legend()
 
     # Label the axes
@@ -354,7 +364,7 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
     if yRange[1] is None: # if user has not defined ymax
         # puff up the y axis some
         y_max = plt.axis()[3]
-        plt.ylim(ymax=y_max*1.25)
+        plt.ylim(ymax=y_max*1.1)
 
     # Title the graph
     plt.title(title)
