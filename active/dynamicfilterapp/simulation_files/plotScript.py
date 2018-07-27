@@ -111,6 +111,7 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='', xRange=
     plot in differing colors. takes in optional labels and title like before.
     """
     #TODO Print out relevant data to a description?
+    sns.set_context("paper")
     if len(legendList) < len(dataList):
         raise ValueError('Not enough legends ')
     sns.set(style="white", palette="muted", color_codes=True)
