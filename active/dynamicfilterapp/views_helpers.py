@@ -120,10 +120,6 @@ def pending_eddy(ID):
 	# chooses an IP with that predicate at random. Once IP is chosen,
 	# tasks are issued for only that IP until it passes or fails
 		if incompleteIP.exists():
-			startedIPs = incompleteIP.filter(isStarted=True)
-			if len(startedIPs) != 0:
-				incompleteIP = startedIPs
-
 			predicatevalues = incompleteIP.values('predicate')
 			predicates = Predicate.objects.filter(id__in=predicatevalues)
 			
@@ -135,6 +131,9 @@ def pending_eddy(ID):
 				chosenPred = annealingSelectPred(predicates)
 			predIPs = incompleteIP.filter(predicate=chosenPred)
 			chosenIP = choice(predIPs)
+			if not chosenIP.is_in_queue:
+				chosenIP.add_to_queue()
+				chosenIP.refresh_from_db()
 	 	else:
 	 		chosenIP = None
 

@@ -111,17 +111,19 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='', xRange=
     plot in differing colors. takes in optional labels and title like before.
     """
     #TODO Print out relevant data to a description?
-    sns.set_context("paper")
     if len(legendList) < len(dataList):
         raise ValueError('Not enough legends ')
     sns.set(style="white", palette="muted", color_codes=True)
+    if len(dataList) >= 6:
+        sns.set_palette(sns.color_palette("Set3",n_colors=10), n_colors=10)
     fig = plt.figure()
     ax = fig.add_subplot(111)
     sns.despine(left=True)
+    lineWidth = 1.2
     # the histogram of the data
     try:
         for i in range(len(dataList)):
-        	sns.distplot(dataList[i], hist=(not smoothness), kde_kws={"shade": False}, ax=ax, label=legendList[i])
+        	sns.distplot(dataList[i], hist=(not smoothness), kde_kws={"shade": False, "linewidth":lineWidth}, ax=ax, label=legendList[i])
     except Exception as e:
         if Suppress:
             print "When plotting " + dest + " encountered "+str(e)
