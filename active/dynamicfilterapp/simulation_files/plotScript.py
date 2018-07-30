@@ -113,9 +113,8 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='', xRange=
     #TODO Print out relevant data to a description?
     if len(legendList) < len(dataList):
         raise ValueError('Not enough legends ')
-    sns.set(style="white", palette="muted", color_codes=True)
-    if len(dataList) > 7:
-        sns.set_palette(sns.color_palette("Set3",n_colors=10), n_colors=10)
+    sns.set(style="white", color_codes=True)
+    sns.set_palette(sns.color_palette("tab10",n_colors=10), n_colors=10)
     fig = plt.figure()
     ax = fig.add_subplot(111)
     sns.despine(left=True)
@@ -196,9 +195,8 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
         title, a string title of your graph
         stderrL a list of lists of standard error for adding y-error bars to data
     """
-    sns.set(style="white", palette="muted", color_codes=True)
-    if len(xL) > 7:
-        sns.set_palette(sns.color_palette("Set3",n_colors=10), n_colors=10)
+    sns.set(style="white", color_codes=True)
+    sns.set_palette(sns.color_palette("tab10",n_colors=10), n_colors=10)
     heatMap=True
     # Make the graph
     fig = plt.figure()
@@ -314,9 +312,8 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
     plt.close(fig)
 
 def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',split='vertical', stderrL = None, fig_size = None, tight=False, yRange=(None,None)):
-    sns.set(style="white", palette="muted", color_codes=True)
-    if len(dataL) > 7:
-        sns.set_palette(sns.color_palette("Set3",n_colors=10), n_colors=10)
+    sns.set(style="white", color_codes=True)
+    sns.set_palette(sns.color_palette("tab10",n_colors=10), n_colors=10)
     knownSplits=('vertical','horizontal')
     if len(dataL)<= 1:
         raise ValueError("not enough data!")
