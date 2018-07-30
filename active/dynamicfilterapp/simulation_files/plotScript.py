@@ -114,7 +114,7 @@ def multi_hist_gen(dataList, legendList, dest, labels=('',''), title='', xRange=
     if len(legendList) < len(dataList):
         raise ValueError('Not enough legends ')
     sns.set(style="white", palette="muted", color_codes=True)
-    if len(dataList) >= 6:
+    if len(dataList) > 7:
         sns.set_palette(sns.color_palette("Set3",n_colors=10), n_colors=10)
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -196,6 +196,9 @@ def multi_line_graph_gen(xL, yL, legendList, dest, labels = ('',''), title = '',
         title, a string title of your graph
         stderrL a list of lists of standard error for adding y-error bars to data
     """
+    sns.set(style="white", palette="muted", color_codes=True)
+    if len(xL) > 7:
+        sns.set_palette(sns.color_palette("Set3",n_colors=10), n_colors=10)
     heatMap=True
     # Make the graph
     fig = plt.figure()
@@ -311,6 +314,9 @@ def bar_graph_gen(data, legend, dest, labels = ('',''), title = '', stderr = Non
     plt.close(fig)
 
 def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',split='vertical', stderrL = None, fig_size = None, tight=False, yRange=(None,None)):
+    sns.set(style="white", palette="muted", color_codes=True)
+    if len(dataL) > 7:
+        sns.set_palette(sns.color_palette("Set3",n_colors=10), n_colors=10)
     knownSplits=('vertical','horizontal')
     if len(dataL)<= 1:
         raise ValueError("not enough data!")
@@ -359,8 +365,8 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
     plt.legend()
 
     # Label the axes
-    plt.xlabel(labels[0])
-    plt.ylabel(labels[1])
+    plt.xlabel(labels[0], fontsize=20)
+    plt.ylabel(labels[1], fontsize=20)
 
     # range of axes
     plt.ylim(yRange)
@@ -370,7 +376,7 @@ def split_bar_graph_gen(dataL, xL, dest, legend ,labels = ('',''), title = '',sp
         plt.ylim(ymax=y_max*1.1)
 
     # Title the graph
-    plt.title(title)
+    plt.title(title, fontsize=20)
     if tight:
         fig.tight_layout()
     plt.savefig(dest_resolver(dest))
