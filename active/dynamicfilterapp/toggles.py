@@ -58,8 +58,7 @@ QUEUE_SUM = 100
 IP_LIMIT_SYS = 2   # type of predicate limit for an item
 ITEM_IP_LIMIT = 1   # number of predicates an item can be in
 
-ADAPTIVE_QUEUE = True
-ADAPTIVE_QUEUE_MODE = 0
+ADAPTIVE_QUEUE_MODE = 4
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
 QUEUE_LENGTH_ARRAY = [(0, 4), (3, 15), (10, 30)] # settings for above mode [(#tickets,qlength)]
@@ -233,7 +232,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'CONSENSUS_STATUS_LIMITS','CONSENSUS_SIZE_LIMITS','RENO_BONUS_RATIO',
             'CONSENSUS_STATUS','K','W_MAX','CUBIC_C','CUBIC_B','NUM_WORKERS',
             'DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE', 'TICKETING_SYS',
-            'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
+            'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME',
             'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS',
             'DUMMY_TASK_OPTION','GEN_GRAPHS','GEN_HIST', 'NUM_ITEMS','SIN', 'QUEUE_SUM',
             'SELECTIVITY_GRAPH','switch_list', 'ITEM_IP_LIMIT', 'IP_LIMIT_SYS',

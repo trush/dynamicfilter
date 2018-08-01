@@ -803,13 +803,13 @@ class SimulationTest(TransactionTestCase):
 		time_proxy = 0
 		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE # saves the initial size of the array
 		active_tasks_size = orig_active_tasks # keeps track of the current size of the array
-		tps_start = 3
-		secs = 0 # used to count time steps when tasks per second is less than 1
+		tps_start = 3 #This is the number of workers who arrive to start tasks each second
+		secs = 0 #DEPRECATED used to count time steps when tasks per second is less than 1
 
 		if not toggles.REAL_DATA:
 			syn_init()
 
-		if toggles.ADAPTIVE_QUEUE_MODE < 4 and toggles.ADAPTIVE_QUEUE:
+		if toggles.ADAPTIVE_QUEUE_MODE < 4:
 			for pred in Predicate.objects.all():
 				pred.set_queue_length(toggles.QUEUE_LENGTH_ARRAY[0][1])
 
@@ -961,6 +961,8 @@ class SimulationTest(TransactionTestCase):
 					#tps = self.set_tps(ratio, tps_start)
 				tps = tps_start
 
+				#Not sure what this does. Believe it's an older implementation of something like adaptive batch sizing.
+				#It does not currently interfere with how the code works, possibly could be deprecated.
 				if toggles.RESIZE_ACTIVE_TASKS:
 					ratio = IP_Pair.objects.filter(isDone=True).count()/float(total_ip_pairs)
 					active_tasks_size = self.set_active_size(ratio, orig_active_tasks)
@@ -1067,6 +1069,8 @@ class SimulationTest(TransactionTestCase):
 				# decides whether to give out more tasks if tasks per second is less than 1
 				if toggles.TASKS_PER_SECOND:
 					if task_limit < active_tasks_size and refill:
+						#Before task_limit is added to, it's the number of active workers at the start of this time step
+						#After it's added to it will be the number of active workers at the end of this time step.
 						task_limit = np.clip(task_limit+tps,0,active_tasks_size)
 						refill = True
 					else:
@@ -1078,7 +1082,7 @@ class SimulationTest(TransactionTestCase):
 					task_limit = active_tasks_size
 
 				# fill the active task array with new tasks as long as some IPs need eval
-				if refill: #Izzy Note: To ignore runoff placeholders, add and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()
+				if refill: #The filter cuts off stops the algorithm from giving out/trying to give out tasks when we know the tasks out are all we need to reach consensus. Equivalent to pulling HITs from Turk.
 					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists():
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
@@ -2377,7 +2381,7 @@ class SimulationTest(TransactionTestCase):
 		toggles.RUN_ITEM_ROUTING = True # TODO check how this works
 		toggles.TRACK_IP_PAIRS_DONE = True
 		toggles.PENDING_QUEUE_SIZE = 1
-		toggles.ADAPTIVE_QUEUE = False
+		toggles.ADAPTIVE_QUEUE_MODE = 4
 
 		# for i in range(runs):
 		# 	self.run_sim(data)
