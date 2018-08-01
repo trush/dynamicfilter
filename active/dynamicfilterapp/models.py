@@ -947,7 +947,7 @@ class Join():
 		# number of times those have been called. Also has the number of times an item calls each function in the order: [PJF, JOIN, PW, SMALL_P]
 		# keys to the dictionary are all items except for some pairs (these should have only join tasks completed)
 		self.call_dict = {"PJF":0, "small_p":0, "join":0,"PW":0, "cons join":0}
-		## @remarks Traacks the number of items that have reached consensus for [PJF, JOIN, PW, SMALL_P]
+		## @remarks Tracks the number of items that have reached consensus for [PJF, JOIN, PW, SMALL_P]
 		self.cons_count = [0,0,0,0]
 		## @remarks keeps a running average of the tasks needed to reach consensus
 		self.avg_task_cons = [0,0,0,0]

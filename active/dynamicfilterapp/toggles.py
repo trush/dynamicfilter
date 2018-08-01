@@ -93,7 +93,7 @@ if not REAL_DATA:
     PJF_TIME_STD = 2.0
     PJF_AMBIGUITY = 0.0
 
-        ## PWJoin in particular
+        ## PWJoin in particular 
     BASE_FIND_MATCHES = 6.0     #Basic requirement to find some matches
     FIND_SINGLE_MATCH_TIME = 0.70 #cost per match found
     AVG_MATCHES = 2.5 #average matches per item
