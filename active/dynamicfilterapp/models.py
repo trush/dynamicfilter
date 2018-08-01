@@ -607,6 +607,8 @@ class IP_Pair(models.Model):
 						self.predicate.update_pred(toggles.REWARD)
 					if (toggles.EDDY_SYS == 7):
 						self.predicate.update_pred_rank(toggles.REWARD)
+					# Everything below here ensures that if an item fails in one queue, then any IP pairs
+					# for the item in other queues know that they're done, and leave their queue if necessary
 					itemPairs = IP_Pair.objects.filter(item__hasFailed=True,item=self.item)
 					itemPairs.update(isDone=True)
 					activePairs = itemPairs.filter(inQueue=True).filter(end_time=0)

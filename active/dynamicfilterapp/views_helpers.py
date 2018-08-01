@@ -58,19 +58,18 @@ def pending_eddy(ID):
 	#filter through to find viable ip_pairs to choose from
 	completedTasks = Task.objects.filter(workerID=ID)
 	completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
-	#There are a lot of redundant filters happening, generally most of them can be pulled up here, we just ran out of time
+	#There are some redundant filters happening, generally most of them can be pulled up here, we just ran out of time
 	incompleteIP = unfinishedList.exclude(id__in = completedIP)
 	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	incompleteIP = incompleteIP.exclude(id__in=maxReleased)
+	allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+	incompleteIP = incompleteIP.exclude(id__in=maxReleased).exclude(id__in=allTasksOut)
 
 	#queue_pending_system:
 	if (toggles.EDDY_SYS == 1):
 		# filter out the ips that are not in the queue of full predicates
 		outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
 		nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
-		allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-		maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-		incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+		incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique)
 		# if there are IP pairs that could be assigned to this worker
 		if incompleteIP.exists():
 			chosenIP = lotteryPendingQueue(incompleteIP)
@@ -83,16 +82,13 @@ def pending_eddy(ID):
 	elif (toggles.EDDY_SYS == 2):
 		if not incompleteIP.exists():
 			print "Worker has completed all IP pairs left to do"
-		allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-		maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-		incompleteIP = incompleteIP.exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
 		if incompleteIP.exists():
-			startedIPs = incompleteIP.filter(isStarted=True)
-			if startedIPs.exists():
-				incompleteIP = startedIPs
+			#It should really just be truly random I think? So I commented this out.
+			#startedIPs = incompleteIP.filter(isStarted=True)
+			#if startedIPs.exists():
+			#	incompleteIP = startedIPs
 			chosenIP = choice(incompleteIP)
 		else:
-
 			chosenIP = None
 
 
@@ -227,9 +223,7 @@ def adaptive_predicate_limit (chosenIP):
 
 def nu_pending_eddy(incompleteIP):
 	#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
-	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
-	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False)
 	if incompleteIP.exists():
 		# get a predicate using the ticketing system
 		# make list of possible predicates and remove duplicates
@@ -241,119 +235,49 @@ def nu_pending_eddy(incompleteIP):
 		totalTickets = np.sum(weightList)
 		probList = np.true_divide(weightList, totalTickets)
 		chosenPred = np.random.choice(predicates, p=probList)
-		if toggles.EDDY_SYS == 5:
-			pickFrom = incompleteIP.filter(predicate = chosenPred)
 
-			# Choose an available pair from the chosen predicate
-			if pickFrom.exists():
-				# print "*"*10 + " Condition 6 invoked " + "*"*10
-				if (toggles.ITEM_SYS == 3): #item_inacive assignment
-					minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
-					minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-					pickFrom = minTaskIP
-				chosenIP = choice(pickFrom)
-				if not chosenIP.is_in_queue:
-					chosenIP.add_to_queue()
-					chosenIP.refresh_from_db()
-				return chosenIP 
+		pickFrom = incompleteIP.filter(predicate = chosenPred)
 
-			
-			# if we can't do anything for that predicate, find something else
-			# can be for a different predicate (still can't exceed that predicate's queue length)
-			if toggles.DEBUG_FLAG:
-				print "Attempting last resort IP pick (worker can't do Pred " + str(chosenPred.predicate_ID) +")"
+		# Choose an available pair from the chosen predicate
+		if pickFrom.exists():
+			# print "*"*10 + " Condition 6 invoked " + "*"*10
+			if (toggles.ITEM_SYS == 3): #item_inacive assignment
+				minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
+				minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+				pickFrom = minTaskIP
+			chosenIP = choice(pickFrom)
+			if not chosenIP.is_in_queue:
+				chosenIP.add_to_queue()
+				chosenIP.refresh_from_db()
+			return chosenIP 
 
-			lastResortPick = incompleteIP.exclude(predicate = chosenPred)
-			if lastResortPick.exists():
-				if (toggles.ITEM_SYS == 3): #item_inacive assignment
-					minTasks = lastResortPick.aggregate(Min('tasks_out')).values()[0]
-					minTaskIP = lastResortPick.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-					chosenIP = minTaskIP
-				chosenIP = choice(lastResortPick) # random choice from what's available
-				if not chosenIP.is_in_queue:
-					chosenIP.add_to_queue()
-					chosenIP.refresh_from_db()
-				return chosenIP
+		
+		# if we can't do anything for that predicate, find something else
+		# can be for a different predicate (still can't exceed that predicate's queue length)
+		# This currently shouldn't be called, because our filters should ensure that chosenPred
+		# has available work.
+		if toggles.DEBUG_FLAG:
+			print "Attempting last resort IP pick (worker can't do Pred " + str(chosenPred.predicate_ID) +")"
 
+		lastResortPick = incompleteIP.exclude(predicate = chosenPred)
+		if lastResortPick.exists():
+			if (toggles.ITEM_SYS == 3): #item_inacive assignment
+				minTasks = lastResortPick.aggregate(Min('tasks_out')).values()[0]
+				minTaskIP = lastResortPick.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
+				chosenIP = minTaskIP
+			chosenIP = choice(lastResortPick) # random choice from what's available
+			if not chosenIP.is_in_queue:
+				chosenIP.add_to_queue()
+				chosenIP.refresh_from_db()
+			return chosenIP
 
-			# if there's literally nothing left to be done, issue a placeholder task
-			else:
-				return None
+		# if there's literally nothing left to be done, issue a placeholder task
 		else:
-			# if the queue of the predicate is full, assign from the queue
-			pickFromFirst = incompleteIP.filter(predicate = chosenPred, inQueue = True)
-			if chosenPred.queue_is_full:
-				# print "*"*10 + " Condition 1 invoked " + "*"*10
-				# assign a task from one of the IP pairs within the queue
-				if pickFromFirst.exists():
-					if (toggles.ITEM_SYS == 3): #item_inacive assignment
-						minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
-						minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-						pickFrom = minTaskIP
-					# print "*"*10 + " Condition 2 invoked " + "*"*10
-					chosenIP = choice(pickFromFirst)
-					if not chosenIP.is_in_queue:
-						chosenIP.add_to_queue()
-						chosenIP.refresh_from_db()
-					return chosenIP
-
-			# set of IP pairs w/ item not being worked on currently, not already in queue, not all tasks out
-			pickFrom = incompleteIP.filter(inQueue = False)
-
-			# find something for that predicate that isn't being worked on yet and add it
-			if pickFrom.filter(predicate = chosenPred).exists():
-				if (toggles.ITEM_SYS == 3): #item_inacive assignment
-					minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
-					minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-					pickFrom = minTaskIP
-				# print "*"*10 + " Condition 4 invoked " + "*"*10
-				chosenIP = choice(pickFrom.filter(predicate=chosenPred))
-				if not chosenIP.is_in_queue:
-					chosenIP.add_to_queue()
-					chosenIP.refresh_from_db()
-				return chosenIP
-
-			# if we can't refill the queue right now, do something from within the queue
-			if pickFromFirst.exists():
-				if (toggles.ITEM_SYS == 3): #item_inacive assignment
-					minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
-					minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-					pickFrom = minTaskIP
-				# print "*"*10 + " Condition 6 invoked " + "*"*10
-				chosenIP = choice(pickFromFirst)
-				if not chosenIP.is_in_queue:
-					chosenIP.add_to_queue()
-					chosenIP.refresh_from_db()
-				return chosenIP
-
-			
-			# we can't do anything in the queue for that predicate, find something else
-			# can be for a different predicate (still can't exceed that predicate's queue length)
-			if toggles.DEBUG_FLAG:
-				print "Attempting last resort IP pick (worker can't do Pred " + str(chosenPred.predicate_ID) +")"
-			lastResortPick = incompleteIP.exclude(predicate = chosenPred)
-
-			if lastResortPick.exists():
-				if (toggles.ITEM_SYS == 3): #item_inacive assignment
-					minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
-					minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
-					pickFrom = minTaskIP
-				chosenIP = choice(lastResortPick) # random choice from what's available
-				if not chosenIP.is_in_queue:
-					chosenIP.add_to_queue()
-					chosenIP.refresh_from_db()
-				return chosenIP
-
-			# if there's literally nothing left to be done, issue a placeholder task
-			else:
-				return None
+			return None
 	else:
 		return None
 
 def full_knowledge_pick(incompleteIP):
-		#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
-	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
 	if incompleteIP.exists():
 		predicatevalues = incompleteIP.values('predicate')
 		predicates = Predicate.objects.filter(id__in=predicatevalues)
@@ -398,9 +322,6 @@ def full_knowledge_pick(incompleteIP):
 
 
 def best_predicate_pick(incompleteIP):
-		#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
-	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
 	if incompleteIP.exists():
 		predicatevalues = incompleteIP.values('predicate')
 		predicates = Predicate.objects.filter(id__in=predicatevalues)
@@ -444,9 +365,6 @@ def best_predicate_pick(incompleteIP):
 		return None
 
 def worst_predicate_pick(incompleteIP):
-		#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
-	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
 	if incompleteIP.exists():
 		predicatevalues = incompleteIP.values('predicate')
 		predicates = Predicate.objects.filter(id__in=predicatevalues)
@@ -490,9 +408,6 @@ def worst_predicate_pick(incompleteIP):
 		return None
 
 def best_pick(incompleteIP):
-		#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
-	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
 	if incompleteIP.exists():
 		ground_false = incompleteIP.filter(true_answer=False)
 
@@ -522,9 +437,6 @@ def best_pick(incompleteIP):
 		return None
 
 def worst_pick(incompleteIP):
-		#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
-	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
 	if incompleteIP.exists():
 		ground_true = incompleteIP.filter(true_answer=True)
 		max_true_tasks = ground_true.aggregate(Max('tasks_out')).values()[0]
@@ -576,6 +488,8 @@ def move_window():
 # @return chosenPred, a predicate chosen based on the value of epsilon. ##
 
 def selectPred(predList):
+	#This hasn't been updated to use Django filters like annealingSelectPred has
+	#The alterations should be nearly identical, though.
 	rNum = random.random()
 	valueList = np.array([(pred.score) for pred in predList])
 	maxVal = max(valueList)
@@ -775,7 +689,7 @@ def updateCounts(workerTask, chosenIP):
 		chosenIP.predicate.refresh_from_db()
 
 		# change queue length accordingly if appropriate
-		if toggles.ADAPTIVE_QUEUE:
+		if toggles.ADAPTIVE_QUEUE_MODE < 4:
 			chosenIP.predicate.adapt_queue_length()
 			chosenIP.predicate.refresh_from_db()
 
