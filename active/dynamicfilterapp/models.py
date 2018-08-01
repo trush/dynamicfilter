@@ -859,7 +859,8 @@ class DummyTask(models.Model):
 @python_2_unicode_compatible
 class Join():
 	"""A join class to create an object for each join-able predicate """
-	###NOTE: N0TE WELL ALL YE WHO ENTER HERE: in join and surrounding mechanisms, we refer to the secondary predicate as the "small predicate" and Itemwise joins as "pairwise joins." We recognize that this doesn't really make sense. It's just an artifact of our vernacular.
+	###NOTE: N0TE WELL ALL YE WHO ENTER HERE: in join and surrounding mechanisms, we refer to the secondary predicate as the "small predicate" and Itemwise joins as "pairwise joins." We recognize that this doesn't really make sense. It's just an artifact of our vernacular. 
+	# In addition, note that join is a class and not a model, so other objects do not have access to it unless they are passed the join or they create it. Also, join does not have direct access to its predicate.
 
 	#----------------------- CONSTRUCTOR -----------------------#
 

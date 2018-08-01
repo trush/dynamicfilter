@@ -78,6 +78,7 @@ REWARD = 1.7
 # ************************************************************************ #
 #see the Join class in models.py for more information
 USE_JOINS = True
+PROPORTION_JOINS = 1.0
 ## Settings #-----------------------###############
 
 if not REAL_DATA:
@@ -287,7 +288,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'AVG_MATCHES', 'STDDEV_MATCHES', 'SMALL_P_SELECTIVITY', 'TIME_TO_EVAL_SMALL_P',
             'HAS_LIST2', 'private_list2', 'THRESHOLD', 'EXPLORATION_REQ', 'JOIN_AMBIGUITY',
             'SP_AMBIGUITY', 'PJF_AMBIGUITY', 'SMALL_P_TIME_STD', 'JOIN_TIME_STD', 'PJF_TIME_STD',
-            'pjf_dict', 'GEN_PJF_TIME', 'GEN_PJF_STD', 'GEN_PJF_AMBIGUITY'
+            'pjf_dict', 'GEN_PJF_TIME', 'GEN_PJF_STD', 'GEN_PJF_AMBIGUITY', 'PROPORTION_JOINS'
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file
