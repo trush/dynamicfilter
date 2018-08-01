@@ -238,10 +238,7 @@ associated with no IP Pair and give no information to the algorithm. \n
 \endlink - TODO: What does this do? \n
 
 \link dynamicfilterapp.toggles.NUM_SIM NUM_SIM  \endlink - The number of repetitions of a
-simulation that will be run. \n
-
-\link dynamicfilterapp.toggles.NUM_GRAPH_SIM NUM_GRAPH_SIM  \endlink - The number of repetitions of the
-sim in visualizeMultiRuns that will be run. \n
+simulation that will be run with the default toggle settings. \n
 
 \link dynamicfilterapp.toggles.TIME_SIMS TIME_SIMS \endlink - Turns on functionality that
 tracks the computer runtime for various functions within the algorithm run. Useful for
@@ -266,19 +263,30 @@ time. \n
 number of tasks that can be distributed for a given IP Pair in total. \n
 
 \link dynamicfilterapp.toggles.MULTI_SIM MULTI_SIM \endlink - Determines whether to run multiple
-simulations for every configuration in MULTI_SIM_ARRAY \n
+simulations for every configuration in MULTI_SIM_ARRAY. This feature is helpful to run simulations with multiple 
+settings, run multiple simulations for a single setting, and generate helpful graphs, statistics. 
+If this is turned on, it is good to have NUM_SIM as 0 to prevent from running simulations with default 
+toggle settings and doing unnecessary work in test_simulation. GEN_GRAPH should be True.
+  - For each simulation, it prints active tasks, queue size, and ticket count graphs.
+  - For each setting, it prints multiRunStats (that holds number of placeholder tasks, wasted tasks, real tasks 
+  (all tasks other than placeholder tasks), time steps, and their mean and standard deviation. It also prints
+  overall tasks routed to each predicate (predicate_routing), ticket count of each predicate (ticket_count, ticket_histogram)
+  precise selectivities of the predicates (precise_selectivities).
+  - Over multiple settings, it prints the number of tasks required to complete queries in different settings (task_distribution, task_histogram). \n
 
 \link dynamicfilterapp.toggles.MULTI_SIM_ARRAY MULTI_SIM_ARRAY \endlink - A list of tuples of form 
   - number of simulations for this configuration
-  - tuple of (IP_LIMIT_SYS, ITEM_IP_LIMIT)
-  - ACTIVE_TASKS_ARRAY 
-  - QUEUE_LENGTH_ARRAY or PENDING_QUEUE_SIZE
   - switch_list
-  - ADAPTIVE_QUEUE_MODE
-  - TICKETING_SYS
-  - BATCH_ASSIGNMENT
-  - REFILL_PERIOD
   - EDDY_SYS
+  - BATCH_ASSIGNMENT
+  - ACTIVE_TASKS_ARRAY 
+  - REFILL_PERIOD: only matters if BATCH_ASSIGNMENT is 2 (periodic batch)
+  - TICKETING_SYS
+  - ADAPTIVE_QUEUE_MODE
+  - QUEUE_LENGTH_ARRAY or PENDING_QUEUE_SIZE: QUEUE_LENGTH_ARRAY only matters if ADAPTIVE_QUEUE_MODE is 0 or 1
+  - tuple of (IP_LIMIT_SYS, ITEM_IP_LIMIT): ITEM_IP_LIMIT only matters if IP_LIMIT_SYS is 2 or 3 (hard or soft limit)
+  
+  
 
 \section output Output Settings
 \subsection file File Management
@@ -361,18 +369,6 @@ in simulated runs. \n
 \link dynamicfilterapp.toggles.TASK_ROUTING TASK_ROUTING  \endlink - Tracks the
 number of tasks routed to each predicate over the course of a single simulation AND multiple runs
 over a single setting \n
-
-\link dynamicfilterapp.toggles.EDDY_SET EDDY_SET  \endlink - List of integers (values for toggle 
-EDDY_SYS) that is taken in as an input for visualizeMultiRuns in test_simulations.py. Requires 
-TRACK_ACTIVE_TASKS to be turned on. \n
-
-\link dynamicfilterapp.toggles.QUEUE_SET QUEUE_SET  \endlink - List of integers (values for toggle 
-PENDING_QUEUE_SIZE) that is taken in as an input for visualizeMultiRuns in test_simulations.py. 
-Requires TRACK_ACTIVE_TASKS to be turned on.\n
-
-\link dynamicfilterapp.toggles.ACTIVE_TASKS_SET ACTIVE_TASKS_SET  \endlink - List of integers 
-(values for toggle ACTIVE_TASKS_SIZE) that is taken in as an input for visualizeMultiRuns 
-in test_simulations.py. Requires TRACK_ACTIVE_TASKS to be turned on.\n
 
 \link dynamicfilterapp.toggles.ACCURACY_COUNT ACCURACY_COUNT  \endlink - TODO: What
 does this do? \n

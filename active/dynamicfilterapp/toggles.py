@@ -120,7 +120,6 @@ DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = False
 
 NUM_SIM = 0
-NUM_GRAPH_SIM = 0
 
 SIMULATE_TIME = True # simulate time passing/concurrency
 
@@ -133,18 +132,9 @@ MAX_TASKS_OUT = 40
 MAX_TASKS_COLLECTED = CUT_OFF
 
 MULTI_SIM = True 
+MULTI_SIM_ARRAY = [(1,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],5,1,[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)], 100, 1, 4, 100, (0, 1))]
+# (number of simulations, switch_list, EDDY_SYS, BATCH_ASSIGNMENT, ACTIVE_TASKS_ARRAY, REFILL_PERIOD, TICKETING_SYS, ADAPTIVE_QUEUE_MODE, QUEUE_LENGTH_ARRAY/PENDING_QUEUE_SIZE, (IP_LIMIT_SYS, ITEM_IP_LIMIT))
 
-
-
-MULTI_SIM_ARRAY = [(35,(0, 1),[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)],150,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],4,1,1,100,5),
-(None, None, None, 113, None, None, None, None, None, None),
-(None, None, None, 75, None, None, None, None, None, None),
-(None, None, None, 38, None, None, None, None, None, None),
-(None, None, None, 150, [(0, (.5,.25,1), (.5,.25,1), (.5,.25,2), (.5,.25,2), (.5,.25,3), (.5,.25,3))], None, None, None, None, None),
-(None, None, None, 113, None, None, None, None, None, None),
-(None, None, None, 75, None, None, None, None, None, None),
-(None, None, None, 38, None, None, None, None, None, None)]
-#(# of tests, (limit sys, limit), active task array, queue size/adaptie queue array, switch list, adaptive queue mode, ticketing, batch sys, period, eddy sys)
 
 # ************************************************************************ #
 
@@ -202,9 +192,6 @@ TRACK_WASTE = True  # Tracks tasks leftover from finished items
 TRACK_SELECTIVITIES = True # Mostly made for when REAL_DATA = False
 TASK_ROUTING = True
 
-EDDY_SET = [5]       # Used only when TRACK_ACTIVE_TASKS is true   
-QUEUE_SET = [40] 
-ACTIVE_TASKS_SET = [160]
 
 TEST_ACCURACY = False
 ACCURACY_COUNT = False
@@ -241,8 +228,8 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM', 'SIM_TIME_STEP', 'TRACK_WASTE', 
-            'EDDY_SET', 'QUEUE_SET', 'ACTIVE_TASKS_SET', 'ACTIVE_TASKS_ARRAY', 'TASK_ROUTING',
-            'NUM_SIM','TIME_SIMS','SIMULATE_TIME', 'NUM_GRAPH_SIM', 'BATCH_ASSIGNMENT',
+            'ACTIVE_TASKS_ARRAY', 'TASK_ROUTING',
+            'NUM_SIM','TIME_SIMS','SIMULATE_TIME', 'BATCH_ASSIGNMENT',
             'ACTIVE_TASKS_SIZE', "MAX_TASKS_COLLECTED", "MAX_TASKS_OUT", 'BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
             'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES', 'REFILL_PERIOD',
             'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES',

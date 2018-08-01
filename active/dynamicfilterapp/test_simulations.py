@@ -2076,71 +2076,7 @@ class SimulationTest(TransactionTestCase):
 
 		self.reset_database()
 
-	## \todo write this docstring
-	def visualizeMultiRuns(self, data, queueSet, activeTasksSet, eddySet):
-		save = []
-		save1 = []
-		save2 = []
-		graph_out = []
-		graph_out1 = []
-		graph_out2 = []
 
-		# keep original toggles
-		origEddySize = toggles.EDDY_SYS
-		origPendingQueueSize = toggles.PENDING_QUEUE_SIZE
-		origActiveTasksSize = toggles.ACTIVE_TASKS_SIZE
-		
-		for e in eddySet:
-			toggles.EDDY_SYS = e
-
-			for q in queueSet:
-				toggles.PENDING_QUEUE_SIZE = q
-
-				for a in activeTasksSet:
-					# toggles.MAX_TASKS_OUT = toggles.NUM_CERTAIN_VOTES
-
-					for run in range(toggles.NUM_GRAPH_SIM):
-						toggles.ACTIVE_TASKS_SIZE = a
-						self.visualizeActiveTasks(data, run)
-						print "Completed run: " + str(run) + " for e = " + str(e) + ", q = " + str(q) + ", a = " + str(a)
-						
-					save.append([e, q, a])
-					save1.append([e, q, a])
-					save2.append([e, q, a])
-					save.append(self.num_tasks_array)
-					save1.append(self.simulated_time_array)
-					save2.append(self.num_real_tasks_array)
-					graph_out.append(([e, q, a], self.num_tasks_array))
-					graph_out1.append( ([e, q, a], self.simulated_time_array))
-					graph_out2.append( ([e, q, a], self.num_real_tasks_array) )
-					self.reset_arrays()
-
-				if toggles.EDDY_SYS == 2:
-					break
-
-		dest = toggles.OUTPUT_PATH + "changingConfigTaskCounts"
-		generic_csv_write(dest+".csv", save)
-
-		dest1 = toggles.OUTPUT_PATH + "changingConfigSimTimes"
-		generic_csv_write(dest1+".csv", save1)
-
-		dest2 = toggles.OUTPUT_PATH + "changingConfigRealTaskCounts"
-		generic_csv_write(dest2+'.csv', save2)
-
-		if toggles.DEBUG_FLAG:
-			print "Wrote file: " + dest + ".csv"
-			print "Wrote file: " + dest1 + ".csv"
-			print "Wrote file: " + dest2 + ".csv"
-
-		if toggles.GEN_GRAPHS:
-			graphGen.task_distributions(graph_out, dest, False)
-			graphGen.simulated_time_distributions(graph_out1, dest1)
-			graphGen.task_distributions(graph_out2, dest2, True)
-
-		# reset to original toggle settings
-		toggles.EDDY_SYS = origEddySize
-		toggles.PENDING_QUEUE_SIZE = origPendingQueueSize
-		toggles.ACTIVE_TASKS_SIZE = origActiveTasksSize
 
 
 
@@ -2180,37 +2116,38 @@ class SimulationTest(TransactionTestCase):
 			if not os.path.exists(toggles.OUTPUT_PATH):
 				makedirs(toggles.OUTPUT_PATH)
 
+
+			# in the order that was added to the MULTI_SIM_ARRAY
 			if not setting[0] == None:
 				numSim = setting[0]	# number of simulations for current setting
-			if not setting[1] == None:
-				toggles.IP_LIMIT_SYS = setting[1][0] 		# predicate limit mode
+			if not setting[9] == None:
+				toggles.IP_LIMIT_SYS = setting[9][0] 		# predicate limit mode
 				if toggles.IP_LIMIT_SYS >= 2:# for hard, soft limit
-					toggles.ITEM_IP_LIMIT = setting[1][1] 	# predicate limit
-			if not setting[2] == None:
+					toggles.ITEM_IP_LIMIT = setting[9][1] 	# predicate limit
+			if not setting[4] == None:
 				toggles.ACTIVE_TASKS_ARRAY = setting[2] 	# batch size
-			if not setting[3] == None:
+			if not setting[8] == None:
 				if isinstance(setting[3], list):
 					toggles.QUEUE_LENGTH_ARRAY = setting[3] 	# adaptive queue length
 				else:
 					toggles.PENDING_QUEUE_SIZE = setting[3]
 					tempLength = setting[3]
-			if not setting[4] == None:
-				toggles.switch_list = setting[4]			# predicate selectivity, ambiguity, cost settings
-			if not setting[5] == None:
+			if not setting[1] == None:
+				toggles.switch_list = setting[1]			# predicate selectivity, ambiguity, difficulty settings
+			if not setting[7] == None:
 				toggles.ADAPTIVE_QUEUE_MODE = setting [5]	
 			if not setting[6] == None:
 				toggles.TICKETING_SYS = setting[6]
-			if not setting[7] == None:
+			if not setting[3] == None:
 				toggles.BATCH_ASSIGNMENT = setting[7]
-			if not setting[8] == None:					
+			if not setting[5] == None:					
 				toggles.REFILL_PERIOD = setting[8]
-			if not setting[9] == None:
+			if not setting[2] == None:
 				toggles.EDDY_SYS = setting[9]
 
 			# set up output files
 			save = []
-			save.append(["Setting:", "Predicate Limit Mode", "Predicate Limit", "Active Task Array", "Queue Array", "Switch List", "Adaptive Queue Mode", "Ticketing System", "Batch Assignment", "Refill Period", "Eddy Mode"])
-			save.append(["",toggles.IP_LIMIT_SYS, toggles.ITEM_IP_LIMIT, str(toggles.ACTIVE_TASKS_ARRAY), str(toggles.QUEUE_LENGTH_ARRAY), str(toggles.switch_list), toggles.ADAPTIVE_QUEUE_MODE, toggles.TICKETING_SYS, toggles.BATCH_ASSIGNMENT, toggles.REFILL_PERIOD, toggles.EDDY_SYS])
+			save.append(list(setting))
 			save.append(["Run", "Placeholder tasks", "Wasted tasks", "Total tasks", "Time"])
 
 			for run in range(numSim):
@@ -2243,6 +2180,7 @@ class SimulationTest(TransactionTestCase):
 			if toggles.DEBUG_FLAG:
 				print "Wrote file: " + dest1 + ".csv"
 
+			# generates a histogram of number of tickets each predicate holds at the end of each simulation in this setting
 			if toggles.COUNT_TICKETS and numSim > 0:
 				ticketList = self.num_tickets_dict.values()
 				predList = range(len(self.recent_predicates))
@@ -2294,7 +2232,7 @@ class SimulationTest(TransactionTestCase):
 
 			settingCount += 1
 
-		#task histogram over multiple settings
+		#  generates a histogram of number of tasks each setting took over multiple simulations
 		if toggles.GEN_GRAPHS:
 			toggles.OUTPUT_PATH = origDest
 			dest3 = toggles.OUTPUT_PATH + "task_histogram"
@@ -2647,18 +2585,11 @@ class SimulationTest(TransactionTestCase):
 		if toggles.RUN_ABSTRACT_SIM:
 			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
 
-		if toggles.TRACK_ACTIVE_TASKS:
-			# create sets for visualizeMultiRuns
-			eddySet = toggles.EDDY_SET
-			queueSet = toggles.QUEUE_SET
-			activeTasksSet = toggles.ACTIVE_TASKS_SET
-			
-			if toggles.NUM_GRAPH_SIM > 0:
-				self.visualizeMultiRuns(sampleData, queueSet, activeTasksSet, eddySet)
-
+		# run multiple simulations for various configurations in toggles.MULTI_RUN_ARRAY and generates visuals
+		# most of the testing was completed through this function
 		if toggles.MULTI_SIM: 
 			self.runMultiSims(sampleData)
-			# run multiple simulations for various configurations in toggles.MULTI_RUN_ARRAY
+			
 
 
 	# def test_3(self):

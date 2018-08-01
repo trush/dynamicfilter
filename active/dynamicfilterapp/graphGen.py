@@ -61,8 +61,7 @@ def placeholder_time_graph(data, dest):
     yL = [task_counts, placeholder_counts]
     legendList = ["'Real Tasks'", "Placeholders"]
     labels = ("Time Steps", "Number of tasks released")
-    title = "Real and Placeholder Task Counts Over Time - Active Tasks: " + str(toggles.ACTIVE_TASKS_SIZE) + " Queue: " + str(toggles.PENDING_QUEUE_SIZE)
-
+    title = "Real and Placeholder Task Counts Over Time for Current Configuration"
     multi_line_graph_gen(xL, yL, legendList, dest+".png", labels = labels, title = title)
 
     gen_message(dest)
@@ -73,7 +72,7 @@ def visualize_active_tasks(data, dest):
     yL = [data[i][1][::20] for i in range(1, len(data))]
     legendL = [data[i][0] for i in range(1, len(data))]
     labels = ("Time Steps", "Tasks in Active Array")
-    title = "Composition of Active Tasks Array over Time for Queue Size " + str(toggles.PENDING_QUEUE_SIZE) + " and Active Tasks Array " + str(toggles.ACTIVE_TASKS_SIZE)
+    title = "Active Tasks Over Time for Current Configuration"
 
     split_bar_graph_gen(yL, xL, dest+".png", legendL, labels=labels, title = title, split = "horizontal", fig_size = (15, 5), tight=True)
 
@@ -86,7 +85,7 @@ def ticket_counts(data, dest):
     yL = [data[i][1] for i in range(1, len(data))]
     legendL = [data[i][0] for i in range(1, len(data))]
     labels = ("Time Steps", "Number of Tickets")
-    title = "Number of Tickets for Each Predicate During 1 Simulation"
+    title = "Number of Tickets Over Time for Current Configuration"
 
     multi_line_graph_gen(xL, yL, legendL, dest+".png", labels = labels, title = title)
 
@@ -99,7 +98,7 @@ def queue_sizes(data, dest):
     yL = [data[i][1] for i in range(1, len(data))]
     legendL = [data[i][0] for i in range(1, len(data))]
     labels = ("Time Steps", "Sizes of Predicate Queues")
-    title = "Queue Sizes for Each Predicate During 1 Simulation"
+    title = "Queue Sizes for Each Predicate for Current Configuration"
 
     multi_line_graph_gen(xL, yL, legendL, dest+".png", labels = labels, title = title)
 
