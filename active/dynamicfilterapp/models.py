@@ -859,6 +859,7 @@ class DummyTask(models.Model):
 @python_2_unicode_compatible
 class Join():
 	"""A join class to create an object for each join-able predicate """
+	###NOTE: N0TE WELL ALL YE WHO ENTER HERE: in join and surrounding mechanisms, we refer to the secondary predicate as the "small predicate" and Itemwise joins as "pairwise joins." We recognize that this doesn't really make sense. It's just an artifact of our vernacular.
 
 	#----------------------- CONSTRUCTOR -----------------------#
 
@@ -1701,6 +1702,8 @@ class Join():
 					if self.list2_not_eval:
 						IP_pair.set_task_types(IP_pair.get_task_types() + ["PJF2", "join"])
 						IP_pair.save(update_fields=["task_types"])
+						#we update task_types like this because we want to get an estimate of the whole process before it finishes running
+						# so pjf works on only one item at a time, and adds more of these tasks to the end so that we eventually finish this join
 					if not IP_pair.get_join_fins()[3]:
 						IP_pair.set_join_fins([False, False, False, True, False, False])
 						IP_pair.save(update_fields = ["join_fins"])
