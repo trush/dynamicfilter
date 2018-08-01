@@ -58,9 +58,60 @@ def pending_eddy(ID):
 	#filter through to find viable ip_pairs to choose from
 	completedTasks = Task.objects.filter(workerID=ID)
 	completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
+	#There are a lot of redundant filters happening, generally most of them can be pulled up here, we just ran out of time
 	incompleteIP = unfinishedList.exclude(id__in = completedIP)
 	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
 	incompleteIP = incompleteIP.exclude(id__in=maxReleased)
+
+	#queue_pending_system:
+	if (toggles.EDDY_SYS == 1):
+		# filter out the ips that are not in the queue of full predicates
+		outOfFullQueue = incompleteIP.filter(predicate__queue_is_full=True, inQueue=False)
+		nonUnique = incompleteIP.filter(inQueue=False, item__inQueue=True)
+		allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+		maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+		incompleteIP = incompleteIP.exclude(id__in=outOfFullQueue).exclude(id__in=nonUnique).exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+		# if there are IP pairs that could be assigned to this worker
+		if incompleteIP.exists():
+			chosenIP = lotteryPendingQueue(incompleteIP)
+			chosenIP.refresh_from_db()
+		else:
+			chosenIP = None
+
+
+	#random_system:
+	elif (toggles.EDDY_SYS == 2):
+		if not incompleteIP.exists():
+			print "Worker has completed all IP pairs left to do"
+		allTasksOut = incompleteIP.filter(tasks_out__gte=toggles.MAX_TASKS_OUT)
+		maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
+		incompleteIP = incompleteIP.exclude(id__in=allTasksOut).exclude(id__in=maxReleased)
+		if incompleteIP.exists():
+			startedIPs = incompleteIP.filter(isStarted=True)
+			if startedIPs.exists():
+				incompleteIP = startedIPs
+			chosenIP = choice(incompleteIP)
+		else:
+
+			chosenIP = None
+
+
+	#controlled_system:
+	elif (toggles.EDDY_SYS == 3):
+		#this config will run pred[0] first ALWAYS and then pred[1]
+		if incompleteIP.exists():
+			chosenPred = Predicate.objects.get(pk=1+CHOSEN_PREDS[0])
+			tempSet = incompleteIP.filter(predicate=chosenPred)
+			if tempSet.exists():
+				incompleteIP = tempSet
+			chosenIP = choice(incompleteIP)
+		else:
+			chosenIP = None
+
+
+	#system that uses ticketing and finishes an IP pair once started
+	elif (toggles.EDDY_SYS == 4):
+		chosenIP = useLottery(incompleteIP)
 
 	#Limits the number of predicates an item is being evaluated under simultaneously
 	if toggles.IP_LIMIT_SYS >= 2: # hard or soft limit
@@ -100,16 +151,11 @@ def pending_eddy(ID):
 			if toggles.DEBUG_FLAG:
 				print "Warning: no IP pair for worker "
 	elif toggles.EDDY_SYS == 11: 
-		chosenIP = random_pick(incompleteIP)
-		if chosenIP == None:
-			if toggles.DEBUG_FLAG:
-				print "Warning: no IP pair for worker "
-	elif toggles.EDDY_SYS == 12: 
 		chosenIP = best_pick(incompleteIP)
 		if chosenIP == None:
 			if toggles.DEBUG_FLAG:
 				print "Warning: no IP pair for worker "
-	elif toggles.EDDY_SYS == 13: 
+	elif toggles.EDDY_SYS == 12: 
 		chosenIP = worst_pick(incompleteIP)
 		if chosenIP == None:
 			if toggles.DEBUG_FLAG:
@@ -504,19 +550,6 @@ def worst_pick(incompleteIP):
 		# if there's literally nothing left to be done, issue a placeholder task
 		else:
 			return None
-	else:
-		return None
-
-def random_pick(incompleteIP):
-		#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
-	maxReleased = incompleteIP.extra(where=["tasks_collected + tasks_out >= " + str(toggles.MAX_TASKS_COLLECTED)])
-	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False).exclude(id__in=maxReleased)
-	if incompleteIP.exists():
-		chosenIP = choice(incompleteIP)
-		if not chosenIP.is_in_queue:
-			chosenIP.add_to_queue()
-			chosenIP.refresh_from_db()
-		return chosenIP 
 	else:
 		return None
 

@@ -73,9 +73,8 @@ Algorithm Guide:
   - 8 - Full knowledge, proportional
   - 9 - Best Predicate pick: knows selectivities and assigns tasks to most selective
   - 10 - Worst Predicate pick: knows selectivities and assigns tasks to least selective
-  - 11 - Random
-  - 12 - Best Pick: knows the true value of IP pairs and assign tasks to false IP pairs
-  - 13 - Worst Pick: knows the true value of IP pairs and assign tasks to true IP pairs
+  - 11 - Best Pick: knows the true value of IP pairs and assign tasks to false IP pairs
+  - 12 - Worst Pick: knows the true value of IP pairs and assign tasks to true IP pairs
 
 
 \n
