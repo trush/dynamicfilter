@@ -25,7 +25,7 @@ TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PAT
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
 NUM_QUESTIONS = 6
-NUM_ITEMS = 150
+NUM_ITEMS = 100
 SIN = -1
 SELECTIVITY_GRAPH = False
 switch_list = [(0, (0,0), (0,0), (0,0), (0,0), (0,0), (0,0))]

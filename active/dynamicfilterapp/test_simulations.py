@@ -764,6 +764,7 @@ class SimulationTest(TransactionTestCase):
 		else:
 			return int(orig * .05)
 
+	# Deprecated?
 	def set_tps(self, ratio, orig):
 		if ratio < .5:
 			return orig
@@ -2129,25 +2130,25 @@ class SimulationTest(TransactionTestCase):
 				if toggles.IP_LIMIT_SYS >= 2:# for hard, soft limit
 					toggles.ITEM_IP_LIMIT = setting[9][1] 	# predicate limit
 			if not setting[4] == None:
-				toggles.ACTIVE_TASKS_ARRAY = setting[2] 	# batch size
+				toggles.ACTIVE_TASKS_ARRAY = setting[4] 	# batch size
 			if not setting[8] == None:
-				if isinstance(setting[3], list):
-					toggles.QUEUE_LENGTH_ARRAY = setting[3] 	# adaptive queue length
+				if isinstance(setting[8], list):
+					toggles.QUEUE_LENGTH_ARRAY = setting[8] 	# adaptive queue length
 				else:
-					toggles.PENDING_QUEUE_SIZE = setting[3]
-					tempLength = setting[3]
+					toggles.PENDING_QUEUE_SIZE = setting[8]
+					tempLength = setting[8]
 			if not setting[1] == None:
 				toggles.switch_list = setting[1]			# predicate selectivity, ambiguity, difficulty settings
 			if not setting[7] == None:
-				toggles.ADAPTIVE_QUEUE_MODE = setting [5]	
+				toggles.ADAPTIVE_QUEUE_MODE = setting[7]	
 			if not setting[6] == None:
 				toggles.TICKETING_SYS = setting[6]
 			if not setting[3] == None:
-				toggles.BATCH_ASSIGNMENT = setting[7]
+				toggles.BATCH_ASSIGNMENT = setting[3]
 			if not setting[5] == None:					
-				toggles.REFILL_PERIOD = setting[8]
+				toggles.REFILL_PERIOD = setting[5]
 			if not setting[2] == None:
-				toggles.EDDY_SYS = setting[9]
+				toggles.EDDY_SYS = setting[2]
 
 			# set up output files
 			save = []
