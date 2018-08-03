@@ -282,6 +282,7 @@ toggle settings and doing unnecessary work in test_simulation. GEN_GRAPH should 
   - ADAPTIVE_QUEUE_MODE
   - QUEUE_LENGTH_ARRAY or PENDING_QUEUE_SIZE: QUEUE_LENGTH_ARRAY only matters if ADAPTIVE_QUEUE_MODE is 0 or 1
   - tuple of (IP_LIMIT_SYS, ITEM_IP_LIMIT): ITEM_IP_LIMIT only matters if IP_LIMIT_SYS is 2 or 3 (hard or soft limit)
+  If None is put as a value in the tuple, it will use the last defined value for that toggle.
   
   
 
