@@ -1349,6 +1349,7 @@ class Join():
 						# add to list 2
 						if match[1] not in self.list2 and match[1] not in self.failed_by_smallP:
 							self.list2 += [match[1]]
+							print "we are here adding to list2, which is now" + str(self.list2)
 						# add to f_dictionary
 						if not any(self.f_dictionary):
 							self.f_dictionary[1] = [match[1]]
@@ -1405,6 +1406,9 @@ class Join():
 				item2 = sample[i]
 				matches.append((item1, item2))
 				timer += self.FIND_SINGLE_MATCH_TIME
+
+			ip_pair.set_correct_matches([item2 for (item1,item2) in matches])
+			ip_pair.save(update_fields = ["correct_matches"])
 		else:
 			num_matches = int(round(numpy.random.normal(self.AVG_MATCHES, self.STDDEV_MATCHES, None)))
 			matches = []
@@ -1446,7 +1450,6 @@ class Join():
 			print "Time taken to find matches: " + str(timer)
 			print "-----------------------"
 		timer += self.BASE_FIND_MATCHES
-		matches = [(a,x.encode('ascii')) for (a,x) in matches]
 		return matches, timer
 
 	## @param self
@@ -1537,8 +1540,11 @@ class Join():
 	# @return timer : the time taken to do said task
 	# @remarks This is what is called in simulate_task() where the task answer and time are retrieved and saved.
 	def main_join(self, task_type, IP_pair=None, predicate=None):
+		# tracking progress
 		print "at the top of main_join with task_type: " + str(task_type)
-		print "ip: " + str(IP_pair) + " or pred: " + str(predicate)
+		# print "ip: " + str(IP_pair) + " or pred: " + str(predicate)
+
+
 		#if the upcoming task does not require an item from list1 
 		# i.e. small_p or Pairwise on list 2
 		if IP_pair is None and predicate is None:
@@ -1634,6 +1640,10 @@ class Join():
 				raise Exception("Your Predicate/IP_Pair doesn't match the expected task_types for Join.")
 		#the upcoming task works for a single IP pair, like most tasks
 		else:
+			#we ensure that we know this IP pair has been started
+			if not IP_pair.isStarted:
+				IP_pair.isStarted = True
+				IP_pair.save(update_fields = ["isStarted"])
 			#running & managing pairwise joins on list1
 			if task_type == "gen_PJF":
 				if self.use_PJF is not None:
@@ -1661,8 +1671,6 @@ class Join():
 					self.done = False
 					IP_pair.set_join_pairs(matches)
 					IP_pair.save(update_fields=["join_pairs"])
-					print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-					print "we are here having made progress"
 					if IP_pair.get_task_types() == []:
 						raise Exception("too many deletions")
 					if not IP_pair.get_join_fins()[1]:
@@ -1833,7 +1841,7 @@ class Join():
 		""" This is the main join function. It calls PW_join(), PJF_join(), and small_pred(). Uses 
 		cost estimates to determine which function to call item by item."""
 		buf1 = len(self.results_from_all_join) < .1*len(self.list1)
-		# reconsider these a bit 
+		# reconsider this a bit 
 
 		if not self.has_2nd_list: # PW join on list1, no list2 yet
 			if not buf1 and self.chao_estimator():

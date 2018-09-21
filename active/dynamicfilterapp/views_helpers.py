@@ -189,6 +189,7 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 			# if we are not using an ip_pair we are using a pred 
 			if not cur_join.use_item():
 				task_types = cur_join.assign_join_tasks() # note: theoretically is use_item() is False, then assign_join_tasks will be for pred
+				print str(chosenPred) + " receives task types " + str(task_types)
 				# if we don't have tasks to do, get some!
 				if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
 					chosenPred.set_task_types(task_types)
@@ -205,6 +206,18 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 
 		pickFrom = incompleteIP.filter(predicate = chosenPred)
 
+		#if our predicate is joinable, we prefer IP pairs that have been started
+		# our preference is measured by the toggle STARTED_JOIN_RATIO
+		if chosenPred in active_joins:
+			r = random.random()
+			if r < toggles.STARTED_JOIN_RATIO:
+				tempPick = pickFrom.filter(isStarted = True)
+				if not tempPick:
+					pass
+				else:
+					pickFrom = tempPick
+		
+
 		# Choose an available pair from the chosen predicate
 		if pickFrom.exists():
 			# print "*"*10 + " Condition 6 invoked " + "*"*10
@@ -216,7 +229,6 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 			chosenIP = choice(pickFrom)
 			chosenIP.refresh_from_db()
 			if not chosenIP.task_types == "" and chosenIP.get_task_types() == []:
-				#A patch solution. Find root cause?
 				print chosenIP
 				print chosenIP.isDone
 				raise Exception("this task is done")
@@ -230,6 +242,7 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 					if "PWl2" in task_types:
 						raise Exception("assigning predicate tasks to IP pairs")
 					chosenIP.set_task_types(task_types)
+					print str(chosenIP) + " receives task types " + str(task_types)
 					chosenIP.save(update_fields=["task_types"])
 			return chosenIP 
 
@@ -254,6 +267,7 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 				task_types = cur_join.assign_join_tasks()
 				if chosenIP.task_types == "" or chosenIP.get_task_types() == []  :
 					chosenIP.set_task_types(task_types)
+					print str(chosenIP) + " receives task types " + str(task_types)
 			return chosenIP
 
 

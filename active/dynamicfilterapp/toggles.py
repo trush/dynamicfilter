@@ -6,7 +6,7 @@ import responseTimeDistribution
 
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
-DEBUG_FLAG = False
+DEBUG_FLAG = True
 SIM_TIME_STEP = 60
 # ************************************************************************ #
 
@@ -79,6 +79,7 @@ REWARD = 1.7
 #see the Join class in models.py for more information
 USE_JOINS = True
 PROPORTION_JOINS = 1.0
+STARTED_JOIN_RATIO = 0.5
 ## Settings #-----------------------###############
 
 if not REAL_DATA:
@@ -97,8 +98,8 @@ if not REAL_DATA:
         ## PWJoin in particular 
     BASE_FIND_MATCHES = 6.0     #Basic requirement to find some matches
     FIND_SINGLE_MATCH_TIME = 0.70 #cost per match found
-    AVG_MATCHES = 2.5 #average matches per item
-    STDDEV_MATCHES = 0.75 #standard deviation of matches
+    AVG_MATCHES = 5 #average matches per item
+    STDDEV_MATCHES = 1 #standard deviation of matches
 
         ## small predicate in particular
     SMALL_P_SELECTIVITY = 0.5
@@ -107,7 +108,7 @@ if not REAL_DATA:
     SP_AMBIGUITY = 0.0
 
         ## Other private variables used for simulations
-    HAS_LIST2 = True
+    HAS_LIST2 = False
     EXPLORATION_REQ = 5 #once join has two lists, it will try each path this many times at least
     private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
     pjf_dict = {"PJF1": (0.1, 10.0), "PJF2": (0.75, 2.0), "PJF3": (0.35, 14.0), "PJF4": (0.66, 7.0)}
@@ -288,7 +289,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'AVG_MATCHES', 'STDDEV_MATCHES', 'SMALL_P_SELECTIVITY', 'TIME_TO_EVAL_SMALL_P',
             'HAS_LIST2', 'private_list2', 'THRESHOLD', 'EXPLORATION_REQ', 'JOIN_AMBIGUITY',
             'SP_AMBIGUITY', 'PJF_AMBIGUITY', 'SMALL_P_TIME_STD', 'JOIN_TIME_STD', 'PJF_TIME_STD',
-            'pjf_dict', 'GEN_PJF_TIME', 'GEN_PJF_STD', 'GEN_PJF_AMBIGUITY', 'PROPORTION_JOINS'
+            'pjf_dict', 'GEN_PJF_TIME', 'GEN_PJF_STD', 'GEN_PJF_AMBIGUITY', 'PROPORTION_JOINS', 'STARTED_JOIN_RATIO'
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file
