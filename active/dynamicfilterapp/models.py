@@ -1097,6 +1097,7 @@ class Join():
 				self.avg_task_cons[0] = (self.avg_task_cons[0]*self.cons_count[0] + self.call_dict[item][0])/(self.cons_count[0] +1)
 				self.cons_count[0] += 1
 				self.done = True
+				print "set self.done to " + str(self.done) + " in pjf"
 				self.processed_by_PJF += 1
 				# if the item evaluated True for the PFJ then adjust selectivity
 				self.evaluated_with_PJF[item] = consensus_result
@@ -1119,13 +1120,15 @@ class Join():
 		timer_val = 0
 		if (i,j) in self.results_from_all_join:
 			return True, 0
-		if(not self.use_PJF or self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j]):
+		if(not self.use_PJF or (self.evaluated_with_PJF[i] and self.evaluated_with_PJF[j])):
 			# Generate task of current pair
 			timer_val += numpy.random.normal(self.JOIN_TIME, toggles.JOIN_TIME_STD,1)[0]
 			# If it is accepted in join process
 			if not (i,j) in self.join_ground_truth:
 				#for preliminary testing, we randomly choose whether or not an item passes
-				self.join_ground_truth[(i,j)] = random.random() < self.JOIN_SELECTIVITY
+				gt = random.random() < self.JOIN_SELECTIVITY
+				self.join_ground_truth[(i,j)] = gt
+				print "we are here with " + str((i,j)) + " gets " + str(gt)
 			if random.random() < toggles.SP_AMBIGUITY:
 				should_join = random.random() < .5
 			else:
@@ -1139,8 +1142,11 @@ class Join():
 			self.votes_for_matches[(i,j)] = [0,0]
 		if should_join:
 			self.votes_for_matches[(i,j)][0] += 1
+			print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ adding yes to votes"
 		else:
 			self.votes_for_matches[(i,j)][1] += 1
+			print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! adding no to votes"
+			print "use pjf? " + str(self.use_PJF) + " this PJF? " + str(self.evaluated_with_PJF[i]) + "other PJF? " + str(self.evaluated_with_PJF[j])
 		self.avg_task_cost[1] = (self.avg_task_cost[1] * (self.call_dict["join"] - 1) + timer_val) /self.call_dict["join"]
 		#check if we have reached consensus
 		consensus_result = self.find_consensus("join", (i,j))
@@ -1313,11 +1319,13 @@ class Join():
 				else:
 					self.evaluated_with_PJF["count2"] -= 1
 			self.done = True
+			print "set self.done to " + str(self.done) + " in pwj1"
 			return [], PW_timer
 
 		
 		if done:
 			self.done = True
+			print "set self.done to " + str(self.done) + " in pwj2"
 			#save costs and matches for estimates later
 			if itemlist == self.list1:
 				self.PW_cost_est_1 += [PW_timer]
@@ -1542,7 +1550,7 @@ class Join():
 	def main_join(self, task_type, IP_pair=None, predicate=None):
 		# tracking progress
 		print "at the top of main_join with task_type: " + str(task_type)
-		# print "ip: " + str(IP_pair) + " or pred: " + str(predicate)
+		print "ip: " + str(IP_pair) + " or pred: " + str(predicate)
 
 
 		#if the upcoming task does not require an item from list1 
@@ -1733,12 +1741,12 @@ class Join():
 					if consensus_res is None and j in self.evaluated_with_PJF:
 						join_done = False
 						eval_TF, join_timer = self.join_items(IP_pair.item.item_ID,j)
-						if self.done:
-							if IP_pair.small_p_done and find_consensus((IP_pair.item.item_ID,j)):
+						if self.find_consensus("join", (IP_pair.item.item_ID,j)) is not None:
+							if IP_pair.small_p_done and self.find_consensus("join", (IP_pair.item.item_ID,j)):
+								raise Exception("we are here")
 								results_from_all_join += [(IP_pair.item.item_ID,j)]
 								IP_pair.small_p_done = False #TODO:can we do this
 								self.list1.remove(IP_pair.item.item_ID)
-								self.done = False
 								if not IP_pair.get_join_fins()[4]:
 									IP_pair.set_join_fins([False, False, False, False, True, False])
 									IP_pair.save(update_fields = ["join_fins"])
@@ -1747,14 +1755,16 @@ class Join():
 									return True, join_timer, True
 								else:
 									return True, join_timer, False
-							elif find_consensus((IP_pair.item.item_ID,j)):
+							elif self.find_consensus("join",(IP_pair.item.item_ID,j)):
 								if not IP_pair.join_pairs:
 									IP_pair.set_join_pairs([])
 								IP_pair.set_join_pairs(IP_pair.get_join_pairs() + [(IP_pair.item.item_ID,j)])
 								IP_pair.save(update_fields = ["join_pairs"])
-							self.done = False
 						break
 				if join_done:
+					if not self.list2:
+						print "join issues are happening"
+						self.clear_ips(IP_pair.predicate)
 					if IP_pair.small_p_done and not self.list2_not_eval:
 						IP_pair.small_p_done = False
 						if not IP_pair.get_join_fins()[4]:
@@ -2029,9 +2039,11 @@ class Join():
 		#first, check if we've already evaluated this item
 		if item in self.evaluated_with_smallP:
 			self.done = True
+			print "set self.done to " + str(self.done) + " in small_pred1"
 			return True, 0
 		elif item in self.failed_by_smallP:
 			self.done = True
+			print "set self.done to " + str(self.done) + " in small_pred2"
 			return False, 0
 		#if not, evaluate it with the small predicate
 		else:
@@ -2067,6 +2079,7 @@ class Join():
 
 				# Tells main_join that we have reached consensus on the item it sent
 				self.done = True
+				print "set self.done to " + str(self.done) + " in small_pred3"
 				# Update the selectivity
 				self.selectivity_est[3] = (self.selectivity_est[3]*(self.cons_count[3])+eval_results)/(self.cons_count[3]+1)
 				#increment the number of items 
@@ -2144,7 +2157,7 @@ class Join():
 			if entry in self.votes_for_small_p:
 				votes_yes, votes_no = self.votes_for_small_p[entry]
 			else:
-				None
+				return None
 		elif for_task == "PJF":
 			if entry in self.votes_for_pjf:
 				votes_yes, votes_no = self.votes_for_pjf[entry]
