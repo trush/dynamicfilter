@@ -25,7 +25,7 @@ TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PAT
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
 NUM_QUESTIONS = 2
-NUM_ITEMS = 30
+NUM_ITEMS = 160
 SIN = -1
 SELECTIVITY_GRAPH = False
 switch_list = [ (0, (0.3,0), (0.3,0))]
@@ -84,7 +84,7 @@ STARTED_JOIN_RATIO = 0.5
 
 if not REAL_DATA:
         ## join data
-    JOIN_SELECTIVITY = 0.1
+    JOIN_SELECTIVITY = 0.2
     JOIN_TIME = 4.0 
     JOIN_TIME_STD = 0.5
     JOIN_AMBIGUITY = 0.0
@@ -111,7 +111,7 @@ if not REAL_DATA:
     HAS_LIST2 = False
     EXPLORATION_REQ = 5 #once join has two lists, it will try each path this many times at least
     private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
-    pjf_dict = {"PJF1": (0.1, 10.0), "PJF2": (0.75, 2.0), "PJF3": (0.35, 14.0), "PJF4": (0.66, 7.0)}
+    pjf_dict = {"PJF1": (0.3, 10.0), "PJF2": (0.75, 2.0), "PJF3": (0.35, 14.0), "PJF4": (0.66, 7.0)}
     GEN_PJF_AMBIGUITY = 0.1
     GEN_PJF_TIME = 5.0
     GEN_PJF_STD = 1.0
@@ -192,7 +192,7 @@ MULTI_SIM_ARRAY = [(1,(0, 1),[(0,0,0),(1,10,40),(10,150,200),(50,350,450)],[(0,4
 # ___ FILE MANAGEMENT ____ #
 RUN_NAME = 'aaa_test' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-GEN_GRAPHS = True
+GEN_GRAPHS = False
 PACKING=True
 
 if GEN_GRAPHS:

@@ -1133,7 +1133,6 @@ class Join():
 				should_join = random.random() < .5
 			else:
 				should_join = self.join_ground_truth[(i,j)]
-			
 		else:
 			should_join = False
 			timer_val = 0
@@ -1551,6 +1550,8 @@ class Join():
 		# tracking progress
 		print "at the top of main_join with task_type: " + str(task_type)
 		print "ip: " + str(IP_pair) + " or pred: " + str(predicate)
+		if self.done:
+			raise Exception("this is a bad place to be")
 
 
 		#if the upcoming task does not require an item from list1 
@@ -1734,6 +1735,9 @@ class Join():
 			elif task_type == "join":
 				#our current (WILL BE CHANGED) version matches a given item against every
 				# item in the second list at once. In the future, should be chunked
+				# this method works on a single primary list item at a time, finding the first
+				# item in the second list that it hasn't reached consensus with and comparing.
+				# join tasks should be added to the end of task_types to ensure that joins keep happening.
 				join_timer = 0 #keeps time
 				join_done = True
 				for j in self.list2:
@@ -1743,15 +1747,14 @@ class Join():
 						eval_TF, join_timer = self.join_items(IP_pair.item.item_ID,j)
 						if self.find_consensus("join", (IP_pair.item.item_ID,j)) is not None:
 							if IP_pair.small_p_done and self.find_consensus("join", (IP_pair.item.item_ID,j)):
-								raise Exception("we are here")
-								results_from_all_join += [(IP_pair.item.item_ID,j)]
+								self.results_from_all_join += [(IP_pair.item.item_ID,j)]
 								IP_pair.small_p_done = False #TODO:can we do this
 								self.list1.remove(IP_pair.item.item_ID)
 								if not IP_pair.get_join_fins()[4]:
 									IP_pair.set_join_fins([False, False, False, False, True, False])
 									IP_pair.save(update_fields = ["join_fins"])
 									print "***********************************************************************************************"
-									print "join on item done " + str(IP_Pair)
+									print "join on item done " + str(IP_pair)
 									return True, join_timer, True
 								else:
 									return True, join_timer, False
@@ -1761,9 +1764,10 @@ class Join():
 								IP_pair.set_join_pairs(IP_pair.get_join_pairs() + [(IP_pair.item.item_ID,j)])
 								IP_pair.save(update_fields = ["join_pairs"])
 						break
+				
 				if join_done:
 					if not self.list2:
-						print "join issues are happening"
+						raise Exception( "join issues are happening")
 						self.clear_ips(IP_pair.predicate)
 					if IP_pair.small_p_done and not self.list2_not_eval:
 						IP_pair.small_p_done = False
@@ -1776,7 +1780,15 @@ class Join():
 							return False, join_timer, True
 						else:
 							return False, join_timer, False
-					#else case handled in loop
+					else:
+						#if we have gone through every item and found no successful pair, we are done with this item
+						if IP_pair.item.item_ID in self.list1:
+							self.list1.remove(IP_pair.item.item_ID)
+						IP_pair.set_join_fins([False, False, False, False, True, False])
+						IP_pair.save(update_fields = ["join_fins"])
+						print "***********************************************************************************************"
+						print "join on item done " + str(IP_Pair)
+						return False, join_timer, True
 				return None, join_timer, False
 			#runs & manages small predicate for list 1
 			elif task_type == "small_p":
