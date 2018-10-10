@@ -1,0 +1,1 @@
+web:gunicorn dynamicfilter.wsgi 
