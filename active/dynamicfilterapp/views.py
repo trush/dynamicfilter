@@ -32,6 +32,9 @@ def workerForm(request):
         }
     return render(request, 'dynamicfilterapp/workerForm.html', context)
 
+def testfun(request):
+    return HttpResponse("Hello, world. You're at the dynamicfilter app.")
+
 @xframe_options_exempt
 def vote(request):
     """

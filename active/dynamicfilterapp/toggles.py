@@ -144,7 +144,7 @@ MULTI_SIM_ARRAY = [(1,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9
 # ___ FILE MANAGEMENT ____ #
 RUN_NAME = 'aaa_test' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-GEN_GRAPHS = True
+GEN_GRAPHS = False
 PACKING=True
 
 if GEN_GRAPHS:
