@@ -1,1 +1,1 @@
-web:gunicorn dynamicfiltersite.wsgi
+web: gunicorn dynamicfiltersite.wsgi
