@@ -1,0 +1,314 @@
+\hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script}{}\section{dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script Namespace Reference}
+\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script}\index{dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script@{dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script}}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a033562135f6f14ea0309f28fcf326ce9}{dest\+\_\+resolver}} (dest)
+\begin{DoxyCompactList}\small\item\em A simple function that modifies destination file names to avoid overwriting by appending numbers. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_afc50b7236c9fe752b68c9fe393c26230}{generic\+\_\+csv\+\_\+write}} (filename, data)
+\begin{DoxyCompactList}\small\item\em Writes data to a csv in a predictable, standardized way. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a471203f34a5e5a8da0a8dae81ef6ddc7}{generic\+\_\+csv\+\_\+read}} (filename)
+\begin{DoxyCompactList}\small\item\em Reads back in data that was saved with generic\+\_\+csv\+\_\+read. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_adc58c0bae220ebecc2001221654f8b50}{hist\+\_\+gen}} (data, dest, labels=(\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{}), title=\textquotesingle{}\textquotesingle{}, x\+Range=(None, None), y\+Range=(None, None), smoothness=True)
+\begin{DoxyCompactList}\small\item\em Generates a single histogram from data. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a9b2bc9bb00f25db0e45c39b7c096dcf3}{multi\+\_\+hist\+\_\+gen}} (data\+List, legend\+List, dest, labels=(\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{}), title=\textquotesingle{}\textquotesingle{}, x\+Range=(None, None), y\+Range=(None, None), smoothness=True)
+\begin{DoxyCompactList}\small\item\em Generates a graph congaining multiple histograms. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a2f9f1a1478f6aecc43e6e6dd0426906f}{line\+\_\+graph\+\_\+gen}} (xpoints, ypoints, dest, labels=(\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{}), title=\textquotesingle{}\textquotesingle{}, stderr=\mbox{[}$\,$\mbox{]}, square=False, x\+Range=(None, None), y\+Range=(None, None), scatter=False)
+\begin{DoxyCompactList}\small\item\em Generates a plot containing a line-\/graph. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a647bf0080f13c14da1851fa89e12596b}{multi\+\_\+line\+\_\+graph\+\_\+gen}} (xL, yL, legend\+List, dest, labels=(\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{}), title=\textquotesingle{}\textquotesingle{}, stderrL=\mbox{[}$\,$\mbox{]}, square=False, x\+Range=(None, None), y\+Range=(None, None), scatter=False)
+\begin{DoxyCompactList}\small\item\em Generates a plot containing multiple line-\/graphs. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a9da59b1b257e292c4a53c89baf4862ea}{bar\+\_\+graph\+\_\+gen}} (data, legend, dest, labels=(\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{}), title=\textquotesingle{}\textquotesingle{}, stderr=None, y\+Range=(None, None))
+\begin{DoxyCompactList}\small\item\em Generates a set of bargraphs. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a8ffea8a8a4ebae3175cfb4d73d7be756}{split\+\_\+bar\+\_\+graph\+\_\+gen}} (dataL, xL, dest, legend, labels=(\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{}), title=\textquotesingle{}\textquotesingle{}, split=\textquotesingle{}vertical\textquotesingle{}, stderrL=None, fig\+\_\+size=None, tight=False, y\+Range=(None, None))
+\item 
+def \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a2f98f1f8c33870272452fbbe0d34212e}{stats\+\_\+bar\+\_\+graph\+\_\+gen}} (dataL, legend, dest, labels=(\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{}), title=\textquotesingle{}\textquotesingle{}, y\+Range=(None, None))
+\begin{DoxyCompactList}\small\item\em A wrapper for bar\+\_\+graph\+\_\+gen Calculates statistics for you. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a3971b05c3e8c55c759ba82af7af7caf8}{package\+Maker}} (dest, conf)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a77f7e6339aa22b7bcddf69dd76df1bcb}{Suppress}} = True
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a9da59b1b257e292c4a53c89baf4862ea}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a9da59b1b257e292c4a53c89baf4862ea}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!bar\+\_\+graph\+\_\+gen@{bar\+\_\+graph\+\_\+gen}}
+\index{bar\+\_\+graph\+\_\+gen@{bar\+\_\+graph\+\_\+gen}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{bar\+\_\+graph\+\_\+gen()}{bar\_graph\_gen()}}
+{\footnotesize\ttfamily def dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script.\+bar\+\_\+graph\+\_\+gen (\begin{DoxyParamCaption}\item[{}]{data,  }\item[{}]{legend,  }\item[{}]{dest,  }\item[{}]{labels = {\ttfamily (\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{})},  }\item[{}]{title = {\ttfamily \textquotesingle{}\textquotesingle{}},  }\item[{}]{stderr = {\ttfamily None},  }\item[{}]{y\+Range = {\ttfamily (None,None)} }\end{DoxyParamCaption})}
+
+
+
+Generates a set of bargraphs. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em data} & a python iterable storing integer/float data for the height of each bar \\
+\hline
+{\em legend} & a string for the label under each bar \\
+\hline
+{\em dest} & a path + filename for the output grapn (ending in .png) \\
+\hline
+{\em labels} & a python iterable containing strings (X axis label, Y axis label) defaults to no labels @ param title a string to use as the graph\textquotesingle{}s title. defaults to no title \\
+\hline
+{\em stderr} & a python iterable of the y-\/error bars desired for the top of each bar \\
+\hline
+{\em y\+Range} & sets the minimum and maximum value of the y axis (y\+Min, y\+Max) Defaults to (None, None), ymax to defaults to a bit above the max y-\/value \begin{DoxyVerb}Generate a bargraph from a list of heights and a list of names optional parameters:
+    labels a touple in the format ('x-axis label', 'y-axis label')
+    title, a string title of your graph
+    stderr a list of standard error for adding y-error bars to data
+\end{DoxyVerb}
+ \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a033562135f6f14ea0309f28fcf326ce9}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a033562135f6f14ea0309f28fcf326ce9}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!dest\+\_\+resolver@{dest\+\_\+resolver}}
+\index{dest\+\_\+resolver@{dest\+\_\+resolver}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{dest\+\_\+resolver()}{dest\_resolver()}}
+{\footnotesize\ttfamily def dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script.\+dest\+\_\+resolver (\begin{DoxyParamCaption}\item[{}]{dest }\end{DoxyParamCaption})}
+
+
+
+A simple function that modifies destination file names to avoid overwriting by appending numbers. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em dest} & the preposed file name (.png or .csv only) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the resolved filename \begin{DoxyVerb}given a filename (ending in .png) returns a version which wont overide data
+\end{DoxyVerb}
+ 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a471203f34a5e5a8da0a8dae81ef6ddc7}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a471203f34a5e5a8da0a8dae81ef6ddc7}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!generic\+\_\+csv\+\_\+read@{generic\+\_\+csv\+\_\+read}}
+\index{generic\+\_\+csv\+\_\+read@{generic\+\_\+csv\+\_\+read}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{generic\+\_\+csv\+\_\+read()}{generic\_csv\_read()}}
+{\footnotesize\ttfamily def dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script.\+generic\+\_\+csv\+\_\+read (\begin{DoxyParamCaption}\item[{}]{filename }\end{DoxyParamCaption})}
+
+
+
+Reads back in data that was saved with generic\+\_\+csv\+\_\+read. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em filename} & the path + name of the file to read \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the data originally written \begin{DoxyVerb}Given a file name, returns a list of lists containing all the data from a
+single row in a list. Properly converts ints assuming that any row beginning
+with an int contains only ints
+\end{DoxyVerb}
+ 
+\end{DoxyReturn}
+\mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_afc50b7236c9fe752b68c9fe393c26230}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_afc50b7236c9fe752b68c9fe393c26230}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!generic\+\_\+csv\+\_\+write@{generic\+\_\+csv\+\_\+write}}
+\index{generic\+\_\+csv\+\_\+write@{generic\+\_\+csv\+\_\+write}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{generic\+\_\+csv\+\_\+write()}{generic\_csv\_write()}}
+{\footnotesize\ttfamily def dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script.\+generic\+\_\+csv\+\_\+write (\begin{DoxyParamCaption}\item[{}]{filename,  }\item[{}]{data }\end{DoxyParamCaption})}
+
+
+
+Writes data to a csv in a predictable, standardized way. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em filename} & the path + name of the output csv \\
+\hline
+{\em the} & data to write. format\+: \mbox{[}\mbox{[}row1\mbox{]},\mbox{[}row2\mbox{]}...\mbox{[}rowN\mbox{]}\mbox{]} \begin{DoxyVerb}given a file name and a list, writes out the data to be easily recalled with
+generic_csv_read. assumes that data is a list of lists. please do that
+\end{DoxyVerb}
+ \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_adc58c0bae220ebecc2001221654f8b50}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_adc58c0bae220ebecc2001221654f8b50}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!hist\+\_\+gen@{hist\+\_\+gen}}
+\index{hist\+\_\+gen@{hist\+\_\+gen}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{hist\+\_\+gen()}{hist\_gen()}}
+{\footnotesize\ttfamily def dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script.\+hist\+\_\+gen (\begin{DoxyParamCaption}\item[{}]{data,  }\item[{}]{dest,  }\item[{}]{labels = {\ttfamily (\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{})},  }\item[{}]{title = {\ttfamily \textquotesingle{}\textquotesingle{}},  }\item[{}]{x\+Range = {\ttfamily (None,None)},  }\item[{}]{y\+Range = {\ttfamily (None,None)},  }\item[{}]{smoothness = {\ttfamily True} }\end{DoxyParamCaption})}
+
+
+
+Generates a single histogram from data. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em data} & a python iterable storing integer/float data \\
+\hline
+{\em dest} & a path + filename for the output grapn (ending in .png) \\
+\hline
+{\em labels} & a python iterable containing strings (X axis label, Y axis label) defaults to no labels @ param title a string to use as the graph\textquotesingle{}s title. defaults to no title \\
+\hline
+{\em x\+Range} & sets the minimum and maximum value of the x axis (x\+Min, x\+Max) Defaults to (None, None) \\
+\hline
+{\em y\+Range} & sets the minimum and maximum value of the y axis (y\+Min, y\+Max) Defaults to (None, None), ymax to defaults to a bit above the max y-\/value \\
+\hline
+{\em smoothness} & Boolean (default True). Leave this on until legend display is fixed \begin{DoxyVerb}Automagically generates a Histogram for you from a given list of data and a
+destination name (ending in .png). Can additionally be passed many arguments
+    labels a touple in the format ('x-axis label', 'y-axis label')
+    title, a string title of your graph
+    smoothness, defaults true, set False to get a blocky version instead
+\end{DoxyVerb}
+ \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a2f9f1a1478f6aecc43e6e6dd0426906f}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a2f9f1a1478f6aecc43e6e6dd0426906f}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!line\+\_\+graph\+\_\+gen@{line\+\_\+graph\+\_\+gen}}
+\index{line\+\_\+graph\+\_\+gen@{line\+\_\+graph\+\_\+gen}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{line\+\_\+graph\+\_\+gen()}{line\_graph\_gen()}}
+{\footnotesize\ttfamily def dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script.\+line\+\_\+graph\+\_\+gen (\begin{DoxyParamCaption}\item[{}]{xpoints,  }\item[{}]{ypoints,  }\item[{}]{dest,  }\item[{}]{labels = {\ttfamily (\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{})},  }\item[{}]{title = {\ttfamily \textquotesingle{}\textquotesingle{}},  }\item[{}]{stderr = {\ttfamily \mbox{[}\mbox{]}},  }\item[{}]{square = {\ttfamily False},  }\item[{}]{x\+Range = {\ttfamily (None,None)},  }\item[{}]{y\+Range = {\ttfamily (None,None)},  }\item[{}]{scatter = {\ttfamily False} }\end{DoxyParamCaption})}
+
+
+
+Generates a plot containing a line-\/graph. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em xpoints} & a python iterable containing the x values of each point \\
+\hline
+{\em ypoints} & a python iterable containing the matching y values for each point in xpoints \\
+\hline
+{\em dest} & a path + filename for the output grapn (ending in .png) \\
+\hline
+{\em labels} & a python iterable containing strings (X axis label, Y axis label) defaults to no labels @ param title a string to use as the graph\textquotesingle{}s title. defaults to no title \\
+\hline
+{\em stderr} & a python iterable of the y-\/error bars desired for each point \\
+\hline
+{\em square} & Boolean (False by default) should the x\&y axis be the same dimensions? \\
+\hline
+{\em x\+Range} & sets the minimum and maximum value of the x axis (x\+Min, x\+Max) Defaults to (None, None) \\
+\hline
+{\em y\+Range} & sets the minimum and maximum value of the y axis (y\+Min, y\+Max) Defaults to (None, None), ymax to defaults to a bit above the max y-\/value \\
+\hline
+{\em scatter} & Boolean (False by default) if false, line graph is depicted as scattering of points \begin{DoxyVerb}Generate a linegraph from a set of x and y points, optional parameters:
+    labels a tuple in the format ('x-axis label', 'y-axis label')
+    title, a string title of your graph
+    stderr a list of standard error for adding y-error bars to data
+\end{DoxyVerb}
+ \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a9b2bc9bb00f25db0e45c39b7c096dcf3}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a9b2bc9bb00f25db0e45c39b7c096dcf3}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!multi\+\_\+hist\+\_\+gen@{multi\+\_\+hist\+\_\+gen}}
+\index{multi\+\_\+hist\+\_\+gen@{multi\+\_\+hist\+\_\+gen}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{multi\+\_\+hist\+\_\+gen()}{multi\_hist\_gen()}}
+{\footnotesize\ttfamily def dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script.\+multi\+\_\+hist\+\_\+gen (\begin{DoxyParamCaption}\item[{}]{data\+List,  }\item[{}]{legend\+List,  }\item[{}]{dest,  }\item[{}]{labels = {\ttfamily (\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{})},  }\item[{}]{title = {\ttfamily \textquotesingle{}\textquotesingle{}},  }\item[{}]{x\+Range = {\ttfamily (None,None)},  }\item[{}]{y\+Range = {\ttfamily (None,None)},  }\item[{}]{smoothness = {\ttfamily True} }\end{DoxyParamCaption})}
+
+
+
+Generates a graph congaining multiple histograms. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em data\+List} & a python interable of iterables. each sub iterable containing numeric data \\
+\hline
+{\em legend\+List} & iterable of strings with names used for each data\+Set in data\+List \\
+\hline
+{\em dest} & a path + filename for the output grapn (ending in .png) \\
+\hline
+{\em labels} & a python iterable containing strings (X axis label, Y axis label) defaults to no labels \\
+\hline
+{\em title} & a string to use as the graph\textquotesingle{}s title. defaults to no title \\
+\hline
+{\em x\+Range} & sets the minimum and maximum value of the x axis (x\+Min, x\+Max) Defaults to (None, None) \\
+\hline
+{\em y\+Range} & sets the minimum and maximum value of the y axis (y\+Min, y\+Max) Defaults to (None, None), ymax to defaults to a bit above the max y-\/value \\
+\hline
+{\em smoothness} & Boolean (default True). Leave this on until legend display is fixed \begin{DoxyVerb}Very similar to hist_gen, however takes a list of datasets and a list of
+names of your datasets and a destination name, plots all datasets on one
+plot in differing colors. takes in optional labels and title like before.
+\end{DoxyVerb}
+ \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a647bf0080f13c14da1851fa89e12596b}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a647bf0080f13c14da1851fa89e12596b}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!multi\+\_\+line\+\_\+graph\+\_\+gen@{multi\+\_\+line\+\_\+graph\+\_\+gen}}
+\index{multi\+\_\+line\+\_\+graph\+\_\+gen@{multi\+\_\+line\+\_\+graph\+\_\+gen}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{multi\+\_\+line\+\_\+graph\+\_\+gen()}{multi\_line\_graph\_gen()}}
+{\footnotesize\ttfamily def dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script.\+multi\+\_\+line\+\_\+graph\+\_\+gen (\begin{DoxyParamCaption}\item[{}]{xL,  }\item[{}]{yL,  }\item[{}]{legend\+List,  }\item[{}]{dest,  }\item[{}]{labels = {\ttfamily (\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{})},  }\item[{}]{title = {\ttfamily \textquotesingle{}\textquotesingle{}},  }\item[{}]{stderrL = {\ttfamily \mbox{[}\mbox{]}},  }\item[{}]{square = {\ttfamily False},  }\item[{}]{x\+Range = {\ttfamily (None,None)},  }\item[{}]{y\+Range = {\ttfamily (None,None)},  }\item[{}]{scatter = {\ttfamily False} }\end{DoxyParamCaption})}
+
+
+
+Generates a plot containing multiple line-\/graphs. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em xL} & an iterable of xpoints (see line\+\_\+graph\+\_\+gen xpoints) \\
+\hline
+{\em yL} & an iterable of ypoints \\
+\hline
+{\em legend\+List} & iterable of strings with names used for each line \\
+\hline
+{\em dest} & a path + filename for the output grapn (ending in .png) \\
+\hline
+{\em labels} & a python iterable containing strings (X axis label, Y axis label) defaults to no labels @ param title a string to use as the graph\textquotesingle{}s title. defaults to no title \\
+\hline
+{\em stderr} & a python iterable of the y-\/error bars desired for each point \\
+\hline
+{\em square} & Boolean (False by default) should the x\&y axis be the same dimensions? \\
+\hline
+{\em x\+Range} & sets the minimum and maximum value of the x axis (x\+Min, x\+Max) Defaults to (None, None) \\
+\hline
+{\em y\+Range} & sets the minimum and maximum value of the y axis (y\+Min, y\+Max) Defaults to (None, None), ymax to defaults to a bit above the max y-\/value \\
+\hline
+{\em scatter} & Boolean (False by default) if false, line graph is depicted as scattering of points \begin{DoxyVerb}plot multiple linegraphs on one graph. takes in lists of lists of x and y
+values for each graph, a list of strings for naming each linegraph and an
+output destination enging in .png. optional parameters:
+    labels a touple in the format ('x-axis label', 'y-axis label')
+    title, a string title of your graph
+    stderrL a list of lists of standard error for adding y-error bars to data
+\end{DoxyVerb}
+ \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a3971b05c3e8c55c759ba82af7af7caf8}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a3971b05c3e8c55c759ba82af7af7caf8}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!package\+Maker@{package\+Maker}}
+\index{package\+Maker@{package\+Maker}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{package\+Maker()}{packageMaker()}}
+{\footnotesize\ttfamily def dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script.\+package\+Maker (\begin{DoxyParamCaption}\item[{}]{dest,  }\item[{}]{conf }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generates a "package" for the current simulation\end{DoxyVerb}
+ \mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a8ffea8a8a4ebae3175cfb4d73d7be756}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a8ffea8a8a4ebae3175cfb4d73d7be756}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!split\+\_\+bar\+\_\+graph\+\_\+gen@{split\+\_\+bar\+\_\+graph\+\_\+gen}}
+\index{split\+\_\+bar\+\_\+graph\+\_\+gen@{split\+\_\+bar\+\_\+graph\+\_\+gen}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{split\+\_\+bar\+\_\+graph\+\_\+gen()}{split\_bar\_graph\_gen()}}
+{\footnotesize\ttfamily def dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script.\+split\+\_\+bar\+\_\+graph\+\_\+gen (\begin{DoxyParamCaption}\item[{}]{dataL,  }\item[{}]{xL,  }\item[{}]{dest,  }\item[{}]{legend,  }\item[{}]{labels = {\ttfamily (\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{})},  }\item[{}]{title = {\ttfamily \textquotesingle{}\textquotesingle{}},  }\item[{}]{split = {\ttfamily \textquotesingle{}vertical\textquotesingle{}},  }\item[{}]{stderrL = {\ttfamily None},  }\item[{}]{fig\+\_\+size = {\ttfamily None},  }\item[{}]{tight = {\ttfamily False},  }\item[{}]{y\+Range = {\ttfamily (None,None)} }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a2f98f1f8c33870272452fbbe0d34212e}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a2f98f1f8c33870272452fbbe0d34212e}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!stats\+\_\+bar\+\_\+graph\+\_\+gen@{stats\+\_\+bar\+\_\+graph\+\_\+gen}}
+\index{stats\+\_\+bar\+\_\+graph\+\_\+gen@{stats\+\_\+bar\+\_\+graph\+\_\+gen}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{stats\+\_\+bar\+\_\+graph\+\_\+gen()}{stats\_bar\_graph\_gen()}}
+{\footnotesize\ttfamily def dynamicfilterapp.\+simulation\+\_\+files.\+plot\+Script.\+stats\+\_\+bar\+\_\+graph\+\_\+gen (\begin{DoxyParamCaption}\item[{}]{dataL,  }\item[{}]{legend,  }\item[{}]{dest,  }\item[{}]{labels = {\ttfamily (\textquotesingle{}\textquotesingle{},\textquotesingle{}\textquotesingle{})},  }\item[{}]{title = {\ttfamily \textquotesingle{}\textquotesingle{}},  }\item[{}]{y\+Range = {\ttfamily (None,None)} }\end{DoxyParamCaption})}
+
+
+
+A wrapper for bar\+\_\+graph\+\_\+gen Calculates statistics for you. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em dataL} & a python iterable of iterables containing numeric data \\
+\hline
+{\em legend} & a string for the label under each bar \\
+\hline
+{\em dest} & a path + filename for the output grapn (ending in .png) \\
+\hline
+{\em labels} & a python iterable containing strings (X axis label, Y axis label) defaults to no labels @ param title a string to use as the graph\textquotesingle{}s title. defaults to no title \\
+\hline
+{\em x\+Range} & sets the minimum and maximum value of the x axis (x\+Min, x\+Max) Defaults to (None, None) \\
+\hline
+{\em y\+Range} & sets the minimum and maximum value of the y axis (y\+Min, y\+Max) Defaults to (None, None), ymax to defaults to a bit above the max y-\/value \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a77f7e6339aa22b7bcddf69dd76df1bcb}\label{namespacedynamicfilterapp_1_1simulation__files_1_1plot_script_a77f7e6339aa22b7bcddf69dd76df1bcb}} 
+\index{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}!Suppress@{Suppress}}
+\index{Suppress@{Suppress}!dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script@{dynamicfilterapp\+::simulation\+\_\+files\+::plot\+Script}}
+\subsubsection{\texorpdfstring{Suppress}{Suppress}}
+{\footnotesize\ttfamily bool Suppress = True}
+
