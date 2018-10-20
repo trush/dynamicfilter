@@ -34,7 +34,7 @@ def workerForm(request):
     context = {'question' : 'are you having a good day?', 
         'item': 'it is a Wednesday', 
         'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : 3}
-    return render(request, 'dynamicfilterapp/workerForm.html', context)
+    return render(request, 'dynamicfilterapp/workerform.html', context)
 
 def testfun(request):
     return HttpResponse("Hello, world. You're at the dynamicfilter app.")
