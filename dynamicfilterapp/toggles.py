@@ -24,8 +24,8 @@ REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
-NUM_QUESTIONS = 6
-NUM_ITEMS = 100
+NUM_QUESTIONS = 2
+NUM_ITEMS = 10
 SIN = -1
 SELECTIVITY_GRAPH = False
 switch_list = [(0, (0,0), (0,0), (0,0), (0,0), (0,0), (0,0))]
