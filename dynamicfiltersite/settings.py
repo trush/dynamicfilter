@@ -86,7 +86,7 @@ DATABASES = {
         'PASSWORD': 'dynamicfilter',
         'HOST': 'localhost',
         'PORT': '',
-    }
+    },
     'postgres': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'd6s8c6hothmegq',
