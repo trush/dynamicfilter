@@ -81,14 +81,6 @@ NOSE_ARGS = ['--nocapture',
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'dynamicfilter4',
-        'USER': 'webapp',
-        'PASSWORD': 'dynamicfilter',
-        'HOST': 'localhost',
-        'PORT': '',
-    },
-    'postgres': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'd6s8c6hothmegq',
         'USER': 'yfaxxrodmrxtgw',
         'PASSWORD': '49672e90245e49b736d618fd5034d96fa77c071870a2b66f7087de680684c714',
