@@ -81,14 +81,18 @@ NOSE_ARGS = ['--nocapture',
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'd6s8c6hothmegq',
-        'USER': 'yfaxxrodmrxtgw',
-        'PASSWORD': '49672e90245e49b736d618fd5034d96fa77c071870a2b66f7087de680684c714',
-        'HOST': 'ec2-23-21-147-71.compute-1.amazonaws.com',
-        'PORT': '5432',
+        'NAME': 'dynamicfilter4',
+        'USER': 'webapp',
+        'PASSWORD': 'dynamicfilter',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
+import dj_database_url
+
+db_from_env = dj_database_url.config()
+DATABASES['default'].update(db_from_env)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
