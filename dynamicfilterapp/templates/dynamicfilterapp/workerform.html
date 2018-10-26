@@ -90,10 +90,10 @@
 
                 <table>
                     <p><label>Question: {{ question }}</label></p>
-                    <input type="radio" name="workervote" id="r_true" value="1" required />
+                    <input type="radio" onclick= "clickedYesOrNo();" name="workervote" id="r_true" value="1" required />
                     <label for="r_true">Yes</label>
                     <br/>
-                    <input type="radio" name="workervote" id="r_false" value="0"/>
+                    <input type="radio" onclick= "clickedYesOrNo();" name="workervote" id="r_false" value="0"/>
                     <label for="r_false">No</label>
                     </br>
                 </table>
