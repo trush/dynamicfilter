@@ -14,6 +14,7 @@ from .forms import *
 from views_helpers import *
 
 @xframe_options_exempt
+@csrf_exempt  #############DELETE AFTER TESTING
 def workerForm(request):
     """
     Page the worker sees to complete the question
@@ -33,13 +34,14 @@ def workerForm(request):
     #     }
     context = {'question' : 'are you having a good day?', 
         'item': 'it is a Wednesday', 
-        'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : 3}
+        'workerId':8, 'assignmentId':2, 'hitId' : 3}
     return render(request, 'dynamicfilterapp/workerform.html', context)
 
 def testfun(request):
     return HttpResponse("Hello, world. You're at the dynamicfilter app.")
 
 @xframe_options_exempt
+@csrf_exempt ###########DELETE AFTER TESTING
 def vote(request):
     """
     Page that loads in all the data from the worker task and updates the dataset

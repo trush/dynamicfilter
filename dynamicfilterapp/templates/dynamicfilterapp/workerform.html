@@ -27,13 +27,13 @@
     }
 
     // retrieves Google link displayed on website to help user answer question
-    function getGoogleLink() {
-        link = "http://www.google.com/search?q="
-        link += '{{ ip_pair.item.name}}'
-        link.replace(" ", "+")
-        var a = document.getElementById("google_link")
-        a.href = link
-    }
+    // function getGoogleLink() {
+    //     link = "http://www.google.com/search?q="
+    //     link += '{{ ip_pair.item.name}}'
+    //     link.replace(" ", "+")
+    //     var a = document.getElementById("google_link")
+    //     a.href = link
+    // }
 
 </script>
 
@@ -44,7 +44,7 @@
 </style>
 
 <!-- once site loads, calls startTime() and getGoogleLink() -->
-<body class="padding" onload='startTime();getGoogleLink()'> 
+<body class="padding" onload='startTime();'> 
 
     <form action="{% url 'vote' %}" method='post'>
     {% csrf_token %}
