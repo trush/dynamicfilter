@@ -49,18 +49,23 @@ def vote(request):
     """
     #load in data from workerForm
 
-    form_answer = int(request.POST.get("workervote"))
+    form_answer = (request.POST.get("workervote"))
     print form_answer
     feedback = request.POST.get("feedback")
     print feedback
-    # workerId = request.POST.get("workerId")
-    # assignmentId = request.POST.get("assignmentId")
-    # hitId = request.POST.get("hitId")
+    workervote = form_answer
+    workerId = request.POST.get("workerId")
+    assignmentId = request.POST.get("assignmentId")
+    hitId = request.POST.get("hitId")
+    elapsed_time = request.POST.get("elapsed_time")
     # submitURL = request.POST.get("submitURL")
     # task = Task(ip_pair=questionedPair,
     #    answer=form_answer,
     #    workerID = workerId,
     #    feedback=feedback)
     #task.save()
+    context = {'question' : 'are you having a good day?', 
+        'workervote': workervote, 
+        'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
 
-    return render(request, 'dynamicfilterapp/interm_page.html')
+    return render(request, 'dynamicfilterapp/interm_page.html', context)
