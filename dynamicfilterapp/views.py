@@ -31,11 +31,11 @@ def workerForm(request):
     # # ip_pair = pending_eddy(workerID, ip_pair) # update the ip_pair to display
     # context = { 'question' : ip_pair.predicate.question.question_text,
     #     'item' : ip_pair.item.name
-    # #    'workerId' : workerId, 'assignmentId' : assignmentId, 'hitId' : hitId, 'url':submitURL }
+    #     'workerId' : workerId, 'assignmentId' : assignmentId, 'hitId' : hitId, 'url':submitURL }
     #     }
     context = {'question' : 'are you having a good day?', 
         'item': 'it is a Wednesday', 
-        'workerId':8, 'assignmentId':2, 'hitId' : 3}
+        'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
     return render(request, 'dynamicfilterapp/workerform.html', context)
 
 def testfun(request):
@@ -65,7 +65,8 @@ def vote(request):
     #    feedback=feedback)
     #task.save()
     context = {'question' : 'are you having a good day?', 
-        'workervote': workervote, 
+        'workervote': workervote, 'elapsed_time': elapsed_time,
         'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
 
     return render(request, 'dynamicfilterapp/interm_page.html', context)
+
