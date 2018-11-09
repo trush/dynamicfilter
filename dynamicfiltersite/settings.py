@@ -79,7 +79,7 @@ NOSE_ARGS = ['--nocapture',
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'postgres': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'dynamicfilter4',
         'USER': 'webapp',
