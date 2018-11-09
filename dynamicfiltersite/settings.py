@@ -78,16 +78,10 @@ NOSE_ARGS = ['--nocapture',
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
+DATABASE_URL = 'postgres://yfaxxrodmrxtgw:49672e90245e49b736d618fd5034d96fa77c071870a2b66f7087de680684c714@ec2-23-21-147-71.compute-1.amazonaws.com:5432/d6s8c6hothmegq'
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'dynamicfilter4',
-        'USER': 'webapp',
-        'PASSWORD': 'dynamicfilter',
-        'HOST': 'localhost',
-        'PORT': '',
-    },
-    'postgres': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'dynamicfilter4',
         'USER': 'webapp',
@@ -100,7 +94,7 @@ DATABASES = {
 import dj_database_url
 
 db_from_env = dj_database_url.config()
-DATABASES['postgres'].update(db_from_env)
+DATABASES['default'].update(db_from_env)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
