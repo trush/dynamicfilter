@@ -48,9 +48,9 @@ def databaseTest(request):
     q.save()
     i1 = Item(item_ID=1, name="Wednesday", item_type=toggles.ITEM_TYPE)
     i1.save()
-    p = Predicate(predicate_ID=1, question=cls.q)
+    p = Predicate(predicate_ID=1, question=q)
     p.save()
-    ip1 = IP_Pair(item = cls.i1, predicate = cls.p)
+    ip1 = IP_Pair(item = i1, predicate = p)
     ip1.save()
     context = {'question' : q, 
         'item': i1, 
