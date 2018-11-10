@@ -52,7 +52,8 @@ def databaseTest(request):
     p.save()
     ip1 = IP_Pair(item = i1, predicate = p)
     ip1.save()
-    context = {'question' : q, 
+    q1 = Question.objects.get(question_ID=1)
+    context = {'question' : q1, 
         'item': i1, 
         'workerId':4, 'assignmentId':3, 'hitId' : 2}
 
