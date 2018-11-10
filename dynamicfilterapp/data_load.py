@@ -16,7 +16,7 @@ def load_database():
 	ID = 0
 	f = open(DATA_PATH + ITEM_TYPE + '_questions.csv', 'r')
 	for line in f:
-		line = line.rstrip('\n')
+		line = line.rstrip('\n') 
 		q = Question.objects.create(question_ID=ID, question_text=line)
 		pred = Predicate(predicate_ID=ID, question=q)
 		try:
