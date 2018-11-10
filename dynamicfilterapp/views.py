@@ -43,6 +43,23 @@ def testfun(request):
 
 @xframe_options_exempt
 @csrf_exempt ###########DELETE AFTER TESTING
+def databaseTest(request):
+    q = Question(question_ID=1, question_text="Are you having a good day?")
+    q.save()
+    i1 = Item(item_ID=1, name="Wednesday", item_type=toggles.ITEM_TYPE)
+    i1.save()
+    p = Predicate(predicate_ID=1, question=cls.q)
+    p.save()
+    ip1 = IP_Pair(item = cls.i1, predicate = cls.p)
+    ip1.save()
+    context = {'question' : q, 
+        'item': i1, 
+        'workerId':4, 'assignmentId':3, 'hitId' : 2}
+
+    return render(request, 'dynamicfilterapp/workerform.html', context)
+
+@xframe_options_exempt
+@csrf_exempt ###########DELETE AFTER TESTING
 def vote(request):
     """
     Page that loads in all the data from the worker task and updates the dataset
