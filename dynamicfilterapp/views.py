@@ -45,10 +45,10 @@ def testfun(request):
 @xframe_options_exempt
 @csrf_exempt ###########DELETE AFTER TESTING
 def databaseTest(request):
+    IP_Pair.objects.all().delete()
+    Predicate.objects.all().delete()
     Question.objects.all().delete()
     Item.objects.all().delete()
-    Predicate.objects.all().delete()
-    IP_Pair.objects.all().delete()
     # q = Question(question_ID=1, question_text="Are you having a good day?")
     # q.save()
     # i1 = Item(item_ID=1, name="Wednesday", item_type=toggles.ITEM_TYPE)
