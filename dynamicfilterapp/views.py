@@ -44,6 +44,9 @@ def testfun(request):
 @xframe_options_exempt
 @csrf_exempt ###########DELETE AFTER TESTING
 def databaseTest(request):
+    Question.objects.filter(question_ID=1).delete()
+    Item.objects.filter(item_ID=1).delete()
+    Predicate.objects.filter(predicate_ID=1).delete()
     q = Question(question_ID=1, question_text="Are you having a good day?")
     q.save()
     i1 = Item(item_ID=1, name="Wednesday", item_type=toggles.ITEM_TYPE)
@@ -51,6 +54,7 @@ def databaseTest(request):
     p = Predicate(predicate_ID=1, question=q)
     p.save()
     ip1 = IP_Pair(item = i1, predicate = p)
+    IP_Pair.objects.filter(item=i1).delete()
     ip1.save()
     q1 = Question.objects.get(question_ID=1)
     context = {'question' : q1, 
