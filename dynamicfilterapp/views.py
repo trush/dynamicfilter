@@ -26,7 +26,7 @@ def workerForm(request):
     workerId = request.GET.get("workerId")
     assignmentId = request.GET.get("assignmentId")
     hitId = request.GET.get("hitId")
-    print workerId
+    ip_pair, eddy_time = give_task(None, workerId)
     # submitURL = request.GET.get("turkSubmitTo") + "/mturk/externalSubmit"
     # ip_pair = IP_Pair.objects.get(pk=1)
     # # ip_pair = pending_eddy(workerID, ip_pair) # update the ip_pair to display
@@ -34,8 +34,8 @@ def workerForm(request):
     #     'item' : ip_pair.item.name
     #     'workerId' : workerId, 'assignmentId' : assignmentId, 'hitId' : hitId, 'url':submitURL }
     #     }
-    context = {'question' : 'are you having a good day?', 
-        'item': 'it is a Wednesday', 
+    context = {'question' : ip_pair.predicate.question.question_text, 
+        'item': ip_pair.item.name, 
         'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
     return render(request, 'dynamicfilterapp/workerform.html', context)
 
