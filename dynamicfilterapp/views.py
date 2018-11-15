@@ -24,8 +24,14 @@ def workerForm(request):
     # if request.GET.get("assignmentId") == "ASSIGNMENT_ID_NOT_AVAILABLE": # worker has not accepted HIT yet
     #    return render(request,'externalhit/preview.html',{}) # render the fake page with empty context
     workerId = request.GET.get("workerId")
+    if not workerId:
+        workerId = -1
     assignmentId = request.GET.get("assignmentId")
+    if not assignmentId:
+        assignmentId = -1
     hitId = request.GET.get("hitId")
+    if not hitId:
+        hitId = -1
     ip_pair, eddy_time = give_task(None, workerId)
     # submitURL = request.GET.get("turkSubmitTo") + "/mturk/externalSubmit"
     # ip_pair = IP_Pair.objects.get(pk=1)
