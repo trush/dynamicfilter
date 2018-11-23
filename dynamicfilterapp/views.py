@@ -33,6 +33,14 @@ def workerForm(request):
     if not hitId:
         hitId = -1
     ip_pair, eddy_time = give_task(None, workerId)
+    if not ip_pair:
+        question = "no question found"
+        pred_id = -1
+        item = "no item found"
+    else:
+        question = ip_pair.predicate.question.question_text
+        pred_id = ip_pair.predicate.predicate_ID
+        item = ip_pair.item.name
     # submitURL = request.GET.get("turkSubmitTo") + "/mturk/externalSubmit"
     # ip_pair = IP_Pair.objects.get(pk=1)
     # # ip_pair = pending_eddy(workerID, ip_pair) # update the ip_pair to display
@@ -40,8 +48,9 @@ def workerForm(request):
     #     'item' : ip_pair.item.name
     #     'workerId' : workerId, 'assignmentId' : assignmentId, 'hitId' : hitId, 'url':submitURL }
     #     }
-    context = {'question' : ip_pair.predicate.question.question_text, 
-        'item': ip_pair.item.name, 
+    context = {'question' : question, 
+        'item': item, 
+        'pred': pred_id,
         'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
     return render(request, 'dynamicfilterapp/workerform.html', context)
 
