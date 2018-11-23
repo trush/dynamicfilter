@@ -107,9 +107,9 @@ def vote(request):
     #    workerID = workerId,
     #    feedback=feedback)
     #task.save()
-    context = {'question' : question, 'pred' = pred
+    context = {'question' : question, 'pred' = pred,
         'workervote': workervote, 'elapsed_time': elapsed_time,
         'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
-        
+
     return render(request, 'dynamicfilterapp/interm_page.html', context)
 
