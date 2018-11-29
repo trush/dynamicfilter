@@ -85,7 +85,7 @@ def vote(request):
     Page that loads in all the data from the worker task and updates the dataset
     """
     #load in data from workerForm
-    workervote =  = request.POST.get("workervote")
+    workervote =  request.POST.get("workervote")
     feedback = request.POST.get("feedback")
     workerId = request.POST.get("workerId")
     assignmentId = request.POST.get("assignmentId")
