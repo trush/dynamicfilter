@@ -98,7 +98,7 @@ def vote(request):
     # submitURL = request.POST.get("submitURL")
 
     #finds IP pair for which to record this vote
-    qItem = Item.objects.get(item_id = item_id)
+    qItem = Item.objects.get(item_ID = item_id)
     qPred = Predicate.objects.get(predicate_ID=pred)
     questionedPair = IP_Pair.objects.get(item=qItem,predicate=qPred)
 
