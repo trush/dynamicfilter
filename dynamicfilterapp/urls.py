@@ -6,5 +6,5 @@ urlpatterns = [
 	url(r'^$', views.workerForm, name='worker_form'),
 	url(r'^vote', views.vote, name='vote'),
 	url('fun', views.testfun, name='funtest'),
-	url('tester', views.databaseTest, name='tester')
+	url('dbr', views.databaseReset, name='tester')
 ]
