@@ -92,7 +92,7 @@ def vote(request):
     hitId = request.POST.get("hitId")
     elapsed_time = request.POST.get("elapsed_time")
     pred = request.POST.get("pred")
-    pred = request.POST.get("item_id")
+    item_id = request.POST.get("item_id")
     question = request.POST.get("question")
 
     # submitURL = request.POST.get("submitURL")
