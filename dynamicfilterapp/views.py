@@ -41,7 +41,7 @@ def workerForm(request):
     else:
         question = ip_pair.predicate.question.question_text
         pred_id = ip_pair.predicate.predicate_ID
-        item_id = ip_pair.item.name
+        item_id = ip_pair.item.item_ID
         item = ip_pair.item.name
     # submitURL = request.GET.get("turkSubmitTo") + "/mturk/externalSubmit"
     # ip_pair = IP_Pair.objects.get(pk=1)
