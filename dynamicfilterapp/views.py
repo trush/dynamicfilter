@@ -103,11 +103,11 @@ def vote(request):
     questionedPair = IP_Pair.objects.get(item=qItem,predicate=qPred)
 
     #create a task for updating the database
-    # task = Task(ip_pair=questionedPair,
-    #    answer=workervote,
-    #    workerID = workerId,
-    #    feedback=feedback)
-    # task.save()
+    task = Task(ip_pair=questionedPair,
+       answer=workervote,
+       workerID = workerId,
+       feedback=feedback)
+    task.save()
 
     # #update database with answer
     # updateCounts(task, questionedPair)
