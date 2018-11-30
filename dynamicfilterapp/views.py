@@ -98,9 +98,9 @@ def vote(request):
     # submitURL = request.POST.get("submitURL")
 
     #finds IP pair for which to record this vote
-    # qItem = Item.objects.get(item_ID = item_id)
-    # qPred = Predicate.objects.get(predicate_ID=pred)
-    # questionedPair = IP_Pair.objects.get(item=qItem,predicate=qPred)
+    qItem = Item.objects.get(item_ID = item_id)
+    qPred = Predicate.objects.get(predicate_ID=pred)
+    questionedPair = IP_Pair.objects.get(item=qItem,predicate=qPred)
 
     #create a task for updating the database
     # task = Task(ip_pair=questionedPair,
