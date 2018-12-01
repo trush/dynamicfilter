@@ -104,9 +104,9 @@ def vote(request):
 
     #create a task for updating the database
     task = Task(ip_pair=questionedPair,
-    answer=workervote,
-    workerID = workerId,
-    feedback=feedback)
+        answer=workervote,
+        workerID = workerId,
+        feedback=feedback)
     task.save()
 
     #update database with answer
