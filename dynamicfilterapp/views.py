@@ -43,6 +43,10 @@ def workerForm(request):
         pred_id = ip_pair.predicate.predicate_ID
         item_id = ip_pair.item.item_ID
         item = ip_pair.item.name
+    
+    task = Task(ip_pair=ip_pair,
+        workerID = workerId)
+    task.save()
     # submitURL = request.GET.get("turkSubmitTo") + "/mturk/externalSubmit"
     # ip_pair = IP_Pair.objects.get(pk=1)
     # # ip_pair = pending_eddy(workerID, ip_pair) # update the ip_pair to display
@@ -97,20 +101,8 @@ def vote(request):
 
     # submitURL = request.POST.get("submitURL")
 
-    #find ip pair
-    qItem = Item.objects.get(pk = item_id)
-    qPred = Predicate.objects.get(pk=pred)
-    questionedPair = IP_Pair.objects.get(item=qItem,predicate=qPred)
-
-    #create a task for updating the database
-    task = Task(ip_pair=questionedPair,
-        answer=workervote,
-        workerID = workerId,
-        feedback=feedback)
-    task.save()
-
     #update database with answer
-    updateCounts(task, questionedPair)
+    #updateCounts(task, questionedPair)
 
 
     context = {'question' : question, 'pred': pred,
