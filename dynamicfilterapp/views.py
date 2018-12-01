@@ -98,7 +98,7 @@ def vote(request):
     # submitURL = request.POST.get("submitURL")
 
     #update database with answer
-    updateCountsFromIP(item_id, pred)
+    # updateCountsFromIP(item_id, pred)
 
 
     context = {'question' : question, 'pred': pred,
