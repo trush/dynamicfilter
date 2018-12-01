@@ -97,8 +97,20 @@ def vote(request):
 
     # submitURL = request.POST.get("submitURL")
 
+    #find ip pair
+    qItem = Item.objects.get(pk = item_id)
+    qPred = Predicate.objects.get(pk=pred)
+    questionedPair = IP_Pair.objects.get(item=qItem,predicate=qPred)
+
+    #create a task for updating the database
+    task = Task(ip_pair=questionedPair,
+    answer=workervote,
+    workerID = workerId,
+    feedback=feedback)
+    task.save()
+
     #update database with answer
-    updateCountsFromIP(item_id, pred)
+    updateCounts(task, questionedPair)
 
 
     context = {'question' : question, 'pred': pred,
