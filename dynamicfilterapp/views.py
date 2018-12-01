@@ -15,8 +15,6 @@ from .forms import *
 from views_helpers import *
 from data_load import *
 
-import json
-
 @xframe_options_exempt
 @csrf_exempt  #############DELETE AFTER TESTING
 def workerForm(request):
@@ -45,11 +43,6 @@ def workerForm(request):
         pred_id = ip_pair.predicate.predicate_ID
         item_id = ip_pair.item.item_ID
         item = ip_pair.item.name
-    
-    task = Task(ip_pair=ip_pair,
-        workerID = workerId)
-    task.save()
-    taskstr = json.dumps(task)
     # submitURL = request.GET.get("turkSubmitTo") + "/mturk/externalSubmit"
     # ip_pair = IP_Pair.objects.get(pk=1)
     # # ip_pair = pending_eddy(workerID, ip_pair) # update the ip_pair to display
@@ -59,7 +52,7 @@ def workerForm(request):
     #     }
     context = {'question' : question, 
         'item': item, 
-        'pred': pred_id, 'item_id': item_id, 'task': taskstr,
+        'pred': pred_id, 'item_id': item_id,
         'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
     return render(request, 'dynamicfilterapp/workerform.html', context)
 
@@ -101,13 +94,23 @@ def vote(request):
     pred = request.POST.get("pred")
     item_id = request.POST.get("item_id")
     question = request.POST.get("question")
-    taskstr = request.POST.get("task")
 
     # submitURL = request.POST.get("submitURL")
 
+    #finds IP pair for which to record this vote
+    qItem = Item.objects.get(item_ID = item_id)
+    qPred = Predicate.objects.get(predicate_ID=pred)
+    questionedPair = IP_Pair.objects.get(item=qItem,predicate=qPred)
+
+    #create a task for updating the database
+    task = Task(ip_pair=questionedPair,
+       answer=workervote,
+       workerID = workerId,
+       feedback=feedback)
+    task.save()
+
     #update database with answer
-    task = json.loads(taskstr)
-    updateCounts(task, task.ip_pair)
+    updateCounts(task, questionedPair)
 
 
     context = {'question' : question, 'pred': pred,
