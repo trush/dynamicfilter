@@ -15,6 +15,8 @@ from .forms import *
 from views_helpers import *
 from data_load import *
 
+import json
+
 @xframe_options_exempt
 @csrf_exempt  #############DELETE AFTER TESTING
 def workerForm(request):
@@ -47,6 +49,7 @@ def workerForm(request):
     task = Task(ip_pair=ip_pair,
         workerID = workerId)
     task.save()
+    taskstr = json.dumps(task)
     # submitURL = request.GET.get("turkSubmitTo") + "/mturk/externalSubmit"
     # ip_pair = IP_Pair.objects.get(pk=1)
     # # ip_pair = pending_eddy(workerID, ip_pair) # update the ip_pair to display
@@ -56,7 +59,7 @@ def workerForm(request):
     #     }
     context = {'question' : question, 
         'item': item, 
-        'pred': pred_id, 'item_id': item_id,
+        'pred': pred_id, 'item_id': item_id, 'task': taskstr,
         'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
     return render(request, 'dynamicfilterapp/workerform.html', context)
 
@@ -97,12 +100,14 @@ def vote(request):
     elapsed_time = request.POST.get("elapsed_time")
     pred = request.POST.get("pred")
     item_id = request.POST.get("item_id")
-    question = request.POST.get("question") 
+    question = request.POST.get("question")
+    taskstr = request.POST.get("task")
 
     # submitURL = request.POST.get("submitURL")
 
     #update database with answer
-    #updateCounts(task, questionedPair)
+    task = json.loads(taskstr)
+    updateCounts(task, task.ip_pair)
 
 
     context = {'question' : question, 'pred': pred,
