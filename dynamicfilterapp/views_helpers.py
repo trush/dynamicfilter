@@ -509,21 +509,21 @@ def selectPred(predList):
 		chosenPred.inc_count()
 		return chosenPred
 
-def updateCountsFromIP(item_id, pred)
+def updateCountsFromIP(item_id, pred):
 	#finds IP pair for which to record this vote
     qItem = Item.objects.get(pk = item_id)
     qPred = Predicate.objects.get(pk=pred)
-#     questionedPair = IP_Pair.objects.get(item=qItem,predicate=qPred)
+    questionedPair = IP_Pair.objects.get(item=qItem,predicate=qPred)
 
-#     #create a task for updating the database
-#     task = Task(ip_pair=questionedPair,
-#        answer=workervote,
-#        workerID = workerId,
-#        feedback=feedback)
-#     task.save()
+    #create a task for updating the database
+    task = Task(ip_pair=questionedPair,
+       answer=workervote,
+       workerID = workerId,
+       feedback=feedback)
+    task.save()
 
-#     #update database with answer
-#     updateCounts(task, questionedPair)
+    #update database with answer
+    updateCounts(task, questionedPair)
 
 #________ANNEALING-EPSILON-GREEDY MAB______#
 
