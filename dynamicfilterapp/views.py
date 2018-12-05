@@ -104,8 +104,14 @@ def vote(request):
 
     #finds IP pair for which to record this vote
     qItem = Item.objects.get(item_ID = item_id)
+    if not qItem:
+        raise Exception("no item found for id: " + str(item_id))
     qPred = Predicate.objects.get(predicate_ID=pred)
+    if not qPred:
+        raise Exception("no pred found for id: " + str(pred))
     questionedPair = IP_Pair.objects.get(item=qItem,predicate=qPred)
+    if not questionedPair:
+        raise Exception("no ip pair found for item: " + str(item_id) + "and pred: " + str(pred))
 
     #create a task for updating the database
     task = Task(ip_pair=questionedPair,
