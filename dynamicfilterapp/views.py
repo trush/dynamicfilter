@@ -44,7 +44,10 @@ def workerForm(request):
         item_id = ip_pair.item.item_ID
         item = ip_pair.item.name
 
-    task = Task(ip_pair = ip_pair)
+    task = Task(ip_pair = ip_pair,
+       workerID = workerId,
+       start_time = 0)
+    task.save()
     # submitURL = request.GET.get("turkSubmitTo") + "/mturk/externalSubmit"
     # ip_pair = IP_Pair.objects.get(pk=1)
     # # ip_pair = pending_eddy(workerID, ip_pair) # update the ip_pair to display
