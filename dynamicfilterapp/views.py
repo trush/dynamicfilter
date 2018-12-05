@@ -43,6 +43,8 @@ def workerForm(request):
         pred_id = ip_pair.predicate.predicate_ID
         item_id = ip_pair.item.item_ID
         item = ip_pair.item.name
+
+    task = Task(ip_pair = ip_pair)
     # submitURL = request.GET.get("turkSubmitTo") + "/mturk/externalSubmit"
     # ip_pair = IP_Pair.objects.get(pk=1)
     # # ip_pair = pending_eddy(workerID, ip_pair) # update the ip_pair to display
