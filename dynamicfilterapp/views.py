@@ -67,12 +67,18 @@ def databaseReset(request):
     ''' 
     Deletes all objects and reloads the database. SHOULD NOT BE INCLUDED IN A LIVE VERSION.
     '''
-    Task.objects.all().delete()
-    DummyTask.objects.all().delete()
-    IP_Pair.objects.all().delete()
-    Predicate.objects.all().delete()
-    Question.objects.all().delete()
-    Item.objects.all().delete()
+    if Task.objects.all():
+        Task.objects.all().delete()
+    if DummyTask.objects.all():
+        DummyTask.objects.all().delete()
+    if IP_Pair.objects.all():
+        IP_Pair.objects.all().delete()
+    if Predicate.objects.all():
+        Predicate.objects.all().delete()
+    if Question.objects.all():
+        Question.objects.all().delete()
+    if Item.objects.all():
+        Item.objects.all().delete()
 
     load_database()
     # The render here is mostly just so the site has something to show.
