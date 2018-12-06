@@ -141,6 +141,6 @@ def display(request):
         ipstring = "No completed IP pairs."
     else:
         for ip in completedIP:
-            ipstring += "- " ip.item.name + "/" + ip.predicate.question.question_text + "\n"
+            ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "\n"
 
     return HttpResponse(ipstring)
