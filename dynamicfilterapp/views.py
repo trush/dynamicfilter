@@ -136,8 +136,7 @@ def display(request):
     '''
     ipstring = "Completed IP pairs: \n"
 
-	completedTasks = Task.objects.filter(workerID=ID)
-    completedIP = IP_Pair.objects.filter(id__in=completedTasks.values('ip_pair'))
+    completedIP = IP_Pair.objects.filter(isDone=True)
     if not completedIP:
         ipstring = "No completed IP pairs."
     else:
