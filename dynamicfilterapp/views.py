@@ -98,20 +98,21 @@ def vote(request):
     elapsed_time = request.POST.get("elapsed_time")
     pred = request.POST.get("pred")
     item_id = request.POST.get("item_id")
-    question = request.POST.get("question")
 
     # submitURL = request.POST.get("submitURL")
 
     #finds IP pair for which to record this vote
     qItem = Item.objects.get(item_ID = item_id)
     if not qItem:
-        return render(request, 'dynamicfilterapp/no_questions.html')
+        raise Exception("no item found for id: " + str(item_id))
     qPred = Predicate.objects.get(predicate_ID=pred)
     if not qPred:
-        return render(request, 'dynamicfilterapp/no_questions.html')
+        raise Exception("no pred found for id: " + str(pred))
     questionedPair = IP_Pair.objects.get(item=qItem,predicate=qPred)
     if not questionedPair:
-        return render(request, 'dynamicfilterapp/no_questions.html')
+        raise Exception("no ip pair found for item: " + str(item_id) + "and pred: " + str(pred))
+
+    question = qPred.question.question_text
 
     #create a task for updating the database
     task = Task(ip_pair=questionedPair,
