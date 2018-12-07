@@ -127,6 +127,9 @@ def vote(request):
     #update database with answer
     updateCounts(task, questionedPair)
 
+    #delete task to save db space
+    task.delete()
+
 
     context = {'question' : question, 'pred': pred,
         'workervote': workervote, 'elapsed_time': elapsed_time,
