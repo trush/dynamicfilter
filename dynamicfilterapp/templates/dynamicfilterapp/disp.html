@@ -1,8 +1,13 @@
 <html>
-<h1>Completed IPs</h1>
+<h1>Completed IPs (IP, num_no, num_yes)</h1>
 <ul>
 {% for ip in iplist %}
-    <li>{{ ip }}</li>
+    <li>{{ ip }}
+        <ul>
+            <li>{{ip.num_no}}</li>
+            <li>{{ip.num_yes}}</li>
+        </ul>
+    </li>
 {% endfor %}
 </ul>
 
