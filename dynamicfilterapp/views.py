@@ -145,7 +145,7 @@ def display(request):
     if not completedIP:
         return HttpResponse("No completed IP pairs.")
     else:
-        context['iplist'] = completedIP
+        context = {'iplist': completedIP}
         for ip in completedIP:
             ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "\n"
 
