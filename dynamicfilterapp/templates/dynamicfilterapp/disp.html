@@ -1,0 +1,6 @@
+<h1>Completed IPs</h1>
+<tbody>
+{% for ip in iplist %}
+<td>{{ ip.item.name}} {{ ip.predicate.question.question_text }}</td>
+{% endfor %}
+</tbody>

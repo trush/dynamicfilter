@@ -115,6 +115,8 @@ def vote(request):
     task = Task(ip_pair=questionedPair,
        answer=workervote,
        workerID = workerId,
+       start_time = 0,
+       end_time = elapsed_time,
        feedback=feedback)
     task.save()
 
@@ -141,9 +143,10 @@ def display(request):
 
     completedIP = IP_Pair.objects.filter(isDone=True)
     if not completedIP:
-        ipstring = "No completed IP pairs."
+        return HttpResponse("No completed IP pairs.")
     else:
+        context['iplist'] = completedIP
         for ip in completedIP:
             ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "\n"
 
-    return HttpResponse(ipstring)
+    return render(request, 'dynamicfilterapp/disp.html', context)
