@@ -40,6 +40,11 @@ SETUP_ARRAY = [ (20, [(0, (0.9, 0.75), (0.2, 0.75) )]),
 				(400, [(0, (0.75, 0.9), (0.75, 0.65) )])
 				]
 
+## Has all the results for a particular IP pair (or predicate task), can call
+# getAns(question, item, task_type) where task_type is an options parameter.
+sampleData = {}
+SAMPLEDATA_CONST = {}
+
 class SimulationTest(TransactionTestCase):
 	"""
 	Tests eddy algorithm on non-live data.
@@ -168,138 +173,103 @@ class SimulationTest(TransactionTestCase):
 
 	###___HELPERS THAT LOAD IN DATA___###
 	def load_data(self):
-		# read in the questions
+		"""
+		Loads in the real data from files into database. Use for actual database, not for test cases
+		"""
+		##################
+		# QUESTIONS/PRED #
+		##################
+
 		ID = 0
-		f = open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_questions.csv', 'r')
-		times = open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_times.csv', 'r')
-		time_array =[]
-		for time in times:
-			time_array += [time]
-		index=0
+		f = open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_questionsNew.csv', 'r')
 		for line in f:
 			line = line.rstrip('\n')
-			q = Question(question_ID=ID, question_text=line)
-			q.save()
-			pred = Predicate(predicate_ID=ID, question=q)
-			#set processing times
-			pred.set_times_taken(time_array[index].rstrip('\n'))
-			index+=1
-			#save
-			pred.save()
+			pred = Predicate(predicate_ID=ID, question=line)
+			try:
+				pred.save()
+			except:
+				print "there was a problem saving question", ID
 			ID += 1
 		f.close()
-		times.close()
 
-		# read in the items
+		##################
+		# ITEMS          #
+		##################
+
 		ID = 0
-		with open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_items.csv', 'r') as f:
+		with open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_itemsNew.csv', 'r') as f:
 			itemData = f.read()
-		items = itemData.split('\n')
-		for item in items:
-			i = Item(item_ID=ID, name=item, item_type=toggles.ITEM_TYPE)
-			i.save()
+		items = itemData.split("\n")
+
+		with open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_addressesNew.csv', 'r') as f1:
+			addressData = f1.read()
+		addresses = addressData.split("\n")
+
+		for i in range(len(items)):
+			i = Item(item_ID=ID, name=items[i], address=addresses[i], item_type=ITEM_TYPE)
+			try:
+				i.save()
+			except:
+				print "there was a problem saving item", ID
 			ID += 1
 
-		# only use the predicates listed in toggles.CHOSEN_PREDS
-		predicates = list(Predicate.objects.all()[pred] for pred in toggles.CHOSEN_PREDS)
+		##################
+		# IP PAIRS       #
+		##################
 
+		predicates = Predicate.objects.all()
 		itemList = Item.objects.all()
 		for p in predicates:
 			for i in itemList:
 				ip_pair = IP_Pair(item=i, predicate=p)
-				ip_pair.save()
+				try:
+					ip_pair.save()
+				except:
+					"ip pair was not saved"
 
+		##################
+		# SAMPLE DATA    #
+		##################
 
-		
-
-		# make a dictionary of all the ip_pairs and their values
-		sampleData = self.get_sample_answer_dict(toggles.INPUT_PATH + toggles.IP_PAIR_DATA_FILE)
-
-		return sampleData
-
-	## Reads in a file of pre-gathered Mechanical Turk HITs and makes a
-	# dictionary where the key is a IP_Pair and the value is a
-	# list of all the HITs answers for that IP_Pair. This list is the set
-	# that our simulations can sample answers from. At present, the csv file
-	# downloaded from Mechanical Turk must be copied and then edited to only
-	# include the four columns of data that we use here.
-	# @param filename The appropriate real data file generated from AMT. Must be
-	# the correct file for the ITEM_TYPE to work properly.
-	# @returns The dictionary with keys that are IP pairs and values that are arrays containing the
-	# possible worker responses, True or False, for the IP pair (from real AMT data).
-	def get_sample_answer_dict(self, filename):
-		# read in worker data from cleaned file
-		data = np.genfromtxt(fname=filename,
-							dtype={'formats': [np.dtype(int), np.dtype('S100'),
-										np.dtype('S200'), np.dtype(int)],
-									'names': ['WorkTimeInSeconds', 'Input.Hotel',
-										'Input.Question', 'Answer.Q1AnswerPart1']},
-							delimiter=',',
-							usecols=range(4),
-							skip_header=1)
-
-		# Get a list of all the tasks in the file, represented as tuples of
-		# (item, question, answer)
-		tasks = [(item, question, answer) for (workTimeInSeconds, item, question, answer) in data]
-
-		# create the dictionary and populate it with empty lists
+		## want to look at DATA_PATH = ..../hotel/hotel_cleaned_data.csv
+		ID = 0
+		f = open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_hotel_cleaned_dataNew.csv', 'r')
 		sampleData = {}
-		for p in IP_Pair.objects.all():
-			sampleData[p] = []
+		for line in f:
+			line = line.split(',')
+			time = line[0]
+			item = line[1]
+			question = line[2]
+			task_type = line[3]
+			answer = line[4].rstrip('\n')
+			if (question,item) in sampleData.keys():
+				sampleData[(question, item, task_type)] += [(answer, time)]
+			else:
+				sampleData[(question, item, task_type)] = [(answer, time)]
+		SAMPLEDATA_CONST = deepcopy(sampleData)
 
-		# Add every task's answer into the appropriate list in the dictionary
-		for (item, question, answer) in tasks:
 
-			# answer==0 means worker answered "I don't know"
-			if answer != 0:
-
-				# get the RestaurantPredicates matching this task (will be a
-				# QuerySet of length 1 or 0)
-				predKey = IP_Pair.objects.filter(predicate__question__question_text=question).filter(item__name=item)
-
-				# Some tasks won't have matching RestaurantPredicates, since we
-				# may not be using all the possible predicates
-				if predKey.count() > 0:
-					if answer > 0:
-						sampleData[predKey[0]].append(True)
-					elif answer < 0:
-						sampleData[predKey[0]].append(False)
-
-		return sampleData
-
-	## Reads "ground truth" answers to IP Pairs from a specific file with particular formatting.
-	# @param filename The file from which the answers are read. A csv where the first element on each
-	# line is an item in the database and the nth subsequent element on the line is the answer to an IP of
-	# that item and the nth predicate.
-	# @returns A dictionary with keys that are IP pairs and values that are the "true" answer corresponding to
-	# that IP Pair.
-	def get_correct_answers(self, filename):
-		#read in answer data
-		raw = generic_csv_read(filename)
-		data = []
-		for row in raw:
-			l=[row[0]]
-			for val in row[1:]:
-				if val == "FALSE" or val == "False":
-					l.append(False)
-				elif val == "TRUE" or val == "True":
-					l.append(True)
-				else:
-					raise ValueError("Error in correctAnswers csv file")
-			data.append(l)
-		answers = data
-		# create an empty dictionary that we'll populate with (item, predicate) keys
-		# and boolean correct answer values
-		correctAnswers = {}
-
-		for line in answers:
-			for i in range(len(line)-1):
-				key = (Item.objects.get(name = line[0]),
-					Predicate.objects.get(pk = i+1))
-				value = line[i+1]
-				correctAnswers[key] = value 
-
-		return correctAnswers
+	#----------------------- getAns()-----------------------#
+	## assumes access to dictionary globally named "sample Data"
+	def getAns(self, question, item, task_type=None):
+		nextAns = []
+		if task_type == "all":
+			for task_t in ["gen_PJF", "small_p", "PJF","PJF2","join","PWl2" "PW", None]:
+				if (question, item, task_t) in sampleData.keys():
+					nextAns += sampleData[(question, item, task_type)]
+				# else:
+				# 	raise Exception("Data Error 1: Tried to use data you don't have! You need more of these tasks (question, item, task): " + str((question, item, task_type)))
+		elif toggles.RESPONSE_SAMPLING_REPLACEMENT:
+			print("HERE HERE HERE: " + str((question, item, task_type) in sampleData))
+			print((question, item, task_type))
+			nextAns = sampleData[(question, item, task_type)][0]
+			sampleData[(question, item, task_type)] = sampleData[(question, item, task_type)][1:] + sampleData[(question, item, task_type)][0]
+		else:
+			try:
+				sampleData[(question, item, task_type)] = sampleData[(question, item, task_type)][1:]
+			except:
+				raise Exception("Data Error 2: You are trying to sample without replacement, but you don't have enough data to do that!")
+		return nextAns
 
 	#___HELPERS USED FOR SIMULATION___#
 
@@ -313,7 +283,7 @@ class SimulationTest(TransactionTestCase):
 	# @param dictionary The dictionary of possible worker responses for the given IP pair
 	# loaded in by get_sample_answer_dict()
 	# @returns the Task object that was simulated.
-	def simulate_task(self, chosenIP, workerID, time_clock, dictionary):
+	def simulate_task(self, chosenIP, workerID, time_clock, task_type=None, curr_join=None, predicate=None):
 		start = time.time()
 		#if chosenIP is not None:
 
@@ -325,28 +295,31 @@ class SimulationTest(TransactionTestCase):
 		# 		workerID is the worker it's been assigned to
 		#		duration should be a random choice from TRUE_TIMEs concatenated with FALSE_TIMES
 		if chosenIP is None:
-			if toggles.SIMULATE_TIME:
-				# TODO
-				# this task is going to be as long as any task can be?
-				# or delay workers by a fixed amount of time?
-				work_time = choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
-				start_task = time_clock + toggles.BUFFER_TIME
-				end_task = start_task + work_time
-				self.cum_placeholder_time += work_time
+			if cur_join is None:
+				if toggles.SIMULATE_TIME:
+					# TODO
+					# this task is going to be as long as any task can be?
+					# or delay workers by a fixed amount of time?
+					work_time = choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
+					start_task = time_clock + toggles.BUFFER_TIME
+					end_task = start_task + work_time
+					self.cum_placeholder_time += work_time
+				else:
+					start_task = 0
+					end_task = 0
+
+				t = DummyTask(workerID = workerID, start_time = start_task, end_time = end_task)
+				t.save()
 			else:
-				start_task = 0
-				end_task = 0
-
-			t = DummyTask(workerID = workerID, start_time = start_task, end_time = end_task)
-			t.save()
-
+				results, time_taken, advance = curr_join.main_join( None, predicate)
+				start_time = time_clock + toggles.BUFFER_TIME
+				end_time = start_time + time_taken
+				t = Task(predicate=predicate, answer=results, workerID=workerID,
+					start_time=start_time, end_time=end_time, type_done = advance)
 
 		else:
 			#chosenIP.refresh_from_db()
-			value = choice(dictionary[chosenIP])
-			if not toggles.RESPONSE_SAMPLING_REPLACEMENT:
-				#print len(dictionary[chosenIP])
-				dictionary[chosenIP].remove(value)
+			(value, time) = getAns(chosenIP.predicate.question, chosenIP.item)
 			if toggles.SIMULATE_TIME:
 				if type(chosenIP) is Predicate:
 					chosenPred = chosenIP
@@ -420,7 +393,7 @@ class SimulationTest(TransactionTestCase):
 					start_time = start_task, end_time = end_task)
 			else:
 				#TODO: figure out exactly how the algorithm needs to handle splitting join processes
-				results, time_taken, advance = curr_join.main_join(task_type, None, predicate)
+				results, time_taken, advance = curr_join.main_join(None, predicate)
 				start_time = time_clock + toggles.BUFFER_TIME
 				end_time = start_time + time_taken
 				t = Task(predicate=predicate, answer=results, workerID=workerID,
@@ -448,7 +421,7 @@ class SimulationTest(TransactionTestCase):
 						start_time=start_task, end_time=end_task)
 			
 			else:
-				results, time_taken, advance = curr_join.main_join(task_type, chosenIP)
+				results, time_taken, advance = curr_join.main_join(chosenIP)
 				start_time = time_clock + toggles.BUFFER_TIME
 				end_time = start_time + time_taken
 				t = Task(ip_pair=chosenIP, answer=results, workerID=workerID,
@@ -567,7 +540,7 @@ class SimulationTest(TransactionTestCase):
 	# @param globalVar The variable that you want to change over the course of multiple
 	# simulation runs, passed as a string.
 	# @param listOfValuesToTest an array of values that globalVar will be set to
-	def abstract_sim(self, dictionary, globalVar, listOfValuesToTest):
+	def abstract_sim(self, globalVar, listOfValuesToTest):
 		"""
 		Expirimental function that runs many sims with varrying values of globalVar
 		"""
@@ -579,7 +552,7 @@ class SimulationTest(TransactionTestCase):
 			setattr(toggles, globalVar, listOfValuesToTest[i])
 			counts.append([])
 			for run in range(toggles.NUM_SIM):
-				self.run_sim(dictionary)
+				self.run_sim(sampleData)
 				counts[i].append(self.num_tasks)
 				self.reset_database()
 				if toggles.DEBUG_FLAG:
@@ -654,7 +627,7 @@ class SimulationTest(TransactionTestCase):
 	# @param switch A number that indicates the "state" of the simulation -- can indicate whether selectivity/ambiguity
 	# of synthetic data should change.
 	# @returns an Task object or DummyTask object.
-	def issueTask(self, active_tasks, active_joins, b_workers, time_clock, dictionary, switch):
+	def issueTask(self, active_tasks, active_joins, b_workers, time_clock, switch):
 		# select an available worker who is eligible to do a task in our pool
 		workerDone = True
 		a_num = toggles.NUM_WORKERS - len(b_workers)
@@ -678,7 +651,7 @@ class SimulationTest(TransactionTestCase):
 
 				if toggles.REAL_DATA:
 					# TODO change return val of simulate task and syn simulate task to just task
-					task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
+					task = self.simulate_task(ip_pair, workerID, time_clock)
 				else:
 					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
 					
@@ -702,7 +675,7 @@ class SimulationTest(TransactionTestCase):
 			self.pending_eddy_time += eddy_time
 
 			if toggles.REAL_DATA:
-				task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
+				task = self.simulate_task(ip_pair, workerID, time_clock)
 			else:
 				if pred is not None:
 					#if give_task returns a predicate, then we create a predicate task
@@ -728,7 +701,7 @@ class SimulationTest(TransactionTestCase):
 	# return true. Goes through IP pairs in order of increasing ambiguity
 	# To make that work please sort preds in toggles.CHOSEN_PREDS in that order
 	# (e.g. [4,2] instead of [2,4] for restaurants)
-	def optimal_sim(self, dictionary):
+	def optimal_sim(self):
 		# get correct answers from file
 		answers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
 		# select only the chosen predicates
@@ -758,7 +731,7 @@ class SimulationTest(TransactionTestCase):
 				# do tasks until pair is done
 				while not ip_pair.isDone:
 					workerID = self.pick_worker([0], [0])
-					self.simulate_task(ip_pair, workerID, dictionary)
+					self.simulate_task(ip_pair, workerID)
 					self.num_tasks += 1
 
 		# find the set of IP pairs still not eliminated
@@ -783,7 +756,7 @@ class SimulationTest(TransactionTestCase):
 			elif ip_pair.isDone:
 				ip_pair = choice(IP_Pair.objects.filter(isDone=False))
 
-			self.simulate_task(ip_pair, workerID, dictionary)
+			self.simulate_task(ip_pair, workerID)
 			num_tasks += 1
 
 		return num_tasks
@@ -817,7 +790,7 @@ class SimulationTest(TransactionTestCase):
 	# a database, with or without time.
 	# @param dictionary A dictionary whose keys are IP Pairs and whose values are arrays of possible worker responses
 	# (only used for toggles.REAL_DATA = True) simulations.
-	def run_sim(self, dictionary):
+	def run_sim(self):
 		"""
 		Runs a single simulation and increments a counter to simulate time. Tasks
 		have durations and run concurrently.
@@ -839,6 +812,7 @@ class SimulationTest(TransactionTestCase):
 		batch_tasks_out = toggles.ACTIVE_TASKS_SIZE
 		refill_mark = 0
 		last_refill = 0
+		sampleData = deepcopy(SAMPLEDATA_CONST)
 
 		time_proxy = 0
 		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE # saves the initial size of the array
@@ -884,11 +858,16 @@ class SimulationTest(TransactionTestCase):
 
 		#set up a join object for every join predicate
 		for pred in Predicate.objects.all():
-			if pred.joinable:
+			if pred.joinable and not toggles.REAL_DATA:
 				if toggles.HAS_LIST2:
 					active_joins[pred] = Join(deepcopy(toggles.private_list2))
 				else:
 					active_joins[pred] = Join()
+			elif pred.joinable:
+				if toggles.HAS_LIST2:
+					active_joins[pred] = Join(deepcopy(toggles.private_list2), sampleData)
+				else:
+					active_joins[pred] = Join(sampleData)
 
 		# add an entry to save the numbers of placeholder tasks
 		self.pred_active_tasks[0] = []
@@ -1145,7 +1124,7 @@ class SimulationTest(TransactionTestCase):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 
-						task, worker = self.issueTask(active_tasks, active_joins, b_workers, time_clock, dictionary, switch)
+						task, worker = self.issueTask(active_tasks, active_joins, b_workers, time_clock, switch)
 						
 
 						if toggles.BATCH_ASSIGNMENT:
@@ -1278,7 +1257,7 @@ class SimulationTest(TransactionTestCase):
 										routingL[i].append(routingC[i])
 
 					if toggles.REAL_DATA :
-						task = self.simulate_task(ip_pair, workerID, 0, dictionary)
+						task = self.simulate_task(ip_pair, workerID, 0)
 					else:
 						task = self.syn_simulate_task(ip_pair, workerID, 0, switch, self.num_tasks)
 
@@ -1564,7 +1543,7 @@ class SimulationTest(TransactionTestCase):
 
 	## Finds the average cost per IP Pair
 	# \todo write a better docstring
-	def sim_average_cost(self, dictionary):
+	def sim_average_cost(self):
 		"""
 		Finds the average cost per ip_pair
 		"""
@@ -1575,7 +1554,7 @@ class SimulationTest(TransactionTestCase):
 		for p in toggles.CHOSEN_PREDS:
 			pred_cost = 0.0
 			pred = Predicate.objects.all().get(pk=p+1)
-			f.write(pred.question.question_text + '\n')
+			f.write(pred.question + '\n')
 
 			#iterate through to find each ip cost
 			for ip in IP_Pair.objects.filter(predicate=pred):
@@ -1585,7 +1564,7 @@ class SimulationTest(TransactionTestCase):
 					# running one sampling
 					while ip.status_votes < toggles.NUM_CERTAIN_VOTES:
 						# get the vote
-						value = choice(dictionary[ip])
+						value = self.getAns(ip.predicate.question, ip.item, "all") #TODO: not sure exactly how to remedy this metric with task_types
 						if value == True:
 							ip.value += 1
 							ip.num_yes += 1
@@ -1625,7 +1604,9 @@ class SimulationTest(TransactionTestCase):
 	## Samples a large number of runs for a single ip_pair and records all the costs for the runs
 	# \todo port over to new system
 	# \todo write better docstring
-	def sim_single_pair_cost(self, dictionary, ip):
+	def sim_single_pair_cost(self, ip):
+		if ip.item == None:
+			print("HERE HERE HERE the error is in sim_single_pair")
 		#TODO port over to new system
 		if toggles.DEBUG_FLAG:
 			print "Running: sim_single_pair_cost"
@@ -1637,7 +1618,7 @@ class SimulationTest(TransactionTestCase):
 			# running one sampling
 			while ip.status_votes < toggles.NUM_CERTAIN_VOTES:
 				# get the vote
-				value = choice(dictionary[ip])
+				value = choice(getAns(ip.predicate.question, ip.item, None)) #TODO: might need to put in more effort into saving data that would be used here (during the run itself)
 				if value == True:
 					ip.value += 1
 					ip.num_yes += 1
@@ -1686,7 +1667,7 @@ class SimulationTest(TransactionTestCase):
 
 	## outputs statistics on the given dictionary
 	# \todo write a better docstring
-	def output_data_stats(self, dictionary):
+	def output_data_stats(self):
 		"""
 		outputs statistics on the given dictionary
 		"""
@@ -1696,8 +1677,8 @@ class SimulationTest(TransactionTestCase):
 		f.write('ip_pair, numTrue, numFalse, overallVote\n')
 		for ip in IP_Pair.objects.all():
 			#print len(dictionary[ip])
-			numTrue = sum(1 for vote in dictionary[ip] if vote)
-			numFalse = len(dictionary[ip])- numTrue
+			numTrue = sum(1 for (votes,time) in self.getAns(ip.predicate.question, ip.item, "all") if int(mean(votes)))
+			numFalse = len(self.getAns(ip.predicate.question, ip.item,"all")) - numTrue
 			overallVote = (numTrue > numFalse)
 			f.write(str(ip) + ', ' + str(numTrue) + ', ' + str(numFalse)
 				+ ', ' + str(overallVote) + '\n')
@@ -2376,13 +2357,13 @@ class SimulationTest(TransactionTestCase):
 		if toggles.REAL_DATA:
 			sampleData = self.load_data()
 			if toggles.RUN_DATA_STATS:
-				self.output_data_stats(sampleData)
+				self.output_data_stats()
 				self.reset_database()
 			if toggles.RUN_AVERAGE_COST:
-				self.sim_average_cost(sampleData)
+				self.sim_average_cost()
 				self.reset_database()
 			if toggles.RUN_SINGLE_PAIR:
-				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+				self.sim_single_pair_cost(pending_eddy(self.pick_worker([0], [0])))
 				self.reset_database()
 		else:
 			sampleData = {}
@@ -2611,10 +2592,10 @@ class SimulationTest(TransactionTestCase):
 	# 	if toggles.REAL_DATA:
 	# 		sampleData = self.load_data()
 	# 		if toggles.RUN_DATA_STATS:
-	# 			self.output_data_stats(sampleData)
+	# 			self.output_data_stats()
 	# 			self.reset_database()
 	# 		if toggles.RUN_AVERAGE_COST:
-	# 			self.sim_average_cost(sampleData)
+	# 			self.sim_average_cost()
 	# 			self.reset_database()
 	# 		if toggles.RUN_SINGLE_PAIR:
 	# 			self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
@@ -2625,3 +2606,42 @@ class SimulationTest(TransactionTestCase):
 	#
 	# 	self.timeRun(sampleData)
 	
+
+	####################################################
+	### DELETED ABOUT LOAD DATA ISSUES WERE CHANGED ####
+	####################################################
+
+	## Reads "ground truth" answers to IP Pairs from a specific file with particular formatting.
+	# @param filename The file from which the answers are read. A csv where the first element on each
+	# line is an item in the database and the nth subsequent element on the line is the answer to an IP of
+	# that item and the nth predicate.
+	# @returns A dictionary with keys that are IP pairs and values that are the "true" answer corresponding to
+	# that IP Pair.
+
+	# def get_correct_answers(self, filename):
+	# 	#read in answer data
+	# 	raw = generic_csv_read(filename)
+	# 	data = []
+	# 	for row in raw:
+	# 		l=[row[0]]
+	# 		for val in row[1:]:
+	# 			if val == "FALSE" or val == "False":
+	# 				l.append(False)
+	# 			elif val == "TRUE" or val == "True":
+	# 				l.append(True)
+	# 			else:
+	# 				raise ValueError("Error in correctAnswers csv file")
+	# 		data.append(l)
+	# 	answers = data
+	# 	# create an empty dictionary that we'll populate with (item, predicate) keys
+	# 	# and boolean correct answer values
+	# 	correctAnswers = {}
+
+	# 	for line in answers:
+	# 		for i in range(len(line)-1):
+	# 			key = (Item.objects.get(name = line[0]),
+	# 				Predicate.objects.get(pk = i+1))
+	# 			value = line[i+1]
+	# 			correctAnswers[key] = value 
+
+	# 	return correctAnswers

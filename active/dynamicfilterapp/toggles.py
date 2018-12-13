@@ -14,7 +14,7 @@ SIM_TIME_STEP = 60
 # **************************** INPUT SETTINGS **************************** #
 # ************************************************************************ #
 
-REAL_DATA = False # if False, use synethic data
+REAL_DATA = True # if False, use synethic data
 
 # ______ REAL DATA SETTINGS ______ #
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
@@ -82,43 +82,43 @@ PROPORTION_JOINS = 1.0
 STARTED_JOIN_RATIO = 0.5
 ## Settings #-----------------------###############
 
-if not REAL_DATA:
-        ## join data
-    JOIN_SELECTIVITY = 0.2
-    JOIN_TIME = 4.0 
-    JOIN_TIME_STD = 0.5
-    JOIN_AMBIGUITY = 0.0
+### only really being used when REAL_DATA is False
+    ## join data
+JOIN_SELECTIVITY = 0.2
+JOIN_TIME = 4.0 
+JOIN_TIME_STD = 0.5
+JOIN_AMBIGUITY = 0.0
 
-        ## PJFjoin in particular
-    PJF_SELECTIVITY = 0.6
-    TIME_TO_EVAL_PJF = 10.0
-    PJF_TIME_STD = 2.0
-    PJF_AMBIGUITY = 0.0
+    ## PJFjoin in particular
+PJF_SELECTIVITY = 0.6
+TIME_TO_EVAL_PJF = 10.0
+PJF_TIME_STD = 2.0
+PJF_AMBIGUITY = 0.0
 
-        ## PWJoin in particular 
-    BASE_FIND_MATCHES = 6.0     #Basic requirement to find some matches
-    FIND_SINGLE_MATCH_TIME = 0.70 #cost per match found
-    AVG_MATCHES = 5 #average matches per item
-    STDDEV_MATCHES = 1 #standard deviation of matches
+    ## PWJoin in particular 
+BASE_FIND_MATCHES = 6.0     #Basic requirement to find some matches
+FIND_SINGLE_MATCH_TIME = 0.70 #cost per match found
+AVG_MATCHES = 5 #average matches per item
+STDDEV_MATCHES = 1 #standard deviation of matches
 
-        ## small predicate in particular
-    SMALL_P_SELECTIVITY = 0.5
-    TIME_TO_EVAL_SMALL_P = 3.0
-    SMALL_P_TIME_STD = 0.5
-    SP_AMBIGUITY = 0.0
+    ## small predicate in particular
+SMALL_P_SELECTIVITY = 0.5
+TIME_TO_EVAL_SMALL_P = 3.0
+SMALL_P_TIME_STD = 0.5
+SP_AMBIGUITY = 0.0
 
-        ## Other private variables used for simulations
-    HAS_LIST2 = False
-    EXPLORATION_REQ = 5 #once join has two lists, it will try each path this many times at least
-    private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
-    pjf_dict = {"PJF1": (0.3, 10.0), "PJF2": (0.75, 2.0), "PJF3": (0.35, 14.0), "PJF4": (0.66, 7.0)}
-    GEN_PJF_AMBIGUITY = 0.1
-    GEN_PJF_TIME = 5.0
-    GEN_PJF_STD = 1.0
+    ## Other private variables used for simulations
+HAS_LIST2 = False
+EXPLORATION_REQ = 5 #once join has two lists, it will try each path this many times at least
+private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
+pjf_dict = {"PJF1": (0.3, 10.0), "PJF2": (0.75, 2.0), "PJF3": (0.35, 14.0), "PJF4": (0.66, 7.0)}
+GEN_PJF_AMBIGUITY = 0.1
+GEN_PJF_TIME = 5.0
+GEN_PJF_STD = 1.0
 
-    #denotes how close the actual number of estimated 2nd list items must be found
-    # to the estimated number for species estimation
-    THRESHOLD = 0.1
+#denotes how close the actual number of estimated 2nd list items must be found
+# to the estimated number for species estimation
+THRESHOLD = 0.1
 
 
 # ************************************************************************ #
@@ -166,7 +166,7 @@ NUM_WORKERS = 100000
 DISTRIBUTION_TYPE = 0            # tells pick_worker how to choose workers
 DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
-RESPONSE_SAMPLING_REPLACEMENT = False
+RESPONSE_SAMPLING_REPLACEMENT = True
 
 NUM_SIM = 0
 NUM_GRAPH_SIM = 0
@@ -207,7 +207,7 @@ if GEN_GRAPHS:
         GEN_GRAPHS = False
 
 # ___ DATA COLLECTION: REAL DATA ____ #
-RUN_DATA_STATS = True
+RUN_DATA_STATS = False
 
 RUN_AVERAGE_COST = True
 COST_SAMPLES = 1
