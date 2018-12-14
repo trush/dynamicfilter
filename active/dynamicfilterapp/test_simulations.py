@@ -21,7 +21,7 @@ import math
 import sys
 import io
 import csv
-import time
+import time as tm
 from copy import deepcopy
 from scipy.special import btdtr
 
@@ -40,16 +40,15 @@ SETUP_ARRAY = [ (20, [(0, (0.9, 0.75), (0.2, 0.75) )]),
 				(400, [(0, (0.75, 0.9), (0.75, 0.65) )])
 				]
 
-## Has all the results for a particular IP pair (or predicate task), can call
-# getAns(question, item, task_type) where task_type is an options parameter.
-sampleData = {}
-SAMPLEDATA_CONST = {}
-
 class SimulationTest(TransactionTestCase):
 	"""
 	Tests eddy algorithm on non-live data.
 	"""
 	# DATA MEMBERS THAT HOLD STATS
+
+	## Has all the results for a particular IP pair (or predicate task), can call
+	# getAns(question, item, task_type) where task_type is an options parameter.
+	sampleData = {}
 
 	## Enumerates the simulations that have occurred in a given composite test
 	sim_num = 0
@@ -234,39 +233,49 @@ class SimulationTest(TransactionTestCase):
 		## want to look at DATA_PATH = ..../hotel/hotel_cleaned_data.csv
 		ID = 0
 		f = open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_hotel_cleaned_dataNew.csv', 'r')
-		sampleData = {}
+		self.sampleData = {}
 		for line in f:
 			line = line.split(',')
-			time = line[0]
+			time = int(line[0])
 			item = line[1]
 			question = line[2]
 			task_type = line[3]
+			if task_type == "None":
+				task_type = None
 			answer = line[4].rstrip('\n')
-			if (question,item) in sampleData.keys():
-				sampleData[(question, item, task_type)] += [(answer, time)]
+			if answer == "True":
+				answer = True
 			else:
-				sampleData[(question, item, task_type)] = [(answer, time)]
-		SAMPLEDATA_CONST = deepcopy(sampleData)
+				answer == False
+			if (question,item, task_type) in self.sampleData.keys():
+				self.sampleData[(question, item, task_type)] += [(answer, time)]
+			else:
+				self.sampleData[(question, item, task_type)] = [(answer, time)]
 
 
 	#----------------------- getAns()-----------------------#
 	## assumes access to dictionary globally named "sample Data"
 	def getAns(self, question, item, task_type=None):
 		nextAns = []
+		question = str(question)
+		item = str(item)
+		if not (task_type == None):
+			task_type = str(task_type)
 		if task_type == "all":
 			for task_t in ["gen_PJF", "small_p", "PJF","PJF2","join","PWl2" "PW", None]:
-				if (question, item, task_t) in sampleData.keys():
-					nextAns += sampleData[(question, item, task_type)]
+				if (question, item, task_t) in self.sampleData.keys():
+					nextAns += self.sampleData[(question, item, task_type)]
 				# else:
 				# 	raise Exception("Data Error 1: Tried to use data you don't have! You need more of these tasks (question, item, task): " + str((question, item, task_type)))
 		elif toggles.RESPONSE_SAMPLING_REPLACEMENT:
-			print("HERE HERE HERE: " + str((question, item, task_type) in sampleData))
-			print((question, item, task_type))
-			nextAns = sampleData[(question, item, task_type)][0]
-			sampleData[(question, item, task_type)] = sampleData[(question, item, task_type)][1:] + sampleData[(question, item, task_type)][0]
+			print "HERE HERE HERE HERE ANNA: " + str((question, item, task_type) in self.sampleData)
+			print (str(question), item, task_type)
+			print (question, item, task_type) in self.sampleData.keys()
+			nextAns = self.sampleData[(question, item, task_type)][0]
+			self.sampleData[(question, item, task_type)] = self.sampleData[(question, item, task_type)][1:] + [self.sampleData[(question, item, task_type)][0]]
 		else:
 			try:
-				sampleData[(question, item, task_type)] = sampleData[(question, item, task_type)][1:]
+				self.sampleData[(question, item, task_type)] = self.sampleData[(question, item, task_type)][1:]
 			except:
 				raise Exception("Data Error 2: You are trying to sample without replacement, but you don't have enough data to do that!")
 		return nextAns
@@ -284,7 +293,7 @@ class SimulationTest(TransactionTestCase):
 	# loaded in by get_sample_answer_dict()
 	# @returns the Task object that was simulated.
 	def simulate_task(self, chosenIP, workerID, time_clock, task_type=None, curr_join=None, predicate=None):
-		start = time.time()
+		start = tm.time()
 		#if chosenIP is not None:
 
 		# simulated worker votes
@@ -319,7 +328,8 @@ class SimulationTest(TransactionTestCase):
 
 		else:
 			#chosenIP.refresh_from_db()
-			(value, time) = getAns(chosenIP.predicate.question, chosenIP.item)
+			print "getting tasks info for: " + str(chosenIP.item.name)
+			(value, time) = self.getAns(chosenIP.predicate.question, chosenIP.item.name)
 			if toggles.SIMULATE_TIME:
 				if type(chosenIP) is Predicate:
 					chosenPred = chosenIP
@@ -329,7 +339,7 @@ class SimulationTest(TransactionTestCase):
 					#worker said true, take from true distribution
 					# NOTE: previous version used choice(toggles.TRUE_TIMES) but 
 					# now uses times that are connected to particular predicates
-					work_time = choice(chosenPred.get_times_taken())
+					work_time = time
 				else:
 					#worker said false, take from false distribution
 					# NOTE: previous version used choice(toggles.FALSE_TIMES) but 
@@ -356,7 +366,7 @@ class SimulationTest(TransactionTestCase):
 				#chosenIP.refresh_from_db()
 
 
-		end = time.time()
+		end = tm.time()
 		runTime = end - start
 		self.sim_task_time += runTime
 
@@ -374,7 +384,7 @@ class SimulationTest(TransactionTestCase):
 	# should change.
 	# @returns The Task object that was simulated.
 	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks, task_type=None, curr_join=None, predicate=None):
-		start = time.time()
+		start = tm.time()
 		if chosenIP is None:
 			if curr_join is None:
 				if toggles.SIMULATE_TIME:
@@ -431,8 +441,8 @@ class SimulationTest(TransactionTestCase):
 				updateCounts(t, chosenIP)
 				#t.refresh_from_db()
 				#chosenIP.refresh_from_db()
-		t.save()
-		end = time.time()
+		## t.save() TODO: this is not normally commented out but has an issue right now
+		end = tm.time()
 		runTime = end - start
 		self.sim_task_time += runTime
 		return t
@@ -493,7 +503,7 @@ class SimulationTest(TransactionTestCase):
 	# @returns The amount of clock time it took to complete all of the resetting.
 	def reset_database(self):
 		global SAMPLING_ARRAY
-		start = time.time()
+		start = tm.time()
 		SAMPLING_ARRAY = []
 		Task.objects.all().delete()
 		DummyTask.objects.all().delete()
@@ -519,7 +529,7 @@ class SimulationTest(TransactionTestCase):
 		self.pred_queues = {}
 		self.num_waste = 0
 
-		end = time.time()
+		end = tm.time()
 		reset_time = end - start
 		return reset_time
 
@@ -552,7 +562,7 @@ class SimulationTest(TransactionTestCase):
 			setattr(toggles, globalVar, listOfValuesToTest[i])
 			counts.append([])
 			for run in range(toggles.NUM_SIM):
-				self.run_sim(sampleData)
+				self.run_sim()
 				counts[i].append(self.num_tasks)
 				self.reset_database()
 				if toggles.DEBUG_FLAG:
@@ -795,7 +805,7 @@ class SimulationTest(TransactionTestCase):
 		Runs a single simulation and increments a counter to simulate time. Tasks
 		have durations and run concurrently.
 		"""
-		sim_start = time.time()
+		sim_start = tm.time()
 		global HAS_RUN_ITEM_ROUTING, ROUTING_ARRAY
 		self.sim_num += 1 # indicate that we've begun another simulation
 		passedItems = []
@@ -812,7 +822,8 @@ class SimulationTest(TransactionTestCase):
 		batch_tasks_out = toggles.ACTIVE_TASKS_SIZE
 		refill_mark = 0
 		last_refill = 0
-		sampleData = deepcopy(SAMPLEDATA_CONST)
+		print "length of the dict at the beginning of the run: " + str(len(self.sampleData))
+		self.load_data()
 
 		time_proxy = 0
 		orig_active_tasks = toggles.ACTIVE_TASKS_SIZE # saves the initial size of the array
@@ -865,9 +876,9 @@ class SimulationTest(TransactionTestCase):
 					active_joins[pred] = Join()
 			elif pred.joinable:
 				if toggles.HAS_LIST2:
-					active_joins[pred] = Join(deepcopy(toggles.private_list2), sampleData)
+					active_joins[pred] = Join(deepcopy(toggles.private_list2), self.sampleData)
 				else:
-					active_joins[pred] = Join(sampleData)
+					active_joins[pred] = Join(self.sampleData)
 
 		# add an entry to save the numbers of placeholder tasks
 		self.pred_active_tasks[0] = []
@@ -1043,13 +1054,13 @@ class SimulationTest(TransactionTestCase):
 						elif task.predicate != None:
 							task.refresh_from_db()
 							task.predicate.refresh_from_db()
-							start = time.time()
+							start = tm.time()
 							task.predicate.add_total_task()
 							task.predicate.add_total_time()
 							res = active_joins[task.predicate].is_done()
 							if res is not None:
 								active_joins[task.predicate].clear_ips(task.predicate)
-							self.update_time += time.time() - start
+							self.update_time += tm.time() - start
 						else:
 							self.update_time += updateCounts(task, task.ip_pair)
 						#task.refresh_from_db()
@@ -1486,7 +1497,7 @@ class SimulationTest(TransactionTestCase):
 		if toggles.RUN_TASKS_COUNT:
 			self.num_tasks_array.append(self.num_tasks)
 
-		sim_end = time.time()
+		sim_end = tm.time()
 		sim_time = sim_end - sim_start
 		self.run_sim_time = sim_time
 		return
@@ -1564,7 +1575,7 @@ class SimulationTest(TransactionTestCase):
 					# running one sampling
 					while ip.status_votes < toggles.NUM_CERTAIN_VOTES:
 						# get the vote
-						value = self.getAns(ip.predicate.question, ip.item, "all") #TODO: not sure exactly how to remedy this metric with task_types
+						value = self.getAns(ip.predicate.question, ip.item.name, "all") #TODO: not sure exactly how to remedy this metric with task_types
 						if value == True:
 							ip.value += 1
 							ip.num_yes += 1
@@ -1605,8 +1616,6 @@ class SimulationTest(TransactionTestCase):
 	# \todo port over to new system
 	# \todo write better docstring
 	def sim_single_pair_cost(self, ip):
-		if ip.item == None:
-			print("HERE HERE HERE the error is in sim_single_pair")
 		#TODO port over to new system
 		if toggles.DEBUG_FLAG:
 			print "Running: sim_single_pair_cost"
@@ -1618,7 +1627,7 @@ class SimulationTest(TransactionTestCase):
 			# running one sampling
 			while ip.status_votes < toggles.NUM_CERTAIN_VOTES:
 				# get the vote
-				value = choice(getAns(ip.predicate.question, ip.item, None)) #TODO: might need to put in more effort into saving data that would be used here (during the run itself)
+				value = choice(self.getAns(ip.predicate.question, ip.item.name, None)) #TODO: might need to put in more effort into saving data that would be used here (during the run itself)
 				if value == True:
 					ip.value += 1
 					ip.num_yes += 1
@@ -1677,8 +1686,8 @@ class SimulationTest(TransactionTestCase):
 		f.write('ip_pair, numTrue, numFalse, overallVote\n')
 		for ip in IP_Pair.objects.all():
 			#print len(dictionary[ip])
-			numTrue = sum(1 for (votes,time) in self.getAns(ip.predicate.question, ip.item, "all") if int(mean(votes)))
-			numFalse = len(self.getAns(ip.predicate.question, ip.item,"all")) - numTrue
+			numTrue = sum(1 for (votes,time) in self.getAns(ip.predicate.question, ip.item.name, "all") if int(mean(votes)))
+			numFalse = len(self.getAns(ip.predicate.question, ip.item.name,"all")) - numTrue
 			overallVote = (numTrue > numFalse)
 			f.write(str(ip) + ', ' + str(numTrue) + ', ' + str(numFalse)
 				+ ', ' + str(overallVote) + '\n')
@@ -1702,7 +1711,8 @@ class SimulationTest(TransactionTestCase):
 		for run in range(toggles.NUM_SIM):
 			print "Sim " + str(run+1) + " for uncertainty = " + str(toggles.UNCERTAINTY_THRESHOLD)
 
-			self.run_sim(data)
+			print "SampleData in runSimTrackAcc: " + str(sampleData.keys())
+			self.run_sim()
 			num_tasks = self.num_tasks
 			incorrect = self.num_incorrect
 			listTasks.append(num_tasks)
@@ -1973,12 +1983,12 @@ class SimulationTest(TransactionTestCase):
 	def itemRoutingTest(self):
  		systems = [1, 2, 5, 6, 8]
  		if toggles.REAL_DATA:
- 			sampleData = self.load_data()
+ 			self.sampleData = self.load_data()
  			if toggles.RUN_DATA_STATS:
- 				self.outout_data_stats(sampleData)
+ 				self.outout_data_stats(self.sampleData)
  				self.reset_database()
  		else:
- 			sampleData = {}
+ 			self.sampleData = {}
  			syn_load_data()
 
  		for sys in systems:
@@ -1987,7 +1997,7 @@ class SimulationTest(TransactionTestCase):
  			toggles.OUTPUT_PATH = "dynamicfilterapp/simulation_files/output/"
 
 			print "current system: ", str(sys)
-			#self.test_simulation(sampleData)
+			#self.test_simulation(self.sampleData)
 
 
 	## \todo write this docstring
@@ -1999,8 +2009,7 @@ class SimulationTest(TransactionTestCase):
 			raise Exception("Turn on TRACK_ACTIVE TASKS and SIMULATE_TIME for this to work properly.")
 		if not (toggles.COUNT_TICKETS and toggles.TRACK_QUEUES):
 			raise Exception("Turn on COUNT_TICKETS and SHOW_QUEUES to get complete data")
-
-		self.run_sim(data)
+		self.run_sim()
 
 		save = [self.time_steps_array]
 		graphData1 = [self.time_steps_array]
@@ -2355,7 +2364,7 @@ class SimulationTest(TransactionTestCase):
 			self.consensusGrid()
 
 		if toggles.REAL_DATA:
-			sampleData = self.load_data()
+			self.load_data()
 			if toggles.RUN_DATA_STATS:
 				self.output_data_stats()
 				self.reset_database()
@@ -2366,19 +2375,19 @@ class SimulationTest(TransactionTestCase):
 				self.sim_single_pair_cost(pending_eddy(self.pick_worker([0], [0])))
 				self.reset_database()
 		else:
-			sampleData = {}
+			self.sampleData = {}
 			syn_load_data()
 
 		if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
 			if toggles.DEBUG_FLAG:
 				print "Running: item Routing"
-			self.run_sim(deepcopy(sampleData))
+			self.run_sim(deepcopy(self.sampleData))
 			self.reset_database()
 
 		if PRED_SCORE_COUNT and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: Pred Score count"
-			self.run_sim(sampleData)
+			self.run_sim(self.sampleData)
 			self.reset_database()
 
 
@@ -2386,13 +2395,13 @@ class SimulationTest(TransactionTestCase):
 		if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
 			if toggles.DEBUG_FLAG:
 				print "Running: ticket counting"
-			self.run_sim(deepcopy(sampleData))
+			self.run_sim(deepcopy(self.sampleData))
 			self.reset_database()
 
 		if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
 			if toggles.DEBUG_FLAG:
 				print "Running: selectivity amounts over time"
-			self.run_sim(sampleData)
+			self.run_sim(self.sampleData)
 			self.reset_database()
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
@@ -2406,7 +2415,7 @@ class SimulationTest(TransactionTestCase):
 			self.reset_database()
 			for i in range(toggles.NUM_SIM):
 				print "running optimal_sim " +str(i)
-				self.num_tasks = self.optimal_sim(sampleData)
+				self.num_tasks = self.optimal_sim(self.sampleData)
 				countingArr.append(self.num_tasks)
 				self.reset_database()
 			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
@@ -2433,7 +2442,7 @@ class SimulationTest(TransactionTestCase):
 
 			for i in range(toggles.NUM_SIM):
 				print "running simulation " + str(i+1)
-				self.run_sim(deepcopy(sampleData))
+				self.run_sim(deepcopy(self.sampleData))
 				runTasksArray.append(self.num_tasks)
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
@@ -2550,10 +2559,10 @@ class SimulationTest(TransactionTestCase):
 							line_graph_gen(gX,gY,dest+'_good.png',title=title+" goodPoints",labels=labels,scatter=True,square=True)
 							line_graph_gen(bX,bY,dest+'_bad.png',title=title+" badPoints",labels=labels,scatter=True,square=True)
 		if toggles.TIME_SIMS:
-			self.timeRun(sampleData)
+			self.timeRun(self.sampleData)
 
 		if toggles.RUN_ABSTRACT_SIM:
-			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
+			self.abstract_sim(self.sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
 
 		if toggles.TRACK_ACTIVE_TASKS:
 			# create sets for visualizeMultiRuns
@@ -2562,10 +2571,10 @@ class SimulationTest(TransactionTestCase):
 			activeTasksSet = toggles.ACTIVE_TASKS_SET
 			
 			if toggles.NUM_GRAPH_SIM > 0:
-				self.visualizeMultiRuns(sampleData, queueSet, activeTasksSet, eddySet)
+				self.visualizeMultiRuns(self.sampleData, queueSet, activeTasksSet, eddySet)
 
 		if toggles.MULTI_SIM: 
-			self.runMultiSims(sampleData)
+			self.runMultiSims(self.sampleData)
 			# run multiple simulations for various configurations in toggles.MULTI_RUN_ARRAY
 
 
@@ -2590,7 +2599,7 @@ class SimulationTest(TransactionTestCase):
 	# 		self.consensusGrid()
 	#
 	# 	if toggles.REAL_DATA:
-	# 		sampleData = self.load_data()
+	# 		self.sampleData = self.load_data()
 	# 		if toggles.RUN_DATA_STATS:
 	# 			self.output_data_stats()
 	# 			self.reset_database()
@@ -2598,13 +2607,13 @@ class SimulationTest(TransactionTestCase):
 	# 			self.sim_average_cost()
 	# 			self.reset_database()
 	# 		if toggles.RUN_SINGLE_PAIR:
-	# 			self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+	# 			self.sim_single_pair_cost(self.sampleData, pending_eddy(self.pick_worker([0], [0])))
 	# 			self.reset_database()
 	# 	else:
-	# 		sampleData = {}
+	# 		self.sampleData = {}
 	# 		syn_load_data()
 	#
-	# 	self.timeRun(sampleData)
+	# 	self.timeRun(self.sampleData)
 	
 
 	####################################################

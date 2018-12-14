@@ -56,7 +56,6 @@ class Item(models.Model):
 		self.pairs_out  = 0
 		self.save(update_fields=["hasFailed","isStarted","almostFalse","inQueue", "pairs_out"])
 
-
 class WorkerID(models.Model):
 	"""
 	Restricts worker ID to positive integers. Used in IDForm in forms.py.
@@ -77,6 +76,9 @@ class Predicate(models.Model):
 	correct_matches = models.CharField(default = "", max_length = 1000)
 	tasks_out = models.IntegerField(default = 0)
 	times_taken = models.CharField(default = "", max_length = 9000)
+
+	def __str__(self):
+		return self.question
 
 	def set_times_taken(self, inlist):
 		self.times_taken = json.dumps(inlist)
@@ -193,7 +195,7 @@ class Predicate(models.Model):
 	rank = models.FloatField(default=0.0)
 
 	def __str__(self):
-		return "Predicate branch with question: " + self.question.question_text
+		return "Predicate branch with question: " + self.question
 
 	def update_selectivity(self):
 		self.refresh_from_db(fields=["totalNo","totalTasks"])

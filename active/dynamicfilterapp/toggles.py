@@ -6,7 +6,7 @@ import responseTimeDistribution
 
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
-DEBUG_FLAG = False
+DEBUG_FLAG = True
 SIM_TIME_STEP = 60
 # ************************************************************************ #
 
@@ -37,7 +37,7 @@ switch_list = [ (0, (0.3,0), (0.3,0))]
 
 # ___ PREDICATES (FOR REAL OR SYNTHETIC) ____ #
 if REAL_DATA:
-    CHOSEN_PREDS = [0,1]
+    CHOSEN_PREDS = [0]
 else:
     CHOSEN_PREDS = range(len(switch_list[0]) - 1)
 
@@ -209,7 +209,7 @@ if GEN_GRAPHS:
 # ___ DATA COLLECTION: REAL DATA ____ #
 RUN_DATA_STATS = False
 
-RUN_AVERAGE_COST = True
+RUN_AVERAGE_COST = False
 COST_SAMPLES = 1
 
 RUN_SINGLE_PAIR = False # deprecated?
