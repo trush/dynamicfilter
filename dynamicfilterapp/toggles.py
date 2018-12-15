@@ -16,6 +16,7 @@ SIM_TIME_STEP = 180
 
 REAL_DATA = False # if False, use synethic data
 
+
 # ______ REAL DATA SETTINGS ______ #
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
 ITEM_TYPE = "Hotel"                   # "Hotel" or "Restaurant"
