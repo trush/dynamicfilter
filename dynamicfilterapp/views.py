@@ -121,7 +121,11 @@ def vote(request):
     task.save()
 
     #update database with answer
-    write_tasks(task)
+    
+	with open('taskTracker.csv', mode = 'w') as mycsv:
+		task_writer = csv.DictWriter(mycsv)
+		
+		task_writer.writerow(str(task.ip_pair) + ', ' + str(task.workerID) + ', ' + str(task.end_time))
     updateCounts(task, questionedPair)
 
     #delete task to save db space. This means data tracking has to happen in real time on the site.

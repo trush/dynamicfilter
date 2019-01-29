@@ -718,18 +718,6 @@ def updateCounts(workerTask, chosenIP):
 		return 0
 
 
-def write_tasks(finishedTask):
-	"""
-	Writes csv for tracking tasks per IP pair
-	"""
-	raise Exception ("not yet refreshed")
-	finishedTask.refresh_from_db()
-	with open('taskTracker.csv', mode = 'w') as mycsv:
-		task_writer = csv.DictWriter(mycsv)
-		
-		task_writer.writerow(str(finishedTask.ip_pair) + ', ' + str(finishedTask.workerID) + ', ' + str(finishedTask.end_time))
-
-
 #____________IMPORT/EXPORT CSV FILE____________#
 def output_selectivities(run_name):
 	"""
