@@ -722,8 +722,8 @@ def write_tasks(finishedTask):
 	"""
 	Writes csv for tracking tasks per IP pair
 	"""
+	raise Exception ("not yet refreshed")
 	finishedTask.refresh_from_db()
-	raise Exception ("refreshed")
 	with open('taskTracker.csv', mode = 'w') as mycsv:
 		task_writer = csv.DictWriter(mycsv)
 		
