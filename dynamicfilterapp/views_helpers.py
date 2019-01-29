@@ -726,7 +726,7 @@ def write_tasks(finishedTask):
 		fieldnames = ['IP_Pair', 'workerId', 'end']
 		task_writer = csv.DictWriter(display, fieldnames=fieldnames)
 		
-		task_writer.writerow({'IP_Pair': finishedTask.ip_pair, 'workerId' = finishedTask.workerID, 'end' = finishedTask.end_time})
+		task_writer.writerow({'IP_Pair': finishedTask.ip_pair, 'workerId': finishedTask.workerID, 'end': finishedTask.end_time})
 
 
 #____________IMPORT/EXPORT CSV FILE____________#
