@@ -121,8 +121,8 @@ def vote(request):
     task.save()
 
     #update database with answer
-    updateCounts(task, questionedPair)
     write_tasks(task)
+    updateCounts(task, questionedPair)
 
     #delete task to save db space. This means data tracking has to happen in real time on the site.
     task.delete()

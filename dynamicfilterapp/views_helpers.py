@@ -722,11 +722,11 @@ def write_tasks(finishedTask):
 	"""
 	Writes csv for tracking tasks per IP pair
 	"""
-	with open('taskTracker.csv', mode = 'w') as display:
-		fieldnames = ['IP_Pair', 'workerId', 'end']
-		task_writer = csv.DictWriter(display, fieldnames=fieldnames)
+	finishedTask.refresh_from_db()
+	with open('taskTracker.csv', mode = 'w') as mycsv:
+		task_writer = csv.DictWriter(mycsv)
 		
-		task_writer.writerow({'IP_Pair': finishedTask.ip_pair, 'workerId': finishedTask.workerID, 'end': finishedTask.end_time})
+		task_writer.writerow(str(finishedTask.ip_pair) + ', ' + str(finishedTask.workerID) + ', ' + str(finishedTask.end_time))
 
 
 #____________IMPORT/EXPORT CSV FILE____________#
