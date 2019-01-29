@@ -158,5 +158,7 @@ def display(request):
 def displayCSV(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="taskTracker.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
 
     return response
