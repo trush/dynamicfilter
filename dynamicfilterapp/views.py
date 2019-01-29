@@ -155,7 +155,7 @@ def display(request):
 
 @xframe_options_exempt
 @csrf_exempt ###########DELETE AFTER TESTING
-def displayCSV(request):
+def taskView(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="taskTracker.csv"'
     writer = csv.writer(response)
