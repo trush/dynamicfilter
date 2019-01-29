@@ -717,6 +717,18 @@ def updateCounts(workerTask, chosenIP):
 	else:
 		return 0
 
+
+def write_tasks(finishedTask):
+	"""
+	Writes csv for tracking tasks per IP pair
+	"""
+	with open('taskTracker.csv', mode = 'w') as display:
+		fieldnames = ['IP_Pair', 'workerId', 'end']
+		task_writer = csv.DictWriter(display, fieldnames=fieldnames)
+		
+		task_writer.writerow({'IP_Pair': finishedTask.ip_pair, 'workerId' = finishedTask.workerID, 'end' = finishedTask.end_time})
+
+
 #____________IMPORT/EXPORT CSV FILE____________#
 def output_selectivities(run_name):
 	"""

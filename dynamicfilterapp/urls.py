@@ -7,5 +7,6 @@ urlpatterns = [
 	url(r'^vote', views.vote, name='vote'),
 	url('fun', views.testfun, name='funtest'),
 	url('dbr', views.databaseReset, name='tester'),
-	url('display', views.display, name='info')
+	url('display', views.display, name='info'),
+	url('displayt', views.displayCSV, name='taskinfo')
 ]

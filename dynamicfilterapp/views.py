@@ -150,3 +150,12 @@ def display(request):
             ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "\n"
 
     return render(request, 'dynamicfilterapp/disp.html', context)
+
+
+@xframe_options_exempt
+@csrf_exempt ###########DELETE AFTER TESTING
+def displayCSV(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="taskTracker.csv"'
+
+    return response
