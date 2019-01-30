@@ -149,7 +149,7 @@ def display(request):
     else:
         context = {'iplist': completedIP}
         for ip in completedIP:
-            ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "- yes: " + str(ip.num_yes) + " no: " + str(ip.num_no) + "\n"
+            ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "\n"
 
     return render(request, 'dynamicfilterapp/disp.html', context)
 
@@ -164,6 +164,6 @@ def workingView(request):
         top = incompleteIP.objects.order_by('-total_votes')[:30]
         context = {'iplist': top}
         for ip in top:
-            ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "- yes: " + str(ip.num_yes) + " no: " + str(ip.num_no) + "\n"
+            ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "\n"
 
     return render(request, 'dynamicfilterapp/disp2.html', context)
