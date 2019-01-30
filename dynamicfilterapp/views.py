@@ -157,7 +157,7 @@ def display(request):
 @xframe_options_exempt
 @csrf_exempt ###########DELETE AFTER TESTING
 def workingView(request):
-    incompleteIP = IP_Pair.objects.filter(isDone=True)
+    incompleteIP = IP_Pair.objects.filter(isDone=False)
     if not incompleteIP:
         return HttpResponse("All pairs complete.")
     else:
@@ -165,5 +165,5 @@ def workingView(request):
         context = {'iplist': top}
         for ip in top:
             ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "- yes: " + str(ip.num_yes) + " no: " + str(ip.num_no) + "\n"
-            
+
     return render(request, 'dynamicfilterapp/disp2.html', context)
