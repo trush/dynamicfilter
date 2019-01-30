@@ -165,6 +165,5 @@ def workingView(request):
         context = {'iplist': top}
         for ip in top:
             ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "- yes: " + str(ip.num_yes) + " no: " + str(ip.num_no) + "\n"
-
-
-   return render(request, 'dynamicfilterapp/disp2.html', context)
+            
+    return render(request, 'dynamicfilterapp/disp2.html', context)
