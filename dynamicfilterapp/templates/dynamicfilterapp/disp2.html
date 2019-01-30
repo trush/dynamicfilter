@@ -1,0 +1,14 @@
+<html>
+<h1>Top 30 Incomplete IPs (IP, num_no, num_yes)</h1>
+<ul>
+{% for ip in iplist %}
+    <li>{{ ip }}
+        <ul>
+            <li>{{ip.num_no}}</li>
+            <li>{{ip.num_yes}}</li>
+        </ul>
+    </li>
+{% endfor %}
+</ul>
+
+</html>
