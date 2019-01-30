@@ -161,9 +161,7 @@ def workingView(request):
     if not incompleteIP:
         return HttpResponse("All pairs complete.")
     else:
-        top = incompleteIP.objects.order_by('-total_votes')[:30]
+        top = incompleteIP.objects.order_by('-total_votes')[:10]
         context = {'iplist': top}
-        for ip in top:
-            ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "\n"
 
     return render(request, 'dynamicfilterapp/disp2.html', context)
