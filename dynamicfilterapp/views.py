@@ -143,7 +143,7 @@ def display(request):
     '''
     # ipstring = "Completed IP pairs: \n"
 
-    completedIP = IP_Pair.objects.filter(isDone=True)
+    completedIP = IP_Pair.objects.filter(isDone=False)
     if not completedIP:
         return HttpResponse("No completed IP pairs.")
     else:
