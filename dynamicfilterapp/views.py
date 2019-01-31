@@ -157,7 +157,7 @@ def display(request):
 @xframe_options_exempt
 @csrf_exempt ###########DELETE AFTER TESTING
 def workingView(request):
-    incompleteIP = IP_Pair.objects.filter(isDone=False).filter(total_votes>0)
+    incompleteIP = IP_Pair.objects.filter(isDone=False)
     if not incompleteIP:
         return HttpResponse("All pairs complete.")
     else:
