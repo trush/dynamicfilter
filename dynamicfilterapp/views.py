@@ -141,15 +141,15 @@ def display(request):
     '''
     Displays information about IP pairs' completeness and probably more later.
     '''
-    ipstring = "Completed IP pairs: \n"
+    # ipstring = "Completed IP pairs: \n"
 
     completedIP = IP_Pair.objects.filter(isDone=True)
     if not completedIP:
         return HttpResponse("No completed IP pairs.")
     else:
         context = {'iplist': completedIP}
-        for ip in completedIP:
-            ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "\n"
+        # for ip in completedIP:
+        #     ipstring += "- " + ip.item.name + "/" + ip.predicate.question.question_text + "\n"
 
     return render(request, 'dynamicfilterapp/disp.html', context)
 
