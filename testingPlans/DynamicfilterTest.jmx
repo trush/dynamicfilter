@@ -40,6 +40,15 @@
           <stringProp name="LoopController.loops">3</stringProp>
         </LoopController>
         <hashTree>
+          <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Counter" enabled="true">
+            <stringProp name="CounterConfig.start">0</stringProp>
+            <stringProp name="CounterConfig.end"></stringProp>
+            <stringProp name="CounterConfig.incr">1</stringProp>
+            <stringProp name="CounterConfig.name">vote_count</stringProp>
+            <stringProp name="CounterConfig.format"></stringProp>
+            <boolProp name="CounterConfig.per_user">false</boolProp>
+          </CounterConfig>
+          <hashTree/>
           <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="ambiguity check" enabled="true">
             <stringProp name="variableName">VOTE_CORRECT</stringProp>
             <stringProp name="outputFormat"></stringProp>
@@ -58,56 +67,6 @@
             <stringProp name="randomSeed"></stringProp>
             <boolProp name="perThread">true</boolProp>
             <stringProp name="TestPlan.comments">when a worker fails the ambiguity check, provides a random answer</stringProp>
-          </RandomVariableConfig>
-          <hashTree/>
-          <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="think time pred 1" enabled="true">
-            <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 1 (in ms)</stringProp>
-            <stringProp name="variableName">waitOne</stringProp>
-            <stringProp name="outputFormat"></stringProp>
-            <stringProp name="minimumValue">10000</stringProp>
-            <stringProp name="maximumValue">11000</stringProp>
-            <stringProp name="randomSeed"></stringProp>
-            <boolProp name="perThread">true</boolProp>
-          </RandomVariableConfig>
-          <hashTree/>
-          <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="think time pred 2" enabled="true">
-            <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 2 (in ms)</stringProp>
-            <stringProp name="variableName">waitTwo</stringProp>
-            <stringProp name="outputFormat"></stringProp>
-            <stringProp name="minimumValue">3500</stringProp>
-            <stringProp name="maximumValue">6500</stringProp>
-            <stringProp name="randomSeed"></stringProp>
-            <boolProp name="perThread">true</boolProp>
-          </RandomVariableConfig>
-          <hashTree/>
-          <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="think time pred 3" enabled="true">
-            <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 3 (in ms)</stringProp>
-            <stringProp name="variableName">waitThree</stringProp>
-            <stringProp name="outputFormat"></stringProp>
-            <stringProp name="minimumValue">3500</stringProp>
-            <stringProp name="maximumValue">6500</stringProp>
-            <stringProp name="randomSeed"></stringProp>
-            <boolProp name="perThread">true</boolProp>
-          </RandomVariableConfig>
-          <hashTree/>
-          <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="think time pred 4" enabled="true">
-            <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 4 (in ms)</stringProp>
-            <stringProp name="variableName">waitFour</stringProp>
-            <stringProp name="outputFormat"></stringProp>
-            <stringProp name="minimumValue">3500</stringProp>
-            <stringProp name="maximumValue">6500</stringProp>
-            <stringProp name="randomSeed"></stringProp>
-            <boolProp name="perThread">true</boolProp>
-          </RandomVariableConfig>
-          <hashTree/>
-          <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="think time pred 5" enabled="true">
-            <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 5 (in ms)</stringProp>
-            <stringProp name="variableName">waitFive</stringProp>
-            <stringProp name="outputFormat"></stringProp>
-            <stringProp name="minimumValue">3500</stringProp>
-            <stringProp name="maximumValue">6500</stringProp>
-            <stringProp name="randomSeed"></stringProp>
-            <boolProp name="perThread">true</boolProp>
           </RandomVariableConfig>
           <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="view workerform" enabled="true">
@@ -137,7 +96,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Pair available Assertion" enabled="true">
               <collectionProp name="Asserion.test_strings">
                 <stringProp name="-694566137">no question found</stringProp>
                 <stringProp name="-1906957324">no item found</stringProp>
@@ -172,10 +131,15 @@
             <boolProp name="IfController.evaluateAll">false</boolProp>
           </IfController>
           <hashTree>
-            <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="think time pred 1" enabled="false">
-              <stringProp name="ConstantTimer.delay">5000.0</stringProp>
-              <stringProp name="RandomTimer.range">1000.0</stringProp>
-            </UniformRandomTimer>
+            <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="think time pred 1" enabled="true">
+              <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 1 (in ms)</stringProp>
+              <stringProp name="variableName">waitOne</stringProp>
+              <stringProp name="outputFormat"></stringProp>
+              <stringProp name="minimumValue">10000</stringProp>
+              <stringProp name="maximumValue">11000</stringProp>
+              <stringProp name="randomSeed"></stringProp>
+              <boolProp name="perThread">true</boolProp>
+            </RandomVariableConfig>
             <hashTree/>
             <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Thinking pred 1" enabled="true">
               <stringProp name="ConstantTimer.delay">${waitOne}</stringProp>
@@ -531,10 +495,15 @@
             <boolProp name="IfController.evaluateAll">false</boolProp>
           </IfController>
           <hashTree>
-            <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="think time pred 2" enabled="false">
-              <stringProp name="ConstantTimer.delay">5000.0</stringProp>
-              <stringProp name="RandomTimer.range">1000.0</stringProp>
-            </UniformRandomTimer>
+            <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="think time pred 2" enabled="true">
+              <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 2 (in ms)</stringProp>
+              <stringProp name="variableName">waitTwo</stringProp>
+              <stringProp name="outputFormat"></stringProp>
+              <stringProp name="minimumValue">3500</stringProp>
+              <stringProp name="maximumValue">6500</stringProp>
+              <stringProp name="randomSeed"></stringProp>
+              <boolProp name="perThread">true</boolProp>
+            </RandomVariableConfig>
             <hashTree/>
             <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Thinking pred 2" enabled="true">
               <stringProp name="ConstantTimer.delay">${waitTwo}</stringProp>
@@ -890,10 +859,15 @@
             <boolProp name="IfController.evaluateAll">false</boolProp>
           </IfController>
           <hashTree>
-            <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="think time pred 3" enabled="false">
-              <stringProp name="ConstantTimer.delay">5000.0</stringProp>
-              <stringProp name="RandomTimer.range">1000.0</stringProp>
-            </UniformRandomTimer>
+            <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="think time pred 3" enabled="true">
+              <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 3 (in ms)</stringProp>
+              <stringProp name="variableName">waitThree</stringProp>
+              <stringProp name="outputFormat"></stringProp>
+              <stringProp name="minimumValue">3500</stringProp>
+              <stringProp name="maximumValue">6500</stringProp>
+              <stringProp name="randomSeed"></stringProp>
+              <boolProp name="perThread">true</boolProp>
+            </RandomVariableConfig>
             <hashTree/>
             <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Thinking pred 3" enabled="true">
               <stringProp name="ConstantTimer.delay">${waitThree}</stringProp>
@@ -1249,10 +1223,15 @@
             <boolProp name="IfController.evaluateAll">false</boolProp>
           </IfController>
           <hashTree>
-            <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="think time pred 4" enabled="false">
-              <stringProp name="ConstantTimer.delay">5000.0</stringProp>
-              <stringProp name="RandomTimer.range">1000.0</stringProp>
-            </UniformRandomTimer>
+            <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="think time pred 4" enabled="true">
+              <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 4 (in ms)</stringProp>
+              <stringProp name="variableName">waitFour</stringProp>
+              <stringProp name="outputFormat"></stringProp>
+              <stringProp name="minimumValue">3500</stringProp>
+              <stringProp name="maximumValue">6500</stringProp>
+              <stringProp name="randomSeed"></stringProp>
+              <boolProp name="perThread">true</boolProp>
+            </RandomVariableConfig>
             <hashTree/>
             <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Thinking pred 4" enabled="true">
               <stringProp name="ConstantTimer.delay">${waitFour}</stringProp>
@@ -1608,10 +1587,15 @@
             <boolProp name="IfController.evaluateAll">false</boolProp>
           </IfController>
           <hashTree>
-            <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="think time pred 5" enabled="false">
-              <stringProp name="ConstantTimer.delay">5000.0</stringProp>
-              <stringProp name="RandomTimer.range">1000.0</stringProp>
-            </UniformRandomTimer>
+            <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="think time pred 5" enabled="true">
+              <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 5 (in ms)</stringProp>
+              <stringProp name="variableName">waitFive</stringProp>
+              <stringProp name="outputFormat"></stringProp>
+              <stringProp name="minimumValue">3500</stringProp>
+              <stringProp name="maximumValue">6500</stringProp>
+              <stringProp name="randomSeed"></stringProp>
+              <boolProp name="perThread">true</boolProp>
+            </RandomVariableConfig>
             <hashTree/>
             <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Thinking pred 5" enabled="true">
               <stringProp name="ConstantTimer.delay">${waitFive}</stringProp>
@@ -1962,13 +1946,106 @@
               </hashTree>
             </hashTree>
           </hashTree>
+          <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Should check tickets" enabled="true">
+            <stringProp name="IfController.condition">${vote_count} % 10 == 0</stringProp>
+            <boolProp name="IfController.evaluateAll">false</boolProp>
+          </IfController>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Check tickets" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                <collectionProp name="Arguments.arguments"/>
+              </elementProp>
+              <stringProp name="HTTPSampler.domain">ancient-ridge-12007.herokuapp.com</stringProp>
+              <stringProp name="HTTPSampler.port"></stringProp>
+              <stringProp name="HTTPSampler.protocol"></stringProp>
+              <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+              <stringProp name="HTTPSampler.path">/dynamicfilterapp/tix/</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+              <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+              <stringProp name="HTTPSampler.response_timeout"></stringProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="tix count 1 " enabled="true">
+                <stringProp name="RegexExtractor.useHeaders">unescaped</stringProp>
+                <stringProp name="RegexExtractor.refname">tix1</stringProp>
+                <stringProp name="RegexExtractor.regex">Id: 0, Tickets: ([0-9]+)</stringProp>
+                <stringProp name="RegexExtractor.template"></stringProp>
+                <stringProp name="RegexExtractor.default">1</stringProp>
+                <stringProp name="RegexExtractor.match_number"></stringProp>
+              </RegexExtractor>
+              <hashTree/>
+              <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="tix count 2" enabled="true">
+                <stringProp name="RegexExtractor.useHeaders">unescaped</stringProp>
+                <stringProp name="RegexExtractor.refname">tix2</stringProp>
+                <stringProp name="RegexExtractor.regex">Id: 1, Tickets: ([0-9]+)</stringProp>
+                <stringProp name="RegexExtractor.template"></stringProp>
+                <stringProp name="RegexExtractor.default">1</stringProp>
+                <stringProp name="RegexExtractor.match_number"></stringProp>
+              </RegexExtractor>
+              <hashTree/>
+              <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="tix count 3" enabled="true">
+                <stringProp name="RegexExtractor.useHeaders">unescaped</stringProp>
+                <stringProp name="RegexExtractor.refname">tix3</stringProp>
+                <stringProp name="RegexExtractor.regex">Id: 2, Tickets: ([0-9]+)</stringProp>
+                <stringProp name="RegexExtractor.template"></stringProp>
+                <stringProp name="RegexExtractor.default">1</stringProp>
+                <stringProp name="RegexExtractor.match_number"></stringProp>
+              </RegexExtractor>
+              <hashTree/>
+              <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="tix count 4" enabled="true">
+                <stringProp name="RegexExtractor.useHeaders">unescaped</stringProp>
+                <stringProp name="RegexExtractor.refname">tix4</stringProp>
+                <stringProp name="RegexExtractor.regex">Id: 3, Tickets: ([0-9]+)</stringProp>
+                <stringProp name="RegexExtractor.template"></stringProp>
+                <stringProp name="RegexExtractor.default">1</stringProp>
+                <stringProp name="RegexExtractor.match_number"></stringProp>
+              </RegexExtractor>
+              <hashTree/>
+              <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="tix count 5" enabled="true">
+                <stringProp name="RegexExtractor.useHeaders">unescaped</stringProp>
+                <stringProp name="RegexExtractor.refname">tix5</stringProp>
+                <stringProp name="RegexExtractor.regex">Id: 4, Tickets: ([0-9]+)</stringProp>
+                <stringProp name="RegexExtractor.template"></stringProp>
+                <stringProp name="RegexExtractor.default">1</stringProp>
+                <stringProp name="RegexExtractor.match_number"></stringProp>
+              </RegexExtractor>
+              <hashTree/>
+            </hashTree>
+            <DebugSampler guiclass="TestBeanGUI" testclass="DebugSampler" testname="Debug Sampler" enabled="true">
+              <boolProp name="displayJMeterProperties">false</boolProp>
+              <boolProp name="displayJMeterVariables">true</boolProp>
+              <boolProp name="displaySystemProperties">false</boolProp>
+            </DebugSampler>
+            <hashTree>
+              <BeanShellPostProcessor guiclass="TestBeanGUI" testclass="BeanShellPostProcessor" testname="BeanShell PostProcessor" enabled="true">
+                <stringProp name="filename"></stringProp>
+                <stringProp name="parameters"></stringProp>
+                <boolProp name="resetInterpreter">false</boolProp>
+                <stringProp name="script">tix0 = vars.get(&quot;tix1_g1&quot;);
+tix1 = vars.get(&quot;tix2_g1&quot;);
+tix2 = vars.get(&quot;tix3_g1&quot;);
+tix3 = vars.get(&quot;tix4_g1&quot;);
+tix4 = vars.get(&quot;tix5_g1&quot;);
+time = System.currentTimeMillis();
+//log.info(email);  
+
+// Pass true if you want to append to existing file
+// If you want to overwrite, then don&apos;t pass the second argument
+f = new FileOutputStream(&quot;/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTicketing6.csv&quot;, true);
+p = new PrintStream(f); 
+this.interpreter.setOut(p); 
+print(time + &quot;,&quot; + tix0 + &quot;,&quot; + tix1 + &quot;,&quot; + tix2 + &quot;,&quot; + tix3 + &quot;,&quot; + tix4);
+f.close();</stringProp>
+              </BeanShellPostProcessor>
+              <hashTree/>
+            </hashTree>
+          </hashTree>
         </hashTree>
-        <DebugSampler guiclass="TestBeanGUI" testclass="DebugSampler" testname="Debug Sampler" enabled="false">
-          <boolProp name="displayJMeterProperties">false</boolProp>
-          <boolProp name="displayJMeterVariables">true</boolProp>
-          <boolProp name="displaySystemProperties">false</boolProp>
-        </DebugSampler>
-        <hashTree/>
         <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
@@ -2003,7 +2080,7 @@
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes5.csv</stringProp>
+          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes6.csv</stringProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Failures Tree" enabled="true">
@@ -2040,7 +2117,7 @@
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes5F.csv</stringProp>
+          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes6F.csv</stringProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="true">
