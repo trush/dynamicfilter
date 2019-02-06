@@ -1,0 +1,13 @@
+<html>
+<h1>Predicate Tickets (id, tix)</h1>
+<ul>
+{% for pred in preds %}
+    <li>{{ pred }}
+        <ul>
+            Id: {{pred.predicate_ID}}, Tickets: {{pred.num_tickets}}
+        </ul>
+    </li>
+{% endfor %}
+</ul>
+
+</html>

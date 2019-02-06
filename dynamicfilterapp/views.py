@@ -160,12 +160,13 @@ def getTix(request):
     '''
     Finds current tickets for each predicate
     '''
-    responseString = ""
     preds = Predicate.objects.all()
-    for pred in preds:
-        responseString += str(pred) + str(pred.num_tickets) + "\n"
+    if not preds:
+        return HttpResponse("No preds.")
+    else:
+        context = {'preds': preds}
 
-    return HttpResponse(responseString)
+    return render(request, 'dynamicfilterapp/tickets.html', context)
 
 
 @xframe_options_exempt
