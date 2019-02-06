@@ -8,5 +8,6 @@ urlpatterns = [
 	url('fun', views.testfun, name='funtest'),
 	url('dbr', views.databaseReset, name='tester'),
 	url('display', views.display, name='info'),
+	url('tix', views.getTix, name='tickets'),
 	url('workingView', views.workingView, name='inprogress')
 ]

@@ -156,6 +156,20 @@ def display(request):
 
 @xframe_options_exempt
 @csrf_exempt ###########DELETE AFTER TESTING
+def getTix(request):
+    '''
+    Finds current tickets for each predicate
+    '''
+    responseString = ""
+    preds = Predicate.objects.all()
+    for pred in preds:
+        responseString += str(pred) + str(pred.num_tickets) + "\n"
+
+    return HttpResponse(responseString)
+
+
+@xframe_options_exempt
+@csrf_exempt ###########DELETE AFTER TESTING
 def workingView(request):
     incompleteIP = IP_Pair.objects.filter(isDone=False)
     if not incompleteIP:

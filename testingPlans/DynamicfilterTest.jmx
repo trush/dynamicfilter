@@ -13,7 +13,7 @@
     </TestPlan>
     <hashTree>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group" enabled="true">
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <stringProp name="ThreadGroup.on_sample_error">stoptest</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
           <stringProp name="LoopController.loops">1</stringProp>
@@ -40,6 +40,26 @@
           <stringProp name="LoopController.loops">3</stringProp>
         </LoopController>
         <hashTree>
+          <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="ambiguity check" enabled="true">
+            <stringProp name="variableName">VOTE_CORRECT</stringProp>
+            <stringProp name="outputFormat"></stringProp>
+            <stringProp name="minimumValue">0</stringProp>
+            <stringProp name="maximumValue">100</stringProp>
+            <stringProp name="randomSeed"></stringProp>
+            <boolProp name="perThread">true</boolProp>
+            <stringProp name="TestPlan.comments">checks whether a given thread should provide the correct answer</stringProp>
+          </RandomVariableConfig>
+          <hashTree/>
+          <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="response check" enabled="true">
+            <stringProp name="variableName">RAND_VOTE</stringProp>
+            <stringProp name="outputFormat"></stringProp>
+            <stringProp name="minimumValue">0</stringProp>
+            <stringProp name="maximumValue">100</stringProp>
+            <stringProp name="randomSeed"></stringProp>
+            <boolProp name="perThread">true</boolProp>
+            <stringProp name="TestPlan.comments">when a worker fails the ambiguity check, provides a random answer</stringProp>
+          </RandomVariableConfig>
+          <hashTree/>
           <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="think time pred 1" enabled="true">
             <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 1 (in ms)</stringProp>
             <stringProp name="variableName">waitOne</stringProp>
@@ -117,6 +137,17 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
           </HTTPSamplerProxy>
           <hashTree>
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+              <collectionProp name="Asserion.test_strings">
+                <stringProp name="-694566137">no question found</stringProp>
+                <stringProp name="-1906957324">no item found</stringProp>
+              </collectionProp>
+              <stringProp name="Assertion.custom_message">all ip pairs exhausted</stringProp>
+              <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+              <boolProp name="Assertion.assume_success">false</boolProp>
+              <intProp name="Assertion.test_type">20</intProp>
+            </ResponseAssertion>
+            <hashTree/>
             <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="question finder" enabled="true">
               <stringProp name="RegexExtractor.useHeaders">unescaped</stringProp>
               <stringProp name="RegexExtractor.refname">MY_PRED</stringProp>
@@ -2052,26 +2083,6 @@
         </ResultCollector>
         <hashTree/>
       </hashTree>
-      <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="ambiguity check" enabled="true">
-        <stringProp name="variableName">VOTE_CORRECT</stringProp>
-        <stringProp name="outputFormat"></stringProp>
-        <stringProp name="minimumValue">0</stringProp>
-        <stringProp name="maximumValue">100</stringProp>
-        <stringProp name="randomSeed"></stringProp>
-        <boolProp name="perThread">true</boolProp>
-        <stringProp name="TestPlan.comments">checks whether a given thread should provide the correct answer</stringProp>
-      </RandomVariableConfig>
-      <hashTree/>
-      <RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="response check" enabled="true">
-        <stringProp name="variableName">RAND_VOTE</stringProp>
-        <stringProp name="outputFormat"></stringProp>
-        <stringProp name="minimumValue">0</stringProp>
-        <stringProp name="maximumValue">100</stringProp>
-        <stringProp name="randomSeed"></stringProp>
-        <boolProp name="perThread">true</boolProp>
-        <stringProp name="TestPlan.comments">when a worker fails the ambiguity check, provides a random answer</stringProp>
-      </RandomVariableConfig>
-      <hashTree/>
       <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Predicate selectivities, ambiguities" enabled="true">
         <collectionProp name="Arguments.arguments">
           <elementProp name="pred1" elementType="Argument">
