@@ -171,11 +171,19 @@ def getTix(request):
 
 @xframe_options_exempt
 @csrf_exempt ###########DELETE AFTER TESTING
-def workingView(request):
-    incompleteIP = IP_Pair.objects.filter(isDone=False)
-    if not incompleteIP:
-        return HttpResponse("All pairs complete.")
-    else:
-        context = {'iplist': incompleteIP}
+def summary(request):
+    preds = Predicate.objects.all().order_by("predicate_ID")
+    if not preds or not (Item.objects.all()):
+        return HttpResponse("Database not loaded.")
 
-    return render(request, 'dynamicfilterapp/disp2.html', context)
+    passedItems = Item.objects.filter(hasFailed = False)
+    failedItems = Item.objects.filter(hasFailed = True)
+    numPassed = len(passedItems)
+    numFailed = len(failedItems)
+    numItems = len(Item.objects.all())
+
+    context = {'preds':preds, 'passedItems':passedItems, 
+        'failedItems':failedItems, 'numPassed':numPassed,
+        'numFailed':numFailed, 'numItems':numItems}
+
+    return render(request, 'dynamicfilterapp/summary.html', context)

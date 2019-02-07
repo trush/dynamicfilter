@@ -1,0 +1,39 @@
+<html>
+<h1>Run summary</h1>
+<h2>Predicate Summary</h2>
+<ul>
+{% for pred in preds %}
+    <li>{{ pred }}
+        <ul>
+            <li>Total tasks: {{pred.totalTasks}}</li>
+            <li>Calculated selectivity: {{pred.calculatedSelectivity}}</li>
+            <li>Final Num Tickets: {{pred.numTickets}}</li>
+        </ul>
+    </li>
+{% endfor %}
+</ul>
+
+<h2>Item Summary </h2>
+<p>
+Total passed items: {{ numPassed }} <br>
+Total failed items: {{ numFailed }} <br>
+Total items: {{ numItems }}
+</p>
+
+<h3>Passed Items</h3>
+<ul>
+{% for item in passedItems %}
+    <li>{{ item }}
+    </li>
+{% endfor %}
+</ul>
+
+<h3>Failed Items</h3>
+<ul>
+{% for item in failedItems %}
+    <li>{{ item }}
+    </li>
+{% endfor %}
+</ul>
+
+</html>

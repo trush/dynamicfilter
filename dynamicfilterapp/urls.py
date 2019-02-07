@@ -7,7 +7,7 @@ urlpatterns = [
 	url(r'^vote', views.vote, name='vote'),
 	url('fun', views.testfun, name='funtest'),
 	url('dbr', views.databaseReset, name='tester'),
-	url('display', views.display, name='info'),
+	url('display', views.display, name='ip_info'),
 	url('tix', views.getTix, name='tickets'),
-	url('workingView', views.workingView, name='inprogress')
+	url('run_summary', views.summary, name='run_summary')
 ]
