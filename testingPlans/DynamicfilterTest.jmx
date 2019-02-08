@@ -18,7 +18,7 @@
           <boolProp name="LoopController.continue_forever">false</boolProp>
           <stringProp name="LoopController.loops">1</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">20</stringProp>
+        <stringProp name="ThreadGroup.num_threads">30</stringProp>
         <stringProp name="ThreadGroup.ramp_time">30</stringProp>
         <boolProp name="ThreadGroup.scheduler">false</boolProp>
         <stringProp name="ThreadGroup.duration"></stringProp>
@@ -37,7 +37,7 @@
         <hashTree/>
         <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="answer loop" enabled="true">
           <boolProp name="LoopController.continue_forever">true</boolProp>
-          <stringProp name="LoopController.loops">3</stringProp>
+          <intProp name="LoopController.loops">-1</intProp>
         </LoopController>
         <hashTree>
           <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Counter" enabled="true">
@@ -135,8 +135,8 @@
               <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 1 (in ms)</stringProp>
               <stringProp name="variableName">waitOne</stringProp>
               <stringProp name="outputFormat"></stringProp>
-              <stringProp name="minimumValue">10000</stringProp>
-              <stringProp name="maximumValue">11000</stringProp>
+              <stringProp name="minimumValue">3500</stringProp>
+              <stringProp name="maximumValue">6500</stringProp>
               <stringProp name="randomSeed"></stringProp>
               <boolProp name="perThread">true</boolProp>
             </RandomVariableConfig>
@@ -499,8 +499,8 @@
               <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 2 (in ms)</stringProp>
               <stringProp name="variableName">waitTwo</stringProp>
               <stringProp name="outputFormat"></stringProp>
-              <stringProp name="minimumValue">3500</stringProp>
-              <stringProp name="maximumValue">6500</stringProp>
+              <stringProp name="minimumValue">4000</stringProp>
+              <stringProp name="maximumValue">7000</stringProp>
               <stringProp name="randomSeed"></stringProp>
               <boolProp name="perThread">true</boolProp>
             </RandomVariableConfig>
@@ -863,8 +863,8 @@
               <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 3 (in ms)</stringProp>
               <stringProp name="variableName">waitThree</stringProp>
               <stringProp name="outputFormat"></stringProp>
-              <stringProp name="minimumValue">3500</stringProp>
-              <stringProp name="maximumValue">6500</stringProp>
+              <stringProp name="minimumValue">5500</stringProp>
+              <stringProp name="maximumValue">8500</stringProp>
               <stringProp name="randomSeed"></stringProp>
               <boolProp name="perThread">true</boolProp>
             </RandomVariableConfig>
@@ -1227,8 +1227,8 @@
               <stringProp name="TestPlan.comments">Sets a random interval for each user to wait before answering predicate 4 (in ms)</stringProp>
               <stringProp name="variableName">waitFour</stringProp>
               <stringProp name="outputFormat"></stringProp>
-              <stringProp name="minimumValue">3500</stringProp>
-              <stringProp name="maximumValue">6500</stringProp>
+              <stringProp name="minimumValue">8500</stringProp>
+              <stringProp name="maximumValue">11500</stringProp>
               <stringProp name="randomSeed"></stringProp>
               <boolProp name="perThread">true</boolProp>
             </RandomVariableConfig>
@@ -2036,7 +2036,7 @@ time = System.currentTimeMillis();
 
 // Pass true if you want to append to existing file
 // If you want to overwrite, then don&apos;t pass the second argument
-f = new FileOutputStream(&quot;/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTicketing6.csv&quot;, true);
+f = new FileOutputStream(&quot;/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTicketing8.csv&quot;, true);
 p = new PrintStream(f); 
 this.interpreter.setOut(p); 
 print(time + &quot;,&quot; + tix0 + &quot;,&quot; + tix1 + &quot;,&quot; + tix2 + &quot;,&quot; + tix3 + &quot;,&quot; + tix4);
@@ -2080,7 +2080,7 @@ f.close();</stringProp>
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes6.csv</stringProp>
+          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes8.csv</stringProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Failures Tree" enabled="true">
@@ -2117,7 +2117,7 @@ f.close();</stringProp>
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes6F.csv</stringProp>
+          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes8F.csv</stringProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="true">
@@ -2169,12 +2169,12 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="selectivity1" elementType="Argument">
             <stringProp name="Argument.name">selectivity1</stringProp>
-            <stringProp name="Argument.value">50</stringProp>
+            <stringProp name="Argument.value">84</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="ambiguity1" elementType="Argument">
             <stringProp name="Argument.name">ambiguity1</stringProp>
-            <stringProp name="Argument.value">0</stringProp>
+            <stringProp name="Argument.value">7</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="pred2" elementType="Argument">
@@ -2184,12 +2184,12 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="selectivity2" elementType="Argument">
             <stringProp name="Argument.name">selectivity2</stringProp>
-            <stringProp name="Argument.value">100</stringProp>
+            <stringProp name="Argument.value">12</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="ambiguity2" elementType="Argument">
             <stringProp name="Argument.name">ambiguity2</stringProp>
-            <stringProp name="Argument.value">100</stringProp>
+            <stringProp name="Argument.value">7</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="pred3" elementType="Argument">
@@ -2199,12 +2199,12 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="selectivity3" elementType="Argument">
             <stringProp name="Argument.name">selectivity3</stringProp>
-            <stringProp name="Argument.value">70</stringProp>
+            <stringProp name="Argument.value">97</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="ambiguity3" elementType="Argument">
             <stringProp name="Argument.name">ambiguity3</stringProp>
-            <stringProp name="Argument.value">20</stringProp>
+            <stringProp name="Argument.value">25</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="pred4" elementType="Argument">
@@ -2214,12 +2214,12 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="selectivity4" elementType="Argument">
             <stringProp name="Argument.name">selectivity4</stringProp>
-            <stringProp name="Argument.value">30</stringProp>
+            <stringProp name="Argument.value">38</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="ambiguity4" elementType="Argument">
             <stringProp name="Argument.name">ambiguity4</stringProp>
-            <stringProp name="Argument.value">60</stringProp>
+            <stringProp name="Argument.value">40</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="pred5" elementType="Argument">
@@ -2229,12 +2229,12 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="selectivity5" elementType="Argument">
             <stringProp name="Argument.name">selectivity5</stringProp>
-            <stringProp name="Argument.value">60</stringProp>
+            <stringProp name="Argument.value">90</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="ambiguity5" elementType="Argument">
             <stringProp name="Argument.name">ambiguity5</stringProp>
-            <stringProp name="Argument.value">30</stringProp>
+            <stringProp name="Argument.value">13</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
