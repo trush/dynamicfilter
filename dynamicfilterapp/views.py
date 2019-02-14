@@ -33,7 +33,15 @@ def workerForm(request):
     hitId = request.GET.get("hitId")
     if not hitId:
         hitId = -1
-    ip_pair, eddy_time = give_task(None, workerId)
+
+    if Item.objects.filter(hasFailed = False):
+        ip_pair, eddy_time = give_task(None, workerId)
+    else:
+        question = "no question found"
+        pred_id = -1
+        item_id = -1
+        item = "no item found"
+        
     if not ip_pair:
         question = "no question found"
         pred_id = -1
