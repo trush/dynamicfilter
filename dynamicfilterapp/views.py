@@ -22,7 +22,6 @@ def workerForm(request):
     """
     Page the worker sees to complete the question
     """
-    incompleteIP = IP_Pair.objects.filter(isDone=False)
     # if request.GET.get("assignmentId") == "ASSIGNMENT_ID_NOT_AVAILABLE": # worker has not accepted HIT yet
     #    return render(request,'externalhit/preview.html',{}) # render the fake page with empty context
     workerId = request.GET.get("workerId")
@@ -48,7 +47,8 @@ def workerForm(request):
             item_id = ip_pair.item.item_ID
             item = ip_pair.item.name
     else:
-        if incompleteIP.exists():
+        incompleteIP = IP_Pair.objects.filter(isDone = False)
+        if incompleteIP:
             question = "placeholder"
             pred_id = -1
             item_id = -1
