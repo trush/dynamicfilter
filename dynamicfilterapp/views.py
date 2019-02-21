@@ -34,24 +34,31 @@ def workerForm(request):
     if not hitId:
         hitId = -1
 
-    if Item.objects.filter(hasFailed = False):
+    if Item.objects.filter(isDone = False):
         ip_pair, eddy_time = give_task(None, workerId)
+        if not ip_pair:
+            question = "ip pair missing, please try again"
+            pred_id = -1
+            item_id = -1
+            item = "placeholder"
+        else:
+            question = ip_pair.predicate.question.question_text
+            pred_id = ip_pair.predicate.predicate_ID
+            item_id = ip_pair.item.item_ID
+            item = ip_pair.item.name
     else:
-        question = "no question found"
-        pred_id = -1
-        item_id = -1
-        item = "no item found"
-        
-    if not ip_pair:
-        question = "no question found"
-        pred_id = -1
-        item_id = -1
-        item = "no item found"
-    else:
-        question = ip_pair.predicate.question.question_text
-        pred_id = ip_pair.predicate.predicate_ID
-        item_id = ip_pair.item.item_ID
-        item = ip_pair.item.name
+        if IP_Pair.objects.filter(isDone = False):
+            question = "placeholder"
+            pred_id = -1
+            item_id = -1
+            item = "item missing, please try again"
+        else:
+            question = "no question found"
+            pred_id = -1
+            item_id = -1
+            item = "no item found"
+
+    
 
 
     # submitURL = request.GET.get("turkSubmitTo") + "/mturk/externalSubmit"

@@ -18,7 +18,7 @@
           <boolProp name="LoopController.continue_forever">false</boolProp>
           <stringProp name="LoopController.loops">1</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">30</stringProp>
+        <stringProp name="ThreadGroup.num_threads">20</stringProp>
         <stringProp name="ThreadGroup.ramp_time">30</stringProp>
         <boolProp name="ThreadGroup.scheduler">false</boolProp>
         <stringProp name="ThreadGroup.duration"></stringProp>
@@ -2036,7 +2036,7 @@ time = System.currentTimeMillis();
 
 // Pass true if you want to append to existing file
 // If you want to overwrite, then don&apos;t pass the second argument
-f = new FileOutputStream(&quot;/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTicketing14.csv&quot;, true);
+f = new FileOutputStream(&quot;/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTicketing25.csv&quot;, true);
 p = new PrintStream(f); 
 this.interpreter.setOut(p); 
 print(time + &quot;,&quot; + tix0 + &quot;,&quot; + tix1 + &quot;,&quot; + tix2 + &quot;,&quot; + tix3 + &quot;,&quot; + tix4);
@@ -2080,7 +2080,7 @@ f.close();</stringProp>
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes14.csv</stringProp>
+          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes25.csv</stringProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Failures Tree" enabled="false">
@@ -2174,7 +2174,7 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="ambiguity1" elementType="Argument">
             <stringProp name="Argument.name">ambiguity1</stringProp>
-            <stringProp name="Argument.value">10</stringProp>
+            <stringProp name="Argument.value">0</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="pred2" elementType="Argument">
@@ -2189,7 +2189,7 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="ambiguity2" elementType="Argument">
             <stringProp name="Argument.name">ambiguity2</stringProp>
-            <stringProp name="Argument.value">10</stringProp>
+            <stringProp name="Argument.value">0</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="pred3" elementType="Argument">
@@ -2204,7 +2204,7 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="ambiguity3" elementType="Argument">
             <stringProp name="Argument.name">ambiguity3</stringProp>
-            <stringProp name="Argument.value">10</stringProp>
+            <stringProp name="Argument.value">0</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="pred4" elementType="Argument">
@@ -2219,7 +2219,7 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="ambiguity4" elementType="Argument">
             <stringProp name="Argument.name">ambiguity4</stringProp>
-            <stringProp name="Argument.value">10</stringProp>
+            <stringProp name="Argument.value">0</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="pred5" elementType="Argument">
@@ -2234,7 +2234,7 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="ambiguity5" elementType="Argument">
             <stringProp name="Argument.name">ambiguity5</stringProp>
-            <stringProp name="Argument.value">10</stringProp>
+            <stringProp name="Argument.value">0</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
