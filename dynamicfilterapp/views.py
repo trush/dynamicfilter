@@ -47,7 +47,7 @@ def workerForm(request):
             item_id = ip_pair.item.item_ID
             item = ip_pair.item.name
     else:
-        if IP_Pair.objects.filter(isDone = False):
+        if IP_Pair.objects.filter(isDone = False).exists():
             question = "placeholder"
             pred_id = -1
             item_id = -1
