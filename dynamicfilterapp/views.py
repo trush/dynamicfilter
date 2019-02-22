@@ -43,6 +43,11 @@ def workerForm(request):
         pred_id = -1
         item_id = -1
         item = "error finding item, please try again"
+        context = {'question' : question, 
+            'item': item, 
+            'pred': pred_id, 'item_id': item_id,
+            'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
+        return render(request, 'dynamicfilterapp/workerform.html', context)
 
 
     if ip_pair:
