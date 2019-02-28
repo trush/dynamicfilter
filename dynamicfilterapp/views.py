@@ -35,16 +35,16 @@ def workerForm(request):
         hitId = -1
 
 
-    if not Predicate.objects.filter(queue_is_full = False):
-        question = "question cannot be answered right now, please try again"
-        pred_id = -1
-        item_id = -1
-        item = "please try again"
-        context = {'question' : question, 
-            'item': item, 
-            'pred': pred_id, 'item_id': item_id,
-            'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
-        return render(request, 'dynamicfilterapp/workerform.html', context)
+    # if not Predicate.objects.filter(queue_is_full = False):
+    #     question = "question cannot be answered right now, please try again"
+    #     pred_id = -1
+    #     item_id = -1
+    #     item = "please try again"
+    #     context = {'question' : question, 
+    #         'item': item, 
+    #         'pred': pred_id, 'item_id': item_id,
+    #         'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
+    #     return render(request, 'dynamicfilterapp/workerform.html', context)
 
     try:
         ip_pair, eddy_time = give_task(None, workerId)
