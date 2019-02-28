@@ -587,7 +587,7 @@ class IP_Pair(models.Model):
 
 	def set_done_if_done(self):
 
-		if self.status_votes == toggles.NUM_CERTAIN_VOTES:
+		if self.status_votes >= toggles.NUM_CERTAIN_VOTES:
 
 			if self.found_consensus():
 				self.isDone = True

@@ -14,7 +14,7 @@ SIM_TIME_STEP = 180
 # **************************** INPUT SETTINGS **************************** #
 # ************************************************************************ #
 
-REAL_DATA = False # if False, use synethic data
+REAL_DATA = True # if False, use synethic data
 
 # ______ REAL DATA SETTINGS ______ #
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
@@ -55,7 +55,7 @@ LIFETIME = 150
 PENDING_QUEUE_SIZE = 2000
 QUEUE_SUM = 100
 
-IP_LIMIT_SYS = 2   # type of predicate limit for an item
+IP_LIMIT_SYS = 0   # type of predicate limit for an item
 ITEM_IP_LIMIT = 1   # number of predicates an item can be in
 
 ADAPTIVE_QUEUE_MODE = 4
@@ -64,7 +64,7 @@ ADAPTIVE_QUEUE_MODE = 4
 QUEUE_LENGTH_ARRAY = [(0, 4), (3, 15), (10, 30)] # settings for above mode [(#tickets,qlength)]
 ACTIVE_TASKS_ARRAY = [(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)] #Only matters (atm) if simulate time assignment on
 #[(0,0,0),(1,10,40),(10,75,100),(20,150,200),(40,350,450)]
-BATCH_ASSIGNMENT = 1 # 0 - No batches, 1 - Refill limit, 2 - Periodic refill
+BATCH_ASSIGNMENT = 0 # 0 - No batches, 1 - Refill limit, 2 - Periodic refill
 REFILL_PERIOD = 100
 
 TICKETING_SYS = 1
