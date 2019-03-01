@@ -51,8 +51,9 @@ def pending_eddy(ID):
 	start = time.time()
 	
 	# if all items are done
-	unfinishedItems = Item.objects.filter(isDone=False)
-	if not unfinishedItems:
+	if Item.objects.filter(isDone = False):
+		pass
+	else:
 		return None
 
 	# if all IP_Pairs are done
