@@ -49,12 +49,6 @@ def pending_eddy(ID):
 	This function chooses which system to use for choosing the next ip_pair
 	"""
 	start = time.time()
-	
-	# if all items are done
-	if Item.objects.filter(isDone = False).exists:
-		pass
-	else:
-		return None
 
 	# if all IP_Pairs are done
 	unfinishedList = IP_Pair.objects.filter(isDone=False)
@@ -570,6 +564,14 @@ def annealingSelectPred(predList):
 		return chosenPred
 
 def give_task(active_tasks, workerID):
+
+	
+	# if all items are done
+	if Item.objects.filter(isDone = False).exists:
+		pass
+	else:
+		return None
+	
 	ip_pair, eddy_time = pending_eddy(workerID)
 	if ip_pair is not None:
 		# print "IP pair selected"
