@@ -14,6 +14,7 @@ import sys
 import math
 import random
 import time
+from views_helpers_helpers import *
 
 #_____________EDDY ALGORITHMS____________#
 def worker_done(ID):
@@ -567,7 +568,7 @@ def give_task(active_tasks, workerID):
 
 	
 	# if all items are done
-	if Item.objects.filter(isDone = False).exists():
+	if views_helpers_helpers.anyItems():
 		pass
 	else:
 		return None, 0
