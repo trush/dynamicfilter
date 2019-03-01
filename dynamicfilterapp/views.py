@@ -46,16 +46,6 @@ def workerForm(request):
     #         'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
     #     return render(request, 'dynamicfilterapp/workerform.html', context)
 
-    if not Item.objects.filter(isDone = False):
-        question = "no question found"
-        pred_id = -1
-        item_id = -1
-        item = "no item found"
-        context = {'question' : question, 
-            'item': item, 
-            'pred': pred_id, 'item_id': item_id,
-            'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
-        return render(request, 'dynamicfilterapp/workerform.html', context)
 
     try:
         ip_pair, eddy_time = give_task(None, workerId)
