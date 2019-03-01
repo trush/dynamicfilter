@@ -570,7 +570,7 @@ def give_task(active_tasks, workerID):
 	if Item.objects.filter(isDone = False).exists():
 		pass
 	else:
-		return None
+		return None, 0
 	
 	ip_pair, eddy_time = pending_eddy(workerID)
 	if ip_pair is not None:
