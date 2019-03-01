@@ -567,7 +567,7 @@ def give_task(active_tasks, workerID):
 
 	
 	# if all items are done
-	if Item.objects.filter(isDone = False).exists:
+	if Item.objects.filter(isDone = False).exists():
 		pass
 	else:
 		return None
