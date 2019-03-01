@@ -49,6 +49,11 @@ def pending_eddy(ID):
 	This function chooses which system to use for choosing the next ip_pair
 	"""
 	start = time.time()
+	
+	# if all items are done
+	unfinishedItems = Item.objects.filter(isDone=False)
+	if not unfinishedItems:
+		return None
 
 	# if all IP_Pairs are done
 	unfinishedList = IP_Pair.objects.filter(isDone=False)

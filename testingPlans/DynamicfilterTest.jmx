@@ -2036,7 +2036,7 @@ time = System.currentTimeMillis();
 
 // Pass true if you want to append to existing file
 // If you want to overwrite, then don&apos;t pass the second argument
-f = new FileOutputStream(&quot;/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTicketing39.csv&quot;, true);
+f = new FileOutputStream(&quot;/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTicketing40.csv&quot;, true);
 p = new PrintStream(f); 
 this.interpreter.setOut(p); 
 print(time + &quot;,&quot; + tix0 + &quot;,&quot; + tix1 + &quot;,&quot; + tix2 + &quot;,&quot; + tix3 + &quot;,&quot; + tix4);
@@ -2080,7 +2080,7 @@ f.close();</stringProp>
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes39.csv</stringProp>
+          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes40.csv</stringProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Failures Tree" enabled="false">
