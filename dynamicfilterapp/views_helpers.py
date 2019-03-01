@@ -51,7 +51,7 @@ def pending_eddy(ID):
 	start = time.time()
 	
 	# if all items are done
-	if Item.objects.filter(isDone = False):
+	if models.Item.objects.filter(isDone = False):
 		pass
 	else:
 		return None
