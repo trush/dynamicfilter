@@ -14,7 +14,6 @@ import sys
 import math
 import random
 import time
-from views_helpers_helpers import *
 
 #_____________EDDY ALGORITHMS____________#
 def worker_done(ID):
@@ -566,12 +565,6 @@ def annealingSelectPred(predList):
 
 def give_task(active_tasks, workerID):
 
-	
-	# if all items are done
-	if views_helpers_helpers.anyItems():
-		pass
-	else:
-		return None, 0
 	
 	ip_pair, eddy_time = pending_eddy(workerID)
 	if ip_pair is not None:
