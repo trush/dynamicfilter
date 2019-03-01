@@ -46,7 +46,7 @@ def workerForm(request):
     #         'workerId':workerId, 'assignmentId':assignmentId, 'hitId' : hitId}
     #     return render(request, 'dynamicfilterapp/workerform.html', context)
 
-    if not Item.objects.filter(isDone = False).exists():
+    if not Item.objects.filter(isDone = False):
         question = "no question found"
         pred_id = -1
         item_id = -1
