@@ -55,7 +55,7 @@ LIFETIME = 150
 PENDING_QUEUE_SIZE = 2000
 QUEUE_SUM = 100
 
-IP_LIMIT_SYS = 0   # type of predicate limit for an item
+IP_LIMIT_SYS = 4   # type of predicate limit for an item
 ITEM_IP_LIMIT = 1   # number of predicates an item can be in
 
 ADAPTIVE_QUEUE_MODE = 4

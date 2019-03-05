@@ -2036,7 +2036,7 @@ time = System.currentTimeMillis();
 
 // Pass true if you want to append to existing file
 // If you want to overwrite, then don&apos;t pass the second argument
-f = new FileOutputStream(&quot;/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTicketing42.csv&quot;, true);
+f = new FileOutputStream(&quot;/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTicketing44.csv&quot;, true);
 p = new PrintStream(f); 
 this.interpreter.setOut(p); 
 print(time + &quot;,&quot; + tix0 + &quot;,&quot; + tix1 + &quot;,&quot; + tix2 + &quot;,&quot; + tix3 + &quot;,&quot; + tix4);
@@ -2080,7 +2080,7 @@ f.close();</stringProp>
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes42.csv</stringProp>
+          <stringProp name="filename">/Users/dynamicfilter/Desktop/jmeterSTuff/dynoTestRes44.csv</stringProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Failures Tree" enabled="false">
@@ -2169,7 +2169,7 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="selectivity1" elementType="Argument">
             <stringProp name="Argument.name">selectivity1</stringProp>
-            <stringProp name="Argument.value">15</stringProp>
+            <stringProp name="Argument.value">35</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="ambiguity1" elementType="Argument">
@@ -2184,7 +2184,7 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="selectivity2" elementType="Argument">
             <stringProp name="Argument.name">selectivity2</stringProp>
-            <stringProp name="Argument.value">30</stringProp>
+            <stringProp name="Argument.value">45</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="ambiguity2" elementType="Argument">
@@ -2199,7 +2199,7 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="selectivity3" elementType="Argument">
             <stringProp name="Argument.name">selectivity3</stringProp>
-            <stringProp name="Argument.value">50</stringProp>
+            <stringProp name="Argument.value">55</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="ambiguity3" elementType="Argument">
@@ -2214,7 +2214,7 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="selectivity4" elementType="Argument">
             <stringProp name="Argument.name">selectivity4</stringProp>
-            <stringProp name="Argument.value">75</stringProp>
+            <stringProp name="Argument.value">65</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="ambiguity4" elementType="Argument">
@@ -2229,7 +2229,7 @@ f.close();</stringProp>
           </elementProp>
           <elementProp name="selectivity5" elementType="Argument">
             <stringProp name="Argument.name">selectivity5</stringProp>
-            <stringProp name="Argument.value">90</stringProp>
+            <stringProp name="Argument.value">75</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="ambiguity5" elementType="Argument">
