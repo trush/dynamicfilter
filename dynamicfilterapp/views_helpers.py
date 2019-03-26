@@ -53,7 +53,7 @@ def pending_eddy(ID):
 	# if all IP_Pairs are done
 	unfinishedList = IP_Pair.objects.filter(isDone=False)
 	if not unfinishedList:
-		return None
+		return None, 0
 
 	#filter through to find viable ip_pairs to choose from
 	completedTasks = Task.objects.filter(workerID=ID)
@@ -186,7 +186,7 @@ def pending_eddy(ID):
 	runTime = end - start
 	if toggles.SIMULATE_TIME:
 		return chosenIP, runTime
-	return chosenIP
+	return chosenIP, 0
 
 
 def adaptive_predicate_limit (chosenIP):	
