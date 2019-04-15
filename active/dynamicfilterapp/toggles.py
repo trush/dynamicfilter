@@ -14,7 +14,7 @@ SIM_TIME_STEP = 60
 # **************************** INPUT SETTINGS **************************** #
 # ************************************************************************ #
 
-REAL_DATA = True # if False, use synethic data
+REAL_DATA = False # if False, use synethic data
 
 # ______ REAL DATA SETTINGS ______ #
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
@@ -65,7 +65,7 @@ ADAPTIVE_QUEUE_MODE = 0
 QUEUE_LENGTH_ARRAY = [(0, 4), (3, 15), (10, 30)] # settings for above mode [(#tickets,qlength)]
 ACTIVE_TASKS_ARRAY = [(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)] #Only matters (atm) if batch assignment on
 #[(0,0,0),(1,10,40),(10,75,100),(20,150,200),(40,350,450)]
-BATCH_ASSIGNMENT = 1 # 0 - No batches, 1 - Refill limit, 2 - Periodic refill
+BATCH_ASSIGNMENT = 2 # 0 - No batches, 1 - Refill limit, 2 - Periodic refill
 REFILL_PERIOD = 100
 
 EPSILON = 0.7
@@ -82,7 +82,7 @@ PROPORTION_JOINS = 1.0
 STARTED_JOIN_RATIO = 0.5
 ## Settings #-----------------------###############
 
-### only really being used when REAL_DATA is False
+
     ## join data
 JOIN_SELECTIVITY = 0.2
 JOIN_TIME = 4.0 
@@ -164,7 +164,7 @@ CUBIC_B = (0.8)
 
 NUM_WORKERS = 100000
 DISTRIBUTION_TYPE = 0            # tells pick_worker how to choose workers
-DUMMY_TASKS = True
+DUMMY_TASKS = False
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = True
 
@@ -207,9 +207,10 @@ if GEN_GRAPHS:
         GEN_GRAPHS = False
 
 # ___ DATA COLLECTION: REAL DATA ____ #
-RUN_DATA_STATS = False
+RUN_DATA_STATS = True
+RUN_TASKS_STATS = True
 
-RUN_AVERAGE_COST = False
+RUN_AVERAGE_COST = True
 COST_SAMPLES = 1
 
 RUN_SINGLE_PAIR = False # deprecated?
@@ -289,7 +290,7 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'AVG_MATCHES', 'STDDEV_MATCHES', 'SMALL_P_SELECTIVITY', 'TIME_TO_EVAL_SMALL_P',
             'HAS_LIST2', 'private_list2', 'THRESHOLD', 'EXPLORATION_REQ', 'JOIN_AMBIGUITY',
             'SP_AMBIGUITY', 'PJF_AMBIGUITY', 'SMALL_P_TIME_STD', 'JOIN_TIME_STD', 'PJF_TIME_STD',
-            'pjf_dict', 'GEN_PJF_TIME', 'GEN_PJF_STD', 'GEN_PJF_AMBIGUITY', 'PROPORTION_JOINS', 'STARTED_JOIN_RATIO'
+            'pjf_dict', 'GEN_PJF_TIME', 'GEN_PJF_STD', 'GEN_PJF_AMBIGUITY', 'PROPORTION_JOINS', 'STARTED_JOIN_RATIO','RUN_TASKS_STATS'
 ]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file

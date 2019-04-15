@@ -15,15 +15,15 @@ def syn_load_data():
 	load in sythensized data
 	"""
 	for ID in toggles.CHOSEN_PREDS:
-		q = Question.objects.create(question_ID=ID, question_text="question" + str(ID))
+		# q = Question.objects.create(question_ID=ID, question_str="question" + str(ID))
 		
 		#currently randomly set joinability
 		if toggles.USE_JOINS:
 			if(random.random() < toggles.PROPORTION_JOINS):
 				print "join"
-				pred = Predicate.objects.create(predicate_ID=ID, question=q, joinable=True)
+				pred = Predicate.objects.create(predicate_ID=ID, question_str="question" + str(ID), joinable=True)
 			else:
-				pred = Predicate.objects.create(predicate_ID=ID, question=q, joinable=False)
+				pred = Predicate.objects.create(predicate_ID=ID, question_str="question" + str(ID), joinable=False)
 		
 
 		pred.setTrueSelectivity(toggles.switch_list[0][1+ID][0])

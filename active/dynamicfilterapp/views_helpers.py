@@ -184,20 +184,21 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 			print predicates
 		chosenPred = np.random.choice(predicates, p=probList)
 
-		if active_joins is not None and chosenPred in active_joins:
-			cur_join = active_joins[chosenPred]
-			# if we are not using an ip_pair we are using a pred 
-			if not cur_join.use_item():
-				task_types = cur_join.assign_join_tasks() # note: theoretically is use_item() is False, then assign_join_tasks will be for pred
-				print str(chosenPred) + " receives task types " + str(task_types)
-				# if we don't have tasks to do, get some!
-				if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
-					chosenPred.set_task_types(task_types)
-					chosenPred.save(update_fields=["task_types"])
-				# otherwise we should have tasks to do, so return the predicate so that we do them
-				return chosenPred
+		if toggles.USE_JOINS:
+			if active_joins is not None and chosenPred in active_joins:
+				cur_join = active_joins[chosenPred]
+				# if we are not using an ip_pair we are using a pred 
+				if not cur_join.use_item():
+					task_types = cur_join.assign_join_tasks() # note: theoretically is use_item() is False, then assign_join_tasks will be for pred
+					print str(chosenPred) + " receives task types " + str(task_types)
+					# if we don't have tasks to do, get some!
+					if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
+						chosenPred.set_task_types(task_types)
+						chosenPred.save(update_fields=["task_types"])
+					# otherwise we should have tasks to do, so return the predicate so that we do them
+					return chosenPred
 			
-				
+		
 			# return a pred instead of an IP pair
 		# TODO: do we want to code it to give up in the middles of a process? right now is keeps assigning tasks until the 
 		# process is over. Note: we might want to do this because then PJFs will be processed before their joins. Con: we jump
