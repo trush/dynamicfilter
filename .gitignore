@@ -4,16 +4,16 @@
 *.csv
 *.png
 *.ini
-active/dynamicfilterapp/migrations/*
-active/html/*
-active/html/search/*
-active/latex/*
-active/docs/html/*
-active/docs/html/search/*
-active/docs/latex/*
+dynamicfilterapp/migrations/*
+html/*
+html/search/*
+latex/*
+docs/html/*
+docs/html/search/*
+docs/latex/*
 
-!active/dynamicfilterapp/migrations/0001_initial.py
-!active/dynamicfilterapp/migrations/__init__.py
+!dynamicfilterapp/migrations/0001_initial.py
+!dynamicfilterapp/migrations/__init__.py
 !Hotel_correct_answers.csv
 !Hotel_items.csv
 !Hotel_questions.csv
