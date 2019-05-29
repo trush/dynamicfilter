@@ -868,7 +868,7 @@ class Join():
 	## @param self
 	# @return the sizes of both lists in the join.
 	def __str__(self):
-		return "this join: "+ str(len(list1)) + " in list1, " + str(len(list2)) + " in list2"
+		return "this join: "+ str(len(self.list1)) + " in list1, " + str(len(self.list2)) + " in list2"
 
 	## @param self
 	# @param in_list2 : the second list is an optional input
@@ -1061,18 +1061,17 @@ class Join():
 		timer_val = 0
 		if self.DEBUG:
 			print "************** PJF CHECKING ITEM ****************"
-		else:
-			if item == None: #if we are not passed an item, we search for one in list2 
-				found_item = False
-				for i in self.list2:
-					if not i in self.evaluated_with_PJF:
-						item = i
-						found_item = True
-						break
-				if not found_item:#if all items are already evaluated, we make a note and return
-					self.list2_not_eval = False
-					self.done =True
-					return None, 0				
+		if item == None: #if we are not passed an item, we search for one in list2 
+			found_item = False
+			for i in self.list2:
+				if not i in self.evaluated_with_PJF:
+					item = i
+					found_item = True
+					break
+			if not found_item:#if all items are already evaluated, we make a note and return
+				self.list2_not_eval = False
+				self.done =True
+				return None, 0				
 		if(not item in self.evaluated_with_PJF):
 			# Update things for cost estimates and counting function calls
 			self.call_dict["PJF"] += 1

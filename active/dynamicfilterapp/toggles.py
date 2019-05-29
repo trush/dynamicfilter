@@ -164,7 +164,7 @@ CUBIC_B = (0.8)
 
 NUM_WORKERS = 100000
 DISTRIBUTION_TYPE = 0            # tells pick_worker how to choose workers
-DUMMY_TASKS = False
+DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = True
 
