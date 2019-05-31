@@ -182,93 +182,140 @@ class SimulationTest(TransactionTestCase):
 	# CONSENSUS SIZE TRACKING
 	consensus_size = []
 
+	sampleData = {}
+	CONST_SAMPLE_DATA = {}
+
+	## Keeps track of what tasks and task_types have been run and the results, for analysis after sim
+	tasks_tracker = {}
+	run_number = 0
+
+
 	###___HELPERS THAT LOAD IN DATA___###
 	def load_data(self):
-		# read in the questions
+		"""
+		Loads in the real data from files into database. Use for actual database, not for test cases
+		"""
+		##################
+		# QUESTIONS/PRED #
+		##################
+
+		DATA_PATH = 'dynamicfilterapp/simulation_files/hotels/'
+
 		ID = 0
-		f = open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_questions.csv', 'r')
+		f = open(DATA_PATH + ITEM_TYPE + '_questionsNew.csv', 'r')
 		for line in f:
 			line = line.rstrip('\n')
 			q = Question(question_ID=ID, question_text=line)
-			q.save()
-			pred = Predicate(predicate_ID=ID, question=q)
-			pred.save()
+			pred = Predicate(predicate_ID=ID, question_str=line)
+			
+			try:
+				q.save()
+				pred.save()
+			except:
+				print "there was a problem saving question", ID
 			ID += 1
 		f.close()
 
-		# read in the items
+		##################
+		# ITEMS          #
+		##################
+
 		ID = 0
-		with open(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_items.csv', 'r') as f:
+		with open(DATA_PATH + ITEM_TYPE + '_itemsNew.csv', 'r') as f:
 			itemData = f.read()
-		items = itemData.split('\n')
-		for item in items:
-			i = Item(item_ID=ID, name=item, item_type=toggles.ITEM_TYPE)
-			i.save()
+		items = itemData.rstrip("\n").split("\n")
+
+		with open(DATA_PATH + ITEM_TYPE + '_addressesNew.csv', 'r') as f1:
+			addressData = f1.read()
+		addresses = addressData.rstrip("\n").split("\n")
+
+		for i in range(len(items)):
+			i = Item(item_ID=ID, name=items[i], address=addresses[i], item_type=ITEM_TYPE)
+			try:
+				i.save()
+			except:
+				print "there was a problem saving item", ID
 			ID += 1
+		
+		##################
+		# IP PAIRS       #
+		##################
 
-		# only use the predicates listed in toggles.CHOSEN_PREDS
-		predicates = list(Predicate.objects.all()[pred] for pred in toggles.CHOSEN_PREDS)
-
+		predicates = Predicate.objects.all()
 		itemList = Item.objects.all()
 		for p in predicates:
 			for i in itemList:
 				ip_pair = IP_Pair(item=i, predicate=p)
-				ip_pair.save()
+				try:
+					ip_pair.save()
+				except:
+					"ip pair was not saved"
 
-		# make a dictionary of all the ip_pairs and their values
-		sampleData = self.get_sample_answer_dict(toggles.INPUT_PATH + toggles.IP_PAIR_DATA_FILE)
+		##################
+		# SAMPLE DATA    #
+		##################
 
-		return sampleData
+		## want to look at DATA_PATH = ..../hotel/hotel_cleaned_data.csv
+		ID = 0
+		f = open(DATA_PATH+'Hotel_hotel_cleaned_dataNew.csv', 'r')
+		self.sampleData = {}
+		for line in f:
+			line = line.rstrip('\n').split(',')
+			time = line[0]
+			item = line[1]
+			question = line[2]
+			sec_item = line[3]
+			task_type = line[4]
+			answer = self.interpretAns(line[5])
+			if (item,question,sec_item, task_type) in self.sampleData.keys():
+				self.sampleData[(item, question, sec_item, task_type)] += [(answer, time)]
+			else:
+				self.sampleData[(item, question, sec_item, task_type)] = [(answer, time)]
 
-	## Reads in a file of pre-gathered Mechanical Turk HITs and makes a
-	# dictionary where the key is a IP_Pair and the value is a
-	# list of all the HITs answers for that IP_Pair. This list is the set
-	# that our simulations can sample answers from. At present, the csv file
-	# downloaded from Mechanical Turk must be copied and then edited to only
-	# include the four columns of data that we use here.
-	# @param filename The appropriate real data file generated from AMT. Must be
-	# the correct file for the ITEM_TYPE to work properly.
-	# @returns The dictionary with keys that are IP pairs and values that are arrays containing the
-	# possible worker responses, True or False, for the IP pair (from real AMT data).
-	def get_sample_answer_dict(self, filename):
-		# read in worker data from cleaned file
-		data = np.genfromtxt(fname=filename,
-							dtype={'formats': [np.dtype(int), np.dtype('S100'),
-										np.dtype('S200'), np.dtype(int)],
-									'names': ['WorkTimeInSeconds', 'Input.Hotel',
-										'Input.Question', 'Answer.Q1AnswerPart1']},
-							delimiter=',',
-							usecols=range(4),
-							skip_header=1)
+		self.CONST_SAMPLE_DATA = deepcopy(self.sampleData)
+	
+	def interpretAns(self, answerString):
+		if answerString == 'None':
+			return None
+		if answerString == 'True':
+			return True
+		if answerString == 'False':
+			return False
+		if answerString[0] == '[':
+			return answerString.rstrip('[').lstrip(']').split(',')
+		else:
+			print "WARNING: Wasn't sure how to interpret data answer."
+			return False
 
-		# Get a list of all the tasks in the file, represented as tuples of
-		# (item, question, answer)
-		tasks = [(item, question, answer) for (workTimeInSeconds, item, question, answer) in data]
+	def getAns(self, item, question, sec_item = '', task_type='None'):
+		if len(self.sampleData[(item, question, sec_item, task_type)]) == 0:
+			raise Exception("You don't have enough data to finish the run. You needed more of this:" + str((item, question, task_type)))
+		if RESPONSE_SAMPLING_REPLACEMENT:
+			nextAns = self.sampleData[(item, question, sec_item, task_type)][0]
+			self.sampleData[(item, question, sec_item, task_type)] = self.sampleData[(item, question, sec_item, task_type)][1:] + [nextAns]
+		else:
+			nextAns = self.sampleData[(item, question, sec_item, task_type)][0]
+			self.sampleData[(item, question, sec_item, task_type)] = self.sampleData[(item, question, sec_item, task_type)][1:]
+		## add to task tracker
+		item = str(item)
+		question = str(question)
+		task_type = str(task_type)
+		if (item, question, sec_item, task_type) in self.tasks_tracker.keys():
+			if nextAns[0]== True : ## if it was true
+				self.tasks_tracker[(item,question,sec_item,task_type)][0] +=1
+			elif nextAns[0]==False : ## is it was false
+				self.tasks_tracker[(item,question,sec_item,task_type)][1] +=1
+			else: ## this is the PW build case, not a T/F ans
+				self.tasks_tracker[(item,question,sec_item,task_type)][2] += [[nextAns[0]]]
+		else:
+			if nextAns[0]== True : ## if it was true
+				self.tasks_tracker[(item,question,sec_item,task_type)] = [1,0,[]]
+			elif nextAns[0]==False : ## is it was false
+				self.tasks_tracker[(item,question,sec_item,task_type)] = [0,1,[]]
+			else: ## this is the PW build case, not a T/F ans
+				self.tasks_tracker[(item,question,sec_item,task_type)] = [0,0, [nextAns[0]]]
+		return nextAns[0],int(nextAns[1])
 
-		# create the dictionary and populate it with empty lists
-		sampleData = {}
-		for p in IP_Pair.objects.all():
-			sampleData[p] = []
-
-		# Add every task's answer into the appropriate list in the dictionary
-		for (item, question, answer) in tasks:
-
-			# answer==0 means worker answered "I don't know"
-			if answer != 0:
-
-				# get the RestaurantPredicates matching this task (will be a
-				# QuerySet of length 1 or 0)
-				predKey = IP_Pair.objects.filter(predicate__question__question_text=question).filter(item__name=item)
-
-				# Some tasks won't have matching RestaurantPredicates, since we
-				# may not be using all the possible predicates
-				if predKey.count() > 0:
-					if answer > 0:
-						sampleData[predKey[0]].append(True)
-					elif answer < 0:
-						sampleData[predKey[0]].append(False)
-
-		return sampleData
 
 	## Reads "ground truth" answers to IP Pairs from a specific file with particular formatting.
 	# @param filename The file from which the answers are read. A csv where the first element on each
@@ -300,7 +347,7 @@ class SimulationTest(TransactionTestCase):
 				key = (Item.objects.get(name = line[0]),
 					Predicate.objects.get(pk = i+1))
 				value = line[i+1]
-				correctAnswers[key] = value
+				correctAnswers[key] = value 
 
 		return correctAnswers
 
@@ -312,11 +359,11 @@ class SimulationTest(TransactionTestCase):
 	# task will be issued.
 	# @param workerID The ID of the worker that pick_worker() selected
 	# @param time_clock The "time" at which the task is being simulated -- is used to figure out
-	# when the task will be "started" and when it will finish.
+	# when the task  will be "started" and when it will finish.
 	# @param dictionary The dictionary of possible worker responses for the given IP pair
 	# loaded in by get_sample_answer_dict()
 	# @returns the Task object that was simulated.
-	def simulate_task(self, chosenIP, workerID, time_clock, dictionary):
+	def simulate_task(self, chosenIP, workerID, time_clock, task_type=None, curr_join=None, predicate=None):
 		start = time.time()
 		#if chosenIP is not None:
 
@@ -346,27 +393,40 @@ class SimulationTest(TransactionTestCase):
 
 		else:
 			#chosenIP.refresh_from_db()
-			value = choice(dictionary[chosenIP])
-			if not toggles.RESPONSE_SAMPLING_REPLACEMENT:
-				#print len(dictionary[chosenIP])
-				dictionary[chosenIP].remove(value)
-			if toggles.SIMULATE_TIME:
-				if value :
-					#worker said true, take from true distribution
-					work_time = choice(toggles.TRUE_TIMES)
-				else:
-					#worker said false, take from false distribution
-					work_time = choice(toggles.FALSE_TIMES)
+			start_time = time_clock + toggles.BUFFER_TIME
 
-				start_task = time_clock + toggles.BUFFER_TIME
-				end_task = start_task + work_time
+			if toggles.SIMULATE_TIME:
+				if type(chosenIP) is Predicate: 
+					chosenPred = chosenIP
+					chosenItem = None
+				elif type(chosenIP) is IP_Pair:
+					chosenPred = chosenIP.predicate
+					chosenItem = chosenIP.item
+				(value, work_time) = self.getAns(chosenItem.name, chosenPred.question_str, '', str(task_type))
+				# if value is not True or value is not False:
+				# 	start_task = time_clock + toggles.BUFFER_TIME
+				end_time = start_time + work_time
 				self.cum_work_time += work_time
 			else:
-				start_task = 0
-				end_task = 0
+				start_time = 0
+				end_time = 0
 
-			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
-					start_time=start_task, end_time=end_task)
+			## Now make/package the task
+			if chosenPred.joinable and curr_join: ## USING JOINS
+				real_data = (value, work_time) ## give it the real data, it will give same thing back but update its estimates
+				value, time_taken, advance = curr_join.main_join(task_type, chosenIP, predicate, real_data)
+				if type(chosenIP) is Predicate:
+					t = Task(predicate=chosenIP, answer=value, workerID=workerID,
+						start_time=start_time, end_time=end_time, type_done = advance)
+				elif type(chosenIP) is IP_Pair:
+					t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+						start_time=start_time, end_time=end_time, type_done = advance)
+				
+				t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+					start_time=start_time, end_time=end_time, type_done = advance)
+			else: ## normal non join task (or catches if there was some miscommunication and there was no join obj)
+				t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+					start_time=start_time, end_time=end_time)
 			t.save()
 
 			if not toggles.SIMULATE_TIME:
@@ -392,53 +452,65 @@ class SimulationTest(TransactionTestCase):
 	# @param numTasks The number of tasks completed before this task; informs whether selectivity/ambiguity
 	# should change.
 	# @returns The Task object that was simulated.
-	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks):
+	def syn_simulate_task(self, chosenIP, workerID, time_clock, switch, numTasks, task_type=None, curr_join=None, predicate=None):
 		start = time.time()
 		if chosenIP is None:
-			if toggles.SIMULATE_TIME:
-				# TODO
-				# this task is going to be as long as any task can be?
-				# or delay workers by a fixed amount of time?
-				work_time = choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
-				start_task = time_clock + toggles.BUFFER_TIME
-				end_task = start_task + work_time
-				self.cum_placeholder_time += work_time
+			if curr_join is None:
+				if toggles.SIMULATE_TIME:
+					# TODO
+					# this task is going to be as long as any task can be?
+					# or delay workers by a fixed amount of time?
+					work_time = choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
+					start_task = time_clock + toggles.BUFFER_TIME
+					end_task = start_task + work_time
+					self.cum_placeholder_time += work_time
+				else:
+					start_task = 0
+					end_task = 0
+
+				t = DummyTask(workerID = workerID,
+					start_time = start_task, end_time = end_task)
 			else:
-				start_task = 0
-				end_task = 0
-
-			t = DummyTask(workerID = workerID,
-				start_time = start_task, end_time = end_task)
-			t.save()
-
+				#TODO: figure out exactly how the algorithm needs to handle splitting join processes
+				results, time_taken, advance = curr_join.main_join(task_type, None, predicate)
+				start_time = time_clock + toggles.BUFFER_TIME
+				end_time = start_time + time_taken
+				t = Task(predicate=predicate, answer=results, workerID=workerID,
+					start_time=start_time, end_time=end_time, type_done = advance)
 		else:
 			chosenIP.refresh_from_db()
-			value, cost_multiplier = syn_answer(chosenIP, switch, numTasks)
-			if toggles.SIMULATE_TIME:
-				if value :
-					#worker said true, take from true distribution
-					work_time = np.rint(cost_multiplier*choice(toggles.TRUE_TIMES))
+			if (not chosenIP.is_joinable()) or (curr_join is None):
+				value, cost_multiplier = syn_answer(chosenIP, switch, numTasks)
+				if toggles.SIMULATE_TIME:
+					if value :
+						#worker said true, take from true distribution
+						work_time = np.rint(cost_multiplier*choice(toggles.TRUE_TIMES))
+					else:
+						#worker said false, take from false distribution
+						work_time = np.rint(cost_multiplier*choice(toggles.FALSE_TIMES))
+
+					start_task = time_clock + toggles.BUFFER_TIME
+					end_task = start_task + work_time
+					self.cum_work_time += work_time
 				else:
-					#worker said false, take from false distribution
-					work_time = np.rint(cost_multiplier*choice(toggles.FALSE_TIMES))
+					start_task = 0
+					end_task = 0
 
-				start_task = time_clock + toggles.BUFFER_TIME
-				end_task = start_task + work_time
-				self.cum_work_time += work_time
+				t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+						start_time=start_task, end_time=end_task)	
+			
 			else:
-				start_task = 0
-				end_task = 0
-
-
-			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
-					start_time=start_task, end_time=end_task)
-			t.save()
+				results, time_taken, advance = curr_join.main_join(task_type, chosenIP)
+				start_time = time_clock + toggles.BUFFER_TIME
+				end_time = start_time + time_taken
+				t = Task(ip_pair=chosenIP, answer=results, workerID=workerID,
+					start_time=start_time, end_time=end_time, type_done = advance)
 
 			if not toggles.SIMULATE_TIME:
 				updateCounts(t, chosenIP)
 				#t.refresh_from_db()
 				#chosenIP.refresh_from_db()
-
+		t.save()
 		end = time.time()
 		runTime = end - start
 		self.sim_task_time += runTime
@@ -551,7 +623,7 @@ class SimulationTest(TransactionTestCase):
 	# @param globalVar The variable that you want to change over the course of multiple
 	# simulation runs, passed as a string.
 	# @param listOfValuesToTest an array of values that globalVar will be set to
-	def abstract_sim(self, dictionary, globalVar, listOfValuesToTest):
+	def abstract_sim(self, globalVar, listOfValuesToTest):
 		"""
 		Expirimental function that runs many sims with varrying values of globalVar
 		"""
@@ -563,7 +635,7 @@ class SimulationTest(TransactionTestCase):
 			setattr(toggles, globalVar, listOfValuesToTest[i])
 			counts.append([])
 			for run in range(toggles.NUM_SIM):
-				self.run_sim(dictionary)
+				self.run_sim()
 				counts[i].append(self.num_tasks)
 				self.reset_database()
 				if toggles.DEBUG_FLAG:
@@ -638,7 +710,7 @@ class SimulationTest(TransactionTestCase):
 	# @param switch A number that indicates the "state" of the simulation -- can indicate whether selectivity/ambiguity
 	# of synthetic data should change.
 	# @returns an Task object or DummyTask object.
-	def issueTask(self, active_tasks, b_workers, time_clock, dictionary, switch):
+	def issueTask(self, active_tasks, active_joins, b_workers, time_clock, switch):
 		# select an available worker who is eligible to do a task in our pool
 		workerDone = True
 		a_num = toggles.NUM_WORKERS - len(b_workers)
@@ -656,15 +728,21 @@ class SimulationTest(TransactionTestCase):
 
 			if workerID is not None:
 				# select a task to assign to this person
-				ip_pair, eddy_time = give_task(active_tasks, workerID)
+				ip_pair, eddy_time = give_task(active_tasks, workerID, active_joins)
+				print "just gave a task"
 				#ip_pair.refresh_from_db()
 				self.pending_eddy_time += eddy_time
-
+				
+				
 				if toggles.REAL_DATA:
 					# TODO change return val of simulate task and syn simulate task to just task
-					task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
+					task = self.simulate_task(ip_pair, workerID, time_clock)
 				else:
 					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
+
+				
+
+				print 'just simulated a task of type'
 				#task.refresh_from_db()
 			else:
 				# TODO if in mode where we give placeholder tasks, the task should never be None
@@ -673,16 +751,55 @@ class SimulationTest(TransactionTestCase):
 
 		else:
 			workerID = self.pick_worker(b_workers, [])
-			ip_pair, eddy_time = give_task(active_tasks, workerID)
+			#TODO: allow give_tasks to return a predicate if appropriate
+			#use assign_join_tasks() in give_tasks to determine which
+			#return predicate as a tertiary value with None as default
+			pred = None
+			ip_pair, eddy_time = give_task(active_tasks, workerID, active_joins)
+
+			print "just gave a task"
+			if type(ip_pair) is Predicate:
+				#if we have returned an itemless ip pair, we operate on a predicate.
+				pred = ip_pair
+								
 			self.pending_eddy_time += eddy_time
-			#if ip_pair is not None:
-				#ip_pair.refresh_from_db()
 
 			if toggles.REAL_DATA:
-				task = self.simulate_task(ip_pair, workerID, time_clock, dictionary)
+				if pred is not None: ## its a predicate task (join)
+					curr_join = active_joins[pred]
+					task_type = pred.get_task_types()[0]
+					task = self.simulate_task(None, workerID, time_clock, task_type, curr_join, pred)
+				elif ip_pair is not None and ip_pair.is_joinable(): ## other type of join task
+					#if give_task returns an ip pair, then we create an ip pair task
+					curr_join = active_joins[ip_pair.predicate]
+					if ip_pair.task_types == "":
+						raise Exception("we allowed a finished pair to take a new task")
+					task_type = ip_pair.get_task_types()[0]
+					print "CHECKPOINT: INSIDE issueTask, issuing a task of type: ", task_type
+					task = self.simulate_task(ip_pair, workerID, time_clock, task_type, curr_join, pred)
+					res = task.answer
+				else: ## ip task (non join)
+					print "not joining it as planned"
+					task = self.simulate_task(ip_pair, workerID, time_clock)
+					res = task.answer
 			else:
-				task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
-
+				if pred is not None:
+					#if give_task returns a predicate, then we create a predicate task
+					curr_join = active_joins[pred]
+					task_type = pred.get_task_types()[0]
+					task = self.syn_simulate_task(None, workerID, time_clock, switch, self.num_tasks, task_type, curr_join, pred)
+				elif ip_pair is not None and ip_pair.is_joinable():
+					#if give_task returns an ip pair, then we create an ip pair task
+					curr_join = active_joins[ip_pair.predicate]
+					if ip_pair.task_types == "":
+						raise Exception("we allowed a finished pair to take a new task")
+					task_type = ip_pair.get_task_types()[0]
+					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks, task_type, curr_join, pred)
+					res = task.answer
+				else:
+					task = self.syn_simulate_task(ip_pair, workerID, time_clock, switch, self.num_tasks)
+					res = task.answer
+			print 'just simulated a task'
 		return task, workerID
 
 	## Runs a simulation using get_correct_answers to get the real answers for each IP pair
@@ -690,7 +807,7 @@ class SimulationTest(TransactionTestCase):
 	# return true. Goes through IP pairs in order of increasing ambiguity
 	# To make that work please sort preds in toggles.CHOSEN_PREDS in that order
 	# (e.g. [4,2] instead of [2,4] for restaurants)
-	def optimal_sim(self, dictionary):
+	def optimal_sim(self):
 		# get correct answers from file
 		answers = self.get_correct_answers(toggles.INPUT_PATH + toggles.ITEM_TYPE + '_correct_answers.csv')
 		# select only the chosen predicates
@@ -720,7 +837,7 @@ class SimulationTest(TransactionTestCase):
 				# do tasks until pair is done
 				while not ip_pair.isDone:
 					workerID = self.pick_worker([0], [0])
-					self.simulate_task(ip_pair, workerID, dictionary)
+					self.simulate_task(ip_pair, workerID)
 					self.num_tasks += 1
 
 		# find the set of IP pairs still not eliminated
@@ -734,6 +851,7 @@ class SimulationTest(TransactionTestCase):
 		while(ip_pair != None):
 
 			# only increment if worker is actually doing a task
+
 			workerID = self.pick_worker([0], [0])
 			#workerDone = worker_done(workerID)[0]
 
@@ -744,7 +862,7 @@ class SimulationTest(TransactionTestCase):
 			elif ip_pair.isDone:
 				ip_pair = choice(IP_Pair.objects.filter(isDone=False))
 
-			self.simulate_task(ip_pair, workerID, dictionary)
+			self.simulate_task(ip_pair, workerID)
 			num_tasks += 1
 
 		return num_tasks
@@ -779,11 +897,18 @@ class SimulationTest(TransactionTestCase):
 	# a database, with or without time.
 	# @param dictionary A dictionary whose keys are IP Pairs and whose values are arrays of possible worker responses
 	# (only used for toggles.REAL_DATA = True) simulations.
-	def run_sim(self, dictionary):
+	def run_sim(self):
 		"""
 		Runs a single simulation and increments a counter to simulate time. Tasks
 		have durations and run concurrently.
 		"""
+
+		print "running sim"
+		print "--------------------- SAMPLE DATA LOOKS LIKE:  ", self.sampleData
+		self.sampleData = deepcopy(self.CONST_SAMPLE_DATA)
+		self.tasks_tracker = {}
+		self.run_number += 1
+
 		sim_start = time.time()
 		global HAS_RUN_ITEM_ROUTING, ROUTING_ARRAY
 		self.sim_num += 1 # indicate that we've begun another simulation
@@ -834,22 +959,26 @@ class SimulationTest(TransactionTestCase):
 
 		# array of tasks currently in process
 		active_tasks = []
+		#dictionary of predicate-joins in process
+		active_joins = {}
 
 		#time counter
 		time_clock = 0
 
 		# set up a dictionary to hold counts of active tasks_out
-		if toggles.REAL_DATA:
-			for pred in toggles.CHOSEN_PREDS:
-				self.pred_active_tasks[pred+1] = []
-				self.pred_queues[pred+1] = []
-				self.ticket_nums[pred+1] = []
-		else:
-			for pred in toggles.CHOSEN_PREDS:
-				self.pred_active_tasks[pred+1] = []
-				self.pred_queues[pred+1] = []
-				self.ticket_nums[pred+1] = []
-				
+		for pred in toggles.CHOSEN_PREDS:
+			self.pred_active_tasks[pred+1] = []
+			self.pred_queues[pred+1] = []
+			self.ticket_nums[pred+1] = []
+
+		#set up a join object for every join predicate
+		for pred in Predicate.objects.all():
+			if pred.joinable:
+				if toggles.HAS_LIST2:
+					active_joins[pred] = Join(pred.question_str, deepcopy(toggles.private_list2))
+				else:
+					active_joins[pred] = Join(pred.question_str)
+
 		# add an entry to save the numbers of placeholder tasks
 		self.pred_active_tasks[0] = []
 
@@ -874,6 +1003,7 @@ class SimulationTest(TransactionTestCase):
 		# If running Item_routing, setup needed values
 		if ((not HAS_RUN_ITEM_ROUTING) and toggles.RUN_ITEM_ROUTING) or toggles.RUN_MULTI_ROUTING:
 			if toggles.REAL_DATA:
+				print "printing all preds",Predicate.objects.all()
 				predicates = [Predicate.objects.get(pk=pred+1) for pred in toggles.CHOSEN_PREDS]
 			else:
 				predicates = [Predicate.objects.get(pk=pred+1) for pred in range(toggles.NUM_QUESTIONS)]
@@ -906,7 +1036,10 @@ class SimulationTest(TransactionTestCase):
 								raise Exception ("Too many votes cast for IP Pair " + str(ip.id))
 
 							if (ip.tasks_out == 0) and ip.isDone and ip.inQueue:
-								raise Exception ("IP Pair " + str(ip.id) + " has no tasks out and is done, still in queue")
+								if ip.is_joinable() and ip.predicate in active_joins and active_joins[ip.predicate].is_done() is not None:
+									pass
+								else:
+									raise Exception ("IP Pair " + str(ip.id) + " has no tasks out and is done, still in queue")
 						if toggles.EDDY_SYS == 2:
 							for task in active_tasks:
 								if task.ip_pair is not None:
@@ -929,6 +1062,11 @@ class SimulationTest(TransactionTestCase):
 						# 	print "Predicate " +  str(p.pk) + " |||  Queue full: " + str(p.queue_is_full) + " | Queue length: " + str(p.queue_length) + " | Tickets: " + str(p.num_tickets)
 
 						print "$"*96
+				placeholders = 0
+				for task in active_tasks:
+					if task.ip_pair == None and task.predicate == None:
+						placeholders += 1
+				
 
 				# throw some errors for debugging purposes
 				#if not (Item.objects.filter(inQueue=True).count() == IP_Pair.objects.filter(inQueue=True).count()):
@@ -1012,6 +1150,16 @@ class SimulationTest(TransactionTestCase):
 							task.ip_pair.refresh_from_db()
 							task.ip_pair.predicate.refresh_from_db()
 							self.update_time += updateCounts(task, task.ip_pair)
+						elif task.predicate != None:
+							task.refresh_from_db()
+							task.predicate.refresh_from_db()
+							start = time.time()
+							task.predicate.add_total_task()
+							task.predicate.add_total_time()
+							res = active_joins[task.predicate].is_done()
+							if res is not None:
+								active_joins[task.predicate].clear_ips(task.predicate)
+							self.update_time += time.time() - start
 						else:
 							self.update_time += updateCounts(task, task.ip_pair)
 						#task.refresh_from_db()
@@ -1083,15 +1231,16 @@ class SimulationTest(TransactionTestCase):
 					task_limit = active_tasks_size
 
 				# fill the active task array with new tasks as long as some IPs need eval
-				if refill: #The filter cuts off stops the algorithm from giving out/trying to give out tasks when we know the tasks out are all we need to reach consensus. Equivalent to pulling HITs from Turk.
-					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists():
+				if refill: #Izzy Note: To ignore runoff placeholders, add and IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()
+					while (count < task_limit) and IP_Pair.objects.filter(isDone=False).exists() and (IP_Pair.objects.filter(predicate__joinable=True).exists() or IP_Pair.objects.extra(where=["tasks_collected + tasks_out < " + str(toggles.MAX_TASKS_COLLECTED)]).exclude(isDone=True).exists()):
 					# while (count < tps) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 					# while (len(active_tasks) < active_tasks_size) and (IP_Pair.objects.filter(isStarted=False).exists() or IP_Pair.objects.filter(inQueue=True, tasks_out__lt=toggles.MAX_TASKS_OUT).extra(where=["tasks_out + tasks_collected < " + str(toggles.MAX_TASKS_COLLECTED)]).exists() or toggles.EDDY_SYS == 2):
 
-						task, worker = self.issueTask(active_tasks, b_workers, time_clock, dictionary, switch)
-
-						if toggles.BATCH_ASSIGNMENT:
-							batch_tasks_out += 1
+						if toggles.USE_JOINS:
+							task, worker = self.issueTask(active_tasks, active_joins, b_workers, time_clock, switch)
+						else:
+							task, worker = self.issueTask(active_tasks, {}, b_workers, time_clock, switch)
+						print "just issued a Task"
 
 						if task is not None:
 
@@ -1224,7 +1373,7 @@ class SimulationTest(TransactionTestCase):
 										routingL[i].append(routingC[i])
 
 					if toggles.REAL_DATA :
-						task = self.simulate_task(ip_pair, workerID, 0, dictionary)
+						task = self.simulate_task(ip_pair, workerID, 0)
 					else:
 						task = self.syn_simulate_task(ip_pair, workerID, 0, switch, self.num_tasks)
 
@@ -1438,7 +1587,7 @@ class SimulationTest(TransactionTestCase):
 
 			# setup vars to save a csv + graph
 			dest = toggles.OUTPUT_PATH+'_item_routing'+ str(toggles.SIMULATE_TIME)
-			labels = (str(predicates[0].question), str(predicates[1].question))
+			labels = (str(predicates[0].question_str), str(predicates[1].question_str))
 			dataToWrite = [labels,routingL[0],routingL[1]]
 			generic_csv_write(dest+'.csv',dataToWrite) # saves a csv
 			if toggles.DEBUG_FLAG:
@@ -1464,10 +1613,15 @@ class SimulationTest(TransactionTestCase):
 
 		if toggles.RUN_TASKS_COUNT:
 			self.num_tasks_array.append(self.num_tasks)
+		
+		if toggles.RUN_TASKS_STATS:
+			print self.tasks_tracker
+			self.output_tasks_stats()
 
 		sim_end = time.time()
 		sim_time = sim_end - sim_start
 		self.run_sim_time = sim_time
+
 		return
 
 	## Using real or synthetic "ground truth" data, calculates the number of items passed by a simulation run
@@ -1522,7 +1676,7 @@ class SimulationTest(TransactionTestCase):
 
 	## Finds the average cost per IP Pair
 	# \todo write a better docstring
-	def sim_average_cost(self, dictionary):
+	def sim_average_cost(self):
 		"""
 		Finds the average cost per ip_pair
 		"""
@@ -1533,7 +1687,7 @@ class SimulationTest(TransactionTestCase):
 		for p in toggles.CHOSEN_PREDS:
 			pred_cost = 0.0
 			pred = Predicate.objects.all().get(pk=p+1)
-			f.write(pred.question.question_text + '\n')
+			f.write(pred.question_str + '\n')
 
 			#iterate through to find each ip cost
 			for ip in IP_Pair.objects.filter(predicate=pred):
@@ -1543,7 +1697,7 @@ class SimulationTest(TransactionTestCase):
 					# running one sampling
 					while ip.status_votes < toggles.NUM_CERTAIN_VOTES:
 						# get the vote
-						value = choice(dictionary[ip])
+						(value, time) = self.getAns(ip.item.name, ip.predicate.question_str)
 						if value == True:
 							ip.value += 1
 							ip.num_yes += 1
@@ -1583,7 +1737,7 @@ class SimulationTest(TransactionTestCase):
 	## Samples a large number of runs for a single ip_pair and records all the costs for the runs
 	# \todo port over to new system
 	# \todo write better docstring
-	def sim_single_pair_cost(self, dictionary, ip):
+	def sim_single_pair_cost(self, ip):
 		#TODO port over to new system
 		if toggles.DEBUG_FLAG:
 			print "Running: sim_single_pair_cost"
@@ -1595,7 +1749,7 @@ class SimulationTest(TransactionTestCase):
 			# running one sampling
 			while ip.status_votes < toggles.NUM_CERTAIN_VOTES:
 				# get the vote
-				value = choice(dictionary[ip])
+				(value, time) = self.getAns(ip.item.name, ip.predicate.question_str)
 				if value == True:
 					ip.value += 1
 					ip.num_yes += 1
@@ -1642,23 +1796,76 @@ class SimulationTest(TransactionTestCase):
 			else:
 				print "only ran 1 sim, not running hist_gen"
 
+
+	def output_tasks_stats(self):
+		""" outputs data on what tasks were actually run during the simulation / all calls to "getAns" """
+		if toggles.DEBUG_FLAG:
+			print "Running: output_tasks_stats"
+		f = open(toggles.OUTPUT_PATH + toggles.RUN_NAME + '_task_stats'+str(self.run_number)+'.csv', 'w')
+		f.write('item, question, task_type, numTrue, numFalse, Other Answer (if applicable), overallVote\n')
+		print "keys are", self.tasks_tracker.keys()
+		for key in self.tasks_tracker.keys():
+			item = key[0]
+			question = key[1]
+			sec_item = key[2]
+			task_type = key[3]
+			numTrue = self.tasks_tracker[key][0]
+			numFalse = self.tasks_tracker[key][1]
+			other = self.tasks_tracker[key][2]
+			if numTrue > numFalse:
+				overall = True
+			else:
+				overall = False
+			if task_type == None:
+				task_type = 'None'
+			f.write(str(item) + ',' + str(question) + ',' + str(task_type) + ',' + str(numTrue) + ',' + str(numFalse)
+							 + ',' + str(other) + ',' + str(overall) + '\n')
+		f.close()
+		if toggles.DEBUG_FLAG:
+			print "Wrote File: " + toggles.OUTPUT_PATH + toggles.RUN_NAME + '_task_stats.csv'
+
+
+
 	## outputs statistics on the given dictionary
 	# \todo write a better docstring
-	def output_data_stats(self, dictionary):
+	def output_data_stats(self):
 		"""
 		outputs statistics on the given dictionary
 		"""
 		if toggles.DEBUG_FLAG:
 			print "Running: output_data_stats"
 		f = open(toggles.OUTPUT_PATH + toggles.RUN_NAME + '_ip_stats.csv', 'w')
-		f.write('ip_pair, numTrue, numFalse, overallVote\n')
-		for ip in IP_Pair.objects.all():
-			#print len(dictionary[ip])
-			numTrue = sum(1 for vote in dictionary[ip] if vote)
-			numFalse = len(dictionary[ip])- numTrue
+		f.write('item, question, task_type, numTrue, numFalse, overallVote\n')
+
+		## In the code commented out below, we look through the tasks, but since they are not being made yet (this is called at the beginning of 
+		## the simulation, so there are no tasks). 
+		# preds = Predicate.objects.all()
+
+		# tasks = ["gen_PJF", "small_p", "PJF", "PJF2", "join", "PW", "PWl2", None]
+		# for pred in preds:
+		# 	pairs = IP_Pair.objects.all().filter(predicate=pred)
+		# 	numTrue = 0
+		# 	for task in tasks:
+		# 		print Task.objects.all().filter(predicate=pred).filter(task_type=task)
+		# 		numTrue = sum(1 for t in Task.objects.all().filter(predicate=pred).filter(task_type=task) if t.answer)
+		# 		numFalse = sum(1 for t in Task.objects.all().filter(predicate=pred).filter(task_type=task) if not t.answer)
+		# 		overallVote = (numTrue > numFalse)
+		# 		f.write(str(pred) + ", " + str(task) + ", " + str(numTrue) + ", " + str(numFalse) + ", " + str(overallVote) + "\n")
+		# 		numTrue = 0
+		# 		numFalse = 0
+		# 		for pair in pairs:
+		# 			numTrue = sum(1 for t in Task.objects.all().filter(ip_pair=pair).filter(task_type=task) if t.answer)
+		# 			numFalse = sum(1 for t in Task.objects.all().filter(ip_pair=pair).filter(task_type=task) if not t.answer)
+		# 			overallVote = (numTrue > numFalse)
+		# 			f.write(str(pair) + ", " + str(task) + ", " + str(numTrue) + ", " + str(numFalse) + ", " + str(overallVote) + "\n")
+		
+		for (item, question, sec_item, task_type) in self.sampleData.keys():
+			numTrue = sum(1 for (ans, time) in self.sampleData[(item, question, sec_item, task_type)] if ans)
+			numFalse = sum(1 for (ans, time) in self.sampleData[(item, question, sec_item, task_type)] if not ans)
 			overallVote = (numTrue > numFalse)
-			f.write(str(ip) + ', ' + str(numTrue) + ', ' + str(numFalse)
+			f.write(str(item) + ', ' + str(question) + ', ' + str(task_type) + ', ' + str(numTrue) + ', ' + str(numFalse)
 				+ ', ' + str(overallVote) + '\n')
+				
 		f.close()
 		if toggles.DEBUG_FLAG:
 			print "Wrote File: " + toggles.OUTPUT_PATH + toggles.RUN_NAME + '_ip_stats.csv'
@@ -1676,10 +1883,11 @@ class SimulationTest(TransactionTestCase):
 		listIncorr = []
 		listTasks = []
 
+		print "inside runSimTrackAcc"
 		for run in range(toggles.NUM_SIM):
 			print "Sim " + str(run+1) + " for uncertainty = " + str(toggles.UNCERTAINTY_THRESHOLD)
 
-			self.run_sim(data)
+			self.run_sim()
 			num_tasks = self.num_tasks
 			incorrect = self.num_incorrect
 			listTasks.append(num_tasks)
@@ -1732,7 +1940,7 @@ class SimulationTest(TransactionTestCase):
 		resetTimes = []
 		for i in range(toggles.NUM_SIM):
 			print "Timing simulation " + str(i+1)
-			self.run_sim(data)
+			self.run_sim()
 
 			# saves timed run data and clears database
 			reset_time = self.reset_database()
@@ -1877,7 +2085,7 @@ class SimulationTest(TransactionTestCase):
 
 			for run in range(toggles.NUM_SIM):
 
-				self.run_sim(data)
+				self.run_sim()
 				if run == 0:
 					timechange = [range(self.simulated_time+1), self.num_tasks_change_count, self.placeholder_change_count, self.ips_times_array, self.ips_done_array]
 					time_dest = toggles.OUTPUT_PATH + "PlaceholdersOverTime_Active_" + str(toggles.MAX_TASKS_OUT) + "_Queue_" + str(toggles.PENDING_QUEUE_SIZE)
@@ -1950,12 +2158,12 @@ class SimulationTest(TransactionTestCase):
 	def itemRoutingTest(self):
  		systems = [1, 2, 5, 6, 8]
  		if toggles.REAL_DATA:
- 			sampleData = self.load_data()
+ 			self.sampleData = self.load_data()
  			if toggles.RUN_DATA_STATS:
- 				self.outout_data_stats(sampleData)
+ 				self.outout_data_stats(self.sampleData)
  				self.reset_database()
  		else:
- 			sampleData = {}
+ 			self.sampleData = {}
  			syn_load_data()
 
  		for sys in systems:
@@ -1964,11 +2172,13 @@ class SimulationTest(TransactionTestCase):
  			toggles.OUTPUT_PATH = "dynamicfilterapp/simulation_files/output/"
 
 			print "current system: ", str(sys)
-			#self.test_simulation(sampleData)
+			#self.test_simulation(self.sampleData)
 
 
 	## \todo write this docstring
-	def visualizeActiveTasks(self, data, runNum):
+	def visualizeActiveTasks(self, runNum):
+
+		
 
 		if not (toggles.TRACK_ACTIVE_TASKS and toggles.SIMULATE_TIME):
 			raise Exception("Turn on TRACK_ACTIVE TASKS and SIMULATE_TIME for this to work properly.")
@@ -1998,6 +2208,15 @@ class SimulationTest(TransactionTestCase):
 		generic_csv_write(dest1+".csv", save)
 		writtenFiles = [dest1+".csv"]
 
+		if toggles.USE_JOINS:
+			dest3 = toggles.OUTPUT_PATH + "join_info" + "_activeTasks_" + str(toggles.ACTIVE_TASKS_SIZE)+ "_eddy_" + str(toggles.EDDY_SYS)+ "_run_" + str(runNum)
+			pred_set = Predicate.objects.all()
+			data = []
+			for i in pred_set:
+				data += [str(i.joinable) + "\n"]
+			generic_csv_write(dest3+".csv", data)
+			writtenFiles.append(dest3+'.csv')
+			
 		if toggles.EDDY_SYS != 2:
 			save = [self.time_steps_array]
 			graphData2 = [self.time_steps_array]
@@ -2085,7 +2304,7 @@ class SimulationTest(TransactionTestCase):
 
 
 
-	def runMultiSims(self, data):
+	def runMultiSims(self):
 	# run multiple simulations with settings specified in MULTI_SIM_ARRAY
 	# outputs a multiRunStats.csv file that includes the settings and 
 	# number of placeholder tasks, waste tasks, total tasks, and simulated time for each simulation
@@ -2305,7 +2524,7 @@ class SimulationTest(TransactionTestCase):
 
 		return writtenFiles
 
-	def active_tasks_1(self, data, runs):
+	def active_tasks_1(self, runs):
 		if not (toggles.TRACK_ACTIVE_TASKS and toggles.SIMULATE_TIME):
 			raise Exception("Turn on TRACK_ACTIVE TASKS and SIMULATE_TIME for this to work properly.")
 		if not (toggles.COUNT_TICKETS and toggles.TRACK_QUEUES):
@@ -2348,7 +2567,7 @@ class SimulationTest(TransactionTestCase):
 		toggles.SIMULATE_TIME = False
 
 		for i in range(runs):
-			self.run_sim(data)
+			self.run_sim()
 
 			# generate single-run data for first run
 			if i == 0:
@@ -2390,30 +2609,30 @@ class SimulationTest(TransactionTestCase):
 			self.consensusGrid()
 
 		if toggles.REAL_DATA:
-			sampleData = self.load_data()
+			self.load_data()
 			if toggles.RUN_DATA_STATS:
-				self.output_data_stats(sampleData)
+				self.output_data_stats()
 				self.reset_database()
-			if toggles.RUN_AVERAGE_COST:
-				self.sim_average_cost(sampleData)
+			if toggles.RUN_AVERAGE_COST and not toggles.REAL_DATA:
+				self.sim_average_cost()
 				self.reset_database()
 			if toggles.RUN_SINGLE_PAIR:
-				self.sim_single_pair_cost(sampleData, pending_eddy(self.pick_worker([0], [0])))
+				self.sim_single_pair_cost(pending_eddy(self.pick_worker([0], [0])))
 				self.reset_database()
 		else:
-			sampleData = {}
+			self.sampleData = {}
 			syn_load_data()
 
 		if toggles.RUN_ITEM_ROUTING and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
 			if toggles.DEBUG_FLAG:
 				print "Running: item Routing"
-			self.run_sim(deepcopy(sampleData))
+			self.run_sim()
 			self.reset_database()
 
 		if PRED_SCORE_COUNT and not (RUN_TASKS_COUNT or RUN_MULTI_ROUTING):
 			if DEBUG_FLAG:
 				print "Running: Pred Score count"
-			self.run_sim(sampleData)
+			self.run_sim()
 			self.reset_database()
 
 
@@ -2421,13 +2640,13 @@ class SimulationTest(TransactionTestCase):
 		if toggles.COUNT_TICKETS and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
 			if toggles.DEBUG_FLAG:
 				print "Running: ticket counting"
-			self.run_sim(deepcopy(sampleData))
+			self.run_sim()
 			self.reset_database()
 
 		if toggles.SELECTIVITY_GRAPH and not (toggles.RUN_TASKS_COUNT or toggles.RUN_MULTI_ROUTING):
 			if toggles.DEBUG_FLAG:
 				print "Running: selectivity amounts over time"
-			self.run_sim(sampleData)
+			self.run_sim()
 			self.reset_database()
 
 		#____FOR LOOKING AT ACCURACY OF RUNS___#
@@ -2441,7 +2660,7 @@ class SimulationTest(TransactionTestCase):
 			self.reset_database()
 			for i in range(toggles.NUM_SIM):
 				print "running optimal_sim " +str(i)
-				self.num_tasks = self.optimal_sim(sampleData)
+				self.num_tasks = self.optimal_sim()
 				countingArr.append(self.num_tasks)
 				self.reset_database()
 			dest = toggles.OUTPUT_PATH+toggles.RUN_NAME+'_optimal_tasks'
@@ -2468,7 +2687,7 @@ class SimulationTest(TransactionTestCase):
 
 			for i in range(toggles.NUM_SIM):
 				print "running simulation " + str(i+1)
-				self.run_sim(deepcopy(sampleData))
+				self.run_sim()
 				runTasksArray.append(self.num_tasks)
 
 				#____FOR LOOKING AT ACCURACY OF RUNS___#
@@ -2585,10 +2804,10 @@ class SimulationTest(TransactionTestCase):
 							line_graph_gen(gX,gY,dest+'_good.png',title=title+" goodPoints",labels=labels,scatter=True,square=True)
 							line_graph_gen(bX,bY,dest+'_bad.png',title=title+" badPoints",labels=labels,scatter=True,square=True)
 		if toggles.TIME_SIMS:
-			self.timeRun(sampleData)
+			self.timeRun()
 
 		if toggles.RUN_ABSTRACT_SIM:
-			self.abstract_sim(sampleData, toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
+			self.abstract_sim(toggles.ABSTRACT_VARIABLE, toggles.ABSTRACT_VALUES)
 
 		# run multiple simulations for various configurations in toggles.MULTI_RUN_ARRAY and generates visuals
 		# most of the testing was completed through this function
@@ -2633,4 +2852,97 @@ class SimulationTest(TransactionTestCase):
 	# 		syn_load_data()
 	#
 	# 	self.timeRun(sampleData)
+	
+	###################################################################################################
+	### DATA LOADING: NEED TO INVESTIGATE SIMULATE_TASK(), 
+	## The code below looks logically more complete than the version above but gets stuck with an empty active 
+	## task array 
+
+	# ## Simulates the process of assigning a task selected by pending_eddy() to a worker
+	# # selected by pick_worker().
+	# # @param chosenIP The IP pair that pending_eddy() has selected. If chosenIP is None, a placeholder
+	# # task will be issued.
+	# # @param workerID The ID of the worker that pick_worker() selected
+	# # @param time_clock The "time" at which the task is being simulated -- is used to figure out
+	# # when the task  will be "started" and when it will finish.
+	# # @param dictionary The dictionary of possible worker responses for the given IP pair
+	# # loaded in by get_sample_answer_dict()
+	# # @returns the Task object that was simulated.
+	# def simulate_task(self, chosenIP, workerID, time_clock, task_type=None, curr_join=None, predicate=None):
+	# 	start = time.time()
+	# 	#if chosenIP is not None:
+
+	# 	# simulated worker votes
+	# 	#print chosenIP
+
+	# 	# TODO be able to do the right thing when IP Pair is none:
+	# 	#		create a dummy task with IP_Pair = None, answer = None,
+	# 	# 		workerID is the worker it's been assigned to
+	# 	#		duration should be a random choice from TRUE_TIMEs concatenated with FALSE_TIMES
+	# 	if chosenIP is None:
+	# 		if toggles.SIMULATE_TIME:
+	# 			# TODO
+	# 			# this task is going to be as long as any task can be?
+	# 			# or delay workers by a fixed amount of time?
+	# 			work_time = choice(toggles.TRUE_TIMES + toggles.FALSE_TIMES)
+	# 			start_task = time_clock + toggles.BUFFER_TIME
+	# 			end_task = start_task + work_time
+	# 			self.cum_placeholder_time += work_time
+	# 		else:
+	# 			start_task = 0
+	# 			end_task = 0
+
+	# 		t = DummyTask(workerID = workerID, start_time = start_task, end_time = end_task)
+	# 		t.save()
+
+
+	# 	else:
+	# 		#chosenIP.refresh_from_db()
+	# 		start_time = time_clock + toggles.BUFFER_TIME
+
+	# 		if toggles.SIMULATE_TIME:
+	# 			if type(chosenIP) is Predicate: 
+	# 				chosenPred = chosenIP
+	# 				chosenItem = None
+	# 			elif type(chosenIP) is IP_Pair:
+	# 				chosenPred = chosenIP.predicate
+	# 				chosenItem = chosenIP.item
+	# 			(value, work_time) = self.getAns(chosenItem.name, chosenPred.question_str, '', str(task_type))
+	# 			# if value is not True or value is not False:
+	# 			# 	start_task = time_clock + toggles.BUFFER_TIME
+	# 			end_time = start_time + work_time
+	# 			self.cum_work_time += work_time
+	# 		else:
+	# 			start_time = 0
+	# 			end_time = 0
+
+	# 		## Now make/package the task
+	# 		if chosenPred.joinable and curr_join: ## USING JOINS
+	# 			real_data = (value, work_time) ## give it the real data, it will give same thing back but update its estimates
+	# 			value, time_taken, advance = curr_join.main_join(task_type, chosenIP, predicate, real_data)
+	# 			if type(chosenIP) is Predicate:
+	# 				t = Task(predicate=chosenIP, answer=value, workerID=workerID,
+	# 					start_time=start_time, end_time=end_time, type_done = advance)
+	# 			elif type(chosenIP) is IP_Pair:
+	# 				t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+	# 					start_time=start_time, end_time=end_time, type_done = advance)
+				
+	# 			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+	# 				start_time=start_time, end_time=end_time, type_done = advance)
+	# 		else: ## normal non join task (or catches if there was some miscommunication and there was no join obj)
+	# 			t = Task(ip_pair=chosenIP, answer=value, workerID=workerID,
+	# 				start_time=start_time, end_time=end_time)
+	# 		t.save()
+
+	# 		if not toggles.SIMULATE_TIME:
+	# 			updateCounts(t, chosenIP)
+	# 			#t.refresh_from_db()
+	# 			#chosenIP.refresh_from_db()
+
+
+	# 	end = time.time()
+	# 	runTime = end - start
+	# 	self.sim_task_time += runTime
+
+	# 	return t
 	
