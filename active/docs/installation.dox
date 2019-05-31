@@ -226,6 +226,13 @@ Here are a few other settings you can experiment with:
    
         switch_list = [ (0, (0.9, 0.75), (0.2, 0.75))]
 
+\subsection MULTI_SIM
+NUM_SIM controls the number of simulations that will run with the general toggle settings. However, besides manually setting up and running test settings one at a time, there are two variables in toggles, MULTI_SIM and MULTI_SIM_ARRAY which let you specify many different sets of toggle settings, # of simulations for those settings, etc, and will print most of the important graphs that you need, if those toggles are on. MULTI_SIM_ARRAY is a list of tuples, each of which defines settings for a test. The format for these tuples is as follows: (number of simulations, switch_list, EDDY_SYS, BATCH_ASSIGNMENT, ACTIVE_TASKS_ARRAY, REFILL_PERIOD, TICKETING_SYS, ADAPTIVE_QUEUE_MODE, QUEUE_LENGTH_ARRAY or PENDING_QUEUE_SIZE, (IP_LIMIT_SYS, ITEM_IP_LIMIT)). 
+
+An example of an array which will run a single test, with what we generally consider our "default" settings is [(1,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],5,1,[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)], 100, 1, 4, 100, (0, 1))]. Notably, if you don't want to change a setting between two runs, just put None where it would appear in the tuple. For instance, if I wanted to run the default test, followed by a single test with a different ticketing system, I would enter [(1,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],5,1,[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)], 100, 1, 4, 100, (0, 1)),(None,None,None,None,None,None,0,None,None,None)]. Although writing out the Nones can be a pain, we've generally found it makes it easier to look back at a series of tests you ran and see what was different between them. 
+
+Note, although technically having your very first tuple as all None should hypothetically use the settings defined elsewhere in toggles, we haven't really tested to make sure that happens, so it's best practice to at least fully set up the first tuple completely.
+
 \section trouble Troubleshooting
 
 If you get an error like this when trying to run a simulation:

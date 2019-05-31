@@ -31,7 +31,7 @@ class Item(models.Model):
 	almostFalse = models.BooleanField(default=False)
 
 	inQueue = models.BooleanField(default=False)
-	# IP pairs out at a given point in time
+	# IP pairs out for this item at a given point in time
 	pairs_out = models.IntegerField(default=0)
 
 	def __str__(self):
@@ -216,6 +216,8 @@ class Predicate(models.Model):
 		self.save(update_fields=["trueSelectivity"])
 
 	def setTrueAmbiguity(self, amb):
+		#Ambiguity of .25 is the same as .75, 
+		#but for a flipped predicate, so we just flip the value
 		if amb > 0.5:
 			self.trueAmbiguity = 1 - amb
 		else: 
@@ -244,7 +246,7 @@ class Predicate(models.Model):
 		expired_pairs = IP_Pair.objects.filter(end_time__gt=0,end_time__lte=self.num_wickets-toggles.LIFETIME,predicate=self)
 		self.num_tickets -= expired_pairs.count()
 		for ip in expired_pairs:
-			ip.zero_end_time()
+			ip.set_end_time(-1)
 		self.save(update_fields=["num_tickets"])
 		if self.num_tickets < 1:
 			self.num_tickets = 1
@@ -521,7 +523,7 @@ class IP_Pair(models.Model):
 
 	# tasks out at a given point in time
 	tasks_out = models.IntegerField(default=0)
-	# tasks that have been released overall
+	# tasks that have been collected overall
 	tasks_collected=models.IntegerField(default=0)
 	# running cumulation of votes
 	value = models.FloatField(default=0.0)
@@ -579,7 +581,8 @@ class IP_Pair(models.Model):
 	# for random algorithm
 	isStarted = models.BooleanField(default=False)
 
-	# for windowing
+	## When an IP pair is set done (specifically via set_done_if_done), end_time is either set to -1 (for true values) or the actual simulated end time (for false values).
+	# Currently used for windowing and calculating the number of votes that go to IP pairs we actually end up using. (All other pairs will have end_time 0)
 	end_time = models.IntegerField(default=0)
 
 	# for synth data:
@@ -587,7 +590,7 @@ class IP_Pair(models.Model):
 
 	def give_true_answer(self):
 		probability = self.predicate.trueSelectivity
-		self.true_answer = (random.random() > probability)
+		self.true_answer = (random.random() < probability)
 		self.save(update_fields=["true_answer"])
 
 	def __str__(self):
@@ -616,7 +619,8 @@ class IP_Pair(models.Model):
 			if toggles.EDDY_SYS != 5:
 				raise Exception ("Too many IP pair objects in queue for predicate " + str(self.predicate.id))
 		self.item.add_to_queue()
-		# self.predicate.award_ticket()
+		if toggles.TICKETING_SYS == 0:
+			self.predicate.award_ticket()
 		if not IP_Pair.objects.filter(predicate=self.predicate, inQueue=True).count() == self.predicate.num_pending:
 			print "IP objects in queue for pred " + str(self.predicate.id) + ": " + str(IP_Pair.objects.filter(predicate=self.predicate, inQueue=True).count())
 			print "Number pending for pred " + str(self.predicate.id) + ": " + str(self.predicate.num_pending)
@@ -669,8 +673,8 @@ class IP_Pair(models.Model):
 			self.predicate.update_rank()
 			self.set_done_if_done()
 
-	def zero_end_time(self):
-		self.end_time = 0
+	def set_end_time(self, value):
+		self.end_time = value
 		self.save(update_fields=["end_time"])
 
 	def set_done_if_done(self):
@@ -679,26 +683,32 @@ class IP_Pair(models.Model):
 				
 				self.isDone = True
 				self.save(update_fields=["isDone"])
+				self.remove_from_queue()
 				self.predicate.update_ip_count()
 
-				#if not self.is_false() and self.predicate.num_tickets > 1:
-				#	self.predicate.remove_ticket()
+				if toggles.TICKETING_SYS == 0 and not self.is_false() and self.predicate.num_tickets > 1:
+					self.predicate.remove_ticket()
 
 				if self.is_false():
 					# update score when item fails
-					self.predicate.award_ticket()
-					self.end_time = self.predicate.num_wickets
-					self.save(update_fields=["end_time"])
+					if toggles.TICKETING_SYS == 1:
+						self.predicate.award_ticket()
+					self.set_end_time(self.predicate.num_wickets)
 					if (toggles.EDDY_SYS == 6):
 						self.predicate.update_pred(toggles.REWARD)
 					if (toggles.EDDY_SYS == 7):
 						self.predicate.update_pred_rank(toggles.REWARD)
+					# Everything below here ensures that if an item fails in one queue, then any IP pairs
+					# for the item in other queues know that they're done, and leave their queue if necessary
 					itemPairs = IP_Pair.objects.filter(item__hasFailed=True,item=self.item)
 					itemPairs.update(isDone=True)
-					activePairs = itemPairs.filter(inQueue=True)
+					activePairs = itemPairs.filter(inQueue=True).filter(end_time=0)
 					for aPair in activePairs:
 						aPair.remove_from_queue()
-						# aPair.predicate.remove_ticket()
+						if toggles.TICKETING_SYS == 0:
+							aPair.predicate.remove_ticket()
+				else:
+					self.set_end_time(-1)
 
 				# helpful print statements
 				if toggles.DEBUG_FLAG:
@@ -791,7 +801,7 @@ class IP_Pair(models.Model):
 
 	def distribute_task(self):
 		self.tasks_out += 1
-		self.save(update_fields = ["tasks_out"]) 
+		self.save(update_fields = ["tasks_out"]) #"tasks_released"
 
 	def collect_task(self):
 		#TODO: how do we collect tasks for joins
@@ -817,7 +827,8 @@ class IP_Pair(models.Model):
 		self.tasks_collected=0
 		self.end_time = 0
 		self.tasks_out=0
-		self.save(update_fields=["value","end_time","num_yes","num_no","isDone","status_votes","inQueue", "isStarted", "tasks_collected", "tasks_out"])
+		self.end_time=0
+		self.save(update_fields=["value","num_yes","num_no","isDone","status_votes","inQueue", "isStarted", "tasks_collected", "tasks_out", "end_time"])
 
 @python_2_unicode_compatible
 class Task(models.Model):

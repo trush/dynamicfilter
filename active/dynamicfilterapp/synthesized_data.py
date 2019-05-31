@@ -39,7 +39,6 @@ def syn_load_data():
 			ip_pair = IP_Pair.objects.create(item=i, predicate=p)
 			
 
-
 def syn_answer(chosenIP, switch, numTasks):
 	"""
 	make up a fake answer based on global variables
@@ -49,6 +48,7 @@ def syn_answer(chosenIP, switch, numTasks):
 	#TODO: If trans is 0, it starts at the selectvity of the previous timestep
 
 	timeStepInfo = toggles.switch_list[switch]
+	#Cost multiplier multiplies work time for tasks, is a basic proxy for difficulty
 	cost_multiplier = 1
 	if len(timeStepInfo[chosenIP.predicate.pk]) > 2:
 		cost_multiplier = timeStepInfo[chosenIP.predicate.pk][2]
@@ -78,7 +78,7 @@ def syn_answer(chosenIP, switch, numTasks):
 			pred.setTrueAmbiguity(predInfo[1])
 
 	# if this is the first time we've seen this pair, it needs a true answer
-	if ((chosenIP.num_no == 0) and (chosenIP.num_yes == 0)):
+	if ((chosenIP.num_no == 0) and (chosenIP.num_yes == 0)) and not (toggles.EDDY_SYS == 12 or toggles.EDDY_SYS == 13):
 		chosenIP.give_true_answer()
 		chosenIP.refresh_from_db(fields=["true_answer"])
 
@@ -86,12 +86,30 @@ def syn_answer(chosenIP, switch, numTasks):
 	# lean towards true
 	if chosenIP.true_answer:
 		# decide if the answer is going to be true or false
-		value = decision(1 - chosenIP.predicate.trueAmbiguity)
+		value = decision(chosenIP.predicate.trueAmbiguity)
 	# lean towards false
 	else:
-		value = decision(chosenIP.predicate.trueAmbiguity)
+		value = decision(1 - chosenIP.predicate.trueAmbiguity)
 
 	return value, cost_multiplier
+
+def syn_init():
+	"""
+	Initialize predicate and IP values, so they can be used by clairvoyant algorithms
+	"""
+	timeStepInfo = toggles.switch_list[0]
+
+	for predNum in toggles.CHOSEN_PREDS:
+
+		pred = Predicate.objects.get(pk=predNum+1)
+		predInfo = timeStepInfo[predNum+1]
+		pred.setTrueSelectivity(predInfo[0])
+		pred.setTrueAmbiguity(predInfo[1])
+
+	# if this is the first time we've seen this pair, it needs a true answer
+	for ip_pair in IP_Pair.objects.all():
+		ip_pair.give_true_answer()
+		ip_pair.refresh_from_db(fields=["true_answer"])
 
 def getSinValue(sinInfo, numTasks):
 	period = sinInfo[2]

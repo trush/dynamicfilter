@@ -25,10 +25,10 @@ TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PAT
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
 NUM_QUESTIONS = 2
-NUM_ITEMS = 160
+NUM_ITEMS = 100
 SIN = -1
 SELECTIVITY_GRAPH = False
-switch_list = [ (0, (0.3,0), (0.3,0))]
+switch_list = [(0, (0.3,0), (0.3,0))]
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
@@ -37,7 +37,7 @@ switch_list = [ (0, (0.3,0), (0.3,0))]
 
 # ___ PREDICATES (FOR REAL OR SYNTHETIC) ____ #
 if REAL_DATA:
-    CHOSEN_PREDS = [0]
+    CHOSEN_PREDS = [0,1,2,3,4]
 else:
     CHOSEN_PREDS = range(len(switch_list[0]) - 1)
 
@@ -52,21 +52,22 @@ EDDY_SYS = 5
 ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 150
-PENDING_QUEUE_SIZE = 40
+PENDING_QUEUE_SIZE = 2000
 QUEUE_SUM = 100
 
-IP_LIMIT_SYS = 0   # type of predicate limit for an item
-ITEM_IP_LIMIT = 4   # number of predicates an item can be in
+IP_LIMIT_SYS = 2   # type of predicate limit for an item
+ITEM_IP_LIMIT = 1   # number of predicates an item can be in
 
-ADAPTIVE_QUEUE = False
-ADAPTIVE_QUEUE_MODE = 0
+ADAPTIVE_QUEUE_MODE = 4
 # 0 - only increase ql if reached that number of tickets
 # 1 - increase like (0) but also decreases if a pred drops below the limit
 QUEUE_LENGTH_ARRAY = [(0, 4), (3, 15), (10, 30)] # settings for above mode [(#tickets,qlength)]
-ACTIVE_TASKS_ARRAY = [(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)] #Only matters (atm) if batch assignment on
+ACTIVE_TASKS_ARRAY = [(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)] #Only matters (atm) if simulate time assignment on
 #[(0,0,0),(1,10,40),(10,75,100),(20,150,200),(40,350,450)]
-BATCH_ASSIGNMENT = 2 # 0 - No batches, 1 - Refill limit, 2 - Periodic refill
+BATCH_ASSIGNMENT = 1 # 0 - No batches, 1 - Refill limit, 2 - Periodic refill
 REFILL_PERIOD = 100
+
+TICKETING_SYS = 1
 
 EPSILON = 0.7
 REWARD = 1.7
@@ -168,8 +169,7 @@ DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
 RESPONSE_SAMPLING_REPLACEMENT = True
 
-NUM_SIM = 0
-NUM_GRAPH_SIM = 0
+NUM_SIM = 1
 
 SIMULATE_TIME = True # simulate time passing/concurrency
 
@@ -181,8 +181,11 @@ BUFFER_TIME = 0
 MAX_TASKS_OUT = 40
 MAX_TASKS_COLLECTED = CUT_OFF
 
-MULTI_SIM = True 
-MULTI_SIM_ARRAY = [(1,(0, 1),[(0,0,0),(1,10,40),(10,150,200),(50,350,450)],[(0,4),(3,15),(10,30)],[(0,(0.2,0.25,.5),(0.2,0.25,.5))],0)]
+MULTI_SIM = False 
+MULTI_SIM_ARRAY = [(1,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],5,1,[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)], 100, 1, 4, 100, (0, 1))]
+# (number of simulations, switch_list, EDDY_SYS, BATCH_ASSIGNMENT, ACTIVE_TASKS_ARRAY, REFILL_PERIOD, TICKETING_SYS, ADAPTIVE_QUEUE_MODE, QUEUE_LENGTH_ARRAY/PENDING_QUEUE_SIZE, (IP_LIMIT_SYS, ITEM_IP_LIMIT))
+
+
 # ************************************************************************ #
 
 
@@ -205,6 +208,8 @@ if GEN_GRAPHS:
     elif reply == "n":
         print "~~~~~~ Graphing turned off ~~~~~~"
         GEN_GRAPHS = False
+
+GEN_HIST = True         # in multiRunSims
 
 # ___ DATA COLLECTION: REAL DATA ____ #
 RUN_DATA_STATS = True
@@ -235,10 +240,9 @@ TRACK_IP_PAIRS_DONE = False
 TRACK_ACTIVE_TASKS = True # Useful only for simulations with TIME
 TRACK_PLACEHOLDERS = True
 TRACK_WASTE = True  # Tracks tasks leftover from finished items
+TRACK_SELECTIVITIES = True # Mostly made for when REAL_DATA = False
+TASK_ROUTING = True
 
-EDDY_SET = [5]     # Used only when TRACK_ACTIVE_TASKS is true   
-QUEUE_SET = [40] 
-ACTIVE_TASKS_SET = [160]
 
 TEST_ACCURACY = False
 ACCURACY_COUNT = False
@@ -266,17 +270,17 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'ADAPTIVE_CONSENSUS','ADAPTIVE_CONSENSUS_MODE','PREDICATE_SPECIFIC',
             'CONSENSUS_STATUS_LIMITS','CONSENSUS_SIZE_LIMITS','RENO_BONUS_RATIO',
             'CONSENSUS_STATUS','K','W_MAX','CUBIC_C','CUBIC_B','NUM_WORKERS',
-            'DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE',
-            'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME','ADAPTIVE_QUEUE',
+            'DISTRIBUTION_TYPE','EDDY_SYS','PENDING_QUEUE_SIZE', 'TICKETING_SYS',
+            'CHOSEN_PREDS','ITEM_SYS','SLIDING_WINDOW','LIFETIME',
             'ADAPTIVE_QUEUE_MODE','QUEUE_LENGTH_ARRAY','REAL_DATA', 'DUMMY_TASKS',
-            'DUMMY_TASK_OPTION','GEN_GRAPHS','NUM_ITEMS','SIN', 'QUEUE_SUM',
+            'DUMMY_TASK_OPTION','GEN_GRAPHS','GEN_HIST', 'NUM_ITEMS','SIN', 'QUEUE_SUM',
             'SELECTIVITY_GRAPH','switch_list', 'ITEM_IP_LIMIT', 'IP_LIMIT_SYS',
             'RUN_DATA_STATS','RESPONSE_SAMPLING_REPLACEMENT','RUN_ABSTRACT_SIM',
             'ABSTRACT_VARIABLE','ABSTRACT_VALUES','COUNT_TICKETS', 'PRED_SCORE_COUNT', 'RUN_AVERAGE_COST',
             'COST_SAMPLES','RUN_SINGLE_PAIR','SINGLE_PAIR_RUNS','RUN_ITEM_ROUTING',
             'RUN_MULTI_ROUTING','RUN_OPTIMAL_SIM', 'SIM_TIME_STEP', 'TRACK_WASTE', 
-            'EDDY_SET', 'QUEUE_SET', 'ACTIVE_TASKS_SET', 'ACTIVE_TASKS_ARRAY',
-            'NUM_SIM','TIME_SIMS','SIMULATE_TIME', 'NUM_GRAPH_SIM', 'BATCH_ASSIGNMENT',
+            'ACTIVE_TASKS_ARRAY', 'TASK_ROUTING',
+            'NUM_SIM','TIME_SIMS','SIMULATE_TIME', 'BATCH_ASSIGNMENT',
             'ACTIVE_TASKS_SIZE', "MAX_TASKS_COLLECTED", "MAX_TASKS_OUT", 'BUFFER_TIME','RUN_TASKS_COUNT','TRACK_IP_PAIRS_DONE',
             'TRACK_PLACEHOLDERS','TEST_ACCURACY','OUTPUT_SELECTIVITIES', 'REFILL_PERIOD',
             'RUN_CONSENSUS_COUNT','VOTE_GRID','OUTPUT_COST', 'TRACK_ACTIVE_TASKS', 'TRACK_QUEUES',
@@ -285,13 +289,13 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'SELECTIVITY_GRAPH', 'CONSENSUS_STATUS_LIMITS', 'ACCURACY_COUNT', 'TRACK_SIZE',
             'ADAPTIVE_CONSENSUS', 'CONSENSUS_SIZE_LIMITS', 'RENO_BONUS_RATIO', 'BAYES_ENABLED', 'RESIZE_ACTIVE_TASKS',
             'TASKS_PER_SECOND', 'EPSILON', 'REWARD',
-            'MULTI_SIM', 'MULTI_SIM_ARRAY', 'USE_JOINS', 'JOIN_SELECTIVITY', 'PJF_SELECTIVITY',
+            'MULTI_SIM', 'MULTI_SIM_ARRAY', 'USE_JOINS', 'TRACK_SELECTIVITIES', 'JOIN_SELECTIVITY', 'PJF_SELECTIVITY',
             'JOIN_TIME', 'TIME_TO_EVAL_PJF', 'BASE_FIND_MATCHES', 'FIND_SINGLE_MATCH_TIME',
             'AVG_MATCHES', 'STDDEV_MATCHES', 'SMALL_P_SELECTIVITY', 'TIME_TO_EVAL_SMALL_P',
             'HAS_LIST2', 'private_list2', 'THRESHOLD', 'EXPLORATION_REQ', 'JOIN_AMBIGUITY',
             'SP_AMBIGUITY', 'PJF_AMBIGUITY', 'SMALL_P_TIME_STD', 'JOIN_TIME_STD', 'PJF_TIME_STD',
-            'pjf_dict', 'GEN_PJF_TIME', 'GEN_PJF_STD', 'GEN_PJF_AMBIGUITY', 'PROPORTION_JOINS', 'STARTED_JOIN_RATIO','RUN_TASKS_STATS'
-]
+            'pjf_dict', 'GEN_PJF_TIME', 'GEN_PJF_STD', 'GEN_PJF_AMBIGUITY', 'PROPORTION_JOINS', 'STARTED_JOIN_RATIO','RUN_TASKS_STATS']
+
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file
     # THIS MEANS NEW VARIABLES WILL BE AUTO ADDED IN PLACE

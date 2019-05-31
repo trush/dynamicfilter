@@ -61,8 +61,7 @@ def placeholder_time_graph(data, dest):
     yL = [task_counts, placeholder_counts]
     legendList = ["'Real Tasks'", "Placeholders"]
     labels = ("Time Steps", "Number of tasks released")
-    title = "Real and Placeholder Task Counts Over Time - Active Tasks: " + str(toggles.ACTIVE_TASKS_SIZE) + " Queue: " + str(toggles.PENDING_QUEUE_SIZE)
-
+    title = "Real and Placeholder Task Counts Over Time for Current Configuration"
     multi_line_graph_gen(xL, yL, legendList, dest+".png", labels = labels, title = title)
 
     gen_message(dest)
@@ -73,7 +72,7 @@ def visualize_active_tasks(data, dest):
     yL = [data[i][1][::20] for i in range(1, len(data))]
     legendL = [data[i][0] for i in range(1, len(data))]
     labels = ("Time Steps", "Tasks in Active Array")
-    title = "Composition of Active Tasks Array over Time for Queue Size " + str(toggles.PENDING_QUEUE_SIZE) + " and Active Tasks Array " + str(toggles.ACTIVE_TASKS_SIZE)
+    title = "Active Tasks Over Time for Current Configuration"
 
     split_bar_graph_gen(yL, xL, dest+".png", legendL, labels=labels, title = title, split = "horizontal", fig_size = (15, 5), tight=True)
 
@@ -86,7 +85,7 @@ def ticket_counts(data, dest):
     yL = [data[i][1] for i in range(1, len(data))]
     legendL = [data[i][0] for i in range(1, len(data))]
     labels = ("Time Steps", "Number of Tickets")
-    title = "Number of Tickets for Each Predicate During 1 Simulation"
+    title = "Number of Tickets Over Time for Current Configuration"
 
     multi_line_graph_gen(xL, yL, legendL, dest+".png", labels = labels, title = title)
 
@@ -99,7 +98,7 @@ def queue_sizes(data, dest):
     yL = [data[i][1] for i in range(1, len(data))]
     legendL = [data[i][0] for i in range(1, len(data))]
     labels = ("Time Steps", "Sizes of Predicate Queues")
-    title = "Queue Sizes for Each Predicate During 1 Simulation"
+    title = "Queue Sizes for Each Predicate for Current Configuration"
 
     multi_line_graph_gen(xL, yL, legendL, dest+".png", labels = labels, title = title)
 
@@ -131,6 +130,48 @@ def simulated_time_distributions(data, dest):
 
     gen_message(dest)
 
+def ticket_distributions(dataL, legendL, dest, numSim):
+    # print histogram for each predicate's ticket after each simulation of the same setting
+    labels = ("Number of Tickets", "Frequency")
+    title = "Number of Tickets for Predicates in Current Configuration for " + str(numSim) + " Simulations"
+
+    multi_hist_gen(dataL, legendL, dest+".png", labels = labels, title = title, smoothness = True)
+
+    gen_message(dest)
+
+def task_distributions_over_settings (data, dest):
+    # print histogram for each predicate's ticket after each simulation of the same setting
+    dataL = []
+    legendL = []
+    for tup in range(len(data)):
+        legendL.append(data[tup][0]) # settingCount
+        dataL.append(data[tup][1])   # task list
+
+    labels = ("Number of Tasks", "Frequency")
+    title = "Number of Tasks for Different Configurations"
+
+    multi_hist_gen(dataL, legendL, dest+".png", labels = labels, title = title, smoothness = True)
+
+    gen_message(dest)
+
+def task_count(data, legend, dest):
+    # task count for a single simulation
+    labels = ('Predicates', 'Tasks')
+    title = 'Number of Tasks for Predicates with Current Configuration'
+
+    bar_graph_gen(data, legend, dest+".png", labels = labels, title = title)
+
+    gen_message(dest)
+
+
+def task_count_over_settings(data, legend, dest, numSim):
+    labels = ('Predicates', 'Tasks')
+    title = 'Number of Tasks for Predicates with Current Configuration over ' + str(numSim) +'Simulations'
+
+    bar_graph_gen(data, legend, dest+".png", labels = labels, title = title)
+
+    gen_message(dest)
+
 def ips_done(data, dest, time):
     if time:
         num = 1
@@ -140,7 +181,7 @@ def ips_done(data, dest, time):
         caption = "Number of Tasks Completed"
     labels = (caption, "Number IP Pairs Completed")
     title = "Number IP Pairs Done vs. " + caption + " During 1 Simulation"
-    line_graph_gen(data[0], data[num], dest+".png", labels=labels, title=title)
+    line_graph_gen(data[num], data[0], dest+".png", labels=labels, title=title)
 
     gen_message(dest)
 

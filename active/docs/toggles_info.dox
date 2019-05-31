@@ -70,6 +70,11 @@ Algorithm Guide:
   - 5 - Pending Eddy (generation 2)
   - 6 - Epsilon-Greedy MAB
   - 7 - Decreasing Epsilon-Greedy MAB
+  - 8 - Full knowledge, proportional
+  - 9 - Best Predicate pick: knows selectivities and assigns tasks to most selective
+  - 10 - Worst Predicate pick: knows selectivities and assigns tasks to least selective
+  - 11 - Best Pick: knows the true value of IP pairs and assign tasks to false IP pairs
+  - 12 - Worst Pick: knows the true value of IP pairs and assign tasks to true IP pairs
 
 
 \n
@@ -80,7 +85,7 @@ Item System Guide:
   - 1 - Item-started system (Items that have already been started will be preferred when choosing an item.)
   - 2 - Item-almost-false system (Items that are close to being eliminated from the passing set will
         be preferred when choosing an item.)
-  - 3 - Item-inactive system (Items that aren't in the queue will be preferred when choosing an item.)
+  - 3 - Item-inactive system (Items that has the least number of tasks in the queue will be preferred when choosing an item.)
 
 \link dynamicfilterapp.toggles.SLIDING_WINDOW SLIDING_WINDOW \endlink - Determines whether "windowing"
 will be turned on for a Pending Eddy algorithm. (See "Algorithm Design" for details on how this works
@@ -107,21 +112,18 @@ Predicate Limit Guide:
 \link dynamicfilterapp.toggles.ITEM_IP_LIMIT ITEM_IP_LIMIT \endlink - Maximum number of predicates an item
 can be in (for hard limit or soft limit, which are ITEM_) \n
 
-\link dynamicfilterapp.toggles.ADAPTIVE_QUEUE ADAPTIVE_QUEUE \endlink - Determines whether PENDING_QUEUE_SIZE
-will be static throughout simulation or will vary. \n
-
 \link dynamicfilterapp.toggles.ADAPTIVE_QUEUE_MODE ADAPTIVE_QUEUE_MODE \endlink - Decides the style of adaptive queue to use
 Adaptive Queue Mode Guide:
-  - 0 - Increases queue length based on toggles.QUEUE_LENGTH_ARRAY
-  - 1 - Increases or decreases queue length based on toggles.QUEUE_LENGTH_ARRAY
+  - 0 - Increases queue length based on toggles.QUEUE_LENGTH_ARRAY.
+  - 1 - Increases or decreases queue length based on toggles.QUEUE_LENGTH_ARRAY.
   - 2 - Gives a proportion of toggles.QUEUE_SUM to each predicate, based on its proportion of tickets.
-  - 4 - "Off", but when we want toggles.ADAPTIVE_QUEUE to be true, for testing reasons
+  - 4 - No adaptive queues.
 
 \link dynamicfilterapp.toggles.QUEUE_SUM QUEUE_SUM \endlink - Summed queue length over all predicates used in adaptive queue
 mode 2
 
 \link dynamicfilterapp.toggles.QUEUE_LENGTH_ARRAY QUEUE_LENGTH_ARRAY \endlink - A list of tuples of form
-(# tickets, queue length); when ADAPTIVE_QUEUE is turned on, the algorithm will check whether the number
+(# tickets, queue length); when ADAPTIVE_QUEUE_MODE is less than 4, the algorithm will check whether the number
 of tickets a predicate has exceeds the # tickets element of the tuple, and adjust the queue length based
 on the adaptive queue mode. \n
 
@@ -134,9 +136,20 @@ available (refilled back to task limit). \n
 
 \link dynamicfilterapp.toggles.BATCH_ASSIGNMENT BATCH_ASSIGNMENT \endlink - Assigns jobs in batches, then
 waits for feedback before assigning more. Number of jobs in a batch will be equal to the current max number of active tasks.
-0 - Batching off
-1 - Batching based on a refill limit from ACTIVE_TASKS_ARRAY
-2 - Refills batches after regular periods \n
+  - 0 - Batching off
+  - 1 - Batching based on a refill limit from ACTIVE_TASKS_ARRAY
+  - 2 - Refills batches after regular periods specified in REFILL_PERIOD
+
+\link dynamicfilterapp.toggles.REFILL_PERIOD REFILL_PERIOD \endlink -  if BATCH_ASSIGNMENT is set to 2, algorithm will assign 
+tasks periodically (every time step specified in REFILL_PERIOD). The batch size is in ACTIVE_TASKS_ARRAY \n
+
+\link dynamicfilterapp.toggles.TICKETING_SYS TICKETING_SYS \endlink - Determines how the ticket is given \n
+  - 0 - Ticket is given out to IP pair when the task is assigned and returned when the task has returned true 
+  - 1 - Ticket is given out to the IP pair whose task has failed
+
+\link dynamicfilterapp.toggles.EPSILON EPSILON \endlink - TODO: What does this do? \n
+
+\link dynamicfilterapp.toggles.REWARD REWARD \endlink - TODO: What does this do? \n
 
 \section voteGetting Consensus Settings
 
@@ -222,10 +235,7 @@ associated with no IP Pair and give no information to the algorithm. \n
 \endlink - TODO: What does this do? \n
 
 \link dynamicfilterapp.toggles.NUM_SIM NUM_SIM  \endlink - The number of repetitions of a
-simulation that will be run. \n
-
-\link dynamicfilterapp.toggles.NUM_GRAPH_SIM NUM_GRAPH_SIM  \endlink - The number of repetitions of the
-sim in visualizeMultiRuns that will be run. \n
+simulation that will be run with the default toggle settings. \n
 
 \link dynamicfilterapp.toggles.TIME_SIMS TIME_SIMS \endlink - Turns on functionality that
 tracks the computer runtime for various functions within the algorithm run. Useful for
@@ -250,12 +260,31 @@ time. \n
 number of tasks that can be distributed for a given IP Pair in total. \n
 
 \link dynamicfilterapp.toggles.MULTI_SIM MULTI_SIM \endlink - Determines whether to run multiple
-simulations for every configuration in MULTI_SIM_ARRAY \n
+simulations for every configuration in MULTI_SIM_ARRAY. This feature is helpful to run simulations with multiple 
+settings, run multiple simulations for a single setting, and generate helpful graphs, statistics. 
+If this is turned on, it is good to have NUM_SIM as 0 to prevent from running simulations with default 
+toggle settings and doing unnecessary work in test_simulation. GEN_GRAPH should be True.
+  - For each simulation, it prints active tasks, queue size, and ticket count graphs.
+  - For each setting, it prints multiRunStats (that holds number of placeholder tasks, wasted tasks, real tasks 
+  (all tasks other than placeholder tasks), time steps, and their mean and standard deviation. It also prints
+  overall tasks routed to each predicate (predicate_routing), ticket count of each predicate (ticket_count, ticket_histogram)
+  precise selectivities of the predicates (precise_selectivities).
+  - Over multiple settings, it prints the number of tasks required to complete queries in different settings (task_distribution, task_histogram). \n
 
 \link dynamicfilterapp.toggles.MULTI_SIM_ARRAY MULTI_SIM_ARRAY \endlink - A list of tuples of form 
-(number of simulations for this configuration, (IP_LIMIT_SYS, ITEM_IP_LIMIT), ACTIVE_TASKS_ARRAY, 
-QUEUE_LENGTH_ARRAY, switch_list, ADAPTIVE_QUEUE_MODE) that will be simulated if MULTI_SIM is true \n
-
+  - number of simulations for this configuration
+  - switch_list
+  - EDDY_SYS
+  - BATCH_ASSIGNMENT
+  - ACTIVE_TASKS_ARRAY 
+  - REFILL_PERIOD: only matters if BATCH_ASSIGNMENT is 2 (periodic batch)
+  - TICKETING_SYS
+  - ADAPTIVE_QUEUE_MODE
+  - QUEUE_LENGTH_ARRAY or PENDING_QUEUE_SIZE: QUEUE_LENGTH_ARRAY only matters if ADAPTIVE_QUEUE_MODE is 0 or 1
+  - tuple of (IP_LIMIT_SYS, ITEM_IP_LIMIT): ITEM_IP_LIMIT only matters if IP_LIMIT_SYS is 2 or 3 (hard or soft limit)
+  If None is put as a value in the tuple, it will use the last defined value for that toggle.
+  
+  
 
 \section output Output Settings
 \subsection file File Management
@@ -331,17 +360,13 @@ running count of how many placeholder tasks are released over the course of a si
 running count of wasted tasks - number of active tasks that were in a queue when an item was
 completed \n
 
-\link dynamicfilterapp.toggles.EDDY_SET EDDY_SET  \endlink - List of integers (values for toggle 
-EDDY_SYS) that is taken in as an input for visualizeMultiRuns in test_simulations.py. Requires 
-TRACK_ACTIVE_TASKS to be turned on. \n
+\link dynamicfilterapp.toggles.TRACK_SELECTIVITIES TRACK_SELECTIVITIES  \endlink - Tracks the
+proportion of IP pairs for a certain predicates whose value is true to the total number of items,
+in simulated runs. \n
 
-\link dynamicfilterapp.toggles.QUEUE_SET QUEUE_SET  \endlink - List of integers (values for toggle 
-PENDING_QUEUE_SIZE) that is taken in as an input for visualizeMultiRuns in test_simulations.py. 
-Requires TRACK_ACTIVE_TASKS to be turned on.\n
-
-\link dynamicfilterapp.toggles.ACTIVE_TASKS_SET ACTIVE_TASKS_SET  \endlink - List of integers 
-(values for toggle ACTIVE_TASKS_SIZE) that is taken in as an input for visualizeMultiRuns 
-in test_simulations.py. Requires TRACK_ACTIVE_TASKS to be turned on.\n
+\link dynamicfilterapp.toggles.TASK_ROUTING TASK_ROUTING  \endlink - Tracks the
+number of tasks routed to each predicate over the course of a single simulation AND multiple runs
+over a single setting \n
 
 \link dynamicfilterapp.toggles.ACCURACY_COUNT ACCURACY_COUNT  \endlink - TODO: What
 does this do? \n
