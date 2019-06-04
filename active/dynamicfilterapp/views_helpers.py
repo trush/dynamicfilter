@@ -53,8 +53,7 @@ def pending_eddy(ID, active_joins = None):
 	# if all IP_Pairs are done
 	unfinishedList = IP_Pair.objects.filter(isDone=False)
 	if not unfinishedList:
-		raise Exception("we shouldn't be here")
-		return None
+		raise Exception("entered pending eddy without unfinished IP pairs")
 
 	#filter through to find viable ip_pairs to choose from
 	completedTasks = Task.objects.filter(workerID=ID)
