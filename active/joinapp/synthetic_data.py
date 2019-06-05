@@ -42,21 +42,30 @@ def syn_load_PS_pairs():
 
 #___________ Initialize Synthetic Data: Give True Answers ___________#
 
-# Need to assign secondary list items to primary list items and choose if they are true/false based on global variables
+# TODO add ground truth to the models
 def syn_assign_true_sec_pred():
     """
     Assign a "ground truth" to whether or not secondary items pass the secondary predicate
     """
     for secondary in Secondary_Item.objects.all():
-        secondary.give_true_answer() """ write this function in Secondary_Item model and create true answer attribute """
+        if random.random() < SEC_PRED_SELECTIVITY:
+            secondary.true_answer = True
+        else: secondary.true_answer = False
 
-def syn_assugb_true_PS_pair():
+def syn_assign_true_PS_pair():
     """
     Assign a "ground truth" to whether or not PS pairs pass the join condition
     """
     for ps_pair in PS_Pair.objects.all():
-        ps_pair.give_true_answer() """ write this function in Secondary_Item model and create true answer attribute """
-
+        if ALL_PS_PAIRS:
+            selectivity = JOIN_COND_SELECTIVITY_ALL
+        else:
+            selectivity = JOIN_COND_SELECTIVITY
+            
+        if random.random() < selectivity:
+            ps_pair.true_answer = True
+        else:
+            ps_pair.true_answer = False
 
 #___________ Give a Worker Answer _____________#
 def syn_answer_joinable_filter(primary_item):
