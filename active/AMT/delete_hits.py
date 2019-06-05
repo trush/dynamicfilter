@@ -1,4 +1,7 @@
+# This file deletes all completed hits and removes all incomplete hits
+# from MTurk. Use with care.
 import keys
+from datetime import datetime
 pubkey = keys.pubkey
 privkey = keys.privkey
 
@@ -12,11 +15,12 @@ mturk = boto3.client('mturk',
   endpoint_url = MTURK_SANDBOX
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my Sandbox account"
-# contains IDs of published HITs
+# contains IDs of all published HITs and their corresponding hotels
 hitid_csv = open('HIT_IDs.csv', "r") 
+# all_hits = mturk.list_hits()['HITs']
 
 #tracks undeletable hits
-unfinished_hits = []
+finished_hits = []
 
 for row in hitid_csv:
     # gets hit id from csv
@@ -24,13 +28,24 @@ for row in hitid_csv:
 
     hit = mturk.get_hit(HITId = hit_id)
 
-    if hit['HIT']['HITStatus'] == 'REVIEWABLE':
-        mturk.delete_hit(HITId=hit_id)
-        print hit_id
+    # removes hits from MTurk if they are reviewable (have already been accepted or rejected)
+    if hit['HIT']['HITStatus'] == 'Assignable' or hit['HIT']['HITStatus'] == u'Assignable':
+      mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=datetime(2019, 1, 1))
+      print "hit " + hit_id + " expired from MTurk."
+    elif hit['HIT']['HITStatus'] == 'Reviewable' or hit['HIT']['HITStatus'] == u'Reviewable':
+      mturk.delete_hit(HITId=hit_id)
+      print "Reviewable hit " + hit_id + " deleted from MTurk."
     else:
-        # use update_expiration_for_hit to force expire then delete
-        unfinished_hits.append((hit_id, hotel))
+      print "hit " + hit_id + " not removed, status=" + str(hit['HIT']['HITStatus'])
+      finished_hits.append((hit_id, hotel))
 
-resultcsv = open('HIT_RESULTS.csv', "w")
-for (hitid, hotel) in unfinished_hits:
-    resultcsv.write(hitid + ", " + hotel + "\n")
+
+# clear removed HITs from csv
+hitid_csv = open('HIT_IDs.csv', "w") 
+
+#refill completed hits
+for (hit_id, hotel) in finished_hits:
+  hitid_csv.write(hit_id + ", " + hotel + "\n")
+
+
+print "All recorded assignable HITs expired. No tasks should be posted to MTurk."

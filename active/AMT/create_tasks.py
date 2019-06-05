@@ -21,54 +21,55 @@ hit_list = []
 
 f = open('Hotel_items.csv')
 for line in f:
-   line = line.rstrip('\n')
-   hotel = line
-   print hotel
-   question = str(open(name='itemwiseJoin.xml',mode='r').read())
-   question = question.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
-   new_hit = mturk.create_hit(
-       Title = 'Match restaurants to hotels based on proximity',
-       Description = 'Find restaurants within 0.4 miles of the given hotel',
-       Keywords = 'text, enumeration, matching',
-       QualificationRequirements = [{
-            'QualificationTypeId':"000000000000000000L0",
-            'Comparator':"GreaterThan",
-            'IntegerValues':[90]}],
-       Reward = '0.10',
-       MaxAssignments = 10,
-       LifetimeInSeconds = 600, #MAKE THIS BIGGER FOR ACTUAL
-       AssignmentDurationInSeconds = 600,
-       AutoApprovalDelayInSeconds = 14400,
-       Question = question,
-   ) ## averages ?? time
-   hit_list.append((new_hit, hotel))
-   print "A new HIT has been created. You can preview it here:"
-   print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
-   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
+  line = line.rstrip('\n')
+  hotel = line
+  print hotel
+  question = str(open(name='itemwiseJoin.xml',mode='r').read())
+  question = question.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
+  new_hit = mturk.create_hit(
+      Title = 'Match restaurants to a hotel based on proximity',
+      Description = 'Find restaurants within 0.4 miles of the given hotel',
+      Keywords = 'text, enumeration, matching',
+      QualificationRequirements = [{
+          'QualificationTypeId':"000000000000000000L0",
+          'Comparator':"GreaterThan",
+          'IntegerValues':[90]}],
+      Reward = '0.10',
+      MaxAssignments = 10,
+      LifetimeInSeconds = 600, #MAKE THIS BIGGER FOR ACTUAL
+      AssignmentDurationInSeconds = 600,
+      AutoApprovalDelayInSeconds = 14400,
+      Question = question,
+  ) ## averages ?? time
+  hit_list.append((new_hit, hotel))
+  print "A new HIT has been created. You can preview it here:"
+  print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
+  print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
 
-   question2 = str(open(name='joinableFilter.xml',mode='r').read())
-   question2 = question2.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
-   new_hit = mturk.create_hit(
-       Title = 'Determine a characteristic of a hotel',
-       Description = 'Determine whether the given hotel is within 0.4 miles of a restaurant with good parking',
-       Keywords = 'text, enumeration, matching',
-       QualificationRequirements = [{
-            'QualificationTypeId':"000000000000000000L0",
-            'Comparator':"GreaterThan",
-            'IntegerValues':[90]}],
-       Reward = '0.10',
-       MaxAssignments = 10,
-       LifetimeInSeconds = 600, #MAKE THIS BIGGER FOR ACTUAL
-       AssignmentDurationInSeconds = 600,
-       AutoApprovalDelayInSeconds = 14400,
-       Question = question,
-   ) ## averages ?? time
-   hit_list.append((new_hit, hotel))
-   print "A new HIT has been created. You can preview it here:"
-   print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
-   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
+  question2 = str(open(name='joinableFilter.xml',mode='r').read())
+  question2 = question2.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
+  new_hit = mturk.create_hit(
+      Title = 'Determine a characteristic of a hotel',
+      Description = 'Determine whether the given hotel is within 0.4 miles of a restaurant with good parking',
+      Keywords = 'text, enumeration, matching',
+      QualificationRequirements = [{
+          'QualificationTypeId':"000000000000000000L0",
+          'Comparator':"GreaterThan",
+          'IntegerValues':[90]}],
+      Reward = '0.10',
+      MaxAssignments = 10,
+      LifetimeInSeconds = 600, #MAKE THIS BIGGER FOR ACTUAL
+      AssignmentDurationInSeconds = 600,
+      AutoApprovalDelayInSeconds = 14400,
+      Question = question2,
+  ) ## averages ?? time
+  hit_list.append((new_hit, hotel))
+  print "A new HIT has been created. You can preview it here:"
+  print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
+  print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
+  break
   #  question1 = str(open(name='prejoinFilter.xml',mode='r').read())
   #  question1 = question1.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
   #  new_hit = mturk.create_hit(
