@@ -53,6 +53,8 @@
     }
     #submitButton {display: none;}
 </style>
+<style type="text/css">fieldset { padding: 10px; background:#fbfbfb; border-radius:5px; margin-bottom:5px; }
+</style>
 </head>
 
 <!-- once site loads, calls startTime() and getGoogleLink() -->
@@ -124,11 +126,6 @@
 
         <input type="hidden" id="elapsed_time" name = "elapsed_time" value="555">
 
-        <!-- include mturk values -->
-        <input type="hidden" id="assignmentId" value="{{ assignmentId }}" name="assignmentId"/>
-        <input type="hidden" id="workerId" value="{{ workerId }}" name="workerId"/>
-        <input type="hidden" id="hitId" value="{{ hitId }}" name="hitId"/>
-
         <div style="text-align:center">
             <!-- once user submits answer, calls endTime() -->
             <input type="submit" id="submitButton" value="Submit" onclick='endTime()'>
@@ -139,12 +136,11 @@
 
     </form>
 
+    <script language='Javascript'>turkSetAssignmentID();</script>
+
     
 
 </body>
-
-<style type="text/css">fieldset { padding: 10px; background:#fbfbfb; border-radius:5px; margin-bottom:5px; }
-</style>
 </html>
 <!-- YOUR HTML ENDS -->
 ]]>
