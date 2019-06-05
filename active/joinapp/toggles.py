@@ -5,11 +5,8 @@
 
 
 #________ For Synthetic Data _________#
-NUM_PRIMARY_LIST = 90
-NUM_SECONDARY_LIST = 1000
-MEAN_PRIMARY_PER_SECONDARY = 5
-SD_PRIMARY_PER_SECONDARY = 2.58
-
+NUM_PRIM_ITEMS = 90
+NUM_SEC_ITEMS = 1000
 
 
 #________ For Real Data ________#
@@ -26,13 +23,15 @@ JOIN_TYPE = 0
 
 #_______ Joinable Filter Specific Toggles _______#
 JF_TIME = 100
+JF_AMBIGUITY = 0.1
+JF_SELECTIVITY = 0.1
 
 
 #_______ Item-wise Join Specific Toggles _______#
 IW_ENUMERATION_TIME = 20
 IW_SECONDARY_PRED_TIME = 20
-SECONDARY_PRED_SELECTIVITY = 0.1
-SECONDARY_PRED_AMBIGUITY = 0.1
+SEC_PRED_SELECTIVITY = 0.1
+SEC_PRED_AMBIGUITY = 0.1
 JOIN_COND_AMBIGUITY = 0.1
 
 
