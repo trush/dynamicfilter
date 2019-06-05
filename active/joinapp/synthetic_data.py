@@ -1,24 +1,8 @@
 
 import random
+import numpy as np
 from toggles import *
 from models import *
-
-
-
-
-
-#Relevant Toggles:
-"""
-__________ General __________
-# of primary items
-# of secondary items
-
-
-__________ Item-wise ___________
-
-
-
-"""
 
 #___________ Load Synthetic Data ___________#
 
@@ -38,13 +22,21 @@ def syn_load_PS_pairs():
     """
     Load/create instances of primary-secondary pairs
     """
-    ## IF ALL PAIRS NEED TO BE MADE ## < TOGGLE?
-    for primary in Primary_Item.objects.all():
-        for secondary in Secondary_Item.objects.all():
-            PS_Pair.objects.create(prim_item = primary, sec_item = secondary)
+    if ALL_PS_PAIRS == True:
+        for primary in Primary_Item.objects.all():
+            for secondary in Secondary_Item.objects.all():
+                PS_Pair.objects.create(prim_item = primary, sec_item = secondary)
 
-    #To simulate data enumeration
-    
+    else:
+        num_prim_per_sec = np.random.normal(MEAN_PRIM_PER_SEC, SD_PRIM_PER_SEC, NUM_SEC_ITEMS) #make a distribution of how many primary items each secondary item is joined with
+        for secondary in Secondary_Item.objects.all():
+            num_prim = np.random.choice(num_prim_per_sec, size = None, replace = SAMPLE_W_REPLACE_NUM_PRIM, p = None) #for this scondary item, choose how many primary
+            prim_id_list = random.sample(range(NUM_PRIM_ITEMS),num_prim) #randomly select the ids of the primary items to associate with this item
+            for prim_id in prim_id_list :
+                primary = Primary_Item.objects.get(item_ID = prim_id) #get the primary item
+                PS_Pair.objects.create(prim_item = primary, sec_item = secondary) #make a ps_pair object
+                primary.secondary_items.add(secondary) #add the secondary item to the primary item's list of secondary items
+
 
 
 
@@ -138,4 +130,4 @@ def syn_answer_pjf():
     """
     returns a worker answer to the pre join filter based on global variables
     """
-    return None
+    #TODO once PJF are implemented

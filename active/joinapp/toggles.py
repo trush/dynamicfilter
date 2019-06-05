@@ -8,6 +8,15 @@
 NUM_PRIM_ITEMS = 90
 NUM_SEC_ITEMS = 1000
 
+#toggles whether or not we want to generate all possible PS pairs:
+ALL_PS_PAIRS = False
+#to determine how many primary items each secondary item is going to be matched with:
+MEAN_PRIM_PER_SEC = 20
+SD_PRIM_PER_SEC = 4
+SAMPLE_W_REPLACE_NUM_PRIM = False
+
+
+
 
 #________ For Real Data ________#
 INPUT_PATH = ''
