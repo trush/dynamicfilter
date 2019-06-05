@@ -1,5 +1,3 @@
-#########
-#########
 
 
 class JoinSimulation(TransactionTestCase):
@@ -7,9 +5,9 @@ class JoinSimulation(TransactionTestCase):
     Tests join algorithm on non-live data
     """
 
-    ################
-	# DATA MEMBERS #
-	################
+    ##################################################
+	#_________________ DATA MEMBERS _________________#
+    ##################################################
 
     # Total number of tasks issued/completed in the simulation
     num_tasks_completed = 0
@@ -21,7 +19,7 @@ class JoinSimulation(TransactionTestCase):
     sim_time = 0
 
 
-    #### For tests that run multiple simulations ###
+    #_____ For tests that run multiple simulations _____#
 
     # Total number of tasks issued/completed in each simulation
     num_tasks_completed_arr = []
@@ -34,7 +32,7 @@ class JoinSimulation(TransactionTestCase):
 
     
     
-    #### For real data simulations only ###
+    #_____ For real data simulations only _____#
 
     # Number of primary items that are correctly evaluated
     num_item_correct_eval = 0
@@ -47,10 +45,11 @@ class JoinSimulation(TransactionTestCase):
     ### settings ###
 
 
+    ###############################################
+    #_________________ FUNCTIONS _________________#
+    ###############################################
 
-    #### FUNCTIONS ####
-
-    ## Loading Data
+    #_____ Loading Data _____#
         ### real data ###
         ### synthetic data ###
 
