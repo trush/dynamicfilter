@@ -34,7 +34,9 @@ IW_SECONDARY_PRED_TIME = 20
 SECONDARY_PRED_SELECTIVITY = 0.1
 SECONDARY_PRED_AMBIGUITY = 0.1
 JOIN_COND_AMBIGUITY = 0.1
-
+# Used in the enumeration estimate in chao_estimator(). If the difference between the size of list2 and the size of the 
+# estimate is less than this fraction of the size of the estimate then chao_estimator() will return True.
+THRESHOLD = 0
 
 
 #_______ PJF specific toggles _______#
