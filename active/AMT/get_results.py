@@ -1,5 +1,7 @@
 ###NOTES: install boto3 and xmltodict through pip before using. Replace pubkey and privkey with real keys. Replace hitId with a real hitId
-
+import keys
+pubkey = keys.pubkey
+privkey = keys.privkey
 
 import boto3
 import string
