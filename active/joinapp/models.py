@@ -9,7 +9,7 @@ import toggles
 import views_helpers
 
 @python_2_unicode_compatible
-class Secondary_Item(models.Model):
+class SecondaryItem(models.Model):
     """
 	Model representing an item in the secondary list.
     In our specific example, secondary items are restaurants.
@@ -32,7 +32,7 @@ class Secondary_Item(models.Model):
         return str(self.name)             
 
 @python_2_unicode_compatible
-class Primary_Item(models.Model):
+class PrimaryItem(models.Model):
     """
 	Model representing an item in the primary list.
     In our specific example, primary items are hotels.
@@ -49,7 +49,7 @@ class Primary_Item(models.Model):
     is_done = models.BooleanField(db_index=True, default=False)
 
     #Many-To-Many Field relating primary items to secondary items
-    secondary_items = models.ManyToManyField(Secondary_Item, related_name='primary_items')
+    secondary_items = models.ManyToManyField(SecondaryItem, related_name='primary_items')
 
     #Number of secondary items related to this item
     num_sec_items = models.IntegerField(default=0)
