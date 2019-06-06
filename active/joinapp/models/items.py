@@ -3,10 +3,14 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+import sys, os
+sys.path.append(os.path.abspath('..'))
 
 import math
-import toggles
-import views_helpers
+
+# The .. means we are importing from the outer folder
+from .. import toggles
+from .. import views_helpers
 
 @python_2_unicode_compatible
 class SecondaryItem(models.Model):
@@ -49,7 +53,7 @@ class PrimaryItem(models.Model):
     is_done = models.BooleanField(db_index=True, default=False)
 
     #Many-To-Many Field relating primary items to secondary items
-    secondary_items = models.ManyToManyField(Secondary_Item, related_name='primary_items')
+    secondary_items = models.ManyToManyField(SecondaryItem, related_name='primary_items')
 
     #Number of secondary items related to this item
     num_sec_items = models.IntegerField(default=0)
@@ -134,8 +138,8 @@ class PrimaryItem(models.Model):
 
 #     ## TODO: rewrite this to match functionality of our implementation
 #     primaryItemQuerySet = PrimaryItem.objects.all()
-#     secondaryItemQuerySet = Secondary_Item.objects.all()
-#     sizeSecondaryItemQS = Secondary_Item.objects.count()
+#     secondaryItemQuerySet = SecondaryItem.objects.all()
+#     sizeSecondaryItemQS = SecondaryItem.objects.count()
 
 
 #     ## @param self

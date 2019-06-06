@@ -1,4 +1,4 @@
-from .models import *
+from items import *
 
 @python_2_unicode_compatible
 class TaskStats(models.Model):
