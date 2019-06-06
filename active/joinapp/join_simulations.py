@@ -44,6 +44,19 @@ class JoinSimulation(TransactionTestCase):
     sim_accuracy_arr = []
     
 
+    #_________________ Dictionaries _______________#
+    """
+    Keys: (HitID,assignmentID)
+    Values: (primary item id, secondary item id, time taken, worker response)
+    """
+    JFTasks_Dict = dict() 
+    FindPairsTasks_Dict = dict() 
+    PJFTasks_Dict = dict()
+    SecPredTasks_Dict = dict() 
+    JoinPairTasks_Dict = dict() 
+
+    
+
 
     ### settings ###
 
@@ -72,70 +85,36 @@ class JoinSimulation(TransactionTestCase):
                 print "Error reading item ", ID
             ID += 1 
         f.close()
-    
+
+
     def load_real_data(self):
         """
-        Loads the MTurk data from a csvfile
+        Loads the MTurk data from a csvfile and populates the answer dictionaries
         """
-        #TODO implement time taken (dependent on IT_Task model)
         with open(REAL_DATA_CSV, mode = 'r') as csv_file:
             csv_reader = csv.reader(csv_file, delimeter = ',')
             line_count = 0
             for row in csv_reader:
                 try:
-                    task_type = row["TASK TYPE COL"]
-                    prim_item = row["PRIMARY ITEM COL"]
-                    sec_item = row["SECONDARY ITEM COL"]
-                    time_taken = row["TIME DURATION COL"]
-                    worker_response = row["WORKER RESPONSE COL"]
+                    key = (row["HIT ID COL"],row["WORKER ID COL"] #TODO update column #s
+                    value = (row["PRIMARY ITEM COL"], row["SECONDARY ITEM COL"], row["TIME TAKEN COL"], row["WORKER RESPONSE COL"]) #TODO update column #s
+
+                    task_type = row["TASK TYPE COL"] #TODO update column #s
                     
-                    if question is "eval_joinable_filter":
-                        item_task, created = JFTask.objects.get_or_create( primary_item = prim_item)
-                        item_task. #increment number of tasks
-                        item_task. #increment total time
-                        binary_worker_vote(item_task, worker_response, line_count)
-                    elif question is "eval_sec_pred":
-                        item_task, created = SecPredTask.objects.get_or_create(secondary_item = sec_item)
-                        item_task. #increment number of tasks
-                        item_task. #increment total time
-                        binary_worker_vote(item_task, worker_response, line_count)
-                    elif question is "eval_join_cond":
-                        item_task, created = JoinPairTask.objects.get_or_create(primary_item = prim_item, secondary_item = sec_item)
-                        item_task. #increment number of tasks
-                        item_task. #increment total time
-                        binary_worker_vote(item_task, worker_response, line_count)
-                    elif question is "list_secondary": 
-                        #TODO implement this: it depends on how we are parsing
-                        item_task, created = FindPairsTask.objects.get_or_create( primary_item = prim_item)
-
-                        secondary_items = worker_response.split("{{NEWENTRY}}")
-                        for secondary_item in secondary_items:
-                            item_task, created = 
-
-                        #find secondary item
-                        #get or create the IT_Pair
-                        #update votes according to whether or not it was created and how many times it has seen this primary item       
+                    if task_type is "eval_joinable_filter":
+                        self.JFTasks_Dict[key] = value
+                    elif task_type is "eval_sec_pred":
+                        self.SecPredTasks_Dict[key] = value
+                    elif task_type is "eval_join_cond":
+                        self.JoinPairTasks_Dict[key] = value
+                    elif task_type is "list_secondary": 
+                        self.FindPairsTasks_Dict[key] = value   
+                    elif task_tupe is "eval_pjf": #note that this name might be incorrect
+                        self.PJFTasks_Dict[key]= value 
                 except:
                     print "There was an error reading line", line_count 
                 
                 line_count += 1
-
-        def binary_worker_vote(item_task, worker_response, line_count):
-            """
-            Helper function for load_real_data: updates yes/no votes for a task given a worker response
-            """
-            if worker_response is "1":
-                item_task.yes_votes += 1
-            elif worker_response is "0":
-                item_task.no_votes += 1
-            else:
-                print "Error evaluating worker vote on line", line_count
-
-        def get_secondary_items(row):
-            """
-            Helper function for load_real_data: gets list of secondary items from a list_secondary type of task
-            """
-            secondary_items = row.split("{{NEWENTRY}}")
 
 
     ## ground truth determination ##
