@@ -41,7 +41,7 @@ for line in f:
       AutoApprovalDelayInSeconds = 14400,
       Question = question,
   ) ## averages ?? time
-  hit_list.append((new_hit, hotel))
+  hit_list.append((new_hit, hotel, "list_secondary"))
   print "A new HIT has been created. You can preview it here:"
   print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
@@ -64,7 +64,7 @@ for line in f:
       AutoApprovalDelayInSeconds = 14400,
       Question = question2,
   ) ## averages ?? time
-  hit_list.append((new_hit, hotel))
+  hit_list.append((new_hit, hotel, "eval_joinable_filter"))
   print "A new HIT has been created. You can preview it here:"
   print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
