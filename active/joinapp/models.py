@@ -9,7 +9,7 @@ import toggles
 import views_helpers
 
 @python_2_unicode_compatible
-class Secondary_Item(models.Model):
+class SecondaryItem(models.Model):
     """
 	Model representing an item in the secondary list.
     In our specific example, secondary items are restaurants.
@@ -32,7 +32,7 @@ class Secondary_Item(models.Model):
         return str(self.name)             
 
 @python_2_unicode_compatible
-class Primary_Item(models.Model):
+class PrimaryItem(models.Model):
     """
 	Model representing an item in the primary list.
     In our specific example, primary items are hotels.

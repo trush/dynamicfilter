@@ -34,12 +34,7 @@ def find_consensus(item):
         item.ambiguity = "Most Ambiguity"
         return consensus
 
-<<<<<<< HEAD
-    elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
-=======
     elif uncert_level < toggles.UNCERTAINTY_THRESHOLD:
-        item.second_pred_consensus = consensus
->>>>>>> d35187b901c0266072b78b3fbf1d4a94ed581a2f
         item.ambiguity = "Unambiguous"
         return consensus
 
