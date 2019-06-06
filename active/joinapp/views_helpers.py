@@ -31,23 +31,23 @@ def find_consensus(item):
     consensus = (larger == item.yes_votes)
 
     if votes_cast >= toggles.CUT_OFF:
-        item.ambiguity = "Most Ambiguity"
+        # item.ambiguity = "Most Ambiguity"
         return consensus
 
     elif uncert_level < toggles.UNCERTAINTY_THRESHOLD:
-        item.ambiguity = "Unambiguous"
+        # item.ambiguity = "Unambiguous"
         return consensus
 
     elif larger >= single_max:
-        if smaller < single_max*(1.0/3.0):
-            item.ambiguity = "Unambiguous+"
-        elif smaller < single_max*(2.0/3.0):
-            item.ambiguity = "Medium Ambiguity"
-        else:
-            item.ambiguity = "Low Ambiguity"
+        # if smaller < single_max*(1.0/3.0):
+        #     item.ambiguity = "Unambiguous+"
+        # elif smaller < single_max*(2.0/3.0):
+        #     item.ambiguity = "Medium Ambiguity"
+        # else:
+        #     item.ambiguity = "Low Ambiguity"
         return consensus
     else:
-        item.ambiguity = "No Consensus"
+        # item.ambiguity = "No Consensus"
         return None    
 
 
