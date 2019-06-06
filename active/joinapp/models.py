@@ -14,8 +14,8 @@ class Secondary_Item(models.Model):
     In our specific example, secondary items are restaurants.
 	"""
 
-    #Note: Do we need this if we have a primary key being auto-generated?
-    item_id = models.IntegerField(default=None)
+    #Note: Have to initialize item_id when making an instance or it will violate not-null constraint
+    item_id = models.IntegerField(default=None, primary_key=True)
     name = models.CharField(max_length=100)
 
     #Maybe unnecessary? In our case this would be restaurant
@@ -62,8 +62,9 @@ class Primary_Item(models.Model):
 	Model representing an item in the primary list.
     In our specific example, primary items are hotels.
 	"""
-    #Note: Do we need this if we have a primary key being auto-generated?
-    item_id = models.IntegerField(default=None)
+
+    #Note: Have to initialize item_id when making an instance or it will violate not-null constraint
+    item_id = models.IntegerField(default=None, primary_key=True)
     name = models.CharField(max_length=100)
 
     #Maybe unnecessary? In our case this would be hotel
@@ -121,13 +122,13 @@ class PS_Pair(models.Model):
 
     def __str__(self):
         return str(prim_item) + str(sec_item)
-        
+"""
 @python_2_unicode_compatible
 class Estimator(models.Model):
-    """
+    ""
     Model to keep track of the completeness of the second list.
     Stores variables needed in the chao_estimator() function.
-    """
+    ""
     has_2nd_list = models.BooleanField(db_index=True, default=None)
     # Enumeration Vars #
 
@@ -199,4 +200,4 @@ class Estimator(models.Model):
         if N_chao > 0 and abs(N_chao - len(self.list2)) < toggles.THRESHOLD * N_chao:
             return True
         return False
-
+"""
