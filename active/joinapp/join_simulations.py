@@ -1,14 +1,15 @@
 
 import csv
+from models import *
 
 class JoinSimulation(TransactionTestCase):
     """
     Tests join algorithm on non-live data
     """
 
-    ##################################################
-	#_________________ DATA MEMBERS _________________#
-    ##################################################
+    ####################################################################################
+	#__________________________________ DATA MEMBERS __________________________________#
+    ####################################################################################
 
     # Total number of tasks issued/completed in the simulation
     num_tasks_completed = 0
@@ -46,26 +47,23 @@ class JoinSimulation(TransactionTestCase):
     ### settings ###
 
 
-    ###############################################
-    #_________________ FUNCTIONS _________________#
-    ###############################################
+    #####################################################################################
+	#____________________________________ FUNCTIONS ____________________________________#
+    #####################################################################################
 
-    #_____ Loading Data _____#
-        ### real data ###
-        ### synthetic data ###
+    #_____________________ Loading Data _____________________ #
     
     def load_primary_real(self):
         """
         Loads in real data from files into the database
         """
-        
-        PRIMARY_LIST = #TODO path info
+
         ID = 0
 
-        f = open( PRIMARY_LIST, 'r') #TODO path
+        f = open( PRIMARY_LIST, 'r')
         for line in f:
             line = line.rstrip ('\n')
-            item = Primary_Item(item_id = ID, name = line)
+            item = Primary_Item.objects.create(item_id = ID, name = line)
             
             try:
                 item.save()
@@ -78,29 +76,37 @@ class JoinSimulation(TransactionTestCase):
         """
         Loads the MTurk data from a csvfile
         """
-
-        REAL_DATA_CSV = #TODO path info
-
         with open(REAL_DATA_CSV, mode = 'r') as csv_file:
             csv_reader = csv.reader(csv_file, delimeter = ',')
             line_count = 0
             for row in csv_reader:
                 try:
-                    question = row["QUESTIONS COL"]
+                    task_type = row["TASK TYPE COL"]
                     prim_item = row["PRIMARY ITEM COL"]
+                    sec_item = row["SECONDARY ITEM COL"]
                     time_taken = row["TIME DURATION COL"]
                     worker_vote = row["WORKER RESPONSE COL"]
                     
-                    if question == "eval_joinable_filter":
-                        item_task = IT_Pair(item_ID = prim_item, )
-                    elif question == "eval_sec_pred":
-                        #TODO
-                    elif question == "eval_join_cond":
-                        #TODO
-                    elif question == "list_secondary":
-                        #TODO
+                    if question in ("eval_joinable_filter", "eval_sec_pred", "eval_join_cond"): #Yes/No Questions
+                        #TODO implement time taken (dependent on IT_Task model)
+                        item_task, created = IT_Pair.objects.get_or_create(task_type = task_type, primary_item = prim_item, secondary_item = sec_item)
+                        if worker_vote is "1":
+                            item_task.yes_votes += 1
+                        elif worker_vote is "0":
+                            item_task.no_votes += 1
+                        else:
+                            print "Error evaluating worker vote on line", line_count
+                    elif question is "list_secondary": #List enumeration Queston
+                        #TODO implement this: it depends on how we are parsing
+
+                        #find secondary item
+                        #get or create the IT_Pair
+                        #update votes according to whether or not it was created and how many times it has seen this primary item
+                        
                 except:
-                    print "There was an error reading in line", line_count 
+                    print "There was an error reading line", line_count 
+                
+                line_count += 1
 
 
 
