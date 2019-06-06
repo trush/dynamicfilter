@@ -33,7 +33,7 @@ class Secondary_Item(models.Model):
     num_prim_items = models.IntegerField(default=0)
     
     def __str__(self):
-        return str(self.name)             
+        return str(self.name) + "Item ID:" + str(self.item_id)           
 
     def when_done(self):
         """
@@ -42,7 +42,10 @@ class Secondary_Item(models.Model):
         if self.second_pred_consensus == True:
             primary_set = self.primary_items.all()
             for primary_item in primary_set:
+                print(primary_item.eval_result)
                 primary_item.eval_result = True
+                print(primary_item.eval_result)
+                primary_item.save()
 
             #Mark hotels done, remove restaurant
         elif self.second_pred_consensus == False:
@@ -80,7 +83,7 @@ class Primary_Item(models.Model):
     num_sec_items = models.IntegerField(default=0)
 
     def __str__(self):
-        return str(self.name)
+        return str(self.name) + "Item ID:" + str(self.item_id) 
     
     def check_empty(self):
         if self.num_sec_items == 0:
@@ -100,6 +103,8 @@ class Primary_Item(models.Model):
         """
         self.secondary_items.add(sec_item_to_add)
         self.num_sec_items += 1
+        self.save()
+
 
 
 @python_2_unicode_compatible
