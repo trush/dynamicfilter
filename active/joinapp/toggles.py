@@ -1,6 +1,8 @@
 import math
 
-
+#________ Path Info __________#
+PRIMARY_LIST = #TODO hotel list
+REAL_DATA_CSV = #TODO MTURK data CSV
 
 #________ For Synthetic Data _________#
 NUM_PRIM_ITEMS = 90
