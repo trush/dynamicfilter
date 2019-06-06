@@ -73,7 +73,6 @@ class JFTask(models.Model):
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
     result = models.NullBooleanField(default=None)
-    ambiguity = models.CharField(max_length=16)
 
     def __str__(self):
         return "Joinable Filter for item ", self.primary_item 
@@ -151,7 +150,6 @@ class SecPredTask(models.Model):
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
     result = models.NullBooleanField(default=None)
-    ambiguity = models.CharField(max_length=16)
 
     def __str__(self):
         return "Secondary Predicate Filter for item ", self.secondary_item
@@ -205,7 +203,6 @@ class JoinPairTask(models.Model):
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
     result = models.NullBooleanField(default=None)
-    ambiguity = models.CharField(max_length=16)
 
     def __str__(self):
         return "Join Pair task for items ", self.primary_item, ", ", self.secondary_item  
