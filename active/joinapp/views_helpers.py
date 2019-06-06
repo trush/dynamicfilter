@@ -13,7 +13,6 @@ def find_consensus(item):
     #NOTE: Toggles needed
 
     if item.yes_votes + item.no_votes < toggles.NUM_CERTAIN_VOTES:
-        item.second_pred_consensus = None
         item.ambiguity = "No Consensus"
         return None
     votes_cast = item.yes_votes + item.no_votes
@@ -32,7 +31,6 @@ def find_consensus(item):
     consensus = (larger == item.yes_votes)
 
     if votes_cast >= toggles.CUT_OFF:
-        item.second_pred_consensus = consensus
         item.ambiguity = "Most Ambiguity"
         return consensus
 
@@ -48,10 +46,8 @@ def find_consensus(item):
             item.ambiguity = "Medium Ambiguity"
         else:
             item.ambiguity = "Low Ambiguity"
-        item.second_pred_consensus = consensus
         return consensus
     else:
-        item.second_pred_consensus = None
         item.ambiguity = "No Consensus"
         return None    
 
