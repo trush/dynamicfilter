@@ -29,7 +29,7 @@ class SecondaryItem(models.Model):
     num_prim_items = models.IntegerField(default=0)
     
     def __str__(self):
-        return str(self.name)             
+        return str(self.name) + "Item ID:" + str(self.item_id)           
 
 @python_2_unicode_compatible
 class PrimaryItem(models.Model):
@@ -55,7 +55,7 @@ class PrimaryItem(models.Model):
     num_sec_items = models.IntegerField(default=0)
 
     def __str__(self):
-        return str(self.name)
+        return str(self.name) + "Item ID:" + str(self.item_id) 
     
     def check_empty(self):
         if self.num_sec_items == 0:
@@ -75,6 +75,8 @@ class PrimaryItem(models.Model):
         """
         self.secondary_items.add(sec_item_to_add)
         self.num_sec_items += 1
+        self.save()
+
 
 
 # @python_2_unicode_compatible
@@ -131,9 +133,9 @@ class PrimaryItem(models.Model):
 #         self.total_sample_size += len(consensus_matches)
 
 #     ## TODO: rewrite this to match functionality of our implementation
-#     primaryItemQuerySet = Primary_Item.objects.all()
-#     secondaryItemQuerySet = Secondary_Item.objects.all()
-#     sizeSecondaryItemQS = Secondary_Item.objects.count()
+#     primaryItemQuerySet = PrimaryItem.objects.all()
+#     secondaryItemQuerySet = SecondaryItem.objects.all()
+#     sizeSecondaryItemQS = SecondaryItem.objects.count()
 
 
 #     ## @param self

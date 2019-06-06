@@ -1,8 +1,8 @@
 import math
 
 #________ Path Info __________#
-PRIMARY_LIST = #TODO hotel list
-REAL_DATA_CSV = #TODO MTURK data CSV
+PRIMARY_LIST = ''#TODO hotel list
+REAL_DATA_CSV = ''#TODO MTURK data CSV
 
 #________ For Synthetic Data _________#
 NUM_PRIM_ITEMS = 90
@@ -45,12 +45,11 @@ JF_SELECTIVITY = 0.1
 #_______ Item-wise Join Specific Toggles _______#
 IW_ENUMERATION_TIME = 20
 IW_SECONDARY_PRED_TIME = 20
-SEC_PRED_SELECTIVITY = 0.1
-SEC_PRED_AMBIGUITY = 0.1
+SEC_PRED_SELECTIVITY = 0.1 #Actually a join-wide toggle
+SEC_PRED_AMBIGUITY = 0.1 #Actually a join-wide toggle
 JOIN_COND_AMBIGUITY = 0.1 
 JOIN_COND_SELECTIVITY = 0.1 #given that these pairs were created by the crowd
 JOIN_COND_SELECTIVITY_ALL = 0.1 #if all PS pairs are created
-
 # Used in the enumeration estimate in chao_estimator(). If the difference between the size of list2 and the size of the 
 # estimate is less than this fraction of the size of the estimate then chao_estimator() will return True.
 THRESHOLD = 0
