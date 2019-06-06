@@ -30,7 +30,7 @@ results.write(first_row)
 printable = set(string.printable)
 
 for row in csv:
-    [hit_id, hotel] = [x.strip() for x in row.split(',')]
+    [hit_id, hotel, task] = [x.strip() for x in row.split(',')]
     # We are only publishing this task to one Worker
     # So we will get back an array with one item if it has been completed
     worker_results = mturk.list_assignments_for_hit(HITId=hit_id)
@@ -46,7 +46,7 @@ for row in csv:
             else:
                 print "consent",answers_list[0]['FreeText']
             # Metadata from assignment, formatted for csv
-            newRow = assignment["HITId"]  + ", " + " (" + hotel + ")" + ", " + assignment["AssignmentId"] +  ", " \
+            newRow = assignment["HITId"]  + ", " + " (" + hotel + ")" + ", " + " (" + task + ")" + ", " + assignment["AssignmentId"] +  ", " \
                 + assignment["AssignmentStatus"] + ", " + str((assignment["SubmitTime"] \
                     - assignment["AcceptTime"]).total_seconds())
 

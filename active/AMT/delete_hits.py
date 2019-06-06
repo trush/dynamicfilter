@@ -24,7 +24,7 @@ finished_hits = []
 
 for row in hitid_csv:
     # gets hit id from csv
-    (hit_id, hotel) = [x.strip() for x in row.split(',')]
+    (hit_id, hotel, task) = [x.strip() for x in row.split(',')]
 
     hit = mturk.get_hit(HITId = hit_id)
 
