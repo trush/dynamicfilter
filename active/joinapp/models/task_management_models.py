@@ -21,7 +21,7 @@ class TaskStats(models.Model):
 
     # when selectivity is 0, no items pass
     # when selectivity is 1, all items pass
-    selectivity = models.FloatField()
+    selectivity = models.FloatField(default=0)
 
     # for IW join - average number of pairs per primary item
     avg_num_pairs = models.IntegerField(default=0)
