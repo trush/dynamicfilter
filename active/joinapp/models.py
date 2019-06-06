@@ -49,7 +49,7 @@ class PrimaryItem(models.Model):
     is_done = models.BooleanField(db_index=True, default=False)
 
     #Many-To-Many Field relating primary items to secondary items
-    secondary_items = models.ManyToManyField(Secondary_Item, related_name='primary_items')
+    secondary_items = models.ManyToManyField(SecondaryItem, related_name='primary_items')
 
     #Number of secondary items related to this item
     num_sec_items = models.IntegerField(default=0)
@@ -134,8 +134,8 @@ class PrimaryItem(models.Model):
 
 #     ## TODO: rewrite this to match functionality of our implementation
 #     primaryItemQuerySet = PrimaryItem.objects.all()
-#     secondaryItemQuerySet = Secondary_Item.objects.all()
-#     sizeSecondaryItemQS = Secondary_Item.objects.count()
+#     secondaryItemQuerySet = SecondaryItem.objects.all()
+#     sizeSecondaryItemQS = SecondaryItem.objects.count()
 
 
 #     ## @param self
