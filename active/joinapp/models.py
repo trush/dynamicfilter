@@ -14,8 +14,8 @@ class Secondary_Item(models.Model):
     In our specific example, secondary items are restaurants.
 	"""
 
-    #Note: Do we need this if we have a primary key being auto-generated?
-    item_id = models.IntegerField(default=None)
+    #Note: Have to initialize item_id when making an instance or it will violate not-null constraint
+    item_id = models.IntegerField(default=None, primary_key=True)
     name = models.CharField(max_length=100)
 
     #Maybe unnecessary? In our case this would be restaurant
@@ -62,8 +62,9 @@ class Primary_Item(models.Model):
 	Model representing an item in the primary list.
     In our specific example, primary items are hotels.
 	"""
-    #Note: Do we need this if we have a primary key being auto-generated?
-    item_id = models.IntegerField(default=None)
+
+    #Note: Have to initialize item_id when making an instance or it will violate not-null constraint
+    item_id = models.IntegerField(default=None, primary_key=True)
     name = models.CharField(max_length=100)
 
     #Maybe unnecessary? In our case this would be hotel
