@@ -142,6 +142,7 @@ class SecPredTask(models.Model):
             primary_set = self.secondary_item.primary_items.all()
             for primary_item in primary_set:
                 primary_item.eval_result = True
+                primary_item.save()
             self.secondary_item.second_pred_result = True
             #Mark hotels done, remove restaurant
         elif self.consensus == False:
