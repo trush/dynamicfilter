@@ -98,7 +98,7 @@ class PJFTask(models.Model):
     Model representing pairs of items and pre-join filter tasks.
     """
     primary_item = models.ForeignKey(Primary_Item, default=None, null=True)
-    secondary_item = models.ForeignKey(Secondary_Item, default=None, null=True)
+    secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
     # consensus: 
     # True if the IT pair passes with consensus
     # False if the IT pair doesn't pass
@@ -118,7 +118,7 @@ class SecPredTask(models.Model):
     """
     Model representing pairs of items and secondary predicate tasks.
     """
-    secondary_item = models.ForeignKey(Secondary_Item, default=None, null=True)
+    secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
     # consensus: 
     # True if the IT pair passes with consensus
     # False if the IT pair doesn't pass
@@ -163,7 +163,7 @@ class JoinPairTask(models.Model):
     Model representing pairs of items and join pair tasks.
     """
     primary_item = models.ForeignKey(Primary_Item, default=None, null=True)
-    secondary_item = models.ForeignKey(Secondary_Item, default=None, null=True)
+    secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
 
     # consensus: 
     # True if the IT pair passes with consensus
