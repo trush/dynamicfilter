@@ -15,8 +15,8 @@ class Secondary_Item(models.Model):
     In our specific example, secondary items are restaurants.
 	"""
 
-    #Note: Do we need this if we have a primary key being auto-generated?
-    item_id = models.IntegerField(default=None)
+    #Note: Have to initialize item_id when making an instance or it will violate not-null constraint
+    item_id = models.IntegerField(default=None, primary_key=True)
     name = models.CharField(max_length=100)
 
     #Maybe unnecessary? In our case this would be restaurant
@@ -37,8 +37,9 @@ class Primary_Item(models.Model):
 	Model representing an item in the primary list.
     In our specific example, primary items are hotels.
 	"""
-    #Note: Do we need this if we have a primary key being auto-generated?
-    item_id = models.IntegerField(default=None)
+
+    #Note: Have to initialize item_id when making an instance or it will violate not-null constraint
+    item_id = models.IntegerField(default=None, primary_key=True)
     name = models.CharField(max_length=100)
 
     #Maybe unnecessary? In our case this would be hotel
@@ -148,7 +149,7 @@ class Primary_Item(models.Model):
 #         sum_fis = 0
 #         for i in self.f_dictionary:
 #             sum_fis += i*(i-1)*len(self.f_dictionary[i])
-#         gamma_2 = max((len(self.list2)/c_hat*sum_fis)/\ 
+#         gamma_2 = max((len(self.list2)/c_hat*sum_fis)/\
 #                     (self.total_sample_size*(self.total_sample_size-1)) -1, 0) # replace len(self.list2) with # of secondary items
 #         # final equation
 #         N_chao = len(self.list2)/c_hat + self.total_sample_size*(1-c_hat)/(c_hat)*gamma_2

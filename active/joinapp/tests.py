@@ -6,18 +6,21 @@ from django.test import TestCase
 from models import Primary_Item, Secondary_Item
 
 class Primary_Model_Tests(TestCase):
-
+    """
+    def test_primary_constructor(self):
+    """
+        
     def test_primary_check_empty(self):
         """
         Checking the check_empty function of Primary_Item Model
         """
 
         prim_item = Primary_Item.objects.create(item_id=1)
-        self.assertIs(prim_item.check_empty(), True)
+        self.assertTrue(prim_item.check_empty())
 
         sec_item = Secondary_Item.objects.create(item_id=1)
         prim_item.add_secondary_item(sec_item)
-        self.assertIs(prim_item.check_empty(), False)
+        self.assertFalse(prim_item.check_empty())
 
     def test_primary_check_remove1(self):
         """
@@ -48,7 +51,7 @@ class Primary_Model_Tests(TestCase):
         prim_item2.remove_self()
         query_set = Primary_Item.objects.all()
 
-        self.assertQuerysetEqual(query_set, [prim_item1], )
+        self.assertQuerysetEqual(query_set, [prim_item1], transform=lambda x: x )
 
 
 
