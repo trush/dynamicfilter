@@ -60,7 +60,7 @@ class JFTask(models.Model):
     Model representing pairs of items and joinable filter tasks.
     """
 
-    primary_item = models.ForeignKey(Primary_Item, default=None, null=True)
+    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
 
     # consensus: 
     # True if the IT pair passes with consensus
@@ -82,7 +82,7 @@ class FindPairsTask(models.Model):
     """
     Model representing pairs of items and item-wise join tasks.
     """
-    primary_item = models.ForeignKey(Primary_Item, default=None, null=True)
+    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
     # consensus: 
     # True if the IT pair passes with consensus
     # False if the IT pair doesn't pass
@@ -97,7 +97,7 @@ class PJFTask(models.Model):
     """
     Model representing pairs of items and pre-join filter tasks.
     """
-    primary_item = models.ForeignKey(Primary_Item, default=None, null=True)
+    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
     secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
     # consensus: 
     # True if the IT pair passes with consensus
@@ -142,6 +142,7 @@ class SecPredTask(models.Model):
             primary_set = self.secondary_item.primary_items.all()
             for primary_item in primary_set:
                 primary_item.eval_result = True
+                primary_item.save()
             self.secondary_item.second_pred_result = True
             #Mark hotels done, remove restaurant
         elif self.consensus == False:
@@ -162,7 +163,7 @@ class JoinPairTask(models.Model):
     """
     Model representing pairs of items and join pair tasks.
     """
-    primary_item = models.ForeignKey(Primary_Item, default=None, null=True)
+    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
     secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
 
     # consensus: 
