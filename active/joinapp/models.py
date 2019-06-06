@@ -133,7 +133,7 @@ class PrimaryItem(models.Model):
 #         self.total_sample_size += len(consensus_matches)
 
 #     ## TODO: rewrite this to match functionality of our implementation
-#     primaryItemQuerySet = Primary_Item.objects.all()
+#     primaryItemQuerySet = PrimaryItem.objects.all()
 #     secondaryItemQuerySet = Secondary_Item.objects.all()
 #     sizeSecondaryItemQS = Secondary_Item.objects.count()
 
