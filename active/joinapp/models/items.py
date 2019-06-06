@@ -3,10 +3,14 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+import sys, os
+sys.path.append(os.path.abspath('..'))
 
 import math
-import toggles
-import views_helpers
+
+# The .. means we are importing from the outer folder
+from .. import toggles
+from .. import views_helpers
 
 @python_2_unicode_compatible
 class SecondaryItem(models.Model):
