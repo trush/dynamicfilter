@@ -18,11 +18,11 @@ def find_consensus(item):
     votes_cast = item.yes_votes + item.no_votes
     larger = max(item.yes_votes, item.no_votes)
     smaller = min(item.yes_votes, item.no_votes)
-    single_max = int(1+math.ceil(toggles.CUT_OFF/2.0))
+    single_max = toggles.SINGLE_VOTE_CUTOFF
     uncert_level = 2
 
     if toggles.BAYES_ENABLED:
-        if item.yes_votes - votes_no > 0:
+        if item.yes_votes - item.no_votes > 0:
             uncert_level = btdtr(item.yes_votes+1, item.no_votes+1, toggles.DECISION_THRESHOLD)
         else:
             uncert_level = btdtr(item.no_votes+1, item.yes_votes+1, toggles.DECISION_THRESHOLD)
@@ -34,7 +34,12 @@ def find_consensus(item):
         item.ambiguity = "Most Ambiguity"
         return consensus
 
+<<<<<<< HEAD
     elif uncertLevel < toggles.UNCERTAINTY_THRESHOLD:
+=======
+    elif uncert_level < toggles.UNCERTAINTY_THRESHOLD:
+        item.second_pred_consensus = consensus
+>>>>>>> d35187b901c0266072b78b3fbf1d4a94ed581a2f
         item.ambiguity = "Unambiguous"
         return consensus
 
