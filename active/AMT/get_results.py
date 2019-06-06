@@ -49,11 +49,9 @@ for row in csv:
             newRow = assignment["HITId"]  + ", " + " (" + hotel + ")" + ", " + assignment["AssignmentId"] +  ", " \
                 + assignment["AssignmentStatus"] + ", " + str((assignment["SubmitTime"] \
                     - assignment["AcceptTime"]).total_seconds())
-                        
-            print newRow
 
+            #Nicer answers data structure  
             answers_dict = {}
-            
             for answer_field in answers_list:
                 question = answer_field['QuestionIdentifier']
                 worker_response = answer_field['FreeText']
@@ -66,55 +64,10 @@ for row in csv:
                     answers_dict[question] = None
 
             newRow += ", " + str(answers_dict['workervote']) + ", " + str(answers_dict['feedback'])
-            print
+
             print newRow
-            print
 
             results.write(newRow + "\n")
-            
-            # print "Worker's answer was:"
-            # if type(xml_doc['QuestionFormAnswers']['Answer']) is list:
-            #     # Multiple fields in HIT layout
-            #     flag = False
-            #     for answer_field in xml_doc['QuestionFormAnswers']['Answer']:
-            #         if answer_field['QuestionIdentifier'] == 'consent':
-            #             if answer_field['FreeText'] == 'on':
-            #                 newRow += (", consent given")
-            #                 newRow += (", [")
-            #                 flag = True
-            #                 break
-            #             else:
-            #                 newRow += (", INADMISSABLE")
-            #                 newRow += (", [")
-            #                 break
-            #     if not flag:
-            #         newRow += (", INADMISSABLE")
-            #         newRow += (", [")
-            #     for answer_field in xml_doc['QuestionFormAnswers']['Answer']:
-            #         if answer_field['QuestionIdentifier'] == 'consent':
-            #             continue
-            #         if answer_field['QuestionIdentifier'] == 'comments':
-            #             newRow = newRow[:-2]
-            #             if answer_field['FreeText'] is not None:
-            #                 newRow += "], " + answer_field['FreeText']
-            #             else:
-            #                 newRow += "], no comment"
-            #             break
-            #         print "For input field: " + answer_field['QuestionIdentifier']
-            #         if answer_field['FreeText'] is not None:
-            #             newRow += (answer_field['FreeText'].lower() + "| ")
-            #             print "Submitted answer: " + answer_field['FreeText']
-            #     newRow += "\n"
-            #     for i in range(len(newRow)):
-            #         if newRow[i] == u'\u2019': #TODO: catch other exceptions
-            #             newRow = newRow[:i] + newRow[i+1:]
-            #             break
-            #     results.write(newRow)
-            # else:
-            #     # One field found in HIT layout
-            #     print "For input field: " + xml_doc['QuestionFormAnswers']['Answer']['QuestionIdentifier']
-            #     print "Submitted answer: " + xml_doc['QuestionFormAnswers']['Answer']['FreeText']
-            # results.write("\n")
     else:
         print "No results ready for HIT " + hit_id
 
