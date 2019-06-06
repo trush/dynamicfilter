@@ -200,3 +200,4 @@ class PS_Pair(models.Model):
 #             return True
 #         return False
 
+"""

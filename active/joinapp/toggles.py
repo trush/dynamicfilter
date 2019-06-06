@@ -5,15 +5,12 @@ import math
 #________ For Synthetic Data _________#
 NUM_PRIM_ITEMS = 90
 NUM_SEC_ITEMS = 1000
-
-#toggles whether or not we want to generate all possible PS pairs:
-ALL_PS_PAIRS = False
+HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no
+ALL_PS_PAIRS = False #toggles whether or not we want to generate all possible PS pairs:
 #to determine how many primary items each secondary item is going to be matched with:
 MEAN_PRIM_PER_SEC = 20
 SD_PRIM_PER_SEC = 4
 SAMPLE_W_REPLACE_NUM_PRIM = False
-
-
 
 
 #________ For Real Data ________#

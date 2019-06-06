@@ -1,4 +1,5 @@
 
+import csv
 
 class JoinSimulation(TransactionTestCase):
     """
@@ -52,6 +53,56 @@ class JoinSimulation(TransactionTestCase):
     #_____ Loading Data _____#
         ### real data ###
         ### synthetic data ###
+    
+    def load_primary_real(self):
+        """
+        Loads in real data from files into the database
+        """
+        
+        PRIMARY_LIST = #TODO path info
+        ID = 0
+
+        f = open( PRIMARY_LIST, 'r') #TODO path
+        for line in f:
+            line = line.rstrip ('\n')
+            item = Primary_Item(item_id = ID, name = line)
+            
+            try:
+                item.save()
+            except:
+                print "Error reading item ", ID
+            ID += 1 
+        f.close()
+    
+    def load_real_data(self):
+        """
+        Loads the MTurk data from a csvfile
+        """
+
+        REAL_DATA_CSV = #TODO path info
+
+        with open(REAL_DATA_CSV, mode = 'r') as csv_file:
+            csv_reader = csv.reader(csv_file, delimeter = ',')
+            line_count = 0
+            for row in csv_reader:
+                try:
+                    question = row["QUESTIONS COL"]
+                    prim_item = row["PRIMARY ITEM COL"]
+                    time_taken = row["TIME DURATION COL"]
+                    worker_vote = row["WORKER RESPONSE COL"]
+                    
+                    if question == "eval_joinable_filter":
+                        item_task = IT_Pair(item_ID = prim_item, )
+                    elif question == "eval_sec_pred":
+                        #TODO
+                    elif question == "eval_join_cond":
+                        #TODO
+                    elif question == "list_secondary":
+                        #TODO
+                except:
+                    print "There was an error reading in line", line_count 
+
+
 
 
     ## ground truth determination ##

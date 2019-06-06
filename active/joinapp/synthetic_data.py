@@ -12,9 +12,12 @@ def syn_load_lists():
     """
     for i in range(toggles.NUM_PRIM_ITEMS):
         Primary_Item.objects.create(item_ID = i, name = "primary item" + str(i))
-    for i in range(toggles.NUM_SEC_ITEMS):
-        Secondary_Item.objects.create(item_ID = i, name = "secondary item" + str(i))
+    }
+    if HAVE_SEC_LIST == True:
+        for i in range(toggles.NUM_SEC_ITEMS){
+            Secondary_Item.objects.create(item_ID = i, name = "secondary item" + str(i))
 
+        }
 
 def syn_load_PS_pairs():
     """

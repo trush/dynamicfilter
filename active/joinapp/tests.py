@@ -48,7 +48,7 @@ class Primary_Model_Tests(TestCase):
         prim_item2.remove_self()
         query_set = Primary_Item.objects.all()
 
-        self.assertQuerysetEqual(query_set, [prim_item1], )
+        self.assertQuerysetEqual(query_set, [prim_item1], transform=lambda x: x )
 
 
 
