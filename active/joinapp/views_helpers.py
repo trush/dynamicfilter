@@ -60,20 +60,21 @@ def gather_task(task_type, answer, cost, item1_id = None, item2_id = None):
 
     #call correct helper for the given task_type and collect the result (if we reach consensus)
     if task_type == 0:
-        ans = collect_joinable_filter(answer, cost, item1_id)
+        finished = collect_joinable_filter(answer, cost, item1_id)
     elif task_type == 1:
-        ans = collect_find_pairs(answer, cost, item1_id)
+        answer = parse_pairs(answer)
+        finished = collect_find_pairs(answer, cost, item1_id)
     elif task_type == 2:
-        ans = collect_prejoin_filter(answer, cost, item1_id, item2_id)
+        finished = collect_join_pair(answer, cost, item1_id, item2_id)
     elif task_type == 3:
-        ans = collect_secondary_predicate(answer, cost, item2_id)
+        finished = collect_prejoin_filter(answer, cost, item1_id, item2_id)
     else: #if task_type == 4:
-        ans = collect_join_pair(answer, cost, item1_id, item2_id)
+        finished = collect_secondary_predicate(answer, cost, item2_id)
 
     #depending on whether we want to update on consensus, we may need to update TaskStats for the relevant type
-    if toggles.UPDATE_ON_CONSENSUS and ans is not None:
+    if toggles.UPDATE_ON_CONSENSUS and finished is not None:
         task_stats = TaskStats.objects.get(task_type = task_type)
-        task_stats.update_stats(cost, answer)
+        task_stats.update_stats(cost, finished)
     else:
         task_stats = TaskStats.objects.get(task_type = task_type)
         task_stats.update_stats(cost, answer)
@@ -100,7 +101,7 @@ def collect_joinable_filter(answer, cost, item1_id):
 
     #return the result from this_task for use
     this_task.refresh_from_db()
-    return this_task.result()
+    return this_task.result
 
 ## Collect find pairs task
 def collect_find_pairs(answer, cost, item1_id):
@@ -116,30 +117,46 @@ def collect_find_pairs(answer, cost, item1_id):
     else:
         this_task = FindPairsTask.objects.get(primary_item = primary_item)
 
-    
+    #holds the list of secondary item (ids) we get from this task
+    sec_items_list = []
+    for match in answer:
+        #disambiguate matches with strings
+        disamb_match = disambiguate_str(match)
 
+        #find or create a secondary item that matches this name
+        known_sec_items = SecondaryItem.objects.filter(name = disamb_match)
+        if known_sec_items.exists():
+            this_sec_item = SecondaryItem.objects.get(name = disamb_match)
+        else:
+            this_sec_item = SecondaryItem.objects.create(name = disamb_match)
+        sec_items_list.append(this_sec_item.id)
 
-## Collect secondary predicate task
-def collect_secondary_predicate(answer, cost, item2_id):
-    #load secondary item from db
-    secondary_item = SecondaryItem.objects.get(item_id = item2_id)
+    #call the model's function to update its state
+    this_task.get_task(sec_items_list, cost)
 
-    #use secondary item to find the relevant task
-    our_tasks = SecPredTask.objects.filter(secondary_item = secondary_item)
-    #if we have a secondary predicate task with this item, it is our task.
-    #otherwise, we must create a new task
-    if not our_tasks.exists():
-        this_task = SecPredTask.objects.create(secondary_item = secondary_item)
+    return this_task.result
+
+## takes a string of entries (separated by the string {{NEWENTRY}}) for find_pairs and parses them
+def parse_pairs(pairs):
+    if pairs is None:
+        return []
     else:
-        this_task = SecPredTask.objects.get(secondary_item = secondary_item)
+        processed = []
+        for match in pairs.split("{{NEWENTRY}}"):
+            temp = match.strip()
+            temp = temp.lower()
+            processed.append(temp)
+        return processed
+
+## turns string responses into unique identifying strings
+#NOTE: this function is specific to our example (hotels and restaurants)
+# new functions must be written for different queries
+def disambiguate_str(sec_item_str):
+    #we want the first 4 non-whitespace characters after the semicolon
+    semicol_pos = sec_item_str.rfind(';')
+    addr = sec_item_str[semicol_pos+1:].strip()
+    return addr[:4]
     
-    #allow model functionality to update its fields accordingly
-    this_task.get_task(answer, cost)
-
-    #return the result from this_task for use
-    this_task.refresh_from_db()
-    return this_task.result()
-
 ## Collect Join Pair task
 def collect_join_pair(answer, cost, item1_id, item2_id):
     #load primary item from db
@@ -161,7 +178,34 @@ def collect_join_pair(answer, cost, item1_id, item2_id):
 
     #return the result from this_task for use
     this_task.refresh_from_db()
-    return this_task.result()
+    return this_task.result
+
+## Collect Prejoin Filter task
+def collect_prejoin_filter(answer, cost, item1_id=None, item2_id=None):
+    #I don't know
+    return True
+
+## Collect secondary predicate task
+def collect_secondary_predicate(answer, cost, item2_id):
+    #load secondary item from db
+    secondary_item = SecondaryItem.objects.get(item_id = item2_id)
+
+    #use secondary item to find the relevant task
+    our_tasks = SecPredTask.objects.filter(secondary_item = secondary_item)
+    #if we have a secondary predicate task with this item, it is our task.
+    #otherwise, we must create a new task
+    if not our_tasks.exists():
+        this_task = SecPredTask.objects.create(secondary_item = secondary_item)
+    else:
+        this_task = SecPredTask.objects.get(secondary_item = secondary_item)
+    
+    #allow model functionality to update its fields accordingly
+    this_task.get_task(answer, cost)
+
+    #return the result from this_task for use
+    this_task.refresh_from_db()
+    return this_task.result
+
 
 #_____GIVE TASKS_____#
 
