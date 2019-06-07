@@ -5,71 +5,92 @@ from toggles import *
 from models import *
 
 #___________ Load Synthetic Data ___________#
-
-#TODO UPDATE NOW THAT PS_PAIRS ARE GONE
-def syn_load_lists():
+def syn_load_list():
     """
-    Load/create instances of the primary and secondary lists
+    Load/create instances of the primary list
     """
     for i in range(toggles.NUM_PRIM_ITEMS):
-        PrimaryItem.objects.create(item_ID = i, name = "primary item" + str(i))
+        PrimaryItem.objects.create(item_id = i, name = "primary item" + str(i))
     }
-    if HAVE_SEC_LIST is True:
-        for i in range(toggles.NUM_SEC_ITEMS){
-            SecondaryItem.objects.create(item_ID = i, name = "secondary item" + str(i))
 
-        }
-
-def syn_load_PS_pairs():
+def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
     """
-    Load/create instances of primary-secondary pairs
+    Populates the FindPairsTasks_Dict with find pair tasks (one for each primary item)
+    keys: (primary item id, 0)
+    values: (primary item id, "NA", task time, ground truth)
     """
-    if ALL_PS_PAIRS is True:
-        for primary in PrimaryItem.objects.all():
-            for secondary in SecondaryItem.objects.all():
-                JoinPairTask.objects.create(primary_item = primary, secondary_item = secondary)
-    #TODO UPDATE NOW THAT PS_PAIRS ARE GONE
-    else:
-        num_prim_per_sec = np.random.normal(MEAN_PRIM_PER_SEC, SD_PRIM_PER_SEC, NUM_SEC_ITEMS) #make a distribution of how many primary items each secondary item is joined with
-        for secondary in SecondaryItem.objects.all():
-            num_prim = np.random.choice(num_prim_per_sec, size = None, replace = SAMPLE_W_REPLACE_NUM_PRIM, p = None) #for this scondary item, choose how many primary
-            prim_id_list = random.sample(range(NUM_PRIM_ITEMS),num_prim) #randomly select the ids of the primary items to associate with this item
-            for prim_id in prim_id_list :
-                primary = PrimaryItem.objects.get(item_ID = prim_id) #get the primary item
-                PS_Pair.objects.create(prim_item = primary, sec_item = secondary) #make a ps_pair object
-                primary.secondary_items.add(secondary) #add the secondary item to the primary item's list of secondary items
+    num_sec_per_prim = np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM, NUM_PRIM_ITEMS) #make a distribution of how many secondary items each primary item is joined with
+    for primary in PrimaryItem.objects.all():
+        num_sec = np.random.choice(num_sec_per_prim, size = None, replace = SAMPLE_W_REPLACE_NUM_SEC, p = None) #for this primary item, choose how many secondary
+        sec_id_list = random.sample(range(NUM_SEC_ITEMS), num_prim) #randomly select the ids of the secondary items to associate with this primary item
+        worker_response = ""
+        for sec_id in sec_id_list: #build the worker response
+            sec_item = "Secondary Item " + str(sec_id) + "; " + "Address " + str(sec_id) + "{{NEWENTRY}}"
+            worker_response += sec_item
+        key = (primary.item_id, 0)
+        value = (primary.item_id, "NA", FIND_PAIRS_TASK_TIME, worker_response)
+        FindPairsTasks_Dict[key] = value
 
-
-
-
-#___________ Initialize Synthetic Data: Give True Answers ___________#
-
-# TODO add ground truth to the models
-def syn_assign_true_sec_pred():
+def syn_load_joinable_filter_tasks(JFTasks_Dict):
     """
-    Assign a "ground truth" to whether or not secondary items pass the secondary predicate
+    Populates the JFTasks_Dict with joinable filter tasks (one for each primary item)
+    keys: (primary item id, 0)
+    values: (primary item id, "NA", task time, ground truth)
     """
-    for secondary in SecondaryItem.objects.all():
+    for primary in PrimaryItem.objects.all():
+        key = (primary.item_id, 0)
+        if random.random() < JF_SELECTIVITY:
+            ground_truth = True
+        else:
+            ground_truth = False
+        value = (primary.item_id, "NA", JF_TASK_TIME, ground_truth)
+        JFTasks_Dict[key] = value
+
+def syn_load_sec_pred_tasks(SecPredTasks_Dict):
+    """
+    Populates the SecPredTasks_Dict with secondary predicate tasks (one for each secondary item)
+    keys: (secondary item id, 0)
+    values: ("NA", secondary item id, task time, ground truth)
+    """
+    for secondary in range(NUM_SEC_ITEMS):
+        key = (secondary, 0)
         if random.random() < SEC_PRED_SELECTIVITY:
-            secondary.true_answer = True
-        else: secondary.true_answer = False
+            ground_truth = True
+        else:
+            ground_truth = False
+        value = ("NA", secondary, SEC_PRED_TASK_TIME, ground_truth)
+        SecPredTasks_Dict[key] = value
 
-def syn_assign_true_PS_pair():
+def syn_load_join_pair_tasks(JoinPairTasks_Dict):
     """
-    Assign a "ground truth" to whether or not PS pairs pass the join condition
+    Populates the JoinPairTasks_Dict with join condition tasks (one for each secondary/primary item pair)
+    keys: (primary.secondary, 0)
+    values: (primary item id, secondary item id, task time, ground truth)
     """
-    for ps_pair in PS_Pair.objects.all():
-        if ALL_PS_PAIRS:
-            selectivity = JOIN_COND_SELECTIVITY_ALL
-        else:
-            selectivity = JOIN_COND_SELECTIVITY
-            
-        if random.random() < selectivity:
-            ps_pair.true_answer = True
-        else:
-            ps_pair.true_answer = False
+    #TODO how should this work??
+
+
 
 #___________ Give a Worker Answer _____________#
+def syn_answer_find_pairs_task(valueTuple):
+    """
+    returns a worker answer to a find pairs task based on a FindPairsTasks_Dict value
+    """
+    
+
+
+    
+
+def syn_load_joinable_filter_tasks(JFTasks_Dict):
+   
+
+def syn_load_sec_pred_tasks(SecPredTasks_Dict):
+    
+
+def syn_load_join_pair_tasks(JoinPairTasks_Dict):
+
+
+
 def syn_answer_joinable_filter(primary_item):
     """
     returns a worker answer to the joinable filter based on global variables
