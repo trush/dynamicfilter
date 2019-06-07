@@ -8,9 +8,9 @@ class TaskStats(models.Model):
     task_type = models.IntegerField(default=0)
     # 0 = joinable filter task
     # 1 = find pairs task
-    # 2 = pre-join filter task
-    # 3 = secondary predicate task
-    # 4 = join pairs task
+    # 2 = join pairs task
+    # 3 = pre-join filter task
+    # 4 = secondary predicate task
 
     # cost is measured by time it takes to complete task
     cost = models.FloatField(default=0)
@@ -21,7 +21,7 @@ class TaskStats(models.Model):
 
     # when selectivity is 0, no items pass
     # when selectivity is 1, all items pass
-    selectivity = models.FloatField()
+    selectivity = models.FloatField(default=0)
 
     # for IW join - average number of pairs per primary item
     avg_num_pairs = models.IntegerField(default=0)
@@ -50,6 +50,7 @@ class TaskStats(models.Model):
             self.avg_num_pairs = ((self.avg_num_pairs*self.num_processed) + len(answer))/(self.num_processed + 1)
         # TODO: prejoin filter stats
         self.num_processed += 1
+        self.save()
 
         
 
@@ -80,6 +81,24 @@ class JFTask(models.Model):
     def update_result(self):
         self.result = views_helpers.find_consensus(self)
 
+    def get_task(self, answer, time):
+        #update yes_otes or no_votes based on answer
+        if answer:
+            self.yes_votes += 1
+        else:
+            self.no_votes += 1
+
+        #update average time
+        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #update number of tasks so far
+        self.num_tasks += 1
+
+        #check whether we've reached consensus
+        self.update_result()
+        self.save()
+
+
 @python_2_unicode_compatible
 class FindPairsTask(models.Model):
     """
@@ -105,6 +124,59 @@ class FindPairsTask(models.Model):
         if not join_pair_tasks.exists():
             self.consensus = True
 
+
+@python_2_unicode_compatible
+class JoinPairTask(models.Model):
+    """
+    Model representing pairs of items and join pair tasks.
+    """
+    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
+    secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
+    # keep track of number of tasks
+    num_tasks = models.IntegerField(default=0)
+    # total time
+    time = models.FloatField(default=0)
+
+    # many to one relationship for finding consensus for find pairs task
+    find_pairs_task = models.ForeignKey(FindPairsTask)
+
+    # result: 
+    # True if the IT pair passes with consensus
+    # False if the IT pair doesn't pass
+    # None consensus is not reached
+    yes_votes = models.IntegerField(default=0)
+    no_votes = models.IntegerField(default=0)
+    result = models.NullBooleanField(default=None)
+
+    def __str__(self):
+        return "Join Pair task for items ", self.primary_item, ", ", self.secondary_item  
+
+    def update_result(self):
+        #have we reached consensus?
+        self.result = views_helpers.find_consensus(self)
+
+        #if we have reached consensus and the result is a match, add our secondary item to the
+        #primary item's list of matches
+        if self.result is True:
+            self.primary_item.add_secondary_item(self.secondary_item)
+
+    
+    def get_task(self, answer, time):
+        #update yes_votes or no_votes based on answer
+        if answer:
+            self.yes_votes += 1
+        else:
+            self.no_votes += 1
+
+        #update average time
+        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #update number of tasks so far
+        self.num_tasks += 1
+
+        #check whether we've reached consensus
+        self.update_result()
+        self.save()
 
 @python_2_unicode_compatible
 class PJFTask(models.Model):
@@ -157,6 +229,24 @@ class SecPredTask(models.Model):
     def update_result(self):
         self.result = views_helpers.find_consensus(self)
 
+    
+    def get_task(self, answer, time):
+        #update yes_otes or no_votes based on answer
+        if answer:
+            self.yes_votes += 1
+        else:
+            self.no_votes += 1
+
+        #update average time
+        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #update number of tasks so far
+        self.num_tasks += 1
+
+        #check whether we've reached consensus
+        self.update_result()
+        self.save()
+
     def when_done(self):
         """
         Checks if consensus is reached and updates variables accordingly
@@ -167,9 +257,9 @@ class SecPredTask(models.Model):
                 primary_item.eval_result = True
                 primary_item.save()
             self.secondary_item.second_pred_result = True
-            #Mark hotels done, remove restaurant
-        elif self.result == False:
-            
+        
+        #Mark hotels done, remove restaurant
+        elif self.result == False:            
             #Decrement counter of related primary items by 1
             primary_set = self.secondary_item.primary_items.all()
 
@@ -178,35 +268,7 @@ class SecPredTask(models.Model):
                 primary_item.save()
             
             #Removes all relationships with this item
-            self.secondary_item.primary_item_set.clear()
+            self.secondary_item.primary_items.clear()
             self.secondary_item.second_pred_result = False
 
-@python_2_unicode_compatible
-class JoinPairTask(models.Model):
-    """
-    Model representing pairs of items and join pair tasks.
-    """
-    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
-    secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
-    # keep track of number of tasks
-    num_tasks = models.IntegerField(default=0)
-    # total time
-    time = models.FloatField(default=0)
-
-    # many to one relationship for finding consensus for find pairs task
-    find_pairs_task = models.ForeignKey(FindPairsTask)
-
-    # result: 
-    # True if the IT pair passes with consensus
-    # False if the IT pair doesn't pass
-    # None consensus is not reached
-    yes_votes = models.IntegerField(default=0)
-    no_votes = models.IntegerField(default=0)
-    result = models.NullBooleanField(default=None)
-
-    def __str__(self):
-        return "Join Pair task for items ", self.primary_item, ", ", self.secondary_item  
-
-    def update_result(self):
-        self.result = views_helpers.find_consensus(self)
 

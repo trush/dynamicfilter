@@ -76,11 +76,9 @@ class JoinSimulation(TransactionTestCase):
 
         f = open( PRIMARY_LIST, 'r')
         for line in f:
-            line = line.rstrip ('\n')
-            item = PrimaryItem.objects.create(item_id = ID, name = line)
-            
             try:
-                item.save()
+                line = line.rstrip ('\n')
+                item = PrimaryItem.objects.create(item_id = ID, name = line)
             except:
                 print "Error reading item ", ID
             ID += 1 
