@@ -57,6 +57,9 @@ PJF_TIME_PRIMARY = 20
 PJF_TIME_SECONDARY = 20
 
 
+#______ Miscellany ___________#
+UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for every assignment (false) or after consensus for each task (true)
+
 # Used in the enumeration estimate in chao_estimator(). If the difference between the size of list2 and the size of the 
 # estimate is less than this fraction of the size of the estimate then chao_estimator() will return True.
 THRESHOLD = 0
