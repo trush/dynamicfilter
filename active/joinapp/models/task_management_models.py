@@ -105,6 +105,34 @@ class FindPairsTask(models.Model):
         if not join_pair_tasks.exists():
             self.consensus = True
 
+@python_2_unicode_compatible
+class JoinPairTask(models.Model):
+    """
+    Model representing pairs of items and join pair tasks.
+    """
+    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
+    secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
+    # keep track of number of tasks
+    num_tasks = models.IntegerField(default=0)
+    # total time
+    time = models.FloatField(default=0)
+
+    # many to one relationship for finding consensus for find pairs task
+    find_pairs_task = models.ForeignKey(FindPairsTask, default=None)
+
+    # result: 
+    # True if the IT pair passes with consensus
+    # False if the IT pair doesn't pass
+    # None consensus is not reached
+    yes_votes = models.IntegerField(default=0)
+    no_votes = models.IntegerField(default=0)
+    result = models.NullBooleanField(default=None)
+
+    def __str__(self):
+        return "Join Pair task for items ", self.primary_item, ", ", self.secondary_item  
+
+    def update_result(self):
+        self.result = views_helpers.find_consensus(self)
 
 @python_2_unicode_compatible
 class PJFTask(models.Model):
@@ -167,9 +195,9 @@ class SecPredTask(models.Model):
                 primary_item.eval_result = True
                 primary_item.save()
             self.secondary_item.second_pred_result = True
-            #Mark hotels done, remove restaurant
-        elif self.result == False:
-            
+        
+        #Mark hotels done, remove restaurant
+        elif self.result == False:            
             #Decrement counter of related primary items by 1
             primary_set = self.secondary_item.primary_items.all()
 
@@ -178,35 +206,7 @@ class SecPredTask(models.Model):
                 primary_item.save()
             
             #Removes all relationships with this item
-            self.secondary_item.primary_item_set.clear()
+            self.secondary_item.primary_items.clear()
             self.secondary_item.second_pred_result = False
 
-@python_2_unicode_compatible
-class JoinPairTask(models.Model):
-    """
-    Model representing pairs of items and join pair tasks.
-    """
-    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
-    secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
-    # keep track of number of tasks
-    num_tasks = models.IntegerField(default=0)
-    # total time
-    time = models.FloatField(default=0)
-
-    # many to one relationship for finding consensus for find pairs task
-    find_pairs_task = models.ForeignKey(FindPairsTask)
-
-    # result: 
-    # True if the IT pair passes with consensus
-    # False if the IT pair doesn't pass
-    # None consensus is not reached
-    yes_votes = models.IntegerField(default=0)
-    no_votes = models.IntegerField(default=0)
-    result = models.NullBooleanField(default=None)
-
-    def __str__(self):
-        return "Join Pair task for items ", self.primary_item, ", ", self.secondary_item  
-
-    def update_result(self):
-        self.result = views_helpers.find_consensus(self)
 
