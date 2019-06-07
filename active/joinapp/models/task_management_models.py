@@ -8,9 +8,9 @@ class TaskStats(models.Model):
     task_type = models.IntegerField(default=0)
     # 0 = joinable filter task
     # 1 = find pairs task
-    # 2 = pre-join filter task
-    # 3 = secondary predicate task
-    # 4 = join pairs task
+    # 2 = join pairs task
+    # 3 = pre-join filter task
+    # 4 = secondary predicate task
 
     # cost is measured by time it takes to complete task
     cost = models.FloatField(default=0)
@@ -50,10 +50,7 @@ class TaskStats(models.Model):
             self.avg_num_pairs = ((self.avg_num_pairs*self.num_processed) + len(answer))/(self.num_processed + 1)
         # TODO: prejoin filter stats
         self.num_processed += 1
-
-        
-
-
+     
 @python_2_unicode_compatible
 class JFTask(models.Model):
     """
