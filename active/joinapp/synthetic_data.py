@@ -11,7 +11,6 @@ def syn_load_list():
     """
     for i in range(toggles.NUM_PRIM_ITEMS):
         PrimaryItem.objects.create(name = "primary item" + str(i))
-    }
 
 def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
     """

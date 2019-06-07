@@ -92,7 +92,7 @@ class JoinSimulation(TransactionTestCase):
             for row in csv_reader:
                 try:
                     key = (row["HIT ID COL"],row["WORKER ID COL"] #TODO update column #s
-                    value = (row["PRIMARY ITEM PK COL"], row["SECONDARY ITEM PK COL"], row["TIME TAKEN COL"], row["WORKER RESPONSE COL"]) #TODO update column #s
+                    value = (row["PRIMARY ITEM COL"], row["SECONDARY ITEM PK COL"], row["TIME TAKEN COL"], row["WORKER RESPONSE COL"]) #TODO update column #s
 
                     task_type = row["TASK TYPE COL"] #TODO update column #s
                     
@@ -126,6 +126,8 @@ class JoinSimulation(TransactionTestCase):
 
     ## optimal for comparison that runs all the true influential restaurants before the false ones ## <<< only useful in real data simulations
     ## run simulation ##
+    def run_sim(self):
+
 
 
 
