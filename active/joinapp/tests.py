@@ -90,9 +90,9 @@ class Primary_Model_Tests(TestCase):
 
         
 
-class Secondary_Model_Tests(TestCase):   
+class Secondary_Pred_Tests(TestCase):   
 
-    def test_sec_when_done_consensus_true(self):
+    def test_secpred_when_done_consensus_true(self):
         prim_item1 = PrimaryItem.objects.create(item_id=1)
         prim_item2 = PrimaryItem.objects.create(item_id=2)
         prim_item3 = PrimaryItem.objects.create(item_id=3)
@@ -110,16 +110,53 @@ class Secondary_Model_Tests(TestCase):
         prim_item3.add_secondary_item(sec_item1)
         prim_item3.add_secondary_item(sec_item3)
 
-        sec_pred_task = SecPredTask(secondary_item=sec_item1, consensus=True)
+        sec_pred_task = SecPredTask(secondary_item=sec_item1, result=True)
         sec_pred_task.when_done()
 
         prim_item1.refresh_from_db()
+        prim_item2.refresh_from_db()
         prim_item3.refresh_from_db()
+
+        self.assertTrue(sec_item1.second_pred_result)
+
         self.assertTrue(prim_item1.eval_result)
+        self.assertFalse(prim_item2.eval_result)
         self.assertTrue(prim_item3.eval_result)
-"""
+
     def test_sec_when_done_consensus_false(self): 
-"""
+        prim_item1 = PrimaryItem.objects.create(item_id=1)
+        prim_item2 = PrimaryItem.objects.create(item_id=2)
+        prim_item3 = PrimaryItem.objects.create(item_id=3)
+
+        sec_item1 = SecondaryItem.objects.create(item_id=1)
+        sec_item2 = SecondaryItem.objects.create(item_id=2)
+        sec_item3 = SecondaryItem.objects.create(item_id=3)
+
+        prim_item1.add_secondary_item(sec_item1)
+        prim_item1.add_secondary_item(sec_item2)
+        prim_item1.add_secondary_item(sec_item3)
+
+        prim_item2.add_secondary_item(sec_item2)
+
+        prim_item3.add_secondary_item(sec_item1)
+        prim_item3.add_secondary_item(sec_item3)
+
+        sec_pred_task = SecPredTask(secondary_item=sec_item1, result=False)
+        sec_pred_task.when_done()
+
+        prim_item1.refresh_from_db()
+        prim_item2.refresh_from_db()
+        prim_item3.refresh_from_db()
+
+        self.assertIs(prim_item1.num_sec_items, 2)
+        self.assertIs(prim_item2.num_sec_items, 1)
+        self.assertIs(prim_item3.num_sec_items, 1)
+
+        self.assertFalse(sec_item1.second_pred_result)
+
+        self.assertQuerysetEqual(sec_item1.primary_items.all(), SecondaryItem.objects.none())
+        
+
 
 
 
