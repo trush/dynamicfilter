@@ -52,9 +52,6 @@ class TaskStats(models.Model):
         self.num_processed += 1
         self.save()
 
-        
-
-
 @python_2_unicode_compatible
 class JFTask(models.Model):
     """
@@ -82,7 +79,7 @@ class JFTask(models.Model):
         self.result = views_helpers.find_consensus(self)
 
     def get_task(self, answer, time):
-        #update yes_otes or no_votes based on answer
+        #update yes_votes or no_votes based on answer
         if answer:
             self.yes_votes += 1
         else:
@@ -97,7 +94,6 @@ class JFTask(models.Model):
         #check whether we've reached consensus
         self.update_result()
         self.save()
-
 
 @python_2_unicode_compatible
 class FindPairsTask(models.Model):
@@ -116,13 +112,16 @@ class FindPairsTask(models.Model):
     consensus = models.NullBooleanField(default=False)
 
     def __str__(self):
-        return "Find Pairs for item ", self.primary_item   
+        return "Find Pairs for item " + str(self.primary_item)   
 
     def update_consensus(self):
         join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
-
         if not join_pair_tasks.exists():
             self.consensus = True
+            self.save()
+        else:
+            self.consensus = False
+            self.save()
 
     #expects a list of secondary item ids (the answer) and the cost returned from a find_pairs task
     def get_task(self, answer, cost):
@@ -186,14 +185,16 @@ class JoinPairTask(models.Model):
     result = models.NullBooleanField(default=None)
 
     def __str__(self):
-        return "Join Pair task for items ", self.primary_item, ", ", self.secondary_item  
+        return "Join Pair task for items " + str(self.primary_item) + ", " + str(self.secondary_item)
 
     def update_result(self):
         #have we reached consensus?
         self.result = views_helpers.find_consensus(self)
+        self.save()
 
         #if we have reached consensus and the result is a match, add our secondary item to the
         #primary item's list of matches
+        #Running this multiple times is fine, the relationship is not duplicated
         if self.result is True:
             self.primary_item.add_secondary_item(self.secondary_item)
 
@@ -235,9 +236,9 @@ class PJFTask(models.Model):
 
     def __str__(self):
         if self.primary_item is not None:
-            return "Pre-Join Filter for item ", self.primary_item
+            return "Pre-Join Filter for item " + str(self.primary_item)
         elif self.secondary_item is not None:
-            return "Pre-Join Filter for item ", self.secondary_item
+            return "Pre-Join Filter for item " + str(self.secondary_item)
         else:
             raise Exception("No item")
 
@@ -261,14 +262,14 @@ class SecPredTask(models.Model):
     result = models.NullBooleanField(default=None)
 
     def __str__(self):
-        return "Secondary Predicate Filter for item ", self.secondary_item
+        return "Secondary Predicate Filter for item " + str(self.secondary_item)
 
     def update_result(self):
         self.result = views_helpers.find_consensus(self)
 
     
     def get_task(self, answer, time):
-        #update yes_otes or no_votes based on answer
+        #update yes_votes or no_votes based on answer
         if answer:
             self.yes_votes += 1
         else:
