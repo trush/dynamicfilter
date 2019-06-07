@@ -119,7 +119,7 @@ class FindPairsTask(models.Model):
         return "Find Pairs for item ", self.primary_item   
 
     def update_consensus(self):
-        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
+        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self).filter(result = None)
 
         if not join_pair_tasks.exists():
             self.consensus = True
