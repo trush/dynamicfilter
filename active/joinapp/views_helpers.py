@@ -53,7 +53,7 @@ def find_consensus(item):
         return None    
 
 
-#_____CHOOSE TASK_____#
+#_____CHOOSE TASKS_____#
 
 # only implemented for IW join
 def choose_task(workerID, estimator):
@@ -64,22 +64,23 @@ def choose_task(workerID, estimator):
         worker = Worker.objects.filter(worker_id=workerID).first() # there should only be one worker with this worker ID
     # if second list is not complete do find pairs task, if it is, do join pairs task
     if not estimator.has_2nd_list:
-        prim_item = PrimaryItem.objects.order_by('?').first() # random primary item
-        if FindPairsTask.objects.filter(primary_item=prim_item).count() is 0:
-            new_task = FindPairsTask(primary_item=prim_item,num_)
-        else:
-            while FindPairsTask.objects.filter(primary_item=prim_item).first().consensus:
-                prim_item = PrimaryItem.objects.order_by('?').first() # not sure how to exclude the primary items with fp tasks already reaching consensus besides doing this
-            find_pairs_task = FindPairsTask.objects.filter(primary_item=prim_item).first() # there should only be one fp task with this primary item
-            find_pairs_task.num_tasks += 1
-            find_pairs_task.workers.add(new_worker)
+        choose_task_find_pairs(new_worker)
     else:
-        join_pairs_task = JoinPairTask.objects.filter(consensus=False).order_by('?').first() # random join pair task, assumes all of these have been made
-        join_pairs_task.num_tasks += 1
-        join_pairs_task.workers.add(new_worker)
+        #secondary predicate task
 
 
+def choose_task_find_pairs(worker):
+    prim_item = PrimaryItem.objects.order_by('?').first() # random primary item
+    if FindPairsTask.objects.filter(primary_item=prim_item).count() is 0:
+        find_pairs_task = FindPairsTask(primary_item=prim_item,num_tasks=1)
+    else:
+        while FindPairsTask.objects.filter(primary_item=prim_item).first().consensus: # choose new primary item if the random one has reached consensus
+            prim_item = PrimaryItem.objects.order_by('?').first()
+        find_pairs_task = FindPairsTask.objects.filter(primary_item=prim_item).first() # there should only be one fp task with this primary item
+        find_pairs_task.num_tasks += 1
+    find_pairs_task.workers.add(worker)
 
+#_____ASSIGN TASKS_____#
 
 #_____GATHER TASKS_____#
 
@@ -235,48 +236,4 @@ def collect_secondary_predicate(answer, cost, item2_id):
     this_task.refresh_from_db()
     return this_task.result
 
-
-#_____GIVE TASKS_____#
-
-## Function that gives tasks to workers
-# @param workerID The ID for the worker that is being assigned a task
-
-# choosing a task
-
-# for joinable filters
-# task:
-# give a primary item that hasn't reached consensus
-# ask for an answer y/n
-
-# for itemwise join
-# task:
-# give a primary item and ask for all the associated secondary items
-
-# if second list is complete
-# then make pairs of primary and secondary list items (make and store these somewhere else?)
-# task:
-# give a secondary item that hasn't reached consensus and filter w secondary predicate
-
-# if consensus on secondary predicate for all secondary items
-# secondary item that pass which have highest # of num_prim_items chosen first
-# task:
-# primary item w/ relation to that secondary item 
-# mark true if secondary predicate true
-# delete relation if secondary predicate false
-
-# for prejoin filters
-# task:
-# give a primary item
-# ask for prejoin filter
-
-# task:
-# 1st task from IW join
-
-# if primary list done for PJ filter
-# task:
-# give a secondary item
-# ask for prejoin filter
-
-# if both are completed
-# 2nd and 3rd tasks from IW join
 
