@@ -51,6 +51,33 @@ def find_consensus(item):
         return None    
 
 
+#_____CHOOSE TASK_____#
+
+# only implemented for IW join
+def choose_task(workerID, estimator):
+    # make new worker if worker doesn't exist
+    if Worker.objects.filter(worker_id=workerID).count() is 0:
+        new_worker = Worker(worker_id=workerID)
+    else:
+        worker = Worker.objects.filter(worker_id=workerID).first() # there should only be one worker with this worker ID
+    # if second list is not complete do find pairs task, if it is, do join pairs task
+    if not estimator.has_2nd_list:
+        prim_item = PrimaryItem.objects.order_by('?').first() # random primary item
+        if FindPairsTask.objects.filter(primary_item=prim_item).count() is 0:
+            new_task = FindPairsTask(primary_item=prim_item,num_)
+        else:
+            while FindPairsTask.objects.filter(primary_item=prim_item).first().consensus:
+                prim_item = PrimaryItem.objects.order_by('?').first() # not sure how to exclude the primary items with fp tasks already reaching consensus besides doing this
+            find_pairs_task = FindPairsTask.objects.filter(primary_item=prim_item).first() # there should only be one fp task with this primary item
+            find_pairs_task.num_tasks += 1
+            find_pairs_task.workers.add(new_worker)
+    else:
+        join_pairs_task = JoinPairTask.objects.filter(consensus=False).order_by('?').first() # random join pair task, assumes all of these have been made
+        join_pairs_task.num_tasks += 1
+        join_pairs_task.workers.add(new_worker)
+
+
+
 
 #_____GATHER TASKS_____#
 
