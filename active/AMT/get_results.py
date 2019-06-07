@@ -23,14 +23,14 @@ csv = open('HIT_IDs.csv', "r")
 results = open('HIT_RESULTS.csv', "w") 
 
 # header row for results csv
-first_row = "Hit Id, Hotel, Assignment Id, Assignment Status, Time Taken, workervote, feedback\n"
+first_row = "Hit Id, Hotel, Restaurant, Assignment Id, Assignment Status, Time Taken, workervote, feedback\n"
 results.write(first_row)
 
 #finds set of printable characters for string processing later
 printable = set(string.printable)
 
 for row in csv:
-    [hit_id, hotel, task] = [x.strip() for x in row.split(',')]
+    [hit_id, hotel, task, restaurant] = [x.strip() for x in row.split(',')]
     # We are only publishing this task to one Worker
     # So we will get back an array with one item if it has been completed
     worker_results = mturk.list_assignments_for_hit(HITId=hit_id)
@@ -46,7 +46,7 @@ for row in csv:
             else:
                 print "consent",answers_list[0]['FreeText']
             # Metadata from assignment, formatted for csv
-            newRow = assignment["HITId"]  + ", " + " (" + hotel + ")" + ", " + " (" + task + ")" + ", " + assignment["AssignmentId"] +  ", " \
+            newRow = assignment["HITId"]  + ", " + " (" + hotel + ")" + ", " + " (" + restaurant + ")" + ", " + " (" + task + ")" + ", " + assignment["AssignmentId"] +  ", " \
                 + assignment["AssignmentStatus"] + ", " + str((assignment["SubmitTime"] \
                     - assignment["AcceptTime"]).total_seconds())
 
