@@ -1,5 +1,14 @@
 from items import *
 
+
+@python_2_unicode_compatible
+class Worker(models.Model):
+    """
+    Model representing a worker on the MTurk.
+    """
+    worker_id = models.CharField(max_length=20)
+ 
+
 @python_2_unicode_compatible
 class TaskStats(models.Model):
     """
@@ -57,6 +66,8 @@ class JFTask(models.Model):
     """
     Model representing pairs of items and joinable filter tasks.
     """
+    # workers who have worked or are working on this task
+    workers = models.ManyToManyField(Worker,related_name="joinable_filter_task")
 
     primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
     # keep track of number of tasks
@@ -100,6 +111,9 @@ class FindPairsTask(models.Model):
     """
     Model representing pairs of items and item-wise join tasks.
     """
+    # workers who have worked or are working on this task
+    workers = models.ManyToManyField(Worker,related_name="find_pairs_task")
+     
     primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
     # keep track of number of tasks
     num_tasks = models.IntegerField(default=0)
@@ -166,6 +180,9 @@ class JoinPairTask(models.Model):
     """
     Model representing pairs of items and join pair tasks.
     """
+    # workers who have worked or are working on this task
+    workers = models.ManyToManyField(Worker,related_name="join_pair_task")
+    
     primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
     secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
     # keep track of number of tasks
@@ -184,6 +201,7 @@ class JoinPairTask(models.Model):
     no_votes = models.IntegerField(default=0)
     result = models.NullBooleanField(default=None)
 
+    consensus = models.BooleanField(default=False)
     def __str__(self):
         return "Join Pair task for items " + str(self.primary_item) + ", " + str(self.secondary_item)
 
@@ -221,6 +239,9 @@ class PJFTask(models.Model):
     """
     Model representing pairs of items and pre-join filter tasks.
     """
+    # workers who have worked or are working on this task
+    workers = models.ManyToManyField(Worker,related_name="pre_join_task")
+    
     primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
     secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
     # keep track of number of tasks
@@ -247,6 +268,9 @@ class SecPredTask(models.Model):
     """
     Model representing pairs of items and secondary predicate tasks.
     """
+    # workers who have worked or are working on this task
+    workers = models.ManyToManyField(Worker,related_name="secondary_pred_task")
+    
     secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
     # keep track of number of tasks
     num_tasks = models.IntegerField(default=0)
