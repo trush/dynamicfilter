@@ -12,10 +12,10 @@ class Primary_Model_Tests(TestCase):
         Checking the check_empty function of Primary_Item Model
         """
 
-        prim_item = PrimaryItem.objects.create(item_id=1)
+        prim_item = PrimaryItem.objects.create()
         self.assertTrue(prim_item.check_empty())
 
-        sec_item = SecondaryItem.objects.create(item_id=1)
+        sec_item = SecondaryItem.objects.create()
         prim_item.add_secondary_item(sec_item)
         self.assertFalse(prim_item.check_empty())
 
@@ -24,7 +24,7 @@ class Primary_Model_Tests(TestCase):
         Checking the Primary_Item properly removes itself
         """
 
-        prim_item = PrimaryItem.objects.create(item_id=1)
+        prim_item = PrimaryItem.objects.create()
         query_set = PrimaryItem.objects.all()
 
         self.assertQuerysetEqual(query_set, [prim_item], transform=lambda x: x)
@@ -39,8 +39,8 @@ class Primary_Model_Tests(TestCase):
         Checking the Primary_Item properly removes itself
         """
 
-        prim_item1 = PrimaryItem.objects.create(item_id=1)
-        prim_item2 = PrimaryItem.objects.create(item_id=2)
+        prim_item1 = PrimaryItem.objects.create()
+        prim_item2 = PrimaryItem.objects.create()
         query_set = PrimaryItem.objects.all()
 
         self.assertQuerysetEqual(query_set, [prim_item1, prim_item2], transform=lambda x: x, ordered=False)
@@ -51,13 +51,13 @@ class Primary_Model_Tests(TestCase):
         self.assertQuerysetEqual(query_set, [prim_item1], transform=lambda x: x)
 
     def test_primary_many_to_many(self):
-        prim_item1 = PrimaryItem.objects.create(item_id=1)
-        prim_item2 = PrimaryItem.objects.create(item_id=2)
-        prim_item3 = PrimaryItem.objects.create(item_id=3)
+        prim_item1 = PrimaryItem.objects.create()
+        prim_item2 = PrimaryItem.objects.create()
+        prim_item3 = PrimaryItem.objects.create()
 
-        sec_item1 = SecondaryItem.objects.create(item_id=1)
-        sec_item2 = SecondaryItem.objects.create(item_id=2)
-        sec_item3 = SecondaryItem.objects.create(item_id=3)
+        sec_item1 = SecondaryItem.objects.create()
+        sec_item2 = SecondaryItem.objects.create()
+        sec_item3 = SecondaryItem.objects.create()
 
         prim_item1.add_secondary_item(sec_item1)
         prim_item1.add_secondary_item(sec_item2)
@@ -91,13 +91,13 @@ class Primary_Model_Tests(TestCase):
 class Secondary_Pred_Tests(TestCase):   
 
     def test_secpred_when_done_consensus_true(self):
-        prim_item1 = PrimaryItem.objects.create(item_id=1)
-        prim_item2 = PrimaryItem.objects.create(item_id=2)
-        prim_item3 = PrimaryItem.objects.create(item_id=3)
+        prim_item1 = PrimaryItem.objects.create()
+        prim_item2 = PrimaryItem.objects.create()
+        prim_item3 = PrimaryItem.objects.create())
 
-        sec_item1 = SecondaryItem.objects.create(item_id=1)
-        sec_item2 = SecondaryItem.objects.create(item_id=2)
-        sec_item3 = SecondaryItem.objects.create(item_id=3)
+        sec_item1 = SecondaryItem.objects.create()
+        sec_item2 = SecondaryItem.objects.create()
+        sec_item3 = SecondaryItem.objects.create()
 
         prim_item1.add_secondary_item(sec_item1)
         prim_item1.add_secondary_item(sec_item2)
@@ -122,13 +122,13 @@ class Secondary_Pred_Tests(TestCase):
         self.assertTrue(prim_item3.eval_result)
 
     def test_sec_when_done_consensus_false(self): 
-        prim_item1 = PrimaryItem.objects.create(item_id=1)
-        prim_item2 = PrimaryItem.objects.create(item_id=2)
-        prim_item3 = PrimaryItem.objects.create(item_id=3)
+        prim_item1 = PrimaryItem.objects.create()
+        prim_item2 = PrimaryItem.objects.create()
+        prim_item3 = PrimaryItem.objects.create()
 
-        sec_item1 = SecondaryItem.objects.create(item_id=1)
-        sec_item2 = SecondaryItem.objects.create(item_id=2)
-        sec_item3 = SecondaryItem.objects.create(item_id=3)
+        sec_item1 = SecondaryItem.objects.create()
+        sec_item2 = SecondaryItem.objects.create()
+        sec_item3 = SecondaryItem.objects.create()
 
         prim_item1.add_secondary_item(sec_item1)
         prim_item1.add_secondary_item(sec_item2)
