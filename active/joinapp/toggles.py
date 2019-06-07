@@ -7,12 +7,13 @@ REAL_DATA_CSV = ''#TODO MTURK data CSV
 #________ For Synthetic Data _________#
 NUM_PRIM_ITEMS = 90
 NUM_SEC_ITEMS = 1000
-HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no
-ALL_PS_PAIRS = False #toggles whether or not we want to generate all possible PS pairs:
-#to determine how many primary items each secondary item is going to be matched with:
-MEAN_PRIM_PER_SEC = 20
-SD_PRIM_PER_SEC = 4
-SAMPLE_W_REPLACE_NUM_PRIM = False
+HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no  <not currently in use?
+
+
+#to determine how many secondary items each primary item is going to be matched with, used in syn_load_find_pairs_tasks
+MEAN_SEC_PER_PRIM = 20
+SD_SEC_PER_PRIM = 4
+SAMPLE_W_REPLACE_NUM_SEC = False
 
 
 #________ For Real Data ________#
@@ -36,31 +37,27 @@ UNCERTAINTY_THRESHOLD = 0.2
 DECISION_THRESHOLD = 0.5
 
 
-#_______ Joinable Filter Specific Toggles _______#
-JF_TIME = 100
+#_______ Selectivity and Ambiguity Settings _________#
 JF_AMBIGUITY = 0.1
 JF_SELECTIVITY = 0.1
-
-
-#_______ Item-wise Join Specific Toggles _______#
-IW_ENUMERATION_TIME = 20
-IW_SECONDARY_PRED_TIME = 20
 SEC_PRED_SELECTIVITY = 0.1 #Actually a join-wide toggle
 SEC_PRED_AMBIGUITY = 0.1 #Actually a join-wide toggle
 JOIN_COND_AMBIGUITY = 0.1 
 JOIN_COND_SELECTIVITY = 0.1 #given that these pairs were created by the crowd
-JOIN_COND_SELECTIVITY_ALL = 0.1 #if all PS pairs are created
-# Used in the enumeration estimate in chao_estimator(). If the difference between the size of list2 and the size of the 
-# estimate is less than this fraction of the size of the estimate then chao_estimator() will return True.
-THRESHOLD = 0
-
-
-#_______ PJF specific toggles _______#
 PJF_SELECTIVITY_PRIMARY = 0.1
 PJF_SELECTIVITY_SECONDARY = 0.1
 PJF_AMBIGUITY_PRIMARY = 0.1
 PJF_AMBIGUITY_SECONDARY = 0.1
+
+#__________________ Time Settings _____________________#
+JF_TIME = 100
+FIND_PAIRS_TASK_TIME = 20
+SEC_PRED_TASK_TIME = 20
 PJF_TIME_PRIMARY = 20
 PJF_TIME_SECONDARY = 20
 
+
+# Used in the enumeration estimate in chao_estimator(). If the difference between the size of list2 and the size of the 
+# estimate is less than this fraction of the size of the estimate then chao_estimator() will return True.
+THRESHOLD = 0
 
