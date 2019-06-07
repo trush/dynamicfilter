@@ -64,3 +64,5 @@ PJF_TIME_PRIMARY = 20
 PJF_TIME_SECONDARY = 20
 
 
+#______ Miscellany ___________#
+UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for every assignment (false) or after consensus for each task (true)

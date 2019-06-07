@@ -50,6 +50,7 @@ class TaskStats(models.Model):
             self.avg_num_pairs = ((self.avg_num_pairs*self.num_processed) + len(answer))/(self.num_processed + 1)
         # TODO: prejoin filter stats
         self.num_processed += 1
+        self.save()
 
         
 
@@ -79,6 +80,24 @@ class JFTask(models.Model):
 
     def update_result(self):
         self.result = views_helpers.find_consensus(self)
+
+    def get_task(self, answer, time):
+        #update yes_otes or no_votes based on answer
+        if answer:
+            self.yes_votes += 1
+        else:
+            self.no_votes += 1
+
+        #update average time
+        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #update number of tasks so far
+        self.num_tasks += 1
+
+        #check whether we've reached consensus
+        self.update_result()
+        self.save()
+
 
 @python_2_unicode_compatible
 class FindPairsTask(models.Model):
@@ -157,6 +176,24 @@ class SecPredTask(models.Model):
     def update_result(self):
         self.result = views_helpers.find_consensus(self)
 
+    
+    def get_task(self, answer, time):
+        #update yes_otes or no_votes based on answer
+        if answer:
+            self.yes_votes += 1
+        else:
+            self.no_votes += 1
+
+        #update average time
+        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #update number of tasks so far
+        self.num_tasks += 1
+
+        #check whether we've reached consensus
+        self.update_result()
+        self.save()
+
     def when_done(self):
         """
         Checks if consensus is reached and updates variables accordingly
@@ -208,5 +245,29 @@ class JoinPairTask(models.Model):
         return "Join Pair task for items ", self.primary_item, ", ", self.secondary_item  
 
     def update_result(self):
+        #have we reached consensus?
         self.result = views_helpers.find_consensus(self)
+
+        #if we have reached consensus and the result is a match, add our secondary item to the
+        #primary item's list of matches
+        if self.result is True:
+            self.primary_item.add_secondary_item(self.secondary_item)
+
+    
+    def get_task(self, answer, time):
+        #update yes_votes or no_votes based on answer
+        if answer:
+            self.yes_votes += 1
+        else:
+            self.no_votes += 1
+
+        #update average time
+        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #update number of tasks so far
+        self.num_tasks += 1
+
+        #check whether we've reached consensus
+        self.update_result()
+        self.save()
 
