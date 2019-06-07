@@ -10,6 +10,8 @@ from scipy.special import btdtr
 
 
 def find_consensus(item):
+"""
+"""
     #NOTE: Toggles needed
 
     if item.yes_votes + item.no_votes < toggles.NUM_CERTAIN_VOTES:
