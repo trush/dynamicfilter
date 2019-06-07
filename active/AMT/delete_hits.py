@@ -24,7 +24,7 @@ finished_hits = []
 
 for row in hitid_csv:
     # gets hit id from csv
-    (hit_id, hotel, task) = [x.strip() for x in row.split(',')]
+    (hit_id, hotel, task, restaurant) = [x.strip() for x in row.split(',')]
 
     hit = mturk.get_hit(HITId = hit_id)
 
@@ -37,15 +37,15 @@ for row in hitid_csv:
       print "Reviewable hit " + hit_id + " deleted from MTurk."
     else:
       print "hit " + hit_id + " not removed, status=" + str(hit['HIT']['HITStatus'])
-      finished_hits.append((hit_id, hotel))
+      finished_hits.append((hit_id, hotel, task, restaurant))
 
 
 # clear removed HITs from csv
 hitid_csv = open('HIT_IDs.csv', "w") 
 
 #refill completed hits
-for (hit_id, hotel) in finished_hits:
-  hitid_csv.write(hit_id + ", " + hotel + "\n")
+for (hit_id, hotel, task, restaurant) in finished_hits:
+  hitid_csv.write(str(hit_id) + ", " + str(hotel) + ", " + str(task) + ", " + str(restaurant) + "\n")
 
 
 print "All recorded assignable HITs expired. No tasks should be posted to MTurk."
