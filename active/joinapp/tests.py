@@ -93,7 +93,7 @@ class Secondary_Pred_Tests(TestCase):
     def test_secpred_when_done_consensus_true(self):
         prim_item1 = PrimaryItem.objects.create()
         prim_item2 = PrimaryItem.objects.create()
-        prim_item3 = PrimaryItem.objects.create())
+        prim_item3 = PrimaryItem.objects.create()
 
         sec_item1 = SecondaryItem.objects.create()
         sec_item2 = SecondaryItem.objects.create()
@@ -157,13 +157,15 @@ class Secondary_Pred_Tests(TestCase):
 class JoinPairTask_Tests(TestCase):
     def test_update_result(self):
         fp_task = FindPairsTask.objects.create()
+        p1 = PrimaryItem.objects.create()
+        s1 = SecondaryItem.objects.create()
 
-        join_pair_task1 = JoinPairTask.objects.create(yes_votes=15, no_votes=10, find_pairs_task=fp_task)
+        join_pair_task1 = JoinPairTask.objects.create(yes_votes=15, no_votes=10, find_pairs_task=fp_task, primary_item=p1, secondary_item=s1)
         join_pair_task1.update_result()
 
         self.assertTrue(join_pair_task1.result)
 
-        join_pair_task2 = JoinPairTask.objects.create(yes_votes=10, no_votes=15, find_pairs_task=fp_task)
+        join_pair_task2 = JoinPairTask.objects.create(yes_votes=10, no_votes=15, find_pairs_task=fp_task, primary_item=p1, secondary_item=s1)
         join_pair_task2.update_result()
 
         self.assertFalse(join_pair_task2.result)
@@ -171,6 +173,8 @@ class JoinPairTask_Tests(TestCase):
 class FindPairsTask_Tests(TestCase):
     def test_update_consensus(self):
         fp_task = FindPairsTask.objects.create()
+        p1 = PrimaryItem.objects.create()
+        s1 = SecondaryItem.objects.create()
 
         self.assertFalse(fp_task.consensus)
 
@@ -179,10 +183,10 @@ class FindPairsTask_Tests(TestCase):
 
         self.assertTrue(fp_task.consensus)
 
-        join_pair_task1 = JoinPairTask.objects.create(find_pairs_task=fp_task)
-        join_pair_task2 = JoinPairTask.objects.create(find_pairs_task=fp_task)
-        join_pair_task3 = JoinPairTask.objects.create(find_pairs_task=fp_task)
-        join_pair_task4 = JoinPairTask.objects.create(find_pairs_task=fp_task)
+        join_pair_task1 = JoinPairTask.objects.create(find_pairs_task=fp_task, primary_item=p1, secondary_item=s1)
+        join_pair_task2 = JoinPairTask.objects.create(find_pairs_task=fp_task, primary_item=p1, secondary_item=s1)
+        join_pair_task3 = JoinPairTask.objects.create(find_pairs_task=fp_task, primary_item=p1, secondary_item=s1)
+        join_pair_task4 = JoinPairTask.objects.create(find_pairs_task=fp_task, primary_item=p1, secondary_item=s1)
 
         fp_task.update_consensus()
         fp_task.refresh_from_db()
@@ -211,7 +215,6 @@ class FindPairsTask_Tests(TestCase):
         fp_task.update_consensus()
         fp_task.refresh_from_db()
 
-        print(5)
         self.assertTrue(fp_task.consensus)
 
 
