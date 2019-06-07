@@ -81,4 +81,3 @@ class PrimaryItem(models.Model):
         self.num_sec_items += 1
         self.save()
 
-
