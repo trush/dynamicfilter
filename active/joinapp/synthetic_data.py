@@ -88,7 +88,7 @@ def syn_answer_joinable_filter_task(hit):
     task = JFTask.get_or_create(primary_item = primary_item)
 
     #determine vote
-    if random.random() < JF_AMBIGUITY:
+    if random.random() > JF_AMBIGUITY:
         if truth is True:
             vote = 1
         elif truth is False:
@@ -115,7 +115,7 @@ def syn_answer_sec_pred_task(hit):
     task = SecPredTask.get_or_create(secondary_item = item)
 
     #determine vote
-    if random.random() < SEC_PRED_AMBIGUITY:
+    if random.random() > SEC_PRED_AMBIGUITY:
         if truth is True:
             vote = 1
         elif truth is False:
@@ -143,7 +143,7 @@ def syn_answer_join_pair_task(JoinPairTasks_Dict):
     task = JoinPairTask.objects.get_or_create(primary_item = primary_item, secondary_item = secondary_item)
 
     #determine vote
-    if random.random() < JOIN_COND_AMBIGUITY:
+    if random.random() > JOIN_COND_AMBIGUITY:
         if truth is True:
             vote = 1
         elif truth is False:
