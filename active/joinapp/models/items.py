@@ -19,8 +19,6 @@ class SecondaryItem(models.Model):
     In our specific example, secondary items are restaurants.
 	"""
 
-    #Note: Have to initialize item_id when making an instance or it will violate not-null constraint
-    item_id = models.IntegerField(default=None, primary_key=True)
     name = models.CharField(max_length=100)
 
     #Maybe unnecessary? In our case this would be restaurant
@@ -42,8 +40,6 @@ class PrimaryItem(models.Model):
     In our specific example, primary items are hotels.
 	"""
 
-    #Note: Have to initialize item_id when making an instance or it will violate not-null constraint
-    item_id = models.IntegerField(default=None, primary_key=True)
     name = models.CharField(max_length=100)
 
     #Maybe unnecessary? In our case this would be hotel
@@ -52,7 +48,7 @@ class PrimaryItem(models.Model):
     eval_result = models.BooleanField(db_index=True, default=False)
     is_done = models.BooleanField(db_index=True, default=False)
 
-    #Many-To-Many Field relating primary items to secondary items
+    # Many-To-Many Field relating primary items to secondary items
     secondary_items = models.ManyToManyField(SecondaryItem, related_name='primary_items')
 
     #Number of secondary items related to this item
