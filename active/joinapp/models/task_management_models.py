@@ -167,9 +167,9 @@ class SecPredTask(models.Model):
                 primary_item.eval_result = True
                 primary_item.save()
             self.secondary_item.second_pred_result = True
-            #Mark hotels done, remove restaurant
-        elif self.result == False:
-            
+        
+        #Mark hotels done, remove restaurant
+        elif self.result == False:            
             #Decrement counter of related primary items by 1
             primary_set = self.secondary_item.primary_items.all()
 
@@ -178,7 +178,7 @@ class SecPredTask(models.Model):
                 primary_item.save()
             
             #Removes all relationships with this item
-            self.secondary_item.primary_item_set.clear()
+            self.secondary_item.primary_items.clear()
             self.secondary_item.second_pred_result = False
 
 @python_2_unicode_compatible
@@ -194,7 +194,7 @@ class JoinPairTask(models.Model):
     time = models.FloatField(default=0)
 
     # many to one relationship for finding consensus for find pairs task
-    find_pairs_task = models.ForeignKey(FindPairsTask)
+    find_pairs_task = models.ForeignKey(FindPairsTask, default=None)
 
     # result: 
     # True if the IT pair passes with consensus
