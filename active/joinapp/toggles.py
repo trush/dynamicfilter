@@ -50,12 +50,15 @@ PJF_AMBIGUITY_PRIMARY = 0.1
 PJF_AMBIGUITY_SECONDARY = 0.1
 
 #__________________ Time Settings _____________________#
-JF_TIME = 100
+JF_TASK_TIME = 100
 FIND_PAIRS_TASK_TIME = 20
 SEC_PRED_TASK_TIME = 20
 PJF_TIME_PRIMARY = 20
 PJF_TIME_SECONDARY = 20
 
+
+#______ Miscellany ___________#
+UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for every assignment (false) or after consensus for each task (true)
 
 # Used in the enumeration estimate in chao_estimator(). If the difference between the size of list2 and the size of the 
 # estimate is less than this fraction of the size of the estimate then chao_estimator() will return True.
