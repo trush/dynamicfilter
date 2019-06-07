@@ -72,16 +72,13 @@ class JoinSimulation(TransactionTestCase):
         Loads in primary list
         """
 
-        ID = 0
-
         f = open( PRIMARY_LIST, 'r')
         for line in f:
             try:
                 line = line.rstrip ('\n')
-                item = PrimaryItem.objects.create(item_id = ID, name = line)
+                item = PrimaryItem.objects.create(name = line)
             except:
-                print "Error reading item ", ID
-            ID += 1 
+                print "Error reading item "
         f.close()
 
 
@@ -95,7 +92,7 @@ class JoinSimulation(TransactionTestCase):
             for row in csv_reader:
                 try:
                     key = (row["HIT ID COL"],row["WORKER ID COL"] #TODO update column #s
-                    value = (row["PRIMARY ITEM COL"], row["SECONDARY ITEM COL"], row["TIME TAKEN COL"], row["WORKER RESPONSE COL"]) #TODO update column #s
+                    value = (row["PRIMARY ITEM PK COL"], row["SECONDARY ITEM PK COL"], row["TIME TAKEN COL"], row["WORKER RESPONSE COL"]) #TODO update column #s
 
                     task_type = row["TASK TYPE COL"] #TODO update column #s
                     
