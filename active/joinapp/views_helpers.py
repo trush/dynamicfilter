@@ -52,6 +52,116 @@ def find_consensus(item):
 
 
 
+#_____GATHER TASKS_____#
+
+def gather_task(task_type, answer, cost, item1_id = None, item2_id = None):
+    if item1_id is None and item2_id is None:
+        raise Exception("no item given")
+
+    #call correct helper for the given task_type and collect the result (if we reach consensus)
+    if task_type == 0:
+        ans = collect_joinable_filter(answer, cost, item1_id)
+    elif task_type == 1:
+        ans = collect_find_pairs(answer, cost, item1_id)
+    elif task_type == 2:
+        ans = collect_prejoin_filter(answer, cost, item1_id, item2_id)
+    elif task_type == 3:
+        ans = collect_secondary_predicate(answer, cost, item2_id)
+    else: #if task_type == 4:
+        ans = collect_join_pair(answer, cost, item1_id, item2_id)
+
+    #depending on whether we want to update on consensus, we may need to update TaskStats for the relevant type
+    if toggles.UPDATE_ON_CONSENSUS and ans is not None:
+        task_stats = TaskStats.objects.get(task_type = task_type)
+        task_stats.update_stats(cost, answer)
+    else:
+        task_stats = TaskStats.objects.get(task_type = task_type)
+        task_stats.update_stats(cost, answer)
+
+
+#_____GATHER TASKS HELPERS____#
+
+## Collect joinable filter task
+def collect_joinable_filter(answer, cost, item1_id):
+    #load primary item from db
+    primary_item = PrimaryItem.objects.get(item_id = item1_id)
+
+    #use primary item to find the relevant task
+    our_tasks = JFTask.objects.filter(primary_item = primary_item)
+    #if we have a joinable filter task with this item, it is our task.
+    #otherwise, we must create a new task
+    if not our_tasks.exists():
+        this_task = JFTask.objects.create(primary_item = primary_item)
+    else:
+        this_task = JFTask.objects.get(primary_item = primary_item)
+    
+    #allow model functionality to update its fields accordingly
+    this_task.get_task(answer, cost)
+
+    #return the result from this_task for use
+    this_task.refresh_from_db()
+    return this_task.result()
+
+## Collect find pairs task
+def collect_find_pairs(answer, cost, item1_id):
+    #load primary item from db
+    primary_item = PrimaryItem.objects.get(item_id = item1_id)
+
+    #use primary item to find the relevant task
+    our_tasks = FindPairsTask.objects.filter(primary_item = primary_item)
+    #if we have a joinable filter task with this item, it is our task.
+    #otherwise, we must create a new task
+    if not our_tasks.exists():
+        this_task = FindPairsTask.objects.create(primary_item = primary_item)
+    else:
+        this_task = FindPairsTask.objects.get(primary_item = primary_item)
+
+    
+
+
+## Collect secondary predicate task
+def collect_secondary_predicate(answer, cost, item2_id):
+    #load secondary item from db
+    secondary_item = SecondaryItem.objects.get(item_id = item2_id)
+
+    #use secondary item to find the relevant task
+    our_tasks = SecPredTask.objects.filter(secondary_item = secondary_item)
+    #if we have a secondary predicate task with this item, it is our task.
+    #otherwise, we must create a new task
+    if not our_tasks.exists():
+        this_task = SecPredTask.objects.create(secondary_item = secondary_item)
+    else:
+        this_task = SecPredTask.objects.get(secondary_item = secondary_item)
+    
+    #allow model functionality to update its fields accordingly
+    this_task.get_task(answer, cost)
+
+    #return the result from this_task for use
+    this_task.refresh_from_db()
+    return this_task.result()
+
+## Collect Join Pair task
+def collect_join_pair(answer, cost, item1_id, item2_id):
+    #load primary item from db
+    primary_item = PrimaryItem.objects.get(item_id = item1_id)
+    #load secondary item from db
+    secondary_item = SecondaryItem.objects.get(item_id = item2_id)
+
+    #use primary item to find the relevant task
+    our_tasks = JoinPairTask.objects.filter(primary_item = primary_item, secondary_item = secondary_item)
+    #if we have a join pair task with these items, it is our task.
+    #otherwise, we must create a new task
+    if not our_tasks.exists():
+        this_task = JoinPairTask.objects.create(primary_item = primary_item, secondary_item = secondary_item)
+    else:
+        this_task = JoinPairTask.objects.get(primary_item = primary_item, secondary_item = secondary_item)
+    
+    #allow model functionality to update its fields accordingly
+    this_task.get_task(answer, cost)
+
+    #return the result from this_task for use
+    this_task.refresh_from_db()
+    return this_task.result()
 
 #_____GIVE TASKS_____#
 
