@@ -11,6 +11,7 @@ import math
 # The .. means we are importing from the outer folder
 from .. import toggles
 from .. import views_helpers
+from estimator import FStatistic
 
 @python_2_unicode_compatible
 class SecondaryItem(models.Model):
@@ -29,6 +30,8 @@ class SecondaryItem(models.Model):
 
     #Number of primary items related to this item
     num_prim_items = models.IntegerField(default=0)
+
+    fstatistic = models.ForeignKey(FStatistic)
     
     def __str__(self):
         return str(self.name) + "Item ID:" + str(self.item_id)           
