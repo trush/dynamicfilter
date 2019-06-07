@@ -124,6 +124,43 @@ class FindPairsTask(models.Model):
         if not join_pair_tasks.exists():
             self.consensus = True
 
+    #expects a list of secondary item ids (the answer) and the cost returned from a find_pairs task
+    def get_task(self, answer, cost):
+        #update average time
+        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #get join pairs from this task
+        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
+
+        # Find join pair tasks that match each match we found, creating new ones if necessary
+        for match in answer:
+            sec_item = SecondaryItem.get(id = match)
+            matching_join_pairs = join_pair_tasks.filter(secondary_item = sec_item, primary_item = self.primary_item)
+
+            #create a new join pair task if it does not exist in our list of join pair tasks
+            #NOTE: We may at some point need to address adding join pair tasks that exist to our list
+            if not matching_join_pairs.exists():
+                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = num_tasks)
+
+        #get join pairs from this task (again)
+        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
+
+        #add votes as necessary, update consensus for each join pair task
+        for join_pair_task in join_pair_tasks:
+            #update votes
+            if join_pair_task.secondary_item.id in answer:
+                join_pair_task.yes_votes += 1
+            else:
+                join_pair_task.no_votes += 1
+            join_pair_task.save(update_fields = ["yes_votes","no_votes"])
+
+            #check consensus
+            join_pair_task.update_result()
+
+        self.num_tasks += 1
+        self.update_consensus()
+        self.save()
+
 
 @python_2_unicode_compatible
 class JoinPairTask(models.Model):
