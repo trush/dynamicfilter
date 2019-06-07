@@ -39,7 +39,7 @@ class PrimaryItem(models.Model):
 	Model representing an item in the primary list.
     In our specific example, primary items are hotels.
 	"""
-
+    
     name = models.CharField(max_length=100)
 
     #Maybe unnecessary? In our case this would be hotel
