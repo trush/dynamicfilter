@@ -52,9 +52,6 @@ class TaskStats(models.Model):
         self.num_processed += 1
         self.save()
 
-        
-
-
 @python_2_unicode_compatible
 class JFTask(models.Model):
     """
@@ -82,7 +79,7 @@ class JFTask(models.Model):
         self.result = views_helpers.find_consensus(self)
 
     def get_task(self, answer, time):
-        #update yes_otes or no_votes based on answer
+        #update yes_votes or no_votes based on answer
         if answer:
             self.yes_votes += 1
         else:
@@ -97,7 +94,6 @@ class JFTask(models.Model):
         #check whether we've reached consensus
         self.update_result()
         self.save()
-
 
 @python_2_unicode_compatible
 class FindPairsTask(models.Model):
@@ -123,7 +119,6 @@ class FindPairsTask(models.Model):
 
         if not join_pair_tasks.exists():
             self.consensus = True
-
 
 @python_2_unicode_compatible
 class JoinPairTask(models.Model):
@@ -231,7 +226,7 @@ class SecPredTask(models.Model):
 
     
     def get_task(self, answer, time):
-        #update yes_otes or no_votes based on answer
+        #update yes_votes or no_votes based on answer
         if answer:
             self.yes_votes += 1
         else:
