@@ -11,7 +11,6 @@ def syn_load_list():
     """
     for i in range(toggles.NUM_PRIM_ITEMS):
         PrimaryItem.objects.create(name = "primary item" + str(i))
-    }
 
 def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
     """
@@ -22,7 +21,7 @@ def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
     num_sec_per_prim = np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM, NUM_PRIM_ITEMS) #make a distribution of how many secondary items each primary item is joined with
     for primary in PrimaryItem.objects.all():
         num_sec = np.random.choice(num_sec_per_prim, size = None, replace = SAMPLE_W_REPLACE_NUM_SEC, p = None) #for this primary item, choose how many secondary
-        sec_pk_list = random.sample(range(NUM_SEC_ITEMS), num_prim) #randomly select the pks of the secondary items to associate with this primary item
+        sec_pk_list = random.sample(range(NUM_SEC_ITEMS), num_sec) #randomly select the pks of the secondary items to associate with this primary item
         worker_response = ""
         for sec_pk in sec_pk_list: #build the worker response
             sec_item = "Secondary Item " + str(sec_pk) + "; " + "Address " + str(sec_pk) + "{{NEWENTRY}}"

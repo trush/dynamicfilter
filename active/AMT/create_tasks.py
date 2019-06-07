@@ -41,7 +41,7 @@ for line in f:
       AutoApprovalDelayInSeconds = 14400,
       Question = question,
   ) ## averages ?? time
-  hit_list.append((new_hit, hotel, "list_secondary"))
+  hit_list.append((new_hit, hotel, "list_secondary", None))
   print "A new HIT has been created. You can preview it here:"
   print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
@@ -64,7 +64,7 @@ for line in f:
       AutoApprovalDelayInSeconds = 14400,
       Question = question2,
   ) ## averages ?? time
-  hit_list.append((new_hit, hotel, "eval_joinable_filter"))
+  hit_list.append((new_hit, hotel, "eval_joinable_filter", None))
   print "A new HIT has been created. You can preview it here:"
   print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
@@ -83,15 +83,15 @@ for line in f:
   #      AutoApprovalDelayInSeconds = 14400,
   #      Question = question1,
   #  ) ## averages ?? time
-#    hit_list.append((new_hit, hotel))
+#    hit_list.append((new_hit, hotel, "eval_prejoin_filter", None))
   #  print "A new HIT has been created. You can preview it here:"
   #  print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
   #  print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
 # add posted hits to an external csv
-for (hit, hotel) in hit_list:
+for (hit, hotel, task, restaurant) in hit_list:
   hitid = hit['HIT']['HITId']
-  csv.write(hitid + ", " + hotel + "\n")
+  csv.write(str(hitid) + ", " + str(hotel) + ", " + str(task) + ", " + str(restaurant) + "\n")
 # Remember to modify the URL above when you're publishing
 # HITs to the live marketplace.
 # Use: https://worker.mturk.com/mturk/preview?groupId=
