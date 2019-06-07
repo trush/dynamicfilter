@@ -39,7 +39,7 @@ class PrimaryItem(models.Model):
 	Model representing an item in the primary list.
     In our specific example, primary items are hotels.
 	"""
-    
+
     name = models.CharField(max_length=100)
 
     #Maybe unnecessary? In our case this would be hotel
@@ -48,7 +48,7 @@ class PrimaryItem(models.Model):
     eval_result = models.BooleanField(db_index=True, default=False)
     is_done = models.BooleanField(db_index=True, default=False)
 
-    #Many-To-Many Field relating primary items to secondary items
+    # Many-To-Many Field relating primary items to secondary items
     secondary_items = models.ManyToManyField(SecondaryItem, related_name='primary_items')
 
     #Number of secondary items related to this item

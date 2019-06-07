@@ -161,6 +161,7 @@ class JoinPairTask(models.Model):
 
         #if we have reached consensus and the result is a match, add our secondary item to the
         #primary item's list of matches
+        #Running this multiple times is fine, the relationship is not duplicated
         if self.result is True:
             self.primary_item.add_secondary_item(self.secondary_item)
 
