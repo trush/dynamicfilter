@@ -87,9 +87,7 @@ class Primary_Model_Tests(TestCase):
         self.assertIs(prim_item1.num_sec_items, 3)
         self.assertIs(prim_item2.num_sec_items, 1)
         self.assertIs(prim_item3.num_sec_items, 2)
-
-        
-
+      
 class Secondary_Pred_Tests(TestCase):   
 
     def test_secpred_when_done_consensus_true(self):
@@ -156,6 +154,71 @@ class Secondary_Pred_Tests(TestCase):
 
         self.assertQuerysetEqual(sec_item1.primary_items.all(), SecondaryItem.objects.none())
         
+class JoinPairTask_Tests(TestCase):
+    def test_update_result(self):
+        fp_task = FindPairsTask.objects.create()
+
+        join_pair_task1 = JoinPairTask.objects.create(yes_votes=15, no_votes=10, find_pairs_task=fp_task)
+        join_pair_task1.update_result()
+
+        self.assertTrue(join_pair_task1.result)
+
+        join_pair_task2 = JoinPairTask.objects.create(yes_votes=10, no_votes=15, find_pairs_task=fp_task)
+        join_pair_task2.update_result()
+
+        self.assertFalse(join_pair_task2.result)
+
+class FindPairsTask_Tests(TestCase):
+    def test_update_consensus(self):
+        fp_task = FindPairsTask.objects.create()
+
+        self.assertFalse(fp_task.consensus)
+
+        fp_task.update_consensus()
+        fp_task.refresh_from_db()
+
+        self.assertTrue(fp_task.consensus)
+
+        join_pair_task1 = JoinPairTask.objects.create(find_pairs_task=fp_task)
+        join_pair_task2 = JoinPairTask.objects.create(find_pairs_task=fp_task)
+        join_pair_task3 = JoinPairTask.objects.create(find_pairs_task=fp_task)
+        join_pair_task4 = JoinPairTask.objects.create(find_pairs_task=fp_task)
+
+        fp_task.update_consensus()
+        fp_task.refresh_from_db()
+
+        self.assertFalse(fp_task.consensus)
+
+        join_pair_task1.result=False
+        join_pair_task2.result=True
+        join_pair_task1.save()
+        join_pair_task2.save()
+        join_pair_task1.refresh_from_db()
+        join_pair_task2.refresh_from_db()
+
+        fp_task.update_consensus()
+        fp_task.refresh_from_db()
+
+        self.assertFalse(fp_task.consensus)
+
+        join_pair_task3.result=False
+        join_pair_task4.result=True
+        join_pair_task3.save()
+        join_pair_task4.save()
+        join_pair_task3.refresh_from_db()
+        join_pair_task4.refresh_from_db()
+
+        fp_task.update_consensus()
+        fp_task.refresh_from_db()
+
+        print(5)
+        self.assertTrue(fp_task.consensus)
+
+
+
+
+
+
 
 
 

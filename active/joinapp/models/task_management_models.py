@@ -94,13 +94,16 @@ class FindPairsTask(models.Model):
     consensus = models.NullBooleanField(default=False)
 
     def __str__(self):
-        return "Find Pairs for item ", self.primary_item   
+        return "Find Pairs for item " + str(self.primary_item)   
 
     def update_consensus(self):
         join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
-
         if not join_pair_tasks.exists():
             self.consensus = True
+            self.save()
+        else:
+            self.consensus = False
+            self.save()
 
 @python_2_unicode_compatible
 class JoinPairTask(models.Model):
@@ -126,10 +129,11 @@ class JoinPairTask(models.Model):
     result = models.NullBooleanField(default=None)
 
     def __str__(self):
-        return "Join Pair task for items ", self.primary_item, ", ", self.secondary_item  
+        return "Join Pair task for items " + str(self.primary_item) + ", " + str(self.secondary_item)
 
     def update_result(self):
         self.result = views_helpers.find_consensus(self)
+        self.save()
 
 @python_2_unicode_compatible
 class PJFTask(models.Model):
@@ -151,9 +155,9 @@ class PJFTask(models.Model):
 
     def __str__(self):
         if self.primary_item is not None:
-            return "Pre-Join Filter for item ", self.primary_item
+            return "Pre-Join Filter for item " + str(self.primary_item)
         elif self.secondary_item is not None:
-            return "Pre-Join Filter for item ", self.secondary_item
+            return "Pre-Join Filter for item " + str(self.secondary_item)
         else:
             raise Exception("No item")
 
@@ -177,7 +181,7 @@ class SecPredTask(models.Model):
     result = models.NullBooleanField(default=None)
 
     def __str__(self):
-        return "Secondary Predicate Filter for item ", self.secondary_item
+        return "Secondary Predicate Filter for item " + str(self.secondary_item)
 
     def update_result(self):
         self.result = views_helpers.find_consensus(self)
