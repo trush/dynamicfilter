@@ -10,8 +10,6 @@ from scipy.special import btdtr
 
 
 def find_consensus(item):
-"""
-"""
     #NOTE: Toggles needed
 
     if item.yes_votes + item.no_votes < toggles.NUM_CERTAIN_VOTES:
@@ -65,7 +63,7 @@ def choose_task(workerID, estimator):
     # if second list is not complete do find pairs task, if it is, do join pairs task
     if not estimator.has_2nd_list:
         choose_task_find_pairs(new_worker)
-    else:
+    #else:
         #secondary predicate task
 
 

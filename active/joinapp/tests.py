@@ -5,6 +5,7 @@ from django.test import *
 
 from models.items import *
 from models.task_management_models import *
+from models.estimator import *
 
 class Primary_Model_Tests(TestCase):        
     def test_primary_check_empty(self):
@@ -216,6 +217,43 @@ class FindPairsTask_Tests(TestCase):
         fp_task.refresh_from_db()
 
         self.assertTrue(fp_task.consensus)
+
+class Estimator_Tests(TestCase):
+    def test_estimator_fstat_interaction(self):
+        est = Estimator.objects.create()
+
+        sec_item1 = SecondaryItem.objects.create()
+        sec_item2 = SecondaryItem.objects.create()
+        sec_item3 = SecondaryItem.objects.create()
+        sec_item4 = SecondaryItem.objects.create()
+
+        fpt = FindPairsTask.objects.create()
+        #Currently the same jpt can interact multiple times
+        jpt1 = JoinPairTask.objects.create(secondary_item=sec_item1, find_pairs_task=fpt)
+        jpt2 = JoinPairTask.objects.create(secondary_item=sec_item1, find_pairs_task=fpt)
+        jpt3 = JoinPairTask.objects.create(secondary_item=sec_item1, find_pairs_task=fpt)
+        jpt4 = JoinPairTask.objects.create(secondary_item=sec_item2, find_pairs_task=fpt)
+        jpt5 = JoinPairTask.objects.create(secondary_item=sec_item2, find_pairs_task=fpt)
+        jpt6 = JoinPairTask.objects.create(secondary_item=sec_item3, find_pairs_task=fpt)
+        jpt7 = JoinPairTask.objects.create(secondary_item=sec_item4, find_pairs_task=fpt)
+
+        est.update_chao_estimator_variables(jpt1)
+        est.update_chao_estimator_variables(jpt2)
+        est.update_chao_estimator_variables(jpt3)
+        est.update_chao_estimator_variables(jpt4)
+        est.update_chao_estimator_variables(jpt5)
+        est.update_chao_estimator_variables(jpt6)
+        est.update_chao_estimator_variables(jpt7)
+
+        self.assertTrue(FStatistic.objects.count() == 3)
+
+        fs1 = FStatistic.objects.get(times_seen=1)
+        fs2 = FStatistic.objects.get(times_seen=2)
+        fs3 = FStatistic.objects.get(times_seen=3)
+
+        self.assertTrue(fs1.num_of_items == 2)
+        self.assertTrue(fs2.num_of_items == 1)
+        self.assertTrue(fs3.num_of_items == 1)
 
 
 
