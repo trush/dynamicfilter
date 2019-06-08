@@ -12,7 +12,10 @@ class FStatistic(models.Model):
     # number of items seen num_in_sample times in the sample, maybe we don't need this
     num_of_items = models.IntegerField(default=0)
     # relations to keep track of which items are seen num_in_sample times
-    estimator = models.ForeignKey(Estimator)
+    estimator = models.ForeignKey('Estimator')
+
+    def __str__(self):
+        return "FStats for " + str(self.times_seen) + " with" + str(self.num_of_items) + "items."
 
 @python_2_unicode_compatible
 class Estimator(models.Model):
@@ -34,8 +37,9 @@ class Estimator(models.Model):
 
         # both variables updated in PW join in join class in section shown below
         if not self.has_2nd_list:
-            if not FStatistics.objects.all().exists():
-                new_fstat = FStatistics.create(times_seen=1,num_of_items=1,estimator=self)
+            if not FStatistic.objects.all().exists():
+                new_fstat = FStatistic.objects.create(times_seen=1,num_of_items=1,estimator=self)
+                print("Making fstat1")
 
                 sec_item = join_pair_task.secondary_item
                 sec_item.fstatistic = new_fstat
@@ -44,8 +48,11 @@ class Estimator(models.Model):
             else:
                 sec_item = join_pair_task.secondary_item
                 f_stat = sec_item.fstatistic
+                print("in has fstat, currently")
+                print(f_stat)
 
                 if f_stat == None:
+                    print("in fstat = none")
                     f_stat1 = FStatistic.objects.get(times_seen=1, estimator=self)
                     sec_item.fstatistic = f_stat1
                     f_stat1.num_of_items += 1
@@ -53,16 +60,22 @@ class Estimator(models.Model):
                     f_stat1.save()
                     sec_item.save()
 
-                else:                 
+                else:
+                    print("in the has fstat loop")                
                     times_seen_updated = f_stat.times_seen + 1
                     f_stat_n = None
                     if FStatistic.objects.filter(times_seen=times_seen_updated, estimator=self).exists():
-                        f_stat_n = FStatistic.objects.get(times_seen=times_seen_updated, estimator=self)                        
+                        f_stat_n = FStatistic.objects.get(times_seen=times_seen_updated, estimator=self)
+                        print("has fstatn")
+                        print(f_stat_n)             
                     else:
-                        f_stat_n = FStatistic.objects.create(times_seen=times_seen_updated, num_of_items=1 estimator=self)
-
-                    f_stat_n += 1
-                    f_stat -= 1
+                        f_stat_n = FStatistic.objects.create(times_seen=times_seen_updated, num_of_items=0, estimator=self)
+                        print("does not have fstatn")
+                        print(f_stat_n)
+                    print("outside fstatn")
+                    print(f_stat_n)
+                    f_stat_n.num_of_items += 1
+                    f_stat.num_of_items -= 1
 
                     sec_item.fstatistic = f_stat_n
 
@@ -83,18 +96,18 @@ class Estimator(models.Model):
         # prepping variables
         if self.total_sample_size <= 0:
             return False
-        f_stat = FStatistic.objects.get(times_seen=1):
+        f_stat = FStatistic.objects.get(times_seen=1)
         count = f_stat.num_of_items
 
         c_hat = 1-float(count)/self.total_sample_size
         sum_fis = 0
 
         for f_stat in FStatistic.objects.filter(estimator = self):
-        n = f_stat.num_in_sample
-        sum_fis += n*(n-1)*f_stat.num_of_items
+            n = f_stat.num_in_sample
+            sum_fis += n*(n-1)*f_stat.num_of_items
 
         num_sec_items = SecondaryItem.objects.count()
-        
+
         gamma_2 = max((num_sec_items/c_hat*sum_fis)/\
                     (self.total_sample_size*(self.total_sample_size-1)) -1, 0)
         # final equation

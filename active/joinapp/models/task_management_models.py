@@ -8,6 +8,8 @@ class Worker(models.Model):
     Model representing a worker on the MTurk.
     """
     worker_id = models.CharField(max_length=20)
+    def __str__(self):
+        return str(worker_id)
  
 ## @brief Model representing types of tasks and the statistics we need to store for each type
 @python_2_unicode_compatible
@@ -72,7 +74,7 @@ class JFTask(models.Model):
     # workers who have worked or are working on this task
     workers = models.ManyToManyField(Worker,related_name="joinable_filter_task")
     ## primary item this task is associated with
-    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
+    primary_item = models.ForeignKey('PrimaryItem', default=None, null=True)
     
     ## number of assignments processed for a task
     num_tasks = models.IntegerField(default=0)
@@ -123,7 +125,7 @@ class FindPairsTask(models.Model):
     # workers who have worked or are working on this task
     workers = models.ManyToManyField(Worker,related_name="find_pairs_task")
     ## primary item this task is associated with
-    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
+    primary_item = models.ForeignKey('PrimaryItem', default=None, null=True)
     ## number of assignments processed for this task
     num_tasks = models.IntegerField(default=0)
     ## total worker time spent processing this task
@@ -193,9 +195,9 @@ class JoinPairTask(models.Model):
     # workers who have worked or are working on this task
     workers = models.ManyToManyField(Worker,related_name="join_pair_task")
     ## primary item associated with this join
-    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
+    primary_item = models.ForeignKey('PrimaryItem', default=None, null=True)
     ## secondary item associated with this join
-    secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
+    secondary_item = models.ForeignKey('SecondaryItem', default=None, null=True)
     ## number of assignments processed for a task
     num_tasks = models.IntegerField(default=0)
     ## total worker time spent processing this task
@@ -262,8 +264,8 @@ class PJFTask(models.Model):
     # workers who have worked or are working on this task
     workers = models.ManyToManyField(Worker,related_name="pre_join_task")
     
-    primary_item = models.ForeignKey(PrimaryItem, default=None, null=True)
-    secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
+    primary_item = models.ForeignKey('PrimaryItem', default=None, null=True)
+    secondary_item = models.ForeignKey('SecondaryItem', default=None, null=True)
     # keep track of number of tasks
     num_tasks = models.IntegerField(default=0)
     # total time
@@ -291,7 +293,7 @@ class SecPredTask(models.Model):
     # workers who have worked or are working on this task
     workers = models.ManyToManyField(Worker,related_name="secondary_pred_task")
     
-    secondary_item = models.ForeignKey(SecondaryItem, default=None, null=True)
+    secondary_item = models.ForeignKey('SecondaryItem', default=None, null=True)
     # keep track of number of tasks
     num_tasks = models.IntegerField(default=0)
     # total time

@@ -31,10 +31,10 @@ class SecondaryItem(models.Model):
     #Number of primary items related to this item
     num_prim_items = models.IntegerField(default=0)
 
-    fstatistic = models.ForeignKey(FStatistic)
+    fstatistic = models.ForeignKey(FStatistic, default=None, null=True, blank=True)
     
     def __str__(self):
-        return str(self.name) + "Item ID:" + str(self.item_id)           
+        return str(self.name) + "Name:" + str(self.name)           
 
 @python_2_unicode_compatible
 class PrimaryItem(models.Model):
@@ -58,7 +58,7 @@ class PrimaryItem(models.Model):
     num_sec_items = models.IntegerField(default=0)
 
     def __str__(self):
-        return str(self.name) + "Item ID:" + str(self.item_id) 
+        return str(self.name) + "Name:" + str(self.name) 
     
     def check_empty(self):
         if self.num_sec_items == 0:
