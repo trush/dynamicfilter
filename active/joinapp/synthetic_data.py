@@ -24,7 +24,7 @@ def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
         for sec_pk in sec_pk_list: #build the worker response
             sec_item = "Secondary Item " + str(sec_pk) + "; " + "Address " + str(sec_pk) + "{{NEWENTRY}}"
             worker_response += sec_item
-        key = (primary.pk, 0)
+        key = (primary.name, 0)
         value = (primary.pk, "NA", FIND_PAIRS_TASK_TIME, worker_response)
         FindPairsTasks_Dict[key] = value
 
@@ -36,7 +36,7 @@ def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
 #   @param JFTasks_Dict simulation dictionary for joinable filter tasks
 def syn_load_joinable_filter_tasks(JFTasks_Dict):
     for primary in PrimaryItem.objects.all():
-        key = (primary.pk, 0)
+        key = (primary.name, 0)
         if random.random() < JF_SELECTIVITY:
             ground_truth = True
         else:
