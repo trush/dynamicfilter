@@ -1,5 +1,7 @@
-
+import random
+import string
 import csv
+import toggles
 from models.items import *
 from models.task_management_models import *
 
@@ -15,9 +17,6 @@ class JoinSimulation(TransactionTestCase):
     # Total number of tasks issued/completed in the simulation
     num_tasks_completed = 0
 
-    # Number of tasks issued/completed that did not contribute to consensus
-    num_wasted_tasks = 0
-
     # Amount of worker-time spent during the simulation
     sim_time = 0
 
@@ -26,9 +25,6 @@ class JoinSimulation(TransactionTestCase):
 
     # Total number of tasks issued/completed in each simulation
     num_tasks_completed_arr = []
-
-    # Number of tasks issued/completed that did not contribute to consensus in each simulation
-    num_wasted_tasks_arr = []
 
     # Amount of worker-time spent during each simulation
     sim_time_arr = []
@@ -66,6 +62,8 @@ class JoinSimulation(TransactionTestCase):
     # Value: not implemented (might not need to)
     JoinPairTasks_Dict = dict() 
 
+    # list holding worker IDs 
+    worker_ids = []
 
     ### settings ###
 
@@ -164,11 +162,20 @@ class JoinSimulation(TransactionTestCase):
         PJFTasks_Dict.clear()
         SecPredTasks_Dict.clear()
 
+        sim_time = 0
+        num_tasks_completed = 0
+
 
 
         
     ## reset completely ##
 
+    # generates random 13-letter worker ids and populates the list worker_ids
+    def generate_worker_ids(self):
+        for n in range(toggles.NUM_WORKERS):
+            letters = string.ascii_letters
+            worker_id = ''.join(random.choice(letters) for i in range(13))
+            self.worker_ids += [worker_id]
 
     ## optimal for comparison that runs all the true influential restaurants before the false ones ## <<< only useful in real data simulations
     ## run simulation ##
@@ -191,13 +198,16 @@ class JoinSimulation(TransactionTestCase):
                 #TODO load prejoin filter tasks
                 syn_load_join_pair_tasks(JoinPairTasks_Dict)
                 syn_load_sec_pred_tasks(SecPredTasks_Dict)
+
+        generate_worker_ids()
         
         while(PrimaryItem.objects.filter(is_done=False).exists()) #TODO is this the while loop we want to use?
             
-            # TODO pick worker
+            # pick worker
+            worker_id = random.choice(self.worker_ids)
 
             # CHOOSE TASK
-            task = chooseTask()
+            task = choose_task(worker_id, estimator)
             if type(task) is JFTask:
                 task_type = 0
                 JFTasks_Dict()
@@ -222,6 +232,13 @@ class JoinSimulation(TransactionTestCase):
             # UPDATE STATE AFTER TASK
             gather_task(task_type,task_answer,task_time)
         
+            sim_time += task_time
+            num_tasks_completed += 1
+
+        
+        sim_time_arr += [sim_time]
+        num_tasks_completed_arr += [num_tasks_completed]
+
         #when finished: 
             # compare results to ground truth to determine accuracy
             # print and return cost statistics (return so we can run multiple sims and keep track of their results)
