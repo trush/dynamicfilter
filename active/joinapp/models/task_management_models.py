@@ -184,6 +184,10 @@ class FindPairsTask(models.Model):
             #check consensus
             join_pair_task.update_result()
 
+            estimator = Estimator.objects.all().first()
+            #update estimator
+            estimator.update_chao_estimator_variables(join_pair_task)
+
         self.num_tasks += 1
         self.update_consensus()
         self.save()
@@ -233,6 +237,8 @@ class JoinPairTask(models.Model):
         #Running this multiple times is fine, the relationship is not duplicated
         if self.result is True:
             self.primary_item.add_secondary_item(self.secondary_item)
+            self.secondary_item.matches_some = True
+            self.secondary_item.save()
 
     ## @brief Updates state after an assignment for this task is completed
     # @param answer A list of secondary items
