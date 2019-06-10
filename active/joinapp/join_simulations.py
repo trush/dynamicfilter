@@ -242,6 +242,8 @@ class JoinSimulation(TransactionTestCase):
 
             if sec is not "NA":
                 sec = SecondaryItem.objects.get(name=sec).pk
+            else:
+                sec = None
             
 
             # UPDATE STATE AFTER TASK
