@@ -128,7 +128,30 @@ class JoinSimulation(TransactionTestCase):
     ## run simulation ##
     def run_sim(self):
 
-
+        # LOAD DATA
+        if REAL_DATA is True:
+            self.load_primary_real() #load primary list
+            self.load_real_data() #load worker responses into dictionaries
+        else:
+            syn_load_data() #load primary list
+            if JOIN_TYPE = 0: # joinable filter join
+                syn_load_joinable_filter_tasks(JFTasks_Dict)
+            elif JOIN_TYPE = 1: # item-wise join
+                syn_load_find_pairs_tasks(FindPairsTasks_Dict)
+                syn_load_sec_pred_tasks(SecPredTasks_Dict)
+            elif JOIN_TYPE = 2: # pre-join filtered join
+                #TODO load secondary list
+                #TODO load prejoin filter tasks
+                syn_load_join_pair_tasks(JoinPairTasks_Dict)
+                syn_load_sec_pred_tasks(SecPredTasks_Dict)
+        
+        while(PrimaryItem.objects.filter(is_done=False).count() is not 0)
+            # ISSUE TASK
+            # TODO pick worker
+            # TODO choose task
+            # TODO recieve result/update state
+        
+        #when finished: print and return cost statistics (return so we can run multiple sims and keep track of their results)
 
 
     ## represent simulation results ##
