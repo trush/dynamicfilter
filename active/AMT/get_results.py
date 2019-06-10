@@ -7,6 +7,7 @@ import boto3
 import string
 import datetime
 import xmltodict
+import csv
 MTURK_SANDBOX = 'https://mturk-requester-sandbox.us-east-1.amazonaws.com'
 
 mturk = boto3.client('mturk',
@@ -17,20 +18,21 @@ mturk = boto3.client('mturk',
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my Sandbox account"
 #csv that holds recorded hits
-csv = open('HIT_IDs.csv', "r") 
+my_csv = csv.reader(open('HIT_IDs.csv', 'r'), delimiter = ',') 
 
 # results csv
-results = open('HIT_RESULTS.csv', "w") 
+results = csv.writer(open('HIT_RESULTS.csv', 'w'), delimiter = ',')
 
 # header row for results csv
-first_row = "Hit Id, Hotel, Restaurant, Assignment Id, Assignment Status, Time Taken, workervote, feedback\n"
-results.write(first_row)
+first_row = ["Hit Id", "Hotel", "Restaurant", "Task", "Assignment Id", "Assignment Status", "Time Taken", "workervote", "feedback"]
+results.writerow(first_row)
 
 #finds set of printable characters for string processing later
 printable = set(string.printable)
 
-for row in csv:
-    [hit_id, hotel, task, restaurant] = [x.strip() for x in row.split(',')]
+for row in my_csv:
+    print row
+    [hit_id, hotel, task, restaurant] = row
     # We are only publishing this task to one Worker
     # So we will get back an array with one item if it has been completed
     worker_results = mturk.list_assignments_for_hit(HITId=hit_id)
@@ -46,9 +48,8 @@ for row in csv:
             else:
                 print "consent",answers_list[0]['FreeText']
             # Metadata from assignment, formatted for csv
-            newRow = assignment["HITId"]  + ", " + " (" + hotel + ")" + ", " + " (" + restaurant + ")" + ", " + " (" + task + ")" + ", " + assignment["AssignmentId"] +  ", " \
-                + assignment["AssignmentStatus"] + ", " + str((assignment["SubmitTime"] \
-                    - assignment["AcceptTime"]).total_seconds())
+            newRow = [assignment["HITId"], "(" + hotel + ")"," (" + restaurant + ")", "(" + task + ")",assignment["AssignmentId"], \
+                assignment["AssignmentStatus"],str((assignment["SubmitTime"] - assignment["AcceptTime"]).total_seconds())]
 
             #Nicer answers data structure  
             answers_dict = {}
@@ -63,11 +64,11 @@ for row in csv:
                 else:
                     answers_dict[question] = None
 
-            newRow += ", " + str(answers_dict['workervote']) + ", " + str(answers_dict['feedback'])
+            newRow += [str(answers_dict['workervote']),str(answers_dict['feedback'])]
 
             print newRow
 
-            results.write(newRow + "\n")
+            results.writerow(newRow)
     else:
         print "No results ready for HIT " + hit_id
 
