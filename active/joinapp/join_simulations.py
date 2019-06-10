@@ -104,7 +104,7 @@ class JoinSimulation(TransactionTestCase):
                         self.JoinPairTasks_Dict[key] = value
                     elif task_type is "list_secondary": 
                         self.FindPairsTasks_Dict[key] = value   
-                    elif task_tupe is "eval_pjf": #note that this name might be incorrect
+                    elif task_type is "eval_pjf": #note that this name might be incorrect
                         self.PJFTasks_Dict[key]= value 
                 except:
                     print "There was an error reading line", line_count 
@@ -115,12 +115,29 @@ class JoinSimulation(TransactionTestCase):
     ## ground truth determination ##
     # way to compare results from simulation with ground truth
 
+    ## reset database
+    def reset_database(self):
+        #empty models
+        PrimaryItem.objects.all().delete()
+        SecondaryItem.objects.all().delete()
+        Worker.objects.all().delete()
+        TaskStats.objects.all().delete()
+        JFTask.objects.all().delete()
+        FindPairsTask.objects.all().delete()
+        JoinPairTask.objects.all().delete()
+        PJFTask.objects.all().delete()
+        SecPredTask.objects.all().delete()
 
-    ## give task real and give task synthetic 
-        """ creates a task based on the current state of the simmulation of one of the possible task model types"""
+        #clear dictionaries #TODO is this necessary since they're within the class
+        JFTasks_Dict.clear()
+        FindPairsTask.clear()
+        JoinPairTasks_Dict.clear()
+        PJFTasks_Dict.clear()
+        SecPredTasks_Dict.clear()
 
 
-    ## reset database for multiple runs ##
+
+        
     ## reset completely ##
 
 
@@ -128,7 +145,54 @@ class JoinSimulation(TransactionTestCase):
     ## run simulation ##
     def run_sim(self):
 
+        # LOAD DATA
+        #TODO add task stats and estimator
+        if REAL_DATA is True:
+            self.load_primary_real() #load primary list
+            self.load_real_data() #load worker responses into dictionaries
+        else:
+            syn_load_data() #load primary list
+            if JOIN_TYPE = 0: # joinable filter join
+                syn_load_joinable_filter_tasks(JFTasks_Dict)
+            elif JOIN_TYPE = 1: # item-wise join
+                syn_load_find_pairs_tasks(FindPairsTasks_Dict)
+                syn_load_sec_pred_tasks(SecPredTasks_Dict)
+            elif JOIN_TYPE = 2: # pre-join filtered join
+                #TODO load secondary list
+                #TODO load prejoin filter tasks
+                syn_load_join_pair_tasks(JoinPairTasks_Dict)
+                syn_load_sec_pred_tasks(SecPredTasks_Dict)
+        
+        while(PrimaryItem.objects.filter(is_done=False).count() is not 0)
+            
+            # TODO pick worker
 
+            # CHOOSE TASK
+            task = chooseTask()
+            if type(task) is JFTask:
+                task_type = 0
+            elif type(task) is FindPairsTask:
+                task_type = 1
+            elif type(task) is JoinPairTask:
+                task_type = 2
+            elif type(task) is PJFTask:
+                task_type = 3
+            elif type(task) is SecPredTask:
+                task_type = 4
 
+            # ISSUE TASK
+            # TODO how do we sample from the dictionaries to get worker response??
+            task_answer = ""
+            task_time = 0
+
+            # UPDATE STATE AFTER TASK
+            gather_task(task_type,task_answer,task_time)
+        
+        #when finished: 
+            # compare results to ground truth to determine accuracy
+            # print and return cost statistics (return so we can run multiple sims and keep track of their results)
+            # somehow use above data to add to generate graphs
+
+        #statistics to export: accuracy, worker-time-cost, task-number-cost
 
     ## represent simulation results ##
