@@ -166,8 +166,11 @@ class JoinSimulation(TransactionTestCase):
         while(PrimaryItem.objects.filter(is_done=False).count() is not 0)
             # ISSUE TASK
             # TODO pick worker
+            task_answer = 
+            task_time = 
+            task_type = 
             # TODO choose task
-            # TODO recieve result/update state
+            gather_task(task_type,task_answer,task_time)
         
         #when finished: 
             # compare results to ground truth to determine accuracy
