@@ -2,6 +2,7 @@
 import csv
 from models.items import *
 from models.task_management_models import *
+from models.estimator import *
 
 class JoinSimulation(TransactionTestCase):
     """
@@ -175,7 +176,13 @@ class JoinSimulation(TransactionTestCase):
     def run_sim(self):
 
         # LOAD DATA
-        #TODO add task stats and estimator
+        estimator = Estimator.objects.create()
+        jf_task_stats = TaskStats.objects.create(task_type=0)
+        find_pairs_task_stats = TaskStats.objects.create(task_type=1)
+        join_pairs_task_stats = TaskStats.objects.create(task_type=2)
+        prejoin_task_stats = TaskStats.objects.create(task_type=3)
+        sec_pred_task_stats = TaskStats.objects.create(task_type=4)
+
         if REAL_DATA is True:
             self.load_primary_real() #load primary list
             self.load_real_data() #load worker responses into dictionaries
