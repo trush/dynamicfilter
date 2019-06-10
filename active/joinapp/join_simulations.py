@@ -2,6 +2,7 @@
 import csv
 from models.items import *
 from models.task_management_models import *
+import random
 
 class JoinSimulation(TransactionTestCase):
     """
@@ -173,6 +174,7 @@ class JoinSimulation(TransactionTestCase):
     ## optimal for comparison that runs all the true influential restaurants before the false ones ## <<< only useful in real data simulations
     ## run simulation ##
     def run_sim(self):
+        random.seed()
 
         # LOAD DATA
         #TODO add task stats and estimator
@@ -223,12 +225,17 @@ class JoinSimulation(TransactionTestCase):
                 (prim, sec, times, responses) = SecPredTasks_Dict(my_item)
 
             # ISSUE TASK
-            
-            # TODO how do we sample from the dictionaries to get worker response??
+            #choose a (matching) time and response for the task
+            ind = random.randint(0, len(times))
+            task_time = times[ind]
+            task_answer = responses[ind]
+
+            if sec is not "NA":
+                sec = SecondaryItem.objects.get(name=sec).pk
             
 
             # UPDATE STATE AFTER TASK
-            gather_task(task_type,task_answer,task_time)
+            gather_task(task_type,task_answer,task_time,prim,sec)
         
         #when finished: 
             # compare results to ground truth to determine accuracy
