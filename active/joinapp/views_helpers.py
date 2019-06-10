@@ -11,7 +11,6 @@ from scipy.special import btdtr
 ## @brief determines if an task has reached consensus or not (and what that consensus is)
 #   @param item task that needs to be evaluated for consensus
 def find_consensus(item):
-    #TODO: Toggles needed
     if item.yes_votes + item.no_votes < toggles.NUM_CERTAIN_VOTES:
         item.ambiguity = "No Consensus"
         return None
