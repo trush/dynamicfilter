@@ -13,55 +13,59 @@ from .. import toggles
 from .. import views_helpers
 from estimator import FStatistic
 
+## @brief Model representing an item in the secondary list
+# In our example, secondary items are restaurants
 @python_2_unicode_compatible
 class SecondaryItem(models.Model):
-    """
-	Model representing an item in the secondary list.
-    In our specific example, secondary items are restaurants.
-	"""
-
+    ## Name of secondary item
     name = models.CharField(max_length=100)
 
-    #Maybe unnecessary? In our case this would be restaurant
+    ## Maybe unnecessary? In our case this would be restaurant
     item_type = models.CharField(max_length=50)
 
-    #Consensus - None if not reached, True if item fulfills predicate, False if not
+    ## Consensus - None if not reached, True if item fulfills predicate, False if not
     second_pred_result = models.NullBooleanField(db_index=True, default=None)
 
-    #Number of primary items related to this item
+    ## Number of primary items related to this item
     num_prim_items = models.IntegerField(default=0)
-
+    ## Used in the estimator model for determining when we have completed our search for secondary items
     fstatistic = models.ForeignKey(FStatistic, default=None, null=True, blank=True)
     
+    ## @brief ToString method
     def __str__(self):
         return str(self.name) + "Name:" + str(self.name)           
 
+## @brief Model representing an item in the primary list
+# In our example, primary items are hotels
 @python_2_unicode_compatible
 class PrimaryItem(models.Model):
-    """
-	Model representing an item in the primary list.
-    In our specific example, primary items are hotels.
-	"""
-
+    ## Name of primary item
     name = models.CharField(max_length=100)
 
-    #Maybe unnecessary? In our case this would be hotel
+    ## Maybe unnecessary? In our case this would be hotel
     item_type = models.CharField(max_length=50)
 
+    ## Boolean representing whether or not this primary item passes the joinable filter
     eval_result = models.BooleanField(db_index=True, default=False)
+    ## Is this item done being processed or not
     is_done = models.BooleanField(db_index=True, default=False)
 
-    # Many-To-Many Field relating primary items to secondary items
+    ## Many-To-Many Field relating primary items to secondary items
     secondary_items = models.ManyToManyField(SecondaryItem, related_name='primary_items')
 
-    #Number of secondary items related to this item
+    ## Number of secondary items related to this item
     num_sec_items = models.IntegerField(default=0)
 
+<<<<<<< HEAD
     found_all_pairs = models.BooleanField(db_index=True, default=False)
     
+=======
+    ## @brief ToString method
+>>>>>>> 035f44408ad7dc9e3d9b8900add1e5d1956f8745
     def __str__(self):
         return str(self.name) + "Name:" + str(self.name) 
     
+    ## @brief Checks if this item is associated with zero secondary items
     def check_empty(self):
         if self.num_sec_items == 0:
             #Do we want to remove the primary item here or another function?
@@ -69,15 +73,14 @@ class PrimaryItem(models.Model):
         else:
             return False
 
-    #Possibly useless, just put the if statement and call delete in code?
+    ## @brief Possibly useless, just put the if statement and call delete in code?
     def remove_self(self):
         if self.check_empty():
             self.delete()   
 
+    ## @brief Adds a secondary item to the many-to-many relationship
+    # @param sec_item_to_add Secondary item to be associated with this primary item
     def add_secondary_item(self, sec_item_to_add):
-        """
-        Adds secondary item to many-to-many relationship and updates counter accordingly
-        """
         self.secondary_items.add(sec_item_to_add)
         self.num_sec_items += 1
         self.save()

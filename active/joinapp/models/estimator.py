@@ -39,7 +39,6 @@ class Estimator(models.Model):
         if not self.has_2nd_list:
             if not FStatistic.objects.all().exists():
                 new_fstat = FStatistic.objects.create(times_seen=1,num_of_items=1,estimator=self)
-                print("Making fstat1")
 
                 sec_item = join_pair_task.secondary_item
                 sec_item.fstatistic = new_fstat
@@ -48,11 +47,8 @@ class Estimator(models.Model):
             else:
                 sec_item = join_pair_task.secondary_item
                 f_stat = sec_item.fstatistic
-                print("in has fstat, currently")
-                print(f_stat)
 
                 if f_stat == None:
-                    print("in fstat = none")
                     f_stat1 = FStatistic.objects.get(times_seen=1, estimator=self)
                     sec_item.fstatistic = f_stat1
                     f_stat1.num_of_items += 1
@@ -60,20 +56,13 @@ class Estimator(models.Model):
                     f_stat1.save()
                     sec_item.save()
 
-                else:
-                    print("in the has fstat loop")                
+                else:             
                     times_seen_updated = f_stat.times_seen + 1
                     f_stat_n = None
                     if FStatistic.objects.filter(times_seen=times_seen_updated, estimator=self).exists():
-                        f_stat_n = FStatistic.objects.get(times_seen=times_seen_updated, estimator=self)
-                        print("has fstatn")
-                        print(f_stat_n)             
+                        f_stat_n = FStatistic.objects.get(times_seen=times_seen_updated, estimator=self)         
                     else:
                         f_stat_n = FStatistic.objects.create(times_seen=times_seen_updated, num_of_items=0, estimator=self)
-                        print("does not have fstatn")
-                        print(f_stat_n)
-                    print("outside fstatn")
-                    print(f_stat_n)
                     f_stat_n.num_of_items += 1
                     f_stat.num_of_items -= 1
 
