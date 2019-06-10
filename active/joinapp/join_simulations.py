@@ -44,18 +44,27 @@ class JoinSimulation(TransactionTestCase):
     sim_accuracy_arr = []
     
 
-    #_________________ Dictionaries _______________#
-    """
-    Keys: (HitID,assignmentID)
-    Values: (primary item id, secondary item id, time taken, worker response)
-    """
-    JFTasks_Dict = dict() 
-    FindPairsTasks_Dict = dict() 
-    PJFTasks_Dict = dict()
-    SecPredTasks_Dict = dict() 
-    JoinPairTasks_Dict = dict() 
+    #__________________________________  Dictionaries ________________________________#
 
-    
+    # Key: primary item pk
+    # Value: (primary item pk, "NA", time taken list, worker response list)
+    JFTasks_Dict = dict()
+
+    # Key: primary item pk
+    # Value: (primary item pk, "NA", time taken list, worker response list)
+    FindPairsTasks_Dict = dict() 
+
+    # Key: not implemented
+    # Value: not implemented
+    PJFTasks_Dict = dict()
+
+    # Key: secondary item name
+    # Value: ("NA", secondary item name, time taken list, worker response list)
+    SecPredTasks_Dict = dict() 
+
+    # Key: not implemented (might not need to)
+    # Value: not implemented (might not need to)
+    JoinPairTasks_Dict = dict() 
 
 
     ### settings ###
@@ -69,9 +78,8 @@ class JoinSimulation(TransactionTestCase):
     
     def load_primary_real(self):
         """
-        Loads in primary list
+        Loads primary list into databse
         """
-
         f = open( PRIMARY_LIST, 'r')
         for line in f:
             try:
@@ -81,7 +89,6 @@ class JoinSimulation(TransactionTestCase):
                 print "Error reading item "
         f.close()
 
-
     def load_real_data(self):
         """
         Loads the MTurk data from a csvfile and populates the answer dictionaries
@@ -90,25 +97,46 @@ class JoinSimulation(TransactionTestCase):
             csv_reader = csv.reader(csv_file, delimeter = ',')
             line_count = 0
             for row in csv_reader:
+                #csv rows are organized like this: "Hit Id, Hotel, Restaurant, Assignment Id, Assignment Status, Time Taken, workervote, feedback"
+                primary_item = row[1]
+                secondary_item = row[2]
+                time_taken = row[5]
+                worker_vote = row[6]
                 try:
-                    key = (row["HIT ID COL"],row["WORKER ID COL"] #TODO update column #s
-                    value = (row["PRIMARY ITEM COL"], row["SECONDARY ITEM PK COL"], row["TIME TAKEN COL"], row["WORKER RESPONSE COL"]) #TODO update column #s
-
-                    task_type = row["TASK TYPE COL"] #TODO update column #s
-                    
                     if task_type is "eval_joinable_filter":
-                        self.JFTasks_Dict[key] = value
+                        primary_item_pk = PrimaryItem.objects.filter(primary_item).pk 
+                        if primary_item_pk in JFTasks_Dict:
+                            value = JFTasks_Dict[primary_item_pk]
+                        else:
+                            value = (primary_item_pk,"NA",[],[]) 
+                        value[2] += time_taken #add assignment time to hit
+                        value[3] += worker_vote #add worker answer to hit
+                        JFTasks_Dict[primary_item_pk] = value
+
+                    elif task_type is "list_secondary":
+                        primary_item_pk = PrimaryItem.objects.filter(primary_item).pk 
+                        if primary_item_pk in FindPairsTasks_Dict:
+                            value = FindPairsTasks_Dict[primary_item.pk] 
+                        else:
+                            value = (primary_item_pk,"NA",[],[])
+                        value[2] += time_taken #add assignment time to hit
+                        value[3] += worker_vote #add worker answer to hit
+                        FindPairsTasks_Dict[primary_item_pk] = value
+
                     elif task_type is "eval_sec_pred":
-                        self.SecPredTasks_Dict[key] = value
+                        if secondary_item in SecPredTasks_Dict:
+                            value = SecPredTasks_Dict[secondary_item]   
+                        else:
+                            value = ("NA", secondary_item,[],[])
+                        value[2] += time_taken #add assignment time to hit
+                        value[3] += worker_vote #add worker answer to hit
+
+                    elif task_type is "eval_pjf":
+                        #TODO implement pjf
                     elif task_type is "eval_join_cond":
-                        self.JoinPairTasks_Dict[key] = value
-                    elif task_type is "list_secondary": 
-                        self.FindPairsTasks_Dict[key] = value   
-                    elif task_type is "eval_pjf": #note that this name might be incorrect
-                        self.PJFTasks_Dict[key]= value 
+                        #TODO implement join_condition (if necessary)
                 except:
-                    print "There was an error reading line", line_count 
-                
+                    print "Error reading in row ", line_count
                 line_count += 1
 
 
@@ -117,6 +145,7 @@ class JoinSimulation(TransactionTestCase):
 
     ## reset database
     def reset_database(self):
+        # TODO finish this
         #empty models
         PrimaryItem.objects.all().delete()
         SecondaryItem.objects.all().delete()
@@ -163,7 +192,7 @@ class JoinSimulation(TransactionTestCase):
                 syn_load_join_pair_tasks(JoinPairTasks_Dict)
                 syn_load_sec_pred_tasks(SecPredTasks_Dict)
         
-        while(PrimaryItem.objects.filter(is_done=False).count() is not 0)
+        while(PrimaryItem.objects.filter(is_done=False).exists()) #TODO is this the while loop we want to use?
             
             # TODO pick worker
 
@@ -171,19 +200,24 @@ class JoinSimulation(TransactionTestCase):
             task = chooseTask()
             if type(task) is JFTask:
                 task_type = 0
+                JFTasks_Dict()
             elif type(task) is FindPairsTask:
                 task_type = 1
+                FindPairsTasks_Dict()
             elif type(task) is JoinPairTask:
                 task_type = 2
+                JoinPairTasks_Dict()
             elif type(task) is PJFTask:
                 task_type = 3
+                PJFTasks_Dict()
             elif type(task) is SecPredTask:
                 task_type = 4
+                SecPredTasks_Dict()
 
             # ISSUE TASK
+            
             # TODO how do we sample from the dictionaries to get worker response??
-            task_answer = ""
-            task_time = 0
+            
 
             # UPDATE STATE AFTER TASK
             gather_task(task_type,task_answer,task_time)
