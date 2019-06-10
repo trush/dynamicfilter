@@ -9,6 +9,7 @@ from scipy.special import btdtr
 #_____FIND CONSENSUS_____#
 
 ## @brief determines if an task has reached consensus or not (and what that consensus is)
+#   @param item task that needs to be evaluated for consensus
 def find_consensus(item):
     #TODO: Toggles needed
     if item.yes_votes + item.no_votes < toggles.NUM_CERTAIN_VOTES:
@@ -98,6 +99,8 @@ def choose_task_find_pairs(prim_items_list,worker):
     find_pairs_task.save()
     return find_pairs_task
 
+## @brief chooses a secondary predicate task based on a worker
+# @param worker workerID of the worker this task is going to
 def choose_task_sec_pred(worker):
     # only secondary items that haven't reached consensus but match at least one primary item
     sec_items_left = SecondaryItem.objects.exclude(second_pred_result=None).exclude(matches_some = False)
@@ -115,7 +118,10 @@ def choose_task_sec_pred(worker):
 
 #_____GATHER TASKS_____#
 
-## Generic gather_task function that takes a task type, item(s) and a response and updates state
+## @brief Generic gather_task function that updates state after a worker response is recieved
+#   @param task_type An integer representing the type of task being recieved
+#   @param answer A string or (0,1) representing the worker response
+#   @param cost The amount of time it took the worker to complete the hit
 def gather_task(task_type, answer, cost, item1_id = None, item2_id = None):
     if item1_id is None and item2_id is None:
         raise Exception("no item given")
