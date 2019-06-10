@@ -4,6 +4,7 @@ import csv
 import toggles
 from models.items import *
 from models.task_management_models import *
+from models.estimator import *
 import random
 
 class JoinSimulation(TransactionTestCase):
@@ -155,6 +156,17 @@ class JoinSimulation(TransactionTestCase):
         JoinPairTask.objects.all().delete()
         PJFTask.objects.all().delete()
         SecPredTask.objects.all().delete()
+        
+        # Get data we want from these models before calling reset_database
+        Estimator.objects.all().delete()
+        TaskStats.objects.all().delete()
+        FStatistic.objects.all().delete()
+        JFTask.objects.all().delete()
+        FindPairsTask.objects.all().delete()
+        JoinPairTask.objects.all().delete()
+        PJFTask.objects.all().delete()
+        SecPredTask.objects.all().delete()
+
 
         #clear dictionaries #TODO is this necessary since they're within the class
         JFTasks_Dict.clear()
@@ -165,6 +177,8 @@ class JoinSimulation(TransactionTestCase):
 
         sim_time = 0
         num_tasks_completed = 0
+
+
 
 
 
@@ -184,7 +198,13 @@ class JoinSimulation(TransactionTestCase):
         random.seed()
 
         # LOAD DATA
-        #TODO add task stats and estimator
+        estimator = Estimator.objects.create()
+        jf_task_stats = TaskStats.objects.create(task_type=0)
+        find_pairs_task_stats = TaskStats.objects.create(task_type=1)
+        join_pairs_task_stats = TaskStats.objects.create(task_type=2)
+        prejoin_task_stats = TaskStats.objects.create(task_type=3)
+        sec_pred_task_stats = TaskStats.objects.create(task_type=4)
+
         if REAL_DATA is True:
             self.load_primary_real() #load primary list
             self.load_real_data() #load worker responses into dictionaries
