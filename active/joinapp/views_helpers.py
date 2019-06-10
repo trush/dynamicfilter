@@ -116,7 +116,6 @@ def gather_task(task_type, answer, cost, item1_id = None, item2_id = None):
     if task_type == 0:
         finished = collect_joinable_filter(answer, cost, item1_id)
     elif task_type == 1:
-        #TODO: update estimator at some point
         answer = parse_pairs(answer)
         finished = collect_find_pairs(answer, cost, item1_id)
     elif task_type == 2:
