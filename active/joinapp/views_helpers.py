@@ -82,6 +82,7 @@ def choose_task_find_pairs(worker):
 
 #_____GATHER TASKS_____#
 
+## Generic gather_task function that takes a task type, item(s) and a response and updates state
 def gather_task(task_type, answer, cost, item1_id = None, item2_id = None):
     if item1_id is None and item2_id is None:
         raise Exception("no item given")
