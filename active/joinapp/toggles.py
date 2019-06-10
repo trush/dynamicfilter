@@ -4,10 +4,11 @@ import math
 PRIMARY_LIST = ''#TODO hotel list
 REAL_DATA_CSV = ''#TODO MTURK data CSV
 
-#________ For Synthetic Data _________#
+#_____________________________ For Synthetic Data _____________________________#
 NUM_PRIM_ITEMS = 90
 NUM_SEC_ITEMS = 1000
-HAVE_SEC_LIST = True # Do we start with the secondary list populated yes/no  <not currently in use?
+HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no  <not currently in use?
+FAKE_SEC_ITEM_LIST = ["Fake 1", "Fake 2", "Fake 3", "Fake 4", "Fake 5"] #fake secondary items to choose from
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 

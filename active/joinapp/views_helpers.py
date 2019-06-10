@@ -8,7 +8,7 @@ from scipy.special import btdtr
 
 #_____FIND CONSENSUS_____#
 
-
+## @brief determines if an task has reached consensus or not (and what that consensus is)
 def find_consensus(item):
     if item.yes_votes + item.no_votes < toggles.NUM_CERTAIN_VOTES:
         item.ambiguity = "No Consensus"
@@ -49,11 +49,15 @@ def find_consensus(item):
         return None    
 
 
-#_____CHOOSE TASKS_____#
+#_______________________ CHOOSE TASKS _______________________#
 
-# only implemented for IW join
-# returns task that was chosen and updated
+
+## @brief chooses the next task to issue based on the state of the query
+# @param workerID workerID of the worker this task is going to
+# @param estimator the estimator used to determine when the second list is complete
 def choose_task(workerID, estimator):
+    # only implemented for IW join
+    # returns task that was chosen and updated
     new_worker = Worker.objects.get_or_create(worker_id=workerID)
     # if task_type = JF:
         # return choose_task_joinable_filter(new_worker)
@@ -64,8 +68,10 @@ def choose_task(workerID, estimator):
     else:
         return choose_task_sec_pred(new_worker)
 
-#_____CHOOSE TASKS HELPERS_____#
+#_______________________ CHOOSE TASKS HELPERS _______________________#
 
+## @brief chooses a joinable filter task based on a worker
+# @param worker workerID of the worker this task is going to
 def choose_task_joinable_filter(worker):
     prim_item = PrimaryItem.objects.order_by('?').first() # random primary item
     joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)[0]
@@ -77,6 +83,9 @@ def choose_task_joinable_filter(worker):
     joinable_filter_task.save()
     return joinable_filter_task
 
+## @brief chooses a find pairs task based on a worker
+# @param prim_items_list the current primary list objects available
+# @param worker workerID of the worker this task is going to
 def choose_task_find_pairs(prim_items_list,worker):
     prim_item = prim_items_list.order_by('?').first() # random primary item
     find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
@@ -89,8 +98,8 @@ def choose_task_find_pairs(prim_items_list,worker):
     return find_pairs_task
 
 def choose_task_sec_pred(worker):
-    # only secondary items that haven't reached consensus
-    sec_items_left = SecondaryItem.objects.exclude(second_pred_result=None)
+    # only secondary items that haven't reached consensus but match at least one primary item
+    sec_items_left = SecondaryItem.objects.exclude(second_pred_result=None).exclude(matches_some = False)
     sec_item = sec_items_left.order_by('?').first() # random secondary item
     sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     # choose new secondary item if worker has worked on it
