@@ -108,10 +108,10 @@
                 <p><label>Item: XXX(ITEM_NAME_HERE)XXX</label></p>
 
                 <table>
-                    <p><label>Find every restaurant within 0.4 miles of this hotel (located in Saint Louis, MO). Write each restaurant's name and address, separated by a semicolon, and separate each entry with a new line. Please use standard abbreviations for addresses, e.g. St for Street or Dr for Drive.</label></p>
+                    <p><label>Find every restaurant within 0.4 miles of this hotel (located in Saint Louis, MO). Write each restaurant's name and address, separated by a semicolon, and separate each entry with a new line. If you find none, leave the field blank. Please use standard abbreviations for addresses, e.g. St for Street or Dr for Drive.</label></p>
                     <p><label>For example, for a restaurant named MyEatery at 1234 Street Lane and a restaurant named MyRestaurant at 2345 Lane Street, enter:<br>MyEatery; 1234 Street Ln<br>MyRestaurant; 2345 Lane St</label></p>
                     <textarea name="workervote" id="responses" rows="4" cols="50" placeholder="MyEatery; 1234 Street Ln
-                        MyRestaurant; 2345 Lane St"required></textarea>
+                    MyRestaurant; 2345 Lane St"></textarea>
                 </table>
 
                 <br />

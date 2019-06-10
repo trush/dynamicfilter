@@ -36,7 +36,7 @@ for line in f:
           'IntegerValues':[90]}],
       Reward = '0.10',
       MaxAssignments = 10,
-      LifetimeInSeconds = 600, #MAKE THIS BIGGER FOR ACTUAL
+      LifetimeInSeconds = 172800,
       AssignmentDurationInSeconds = 600,
       AutoApprovalDelayInSeconds = 14400,
       Question = question,
@@ -59,7 +59,7 @@ for line in f:
           'IntegerValues':[90]}],
       Reward = '0.10',
       MaxAssignments = 10,
-      LifetimeInSeconds = 600, #MAKE THIS BIGGER FOR ACTUAL
+      LifetimeInSeconds = 172800,
       AssignmentDurationInSeconds = 600,
       AutoApprovalDelayInSeconds = 14400,
       Question = question2,
@@ -69,7 +69,7 @@ for line in f:
   print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
-  break
+
   #  question1 = str(open(name='prejoinFilter.xml',mode='r').read())
   #  question1 = question1.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
   #  new_hit = mturk.create_hit(
