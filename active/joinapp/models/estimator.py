@@ -9,9 +9,9 @@ class FStatistic(models.Model):
     """
     # number of times that items are seen in the sample
     times_seen = models.IntegerField(default=0)
-    # number of items seen num_in_sample times in the sample, maybe we don't need this
+    # number of items seen times_seen times in the sample, maybe we don't need this
     num_of_items = models.IntegerField(default=0)
-    # relations to keep track of which items are seen num_in_sample times
+    # relations to keep track of which items are seen times_seen times
     estimator = models.ForeignKey('Estimator')
 
     def __str__(self):
@@ -35,42 +35,40 @@ class Estimator(models.Model):
 
     def update_chao_estimator_variables(self, join_pair_task):
 
-        # both variables updated in PW join in join class in section shown below
-        if not self.has_2nd_list:
-            if not FStatistic.objects.all().exists():
-                new_fstat = FStatistic.objects.create(times_seen=1,num_of_items=1,estimator=self)
+        if not FStatistic.objects.all().exists():
+            new_fstat = FStatistic.objects.create(times_seen=1,num_of_items=1,estimator=self)
 
-                sec_item = join_pair_task.secondary_item
-                sec_item.fstatistic = new_fstat
+            sec_item = join_pair_task.secondary_item
+            sec_item.fstatistic = new_fstat
+            sec_item.save()
+            
+        else:
+            sec_item = join_pair_task.secondary_item
+            f_stat = sec_item.fstatistic
+
+            if f_stat == None:
+                f_stat1 = FStatistic.objects.get(times_seen=1, estimator=self)
+                sec_item.fstatistic = f_stat1
+                f_stat1.num_of_items += 1
+
+                f_stat1.save()
                 sec_item.save()
-                
-            else:
-                sec_item = join_pair_task.secondary_item
-                f_stat = sec_item.fstatistic
 
-                if f_stat == None:
-                    f_stat1 = FStatistic.objects.get(times_seen=1, estimator=self)
-                    sec_item.fstatistic = f_stat1
-                    f_stat1.num_of_items += 1
+            else:             
+                times_seen_updated = f_stat.times_seen + 1
+                f_stat_n = None
+                if FStatistic.objects.filter(times_seen=times_seen_updated, estimator=self).exists():
+                    f_stat_n = FStatistic.objects.get(times_seen=times_seen_updated, estimator=self)         
+                else:
+                    f_stat_n = FStatistic.objects.create(times_seen=times_seen_updated, num_of_items=0, estimator=self)
+                f_stat_n.num_of_items += 1
+                f_stat.num_of_items -= 1
 
-                    f_stat1.save()
-                    sec_item.save()
+                sec_item.fstatistic = f_stat_n
 
-                else:             
-                    times_seen_updated = f_stat.times_seen + 1
-                    f_stat_n = None
-                    if FStatistic.objects.filter(times_seen=times_seen_updated, estimator=self).exists():
-                        f_stat_n = FStatistic.objects.get(times_seen=times_seen_updated, estimator=self)         
-                    else:
-                        f_stat_n = FStatistic.objects.create(times_seen=times_seen_updated, num_of_items=0, estimator=self)
-                    f_stat_n.num_of_items += 1
-                    f_stat.num_of_items -= 1
-
-                    sec_item.fstatistic = f_stat_n
-
-                    f_stat_n.save()
-                    f_stat.save()
-                    sec_item.save()
+                f_stat_n.save()
+                f_stat.save()
+                sec_item.save()
 
         self.total_sample_size += 1
     

@@ -200,19 +200,27 @@ class JoinSimulation(TransactionTestCase):
             task = chooseTask()
             if type(task) is JFTask:
                 task_type = 0
-                JFTasks_Dict()
+                my_item = task.primary_item.pk
+                (prim, sec, times, responses) = JFTasks_Dict(my_item)
             elif type(task) is FindPairsTask:
                 task_type = 1
-                FindPairsTasks_Dict()
+                my_item = task.primary_item.pk
+                (prim, sec, times, responses) = FindPairsTasks_Dict(my_item)
             elif type(task) is JoinPairTask:
                 task_type = 2
-                JoinPairTasks_Dict()
+                # my_item = task.primary_item.pk
+                # my_item = task.secondary_item.name
+                # (prim, sec, times, responses) = JoinPairTasks_Dict(my_item)
+                (prim, sec, times, responses) = ("these", "are", "placeholder", "values")
             elif type(task) is PJFTask:
                 task_type = 3
-                PJFTasks_Dict()
+                # my_item = task.primary_item.pk
+                # (prim, sec, times, responses) = PJFTasks_Dict(my_item)
+                (prim, sec, times, responses) = ("these", "are", "placeholder", "values")
             elif type(task) is SecPredTask:
                 task_type = 4
-                SecPredTasks_Dict()
+                my_item = task.secondary_item.name
+                (prim, sec, times, responses) = SecPredTasks_Dict(my_item)
 
             # ISSUE TASK
             
