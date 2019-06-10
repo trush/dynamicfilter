@@ -56,7 +56,12 @@ class PrimaryItem(models.Model):
     ## Number of secondary items related to this item
     num_sec_items = models.IntegerField(default=0)
 
+<<<<<<< HEAD
+    found_all_pairs = models.BooleanField(db_index=True, default=False)
+    
+=======
     ## @brief ToString method
+>>>>>>> 035f44408ad7dc9e3d9b8900add1e5d1956f8745
     def __str__(self):
         return str(self.name) + "Name:" + str(self.name) 
     
