@@ -59,44 +59,55 @@ def choose_task(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)
     # if task_type = JF:
         # return choose_task_joinable_filter(new_worker)
-    # if second list is not complete do find pairs task, if it is, do secondary predicate task
+    # find pairs for all primary items
     prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
     if prim_items_left.exists():
         return choose_task_find_pairs(prim_items_left, new_worker)
     else:
         return choose_task_sec_pred(new_worker)
 
+#_____CHOOSE TASKS HELPERS_____#
+
 def choose_task_joinable_filter(worker):
     prim_item = PrimaryItem.objects.order_by('?').first() # random primary item
-    joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)
-    while joinable_filter_task.consensus:
+    joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)[0]
+    # choose new primary item if the random one has reached consensus or if worker has worked on it
+    while joinable_filter_task.consensus or worker in joinable_filter_task.workers:
         prim_item = PrimaryItem.objects.order_by('?').first()
-        joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)
+        joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)[0]
     joinable_filter_task.workers.add(worker)
+    joinable_filter_task.save()
     return joinable_filter_task
 
 def choose_task_find_pairs(prim_items_list,worker):
     prim_item = prim_items_list.order_by('?').first() # random primary item
-    find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)
-    while find_pairs_task.consensus:    # choose new primary item if the random one has reached consensus
+    find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
+    # choose new primary item if the random one has reached consensus or if worker has worked on it
+    while find_pairs_task.consensus or worker in find_pairs_task.workers:    
         prim_item = prim_items_list.order_by('?').first()
-        find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)
+        find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
     find_pairs_task.workers.add(worker)
+    find_pairs_task.save()
     return find_pairs_task
 
 def choose_task_sec_pred(worker):
-    sec_item = SecondaryItem.objects.order_by('?').first() # random secondary item
-    sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)
-    while sec_pred_task.consensus:  # choose new secondary item if the random one has reached consensus
-        sec_item = SecondaryItem.objects.order_by('?').first()
-        sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)
+    # only secondary items that haven't reached consensus
+    sec_items_left = SecondaryItem.objects.exclude(second_pred_result=None)
+    sec_item = sec_items_left.order_by('?').first() # random secondary item
+    sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
+    # choose new secondary item if worker has worked on it
+    while worker in sec_pred_task.workers:  
+        sec_item = sec_items_left.order_by('?').first()
+        sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     sec_pred_task.workers.add(worker)
+    sec_pred_task.save()
     return sec_pred_task
 
 #_____ASSIGN TASKS_____#
 
 #_____GATHER TASKS_____#
 
+## Generic gather_task function that takes a task type, item(s) and a response and updates state
 def gather_task(task_type, answer, cost, item1_id = None, item2_id = None):
     if item1_id is None and item2_id is None:
         raise Exception("no item given")

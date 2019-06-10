@@ -164,10 +164,29 @@ class JoinSimulation(TransactionTestCase):
                 syn_load_sec_pred_tasks(SecPredTasks_Dict)
         
         while(PrimaryItem.objects.filter(is_done=False).count() is not 0)
-            # ISSUE TASK
+            
             # TODO pick worker
-            # TODO choose task
-            # TODO recieve result/update state
+
+            # CHOOSE TASK
+            task = chooseTask()
+            if type(task) is JFTask:
+                task_type = 0
+            elif type(task) is FindPairsTask:
+                task_type = 1
+            elif type(task) is JoinPairTask:
+                task_type = 2
+            elif type(task) is PJFTask:
+                task_type = 3
+            elif type(task) is SecPredTask:
+                task_type = 4
+
+            # ISSUE TASK
+            # TODO how do we sample from the dictionaries to get worker response??
+            task_answer = ""
+            task_time = 0
+
+            # UPDATE STATE AFTER TASK
+            gather_task(task_type,task_answer,task_time)
         
         #when finished: 
             # compare results to ground truth to determine accuracy
