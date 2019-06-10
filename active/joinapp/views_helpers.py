@@ -8,10 +8,9 @@ from scipy.special import btdtr
 
 #_____FIND CONSENSUS_____#
 
-
+## @brief determines if an task has reached consensus or not (and what that consensus is)
+#   @param item task that needs to be evaluated for consensus
 def find_consensus(item):
-    #NOTE: Toggles needed
-
     if item.yes_votes + item.no_votes < toggles.NUM_CERTAIN_VOTES:
         item.ambiguity = "No Consensus"
         return None
@@ -51,11 +50,15 @@ def find_consensus(item):
         return None    
 
 
-#_____CHOOSE TASKS_____#
+#_______________________ CHOOSE TASKS _______________________#
 
-# only implemented for IW join
-# returns task that was chosen and updated
+
+## @brief chooses the next task to issue based on the state of the query
+# @param workerID workerID of the worker this task is going to
+# @param estimator the estimator used to determine when the second list is complete
 def choose_task(workerID, estimator):
+    # only implemented for IW join
+    # returns task that was chosen and updated
     new_worker = Worker.objects.get_or_create(worker_id=workerID)
     # if task_type = JF:
         # return choose_task_joinable_filter(new_worker)
@@ -66,8 +69,10 @@ def choose_task(workerID, estimator):
     else:
         return choose_task_sec_pred(new_worker)
 
-#_____CHOOSE TASKS HELPERS_____#
+#_______________________ CHOOSE TASKS HELPERS _______________________#
 
+## @brief chooses a joinable filter task based on a worker
+# @param worker workerID of the worker this task is going to
 def choose_task_joinable_filter(worker):
     prim_item = PrimaryItem.objects.order_by('?').first() # random primary item
     joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)[0]
@@ -81,6 +86,9 @@ def choose_task_joinable_filter(worker):
     joinable_filter_task.save()
     return joinable_filter_task
 
+## @brief chooses a find pairs task based on a worker
+# @param prim_items_list the current primary list objects available
+# @param worker workerID of the worker this task is going to
 def choose_task_find_pairs(prim_items_list,worker):
     prim_item = prim_items_list.order_by('?').first() # random primary item
     find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
@@ -94,6 +102,8 @@ def choose_task_find_pairs(prim_items_list,worker):
     find_pairs_task.save()
     return find_pairs_task
 
+## @brief chooses a secondary predicate task based on a worker
+# @param worker workerID of the worker this task is going to
 def choose_task_sec_pred(worker):
     # only secondary items that haven't reached consensus but match at least one primary item
     sec_items_left = SecondaryItem.objects.exclude(second_pred_result=None).exclude(matches_some = False)
@@ -111,7 +121,10 @@ def choose_task_sec_pred(worker):
 
 #_____GATHER TASKS_____#
 
-## Generic gather_task function that takes a task type, item(s) and a response and updates state
+## @brief Generic gather_task function that updates state after a worker response is recieved
+#   @param task_type An integer representing the type of task being recieved
+#   @param answer A string or (0,1) representing the worker response
+#   @param cost The amount of time it took the worker to complete the hit
 def gather_task(task_type, answer, cost, item1_id = None, item2_id = None):
     if item1_id is None and item2_id is None:
         raise Exception("no item given")
@@ -120,7 +133,6 @@ def gather_task(task_type, answer, cost, item1_id = None, item2_id = None):
     if task_type == 0:
         finished = collect_joinable_filter(answer, cost, item1_id)
     elif task_type == 1:
-        #TODO: update estimator at some point
         answer = parse_pairs(answer)
         finished = collect_find_pairs(answer, cost, item1_id)
     elif task_type == 2:
