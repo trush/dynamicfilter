@@ -72,7 +72,6 @@ def choose_task_joinable_filter(worker):
     while joinable_filter_task.consensus:
         prim_item = PrimaryItem.objects.order_by('?').first()
         joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)
-    joinable_filter_task.num_task += 1
     joinable_filter_task.workers.add(worker)
     return joinable_filter_task
 
@@ -82,7 +81,6 @@ def choose_task_find_pairs(prim_items_list,worker):
     while find_pairs_task.consensus:    # choose new primary item if the random one has reached consensus
         prim_item = prim_items_list.order_by('?').first()
         find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)
-    find_pairs_task.num_tasks += 1
     find_pairs_task.workers.add(worker)
     return find_pairs_task
 
@@ -92,7 +90,6 @@ def choose_task_sec_pred(worker):
     while sec_pred_task.consensus:  # choose new secondary item if the random one has reached consensus
         sec_item = SecondaryItem.objects.order_by('?').first()
         sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)
-    sec_pred_task.num_tasks += 1
     sec_pred_task.workers.add(worker)
     return sec_pred_task
 
