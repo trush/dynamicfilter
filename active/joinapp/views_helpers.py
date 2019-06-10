@@ -71,9 +71,11 @@ def choose_task(workerID, estimator):
 def choose_task_joinable_filter(worker):
     prim_item = PrimaryItem.objects.order_by('?').first() # random primary item
     joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)[0]
+    prims_left = PrimaryItem.objects.exclude(pk=prim_item.pk)
     # choose new primary item if the random one has reached consensus or if worker has worked on it
-    while joinable_filter_task.consensus or worker in joinable_filter_task.workers:
-        prim_item = PrimaryItem.objects.order_by('?').first()
+    while joinable_filter_task.result == None or worker in joinable_filter_task.workers:
+        prims_left = prims_left.exclude(pk=prim_item.pk)
+        prim_item = prims_left.order_by('?').first()
         joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)[0]
     joinable_filter_task.workers.add(worker)
     joinable_filter_task.save()
@@ -82,9 +84,11 @@ def choose_task_joinable_filter(worker):
 def choose_task_find_pairs(prim_items_list,worker):
     prim_item = prim_items_list.order_by('?').first() # random primary item
     find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
+    prims_left = PrimaryItem.objects.exclude(pk=prim_item.pk)
     # choose new primary item if the random one has reached consensus or if worker has worked on it
-    while find_pairs_task.consensus or worker in find_pairs_task.workers:    
-        prim_item = prim_items_list.order_by('?').first()
+    while find_pairs_task.consensus == False or worker in find_pairs_task.workers:    
+        prims_left = prims_left.exclude(pk=prim_item.pk)
+        prim_item = prims_left.order_by('?').first()
         find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
     find_pairs_task.workers.add(worker)
     find_pairs_task.save()
