@@ -1,13 +1,12 @@
 from items import *
 
 
-
+## @brief Model representing a worker on MTurk
 @python_2_unicode_compatible
 class Worker(models.Model):
-    """
-    Model representing a worker on the MTurk.
-    """
+    ## MTurk worker ID
     worker_id = models.CharField(max_length=20)
+    ## ToString method
     def __str__(self):
         return str(worker_id)
  
@@ -71,7 +70,7 @@ class TaskStats(models.Model):
 ## @brief Model representing a joinable-filter task for a primary item
 @python_2_unicode_compatible
 class JFTask(models.Model):
-    # workers who have worked or are working on this task
+    ## workers who have worked or are working on this task
     workers = models.ManyToManyField(Worker,related_name="joinable_filter_task")
     ## primary item this task is associated with
     primary_item = models.ForeignKey('PrimaryItem', default=None, null=True)
@@ -122,7 +121,7 @@ class JFTask(models.Model):
 ## @brief Model representing a find-pairs task for a primary item
 @python_2_unicode_compatible
 class FindPairsTask(models.Model):
-    # workers who have worked or are working on this task
+    ## workers who have worked or are working on this task
     workers = models.ManyToManyField(Worker,related_name="find_pairs_task")
     ## primary item this task is associated with
     primary_item = models.ForeignKey('PrimaryItem', default=None, null=True)
@@ -192,7 +191,7 @@ class FindPairsTask(models.Model):
 ## @brief Model representing a join condition task for a primary-secondary item pair
 @python_2_unicode_compatible
 class JoinPairTask(models.Model):
-    # workers who have worked or are working on this task
+    ## workers who have worked or are working on this task
     workers = models.ManyToManyField(Worker,related_name="join_pair_task")
     ## primary item associated with this join
     primary_item = models.ForeignKey('PrimaryItem', default=None, null=True)
@@ -261,22 +260,25 @@ class PJFTask(models.Model):
     """
     Model representing pairs of items and pre-join filter tasks.
     """
-    # workers who have worked or are working on this task
+    ## workers who have worked or are working on this task
     workers = models.ManyToManyField(Worker,related_name="pre_join_task")
     
+    ## primary item associated with this join
     primary_item = models.ForeignKey('PrimaryItem', default=None, null=True)
+    ## secondary item associated with this join
     secondary_item = models.ForeignKey('SecondaryItem', default=None, null=True)
-    # keep track of number of tasks
+    ## number of assignments processed for this task
     num_tasks = models.IntegerField(default=0)
-    # total time
+    ## worker time spent processing this task
     time = models.FloatField(default=0)
 
     # consensus: 
-    # True if the IT pair passes with consensus
-    # False if the IT pair doesn't pass
-    # None consensus is not reached
+    ## True if the IT pair passes with consensus
+    ## False if the IT pair doesn't pass
+    ## None consensus is not reached
     consensus = models.NullBooleanField(default=None)
 
+    ## @brief ToString method
     def __str__(self):
         if self.primary_item is not None:
             return "Pre-Join Filter for item " + str(self.primary_item)
@@ -285,35 +287,38 @@ class PJFTask(models.Model):
         else:
             raise Exception("No item")
 
+## @brief Model representing a secondary predicate task
 @python_2_unicode_compatible
 class SecPredTask(models.Model):
-    """
-    Model representing pairs of items and secondary predicate tasks.
-    """
-    # workers who have worked or are working on this task
+    ## workers who have worked or are working on this task
     workers = models.ManyToManyField(Worker,related_name="secondary_pred_task")
     
+    ## secondary item associates with this task
     secondary_item = models.ForeignKey('SecondaryItem', default=None, null=True)
-    # keep track of number of tasks
+    ## total number of assingments processed for this task
     num_tasks = models.IntegerField(default=0)
-    # total time
+    ## total worker time spent processing this task
     time = models.FloatField(default=0)
 
     # result: 
-    # True if the IT pair passes with consensus
-    # False if the IT pair doesn't pass
-    # None consensus is not reached
+    ## True if the IT pair passes with consensus
+    ## False if the IT pair doesn't pass
+    ## None consensus is not reached
+    result = models.NullBooleanField(default=None)
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
-    result = models.NullBooleanField(default=None)
-
+    
+    ## @brief ToString method
     def __str__(self):
         return "Secondary Predicate Filter for item " + str(self.secondary_item)
 
+    ## @brief Checks if consensus has been reached to update result attribute
     def update_result(self):
         self.result = views_helpers.find_consensus(self)
 
-    
+    ## @brief Updates state based on an incoming worker answer
+    # @param answer worker answer (0 or 1)
+    # @param time amount of time taken for the worker to complete the task
     def get_task(self, answer, time):
         #update yes_votes or no_votes based on answer
         if answer:
@@ -331,6 +336,7 @@ class SecPredTask(models.Model):
         self.update_result()
         self.save()
 
+    ## @brief Updates database when a secondary item has reached consensus
     def when_done(self):
         """
         Checks if consensus is reached and updates variables accordingly
