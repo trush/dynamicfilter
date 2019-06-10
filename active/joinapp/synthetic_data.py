@@ -71,91 +71,57 @@ def syn_load_join_pair_tasks(JoinPairTasks_Dict):
 
 
 #___________ Give a Worker Answer _____________#
-def syn_answer_find_pairs_task(hit):
+def syn_answer_find_pairs_task(answer,time, hit):
     """
-    returns a worker answer to a find pairs task based on a FindPairsTasks_Dict hit
+    gives a worker response to a find pairs task based on a FindPairsTasks_Dict hit
     """
     (primary,secondary,time,truth) = hit
     #TODO how is this going to work  
 
-def syn_answer_joinable_filter_task(hit):
+def syn_answer_joinable_filter_task(answer,time, hit):
     """
-    creates/updates a joinable filter task with a worker response based on a JFTasks_Dict hit
+    gives a worker response based on a JFTasks_Dict hit
     """
-    (primary,secondary,time,truth) = hit
-    primary_item = PrimaryItem.get(pk = primary)
-    task = JFTask.get_or_create(primary_item = primary_item)
+    (primary,secondary,task_time,truth) = hit
 
-    #determine vote
+    #determine answer
     if random.random() > JF_AMBIGUITY:
         if truth is True:
-            vote = 1
+            answer = 1
         elif truth is False:
-            vote = 0
+            answer = 0
     else:
-        vote = random.choice([0,1])
-    #update vote
-    if vote is 1:
-        task.yes_votes += 1
-    elif vote is 0:
-        task.no_votes += 1
-    else:
-        print "Error processing worker response"
-    #update state
-    task.time += time
-    task.num_tasks += 1
+        answer = random.choice([0,1])
+    time = task_time
 
-def syn_answer_sec_pred_task(hit):
+def syn_answer_sec_pred_task(answer,time, hit):
     """
-    creates/updates a secondary predicate task with a worker response based on a SecPredTasks_Dict hit
+    gives a worker response to a secondary predicate task based on a SecPredTasks_Dict hit
     """
-    (primary,secondary,time,truth) = hit
-    item = SecondaryItem.objects.get(pk = secondary)
-    task = SecPredTask.get_or_create(secondary_item = item)
+    (primary,secondary,task_time,truth) = hit
 
-    #determine vote
+    #determine answer
     if random.random() > SEC_PRED_AMBIGUITY:
         if truth is True:
-            vote = 1
+            answer = 1
         elif truth is False:
-            vote = 0
+            answer = 0
     else:
-        vote = random.choice([0,1])
-    #update vote
-    if vote is 1:
-        task.yes_votes += 1
-    elif vote is 0:
-        task.no_votes += 1
-    else:
-        print "Error processing worker response"
-    #update state
-    task.time += time
-    task.num_tasks += 1
+        answer = random.choice([0,1])
+    time = task_time
 
-def syn_answer_join_pair_task(JoinPairTasks_Dict):
+def syn_answer_join_pair_task(answer,time, hit):
     """
-    returns a worker answer to a join pair task based on a JoinPairTasks_Dict hit
+    gives a worker answer to a join pair task based on a JoinPairTasks_Dict hit
     """
-    (primary,secondary,time,truth) = hit
-    primary_item = PrimaryItem.objects.get(pk = primary)
-    secondary_item = SecondaryItem.objects.get(pk = secondary)
-    task = JoinPairTask.objects.get_or_create(primary_item = primary_item, secondary_item = secondary_item)
+    (primary,secondary,task_time,truth) = hit
 
-    #determine vote
+    #determine answer
     if random.random() > JOIN_COND_AMBIGUITY:
         if truth is True:
-            vote = 1
+            answer = 1
         elif truth is False:
-            vote = 0
+            answer = 0
     else:
-        vote = random.choice([0,1])
-    #update vote
-    if vote is 1:
-        task.yes_votes += 1
-    elif vote is 0:
-        task.no_votes += 1
-    else:
-        print "Error processing worker response"
-    #update state
-    task.time += time
-    task.num_tasks += 1
+        answer = random.choice([0,1])
+    time = task_time
