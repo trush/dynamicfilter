@@ -104,7 +104,7 @@ class JoinSimulation(TransactionTestCase):
                         self.JoinPairTasks_Dict[key] = value
                     elif task_type is "list_secondary": 
                         self.FindPairsTasks_Dict[key] = value   
-                    elif task_tupe is "eval_pjf": #note that this name might be incorrect
+                    elif task_type is "eval_pjf": #note that this name might be incorrect
                         self.PJFTasks_Dict[key]= value 
                 except:
                     print "There was an error reading line", line_count 
