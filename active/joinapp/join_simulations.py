@@ -115,12 +115,29 @@ class JoinSimulation(TransactionTestCase):
     ## ground truth determination ##
     # way to compare results from simulation with ground truth
 
+    ## reset database
+    def reset_database(self):
+        #empty models
+        PrimaryItem.objects.all().delete()
+        SecondaryItem.objects.all().delete()
+        Worker.objects.all().delete()
+        TaskStats.objects.all().delete()
+        JFTask.objects.all().delete()
+        FindPairsTask.objects.all().delete()
+        JoinPairTask.objects.all().delete()
+        PJFTask.objects.all().delete()
+        SecPredTask.objects.all().delete()
 
-    ## give task real and give task synthetic 
-        """ creates a task based on the current state of the simmulation of one of the possible task model types"""
+        #clear dictionaries #TODO is this necessary since they're within the class
+        JFTasks_Dict.clear()
+        FindPairsTask.clear()
+        JoinPairTasks_Dict.clear()
+        PJFTasks_Dict.clear()
+        SecPredTasks_Dict.clear()
 
 
-    ## reset database for multiple runs ##
+
+        
     ## reset completely ##
 
 
@@ -129,6 +146,7 @@ class JoinSimulation(TransactionTestCase):
     def run_sim(self):
 
         # LOAD DATA
+        #TODO add task stats and estimator
         if REAL_DATA is True:
             self.load_primary_real() #load primary list
             self.load_real_data() #load worker responses into dictionaries
@@ -151,7 +169,11 @@ class JoinSimulation(TransactionTestCase):
             # TODO choose task
             # TODO recieve result/update state
         
-        #when finished: print and return cost statistics (return so we can run multiple sims and keep track of their results)
+        #when finished: 
+            # compare results to ground truth to determine accuracy
+            # print and return cost statistics (return so we can run multiple sims and keep track of their results)
+            # somehow use above data to add to generate graphs
 
+        #statistics to export: accuracy, worker-time-cost, task-number-cost
 
     ## represent simulation results ##
