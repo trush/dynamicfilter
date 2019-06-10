@@ -93,8 +93,8 @@ def choose_task_find_pairs(prim_items_list,worker):
     return find_pairs_task
 
 def choose_task_sec_pred(worker):
-    # only secondary items that haven't reached consensus
-    sec_items_left = SecondaryItem.objects.exclude(second_pred_result=None)
+    # only secondary items that haven't reached consensus but match at least one primary item
+    sec_items_left = SecondaryItem.objects.exclude(second_pred_result=None).exclude(matches_some = False)
     sec_item = sec_items_left.order_by('?').first() # random secondary item
     sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     # choose new secondary item if worker has worked on it
@@ -119,6 +119,7 @@ def gather_task(task_type, answer, cost, item1_id = None, item2_id = None):
     if task_type == 0:
         finished = collect_joinable_filter(answer, cost, item1_id)
     elif task_type == 1:
+        #TODO: update estimator at some point
         answer = parse_pairs(answer)
         finished = collect_find_pairs(answer, cost, item1_id)
     elif task_type == 2:
