@@ -12,7 +12,7 @@ def syn_load_list():
         PrimaryItem.objects.create(name = "primary item" + str(i))
 
 ## @brief Populates the FindPairsTasks_Dict with find pair tasks (one for each primary item)
-#  keys: (primary item pk, 0)
+#  keys: primary item pk
 #  values: (primary item pk, "NA", task time, ground truth)
 #  @param FindPairsTasks_Dict simulation dictionary for find-pairs tasks
 def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
@@ -24,53 +24,50 @@ def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
         for sec_pk in sec_pk_list: #build the worker response
             sec_item = "Secondary Item " + str(sec_pk) + "; " + "Address " + str(sec_pk) + "{{NEWENTRY}}"
             worker_response += sec_item
-        key = (primary.name, 0)
         value = (primary.pk, "NA", FIND_PAIRS_TASK_TIME, worker_response)
-        FindPairsTasks_Dict[key] = value
-
+        FindPairsTasks_Dict[primary.pk] = value
 
 
 ## @brief  Populates the JFTasks_Dict with joinable filter tasks (one for each primary item)
-#   keys: (primary item pk, 0)
+#   keys: primary item pk
 #   values: (primary item pk, "NA", task time, ground truth)
 #   @param JFTasks_Dict simulation dictionary for joinable filter tasks
 def syn_load_joinable_filter_tasks(JFTasks_Dict):
     for primary in PrimaryItem.objects.all():
-        key = (primary.name, 0)
         if random.random() < JF_SELECTIVITY:
             ground_truth = True
         else:
             ground_truth = False
         value = (primary.pk, "NA", JF_TASK_TIME, ground_truth)
-        JFTasks_Dict[key] = value
+        JFTasks_Dict[primary.pk] = value
 
 
 ## @brief Populates the SecPredTasks_Dict with secondary predicate tasks (one for each secondary item)
-#   keys: (secondary item pk, 0)
-#   values: ("NA", secondary item pk, task time, ground truth)
+#   keys: secondary item number
+#   values: ("NA", secondary item name, task time, ground truth)
 #   @param SecPredTasks_Dict simulation dictionary for secondary predicate tasks
 def syn_load_sec_pred_tasks(SecPredTasks_Dict):
     for secondary in range(NUM_SEC_ITEMS):
-        key = (secondary, 0)
         if random.random() < SEC_PRED_SELECTIVITY:
             ground_truth = True
         else:
             ground_truth = False
         value = ("NA", secondary, SEC_PRED_TASK_TIME, ground_truth)
-        SecPredTasks_Dict[key] = value
+        SecPredTasks_Dict[secondary] = value
 
-
+# @brief NOT IN USE (YET/AT ALL ?)
 def syn_load_join_pair_tasks(JoinPairTasks_Dict):
     """
     Populates the JoinPairTasks_Dict with join condition tasks (one for each secondary/primary item pair)
     keys: (primary.secondary, 0)
     values: (primary item id, secondary item id, task time, ground truth)
     """
-    #TODO how should this work??
+    #TODO Likely not necessary
 
 
 
 #___________ Give a Worker Answer _____________#
+## @brief NOT IN USE (YET)
 def syn_answer_find_pairs_task(answer,time, hit):
     """
     gives a worker response to a find pairs task based on a FindPairsTasks_Dict hit
