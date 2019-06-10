@@ -157,6 +157,17 @@ class JoinSimulation(TransactionTestCase):
         JoinPairTask.objects.all().delete()
         PJFTask.objects.all().delete()
         SecPredTask.objects.all().delete()
+        
+        # Get data we want from these models before calling reset_database
+        Estimator.objects.all().delete()
+        TaskStats.objects.all().delete()
+        FStatistic.objects.all().delete()
+        JFTask.objects.all().delete()
+        FindPairsTask.objects.all().delete()
+        JoinPairTask.objects.all().delete()
+        PJFTask.objects.all().delete()
+        SecPredTask.objects.all().delete()
+
 
         #clear dictionaries #TODO is this necessary since they're within the class
         JFTasks_Dict.clear()
@@ -164,6 +175,8 @@ class JoinSimulation(TransactionTestCase):
         JoinPairTasks_Dict.clear()
         PJFTasks_Dict.clear()
         SecPredTasks_Dict.clear()
+
+
 
 
 
