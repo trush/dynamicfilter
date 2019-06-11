@@ -354,7 +354,7 @@ class JoinSimulation(TransactionTestCase):
 
             # UPDATE STATE AFTER TASK
             gather_task(task_type,task_answer,task_time,prim,sec)
-        
+            
             sim_time += task_time
             num_tasks_completed += 1
 
