@@ -1,5 +1,8 @@
-from items import *
+from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 
+import items
+from .. import find_consensus
 
 ## @brief Model representing a worker on MTurk
 @python_2_unicode_compatible
@@ -13,10 +16,10 @@ class Worker(models.Model):
 ## @brief Model representing types of tasks and the statistics we need to store for each type
 @python_2_unicode_compatible
 class TaskStats(models.Model):
-    ## 0 = joinable filter task
-    # 1 = find pairs task
-    # 2 = join pairs task
-    # 3 = pre-join filter task
+    ## 0 = joinable filter task <br>
+    # 1 = find pairs task <br>
+    # 2 = join pairs task <br>
+    # 3 = pre-join filter task <br>
     # 4 = secondary predicate task
     task_type = models.IntegerField(default=0)
     
@@ -24,11 +27,11 @@ class TaskStats(models.Model):
     ## the amount of time it takes to complete a task
     cost = models.FloatField(default=0)
 
-    ## when ambiguity is 0, workers answer correctly 100% of time and randomly 0% of time
+    ## when ambiguity is 0, workers answer correctly 100% of time and randomly 0% of time <br>
     ## when ambiguity is 0.5, workers answer correctly 50% of time and randomly 50% of time
     ambiguity = models.FloatField(default=0)
 
-    ## when selectivity is 0, no items pass
+    ## when selectivity is 0, no items pass <br>
     ## when selectivity is 1, all items pass
     selectivity = models.FloatField(default=0)
 
@@ -82,8 +85,8 @@ class JFTask(models.Model):
     time = models.FloatField(default=0)
 
     # result: 
-    ## True if the task passes with consensus
-    ## False if the task doesn't pass
+    ## True if the task passes with consensus <br>
+    ## False if the task doesn't pass <br>
     ## None consensus is not reached
     result = models.NullBooleanField(default=None)
     yes_votes = models.IntegerField(default=0)
@@ -96,7 +99,7 @@ class JFTask(models.Model):
 
     ## @brief Calls find_consensus to update the result of the task if possible
     def update_result(self):
-        self.result = views_helpers.find_consensus(self)
+        self.result = find_consensus.find_consensus(self)
 
     ## @brief Updates state after an assignment for this task is completed
     # @param answer response from the assignment (0 or 1)
@@ -131,7 +134,7 @@ class FindPairsTask(models.Model):
     time = models.FloatField(default=0)
 
     # consensus: 
-    ## True if the task pair reaches consensus
+    ## True if the task pair reaches consensus <br>
     ## False if consensus is not reached
     consensus = models.NullBooleanField(default=False)
 
@@ -153,6 +156,7 @@ class FindPairsTask(models.Model):
     # @param answer A list of secondary items
     # @param time How long it took to execute the incoming assingment
     def get_task(self, answer, time):
+        from estimator import *
         #update average time
         self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
 
@@ -161,13 +165,13 @@ class FindPairsTask(models.Model):
 
         # Find join pair tasks that match each match we found, creating new ones if necessary
         for match in answer:
-            sec_item = SecondaryItem.get(id = match)
+            sec_item = items.SecondaryItem.objects.get(pk = match)
             matching_join_pairs = join_pair_tasks.filter(secondary_item = sec_item, primary_item = self.primary_item)
 
             #create a new join pair task if it does not exist in our list of join pair tasks
             #NOTE: We may at some point need to address adding join pair tasks that exist to our list
             if not matching_join_pairs.exists():
-                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = num_tasks)
+                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks)
 
         #get join pairs from this task (again)
         join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
@@ -206,21 +210,16 @@ class JoinPairTask(models.Model):
     ## total worker time spent processing this task
     time = models.FloatField(default=0)
 
-    # many to one relationship for finding consensus for find pairs task
+    ## many to one relationship used for finding consensus for find pairs task
     find_pairs_task = models.ForeignKey(FindPairsTask)
 
     # result: 
-    ## True if the task passes with consensus
-    ## False if the task doesn't pass
+    ## True if the task passes with consensus <br>
+    ## False if the task doesn't pass <br>
     ## None consensus is not reached
     result = models.NullBooleanField(db_index=True, default=None)
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
-    
-    
-    result = models.NullBooleanField(default=None)
-
-    consensus = models.BooleanField(default=False)
     
     ## @brief ToString method
     def __str__(self):
@@ -229,7 +228,7 @@ class JoinPairTask(models.Model):
     ## checks and updates whether or not consensus has been reached
     def update_result(self):
         #have we reached consensus?
-        self.result = views_helpers.find_consensus(self)
+        self.result = find_consensus.find_consensus(self)
         self.save()
 
         #if we have reached consensus and the result is a match, add our secondary item to the
@@ -279,8 +278,8 @@ class PJFTask(models.Model):
     time = models.FloatField(default=0)
 
     # consensus: 
-    ## True if the IT pair passes with consensus
-    ## False if the IT pair doesn't pass
+    ## True if the IT pair passes with consensus <br>
+    ## False if the IT pair doesn't pass <br>
     ## None consensus is not reached
     consensus = models.NullBooleanField(default=None)
 
@@ -320,7 +319,7 @@ class SecPredTask(models.Model):
 
     ## @brief Checks if consensus has been reached to update result attribute
     def update_result(self):
-        self.result = views_helpers.find_consensus(self)
+        self.result = find_consensus.find_consensus(self)
 
     ## @brief Updates state based on an incoming worker answer
     # @param answer worker answer (0 or 1)

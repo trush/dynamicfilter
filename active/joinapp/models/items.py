@@ -10,7 +10,6 @@ import math
 
 # The .. means we are importing from the outer folder
 from .. import toggles
-from .. import views_helpers
 from estimator import FStatistic
 
 ## @brief Model representing an item in the secondary list
@@ -57,6 +56,7 @@ class PrimaryItem(models.Model):
     ## Number of secondary items related to this item
     num_sec_items = models.IntegerField(default=0)
 
+    ## According to the Chao estimator, have all secondary items for this primary item been found
     found_all_pairs = models.BooleanField(db_index=True, default=False)
     
     ## @brief ToString method
@@ -83,3 +83,4 @@ class PrimaryItem(models.Model):
         self.num_sec_items += 1
         self.save()
 
+python manage.py tests joinapp.tests.test_sim
