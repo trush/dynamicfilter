@@ -2,53 +2,8 @@ import toggles
 
 from django.db.models.query import EmptyQuerySet
 
-from scipy.special import btdtr
-
-
-
-
-#_____FIND CONSENSUS_____#
-
-## @brief determines if an task has reached consensus or not (and what that consensus is)
-#   @param item task that needs to be evaluated for consensus
-def find_consensus(item):
-    if item.yes_votes + item.no_votes < toggles.NUM_CERTAIN_VOTES:
-        item.ambiguity = "No Consensus"
-        return None
-    votes_cast = item.yes_votes + item.no_votes
-    larger = max(item.yes_votes, item.no_votes)
-    smaller = min(item.yes_votes, item.no_votes)
-    single_max = toggles.SINGLE_VOTE_CUTOFF
-    uncert_level = 2
-
-    if toggles.BAYES_ENABLED:
-        if item.yes_votes - item.no_votes > 0:
-            uncert_level = btdtr(item.yes_votes+1, item.no_votes+1, toggles.DECISION_THRESHOLD)
-        else:
-            uncert_level = btdtr(item.no_votes+1, item.yes_votes+1, toggles.DECISION_THRESHOLD)
-    #print("Uncertainty: " + str(uncertLevel))
-
-    consensus = (larger == item.yes_votes)
-
-    if votes_cast >= toggles.CUT_OFF:
-        # item.ambiguity = "Most Ambiguity"
-        return consensus
-
-    elif uncert_level < toggles.UNCERTAINTY_THRESHOLD:
-        # item.ambiguity = "Unambiguous"
-        return consensus
-
-    elif larger >= single_max:
-        # if smaller < single_max*(1.0/3.0):
-        #     item.ambiguity = "Unambiguous+"
-        # elif smaller < single_max*(2.0/3.0):
-        #     item.ambiguity = "Medium Ambiguity"
-        # else:
-        #     item.ambiguity = "Low Ambiguity"
-        return consensus
-    else:
-        # item.ambiguity = "No Consensus"
-        return None    
+from models.items import *
+from models.task_management_models import *
 
 
 #_______________________ CHOOSE TASKS _______________________#
@@ -95,7 +50,7 @@ def choose_task_find_pairs(prim_items_list,worker):
     find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
     prims_left = PrimaryItem.objects.exclude(pk=prim_item.pk)
     # choose new primary item if the random one has reached consensus or if worker has worked on it
-    while find_pairs_task.consensus == True or worker in find_pairs_task.workers.all():
+    while find_pairs_task.consensus == True: # TODO: implement this: or worker in find_pairs_task.workers.all():
         prims_left = prims_left.exclude(pk=prim_item.pk)
         prim_item = prims_left.order_by('?').first()
         find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
@@ -206,7 +161,7 @@ def collect_find_pairs(answer, cost, item1_id):
     #call the model's function to update its state
     this_task.get_task(sec_items_list, cost)
 
-    return this_task.result
+    return this_task.consensus
 
 ## takes a string of entries (separated by the string {{NEWENTRY}}) for find_pairs and parses them
 def parse_pairs(pairs):
