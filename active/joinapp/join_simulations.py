@@ -150,11 +150,11 @@ class JoinSimulation(TransactionTestCase):
             if JFTask.result is not None:
                 total_tasks += JFTask
         for task in total_tasks:
-            ground_truth = determine_ground_truth(JFTasks_Dict[task.primary_item.pk][3])
+            ground_truth = self.determine_ground_truth(JFTasks_Dict[task.primary_item.pk][3])
             if task.result is ground_truth:
                 correct_tasks += task
         #Print Accuracy
-        print_accuracy(len(total_tasks),len(correct_tasks),"joinable filter")
+        self.print_accuracy(len(total_tasks),len(correct_tasks),"joinable filter")
 
         #___ Secondary Predicate Task Accuracy ___#
         total_tasks = []
@@ -163,11 +163,11 @@ class JoinSimulation(TransactionTestCase):
             if task.result is not None:
                 total_tasks += task
         for task in total_tasks:
-            ground_truth = determine_ground_truth(SecPredTasks_Dict[task.secondary_item.name][3])
+            ground_truth = self.determine_ground_truth(SecPredTasks_Dict[task.secondary_item.name][3])
             if task.result is ground_truth:
                 correct_tasks += task
         #Print Accuracy
-        print_accuracy(len(total_tasks),len(correct_tasks),"secondary predicate")
+        self.print_accuracy(len(total_tasks),len(correct_tasks),"secondary predicate")
         
         #___ Query Accuracy __#
         total_items = []
@@ -176,11 +176,11 @@ class JoinSimulation(TransactionTestCase):
             if primary_item.is_done is True:
                 total_items += primary_item
         for primary_item in total_items:
-            ground_truth = determine_ground_truth(JFTasks_Dict[task.primary_item.pk][3])
+            ground_truth = self.determine_ground_truth(JFTasks_Dict[task.primary_item.pk][3])
             if primary_item.eval_result is ground_truth:
                 correct_items += primary_item
         #Print Accuracy
-        print_accuracy(len(total_items),len(correct_items),"primary item evaluation")
+        self.print_accuracy(len(total_items),len(correct_items),"primary item evaluation")
 
 
     def accuracy_syn_data(self):
@@ -195,7 +195,7 @@ class JoinSimulation(TransactionTestCase):
             if task.result is ground_truth:
                 correct_tasks += task
         #Print Accuracy
-        print_accuracy(len(total_tasks),len(correct_tasks),"joinable filter")
+        self.print_accuracy(len(total_tasks),len(correct_tasks),"joinable filter")
 
         #___ Secondary Predicate Task Accuracy ___#
         total_tasks = []
@@ -208,10 +208,10 @@ class JoinSimulation(TransactionTestCase):
             if task.result is ground_truth:
                 correct_tasks += task
         #Print Accuracy
-        print_accuracy(len(total_tasks),len(correct_tasks),"secondary predicate")
+        self.print_accuracy(len(total_tasks),len(correct_tasks),"secondary predicate")
 
     #______ Helpers for Accuracy ______#
-    def print_accuracy(total_num, correct_num, task_string):
+    def print_accuracy(self,total_num, correct_num, task_string):
         if total_num is not 0:
             accuracy = correct_num/total_num*100
         else:
@@ -219,7 +219,7 @@ class JoinSimulation(TransactionTestCase):
         print str(correct_num) + " out of " + str(total_num) + " " + task_string + " tasks were correct."
         print task_string + " Accuracy is " + str(accuracy)
 
-    def determine_ground_truth(answer_list):
+    def determine_ground_truth(self,answer_list):
         yes_votes = 0
         no_votes = 0
         for answer in answer_list:
