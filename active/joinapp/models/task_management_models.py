@@ -147,6 +147,8 @@ class FindPairsTask(models.Model):
         join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
         if not join_pair_tasks.exists():
             self.consensus = True
+            self.primary_item.found_all_pairs = True
+            self.primary_item.save()
             self.save()
         else:
             self.consensus = False
@@ -320,6 +322,25 @@ class SecPredTask(models.Model):
     ## @brief Checks if consensus has been reached to update result attribute
     def update_result(self):
         self.result = find_consensus.find_consensus(self)
+        self.secondary_item.second_pred_result = self.result
+        self.secondary_item.save()
+
+        if self.result == True:
+            for prim_item in self.secondary_item.primary_items.all():
+                prim_item.is_done = True
+                prim_item.eval_result = True
+                prim_item.save()
+        else:
+            for prim_item in self.secondary_item.primary_items.all():
+                #if this secondary item is the last one
+                if prim_item.secondary_items.count() == 1:
+                    prim_item.is_done = True
+                    prim_item.eval_result = False
+                    prim_item.save()
+            self.secondary_item.primary_items.clear()
+            
+
+        
 
     ## @brief Updates state based on an incoming worker answer
     # @param answer worker answer (0 or 1)
