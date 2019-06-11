@@ -82,5 +82,3 @@ class PrimaryItem(models.Model):
         self.secondary_items.add(sec_item_to_add)
         self.num_sec_items += 1
         self.save()
-
-python manage.py tests joinapp.tests.test_sim

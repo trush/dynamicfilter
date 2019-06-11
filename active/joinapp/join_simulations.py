@@ -337,7 +337,9 @@ class JoinSimulation():
                 (prim, sec, times, responses) = ("these", "are", "placeholder", "values")
             elif type(task) is SecPredTask:
                 task_type = 4
+                print(task)
                 my_item = task.secondary_item.name
+                print task.secondary_item
                 (prim, sec, times, responses) = self.SecPredTasks_Dict[my_item]
 
             # ISSUE TASK
@@ -363,8 +365,8 @@ class JoinSimulation():
             self.num_tasks_completed += 1
 
         
-        self.sim_time_arr += [sim_time]
-        self.num_tasks_completed_arr += [num_tasks_completed]
+        self.sim_time_arr += [self.sim_time]
+        self.num_tasks_completed_arr += [self.num_tasks_completed]
 
         #when finished: 
             # compare results to ground truth to determine accuracy

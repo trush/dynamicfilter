@@ -1,38 +1,37 @@
 from items import *
 from task_management_models import *
 
+## @brief Model which keeps track of secondary items and the number of 
+# times that they are seen for the Estimator class.
 @python_2_unicode_compatible
 class FStatistic(models.Model):
-    """
-    Model which keeps track of secondary items and the number of
-    times that they are seen for the Estimator class.
-    """
-    # number of times that items are seen in the sample
+    ## number of times that items are seen in the sample
     times_seen = models.IntegerField(default=0)
-    # number of items seen times_seen times in the sample, maybe we don't need this
+    ## number of items seen times_seen times in the sample, maybe we don't need this
     num_of_items = models.IntegerField(default=0)
-    # relations to keep track of which items are seen times_seen times
+    ## relations to keep track of which items are seen times_seen times
     estimator = models.ForeignKey('Estimator')
 
     def __str__(self):
         return "FStats for " + str(self.times_seen) + " with" + str(self.num_of_items) + "items."
 
+## @brief Model to keep track of the completeness of the second list.
+#  Stores variables needed in the chao_estimator() function.
 @python_2_unicode_compatible
 class Estimator(models.Model):
-    """
-    Model to keep track of the completeness of the second list.
-    Stores variables needed in the chao_estimator() function.
-    """
+    ## Does this simulation have the second list?
     has_2nd_list = models.BooleanField(default=False)
     
     # Enumeration Vars #
 
-    ## @remarks Used in the enumeration estimate in chao_estimator()
+    ## Used in the enumeration estimate in chao_estimator()
     total_sample_size = models.IntegerField(default=0)
 
     def __str__(self):
         return "Estimator for Species Enumeration"
 
+    ## @brief updates set enumeration estimate based on a new join pair task
+    # @param join_pair_task Incoming join pair task that has reached consensus
     def update_chao_estimator_variables(self, join_pair_task):
 
         if not FStatistic.objects.all().exists():
@@ -73,10 +72,8 @@ class Estimator(models.Model):
         self.total_sample_size += 1
     
 
-
-    ## @param self
-    # @return true if the current size of the list is within a certain threshold of the total size of the list (according to the chao estimator)
-    #   and false otherwise.
+    ## @brief estimator returns true if the current size of the secondary list is within a certain 
+    # threshold of the total size of the list (according to the chao estimator) and false otherwise.
     # @remarks Uses the Chao92 equation to estimate population size during enumeration.
     #	To understand the math computed in this function see: http://www.cs.albany.edu/~jhh/courses/readings/trushkowsky.icde13.enumeration.pdf 
     def chao_estimator(self):

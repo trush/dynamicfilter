@@ -23,7 +23,7 @@ def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
         sec_pk_list = random.sample(range(NUM_SEC_ITEMS), num_sec) #randomly select the pks of the secondary items to associate with this primary item
         worker_response = ""
         for sec_pk in sec_pk_list: #build the worker response
-            sec_item = "Secondary Item " + str(sec_pk) + "; " + "Address " + str(sec_pk) + "{{NEWENTRY}}"
+            sec_item = "Secondary Item " + str(sec_pk) + "; " + str(sec_pk) + " Address {{NEWENTRY}}"
             worker_response += sec_item
         value = (primary.pk, "NA", FIND_PAIRS_TASK_TIME, worker_response)
         FindPairsTasks_Dict[primary.pk] = value
@@ -51,8 +51,8 @@ def syn_load_sec_pred_tasks(SecPredTasks_Dict):
             ground_truth = True
         else:
             ground_truth = False
-        value = ("NA", secondary, SEC_PRED_TASK_TIME, ground_truth)
-        SecPredTasks_Dict[secondary] = value
+        value = ("NA", str(secondary), SEC_PRED_TASK_TIME, ground_truth)
+        SecPredTasks_Dict[str(secondary)] = value
 
 # @brief Not implemented/possibly not neccessary
 def syn_load_join_pair_tasks(JoinPairTasks_Dict):
