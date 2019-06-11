@@ -27,6 +27,7 @@ REAL_DATA = True # real or synthetic data
 # 2 = pre-join filtered join
 JOIN_TYPE = 1
 NUM_WORKERS = 100 # number of distinct workers
+NUM_SIMS = 10 # number of simulations to run
 
 # ________ Consensus Settings _________#
 # Values used in the find_consensus for an item/task function
