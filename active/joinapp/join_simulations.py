@@ -275,7 +275,7 @@ class JoinSimulation():
     def run_sim(self):
         random.seed()
 
-        # LOAD DATA
+        #__________________________ LOAD DATA __________________________ #
         estimator = Estimator.objects.create()
         jf_task_stats = TaskStats.objects.create(task_type=0)
         find_pairs_task_stats = TaskStats.objects.create(task_type=1)
@@ -306,7 +306,7 @@ class JoinSimulation():
             # pick worker
             worker_id = random.choice(self.worker_ids)
 
-            # CHOOSE TASK
+            #__________________________  CHOOSE TASK __________________________#
             task = choose_task(worker_id, estimator)
             if type(task) is JFTask:
                 task_type = 0
@@ -334,7 +334,7 @@ class JoinSimulation():
                 print task.secondary_item
                 (prim, sec, times, responses) = self.SecPredTasks_Dict[my_item]
 
-            # ISSUE TASK
+            #__________________________  ISSUE TASK __________________________#
             #choose a (matching) time and response for the task
             if toggles.REAL_DATA:
                 ind = random.randint(0, len(times))
@@ -350,7 +350,7 @@ class JoinSimulation():
                 sec = None
             
 
-            # UPDATE STATE AFTER TASK
+            #__________________________ UPDATE STATE AFTER TASK __________________________ #
             gather_task(task_type,task_answer,task_time,prim,sec)
             
             self.sim_time += task_time
@@ -360,11 +360,28 @@ class JoinSimulation():
         self.sim_time_arr += [self.sim_time]
         self.num_tasks_completed_arr += [self.num_tasks_completed]
 
-        #when finished: 
-            # compare results to ground truth to determine accuracy
-            # print and return cost statistics (return so we can run multiple sims and keep track of their results)
-            # somehow use above data to add to generate graphs
 
-        #statistics to export: accuracy, worker-time-cost, task-number-cost
+        #__________________________ RESULTS __________________________#
+        num_prim_pass = PrimaryItem.objects.filter(eval_result = True).count()
+        num_prim_fail = PrimaryItem.objects.filter(eval_result = False).count()
+        num_prim_missed = PrimaryItem.objects.filter(eval_result = None).count()
+        join_selectivity = num_prim_pass/PrimaryItem.objects.all().count()
+        num_jf_tasks = JFTask.objects.all().count()
+        num_find_pairs_tasks = FindPairsTask.objects.all().count()
+        num_sec_pred_tasks = SecPredTask.objects.all().count()
 
-    # represent simulation results ##
+        print num_prim_pass, "items passed the query"
+        print num_prim_fail, "items failed the query"
+        print "The simulation failed to evaluate", num_prim_missed, "primary items"
+        print "Query selectivity:", join_selectivity
+        print "Worker time spent:", sim_time
+        print "Total number of tasks processed:", num_tasks_completed
+        print "Number of joinable-filter tasks:", num_jf_tasks
+        print "Number of find pairs tasks:", num_find_pairs_tasks
+        print "Number of secondary predicate tasks:", num_sec_pred_tasks
+        if REAL_DATA is True:
+            self.accuracy_real_data() #does its own printing
+        else:
+            self.accuracy_syn_data() #does its own printing
+
+        return (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, sim_time, num_tasks_completed)
