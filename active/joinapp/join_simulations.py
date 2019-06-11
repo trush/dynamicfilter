@@ -10,79 +10,61 @@ from django.test import *
 import random
 from synthetic_data import *
 
+## @brief Functionality for testing the join algorithm on non-live data
 class JoinSimulation():
-    """
-    Tests join algorithm on non-live data
-    """
 
-    ####################################################################################
-	#__________________________________ DATA MEMBERS __________________________________#
-    ####################################################################################
+    ## list holding worker IDs for the simulation
+    worker_ids = []
 
-    # Total number of tasks issued/completed in the simulation
+    ## Total number of tasks issued/completed in one simulation
     num_tasks_completed = 0
 
-    # Amount of worker-time spent during the simulation
+    ## Amount of worker-time spent during the simulation
     sim_time = 0
 
 
     #_____ For tests that run multiple simulations _____#
 
-    # Total number of tasks issued/completed in each simulation
+    ## Total number of tasks issued/completed in each of multiple simulations
     num_tasks_completed_arr = []
 
-    # Amount of worker-time spent during each simulation
+    ## Amount of worker-time spent during each of multiple simulations
     sim_time_arr = []
 
     
     
     #_____ For real data simulations only _____#
 
-    # Number of primary items that are correctly evaluated
+    ## Number of primary items that are correctly evaluated
     num_item_correct_eval = 0
-
-    #
-    sim_accuracy_arr = []
     
 
     #__________________________________  Dictionaries ________________________________#
 
-    # Key: primary item pk
-    # Value: (primary item pk, "NA", time taken list, worker response list)
+    ## Key: primary item pk <br>
+    ## Value: (primary item pk, "NA", time taken list, worker response list)
     JFTasks_Dict = dict()
 
-    # Key: primary item pk
-    # Value: (primary item pk, "NA", time taken list, worker response list)
+    ## Key: primary item pk <br>
+    ## Value: (primary item pk, "NA", time taken list, worker response list)
     FindPairsTasks_Dict = dict() 
 
-    # Key: not implemented
-    # Value: not implemented
+    ## Key: not implemented <br>
+    ## Value: not implemented
     PJFTasks_Dict = dict()
 
-    # Key: secondary item name
-    # Value: ("NA", secondary item name, time taken list, worker response list)
+    ## Key: secondary item name <br>
+    ## Value: ("NA", secondary item name, time taken list, worker response list)
     SecPredTasks_Dict = dict() 
 
-    # Key: not implemented (might not need to)
-    # Value: not implemented (might not need to)
+    ## Key: not implemented (might not need to) <br>
+    ## Value: not implemented (might not need to)
     JoinPairTasks_Dict = dict() 
-
-    # list holding worker IDs 
-    worker_ids = []
-
-    ### settings ###
-
-
-    #####################################################################################
-	#____________________________________ FUNCTIONS ____________________________________#
-    #####################################################################################
 
     #_____________________ Loading Data _____________________ #
     
+    ## @brief Loads primary list into database
     def load_primary_real(self):
-        """
-        Loads primary list into databse
-        """
         f = open( PRIMARY_LIST, 'r')
         for line in f:
             try:
@@ -92,10 +74,8 @@ class JoinSimulation():
                 print "Error reading item "
         f.close()
 
+    ## @brief Loads the MTurk data from a csvfile and populates the answer dictionaries
     def load_real_data(self):
-        """
-        Loads the MTurk data from a csvfile and populates the answer dictionaries
-        """
         with open(REAL_DATA_CSV, mode = 'r') as csv_file:
             csv_reader = csv.reader(csv_file, delimeter = ',')
             line_count = 0
@@ -145,8 +125,10 @@ class JoinSimulation():
                 line_count += 1
 
 
-    ## ground truth determination ##
-    # way to compare results from simulation with ground truth
+    #___________________ Accuracy ______________________#
+    #TODO make this better
+
+    ## @brief Print accuracy for real data
     def accuracy_real_data(self):
         #___ JF Task Accuracy ___#
         total_tasks = []
@@ -187,7 +169,7 @@ class JoinSimulation():
         #Print Accuracy
         self.print_accuracy(len(total_items),len(correct_items),"primary item evaluation")
 
-
+    ## @brief Print accuracy for synthetic data
     def accuracy_syn_data(self):
         #___ JF Task Accuracy ___#
         total_tasks = []
@@ -216,6 +198,11 @@ class JoinSimulation():
         self.print_accuracy(len(total_tasks),len(correct_tasks),"secondary predicate")
 
     #______ Helpers for Accuracy ______#
+
+    ## @brief print helper for accuracy functions
+    # @param total_num number of tasks that reached consensus
+    # @param correct_num number of tasks that were evaluated correctly
+    # @param task_string string representing type of task
     def print_accuracy(self,total_num, correct_num, task_string):
         if total_num is not 0:
             accuracy = correct_num/total_num*100
@@ -224,6 +211,8 @@ class JoinSimulation():
         print str(correct_num) + " out of " + str(total_num) + " " + task_string + " tasks were correct."
         print task_string + " Accuracy is " + str(accuracy)
 
+    ## @brief helper for accuracy_real_data()
+    # @param answer_list list of worker responses
     def determine_ground_truth(self,answer_list):
         yes_votes = 0
         no_votes = 0
@@ -234,7 +223,7 @@ class JoinSimulation():
                 no_votes += 0
         return yes_votes > no_votes
     
-    ## reset database
+    ## @brief resets database after a simulation
     def reset_database(self):
         # TODO finish this
         #empty models
@@ -272,19 +261,17 @@ class JoinSimulation():
 
 
 
-
-        
-    ## reset completely ##
-
-    # generates random 13-letter worker ids and populates the list worker_ids
+    ## @brief generates random 13-letter worker ids and populates the list worker_ids
     def generate_worker_ids(self):
         for n in range(toggles.NUM_WORKERS):
             letters = string.ascii_letters
             worker_id = ''.join(random.choice(letters) for i in range(13))
             self.worker_ids += [worker_id]
 
-    ## optimal for comparison that runs all the true influential restaurants before the false ones ## <<< only useful in real data simulations
-    ## run simulation ##
+    # optimal for comparison that runs all the true influential restaurants before the false ones ## <<< only useful in real data simulations
+
+
+    ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
     def run_sim(self):
         random.seed()
 
@@ -378,4 +365,4 @@ class JoinSimulation():
 
         #statistics to export: accuracy, worker-time-cost, task-number-cost
 
-    ## represent simulation results ##
+    # represent simulation results ##
