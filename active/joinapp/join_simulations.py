@@ -5,9 +5,12 @@ import toggles
 from models.items import *
 from models.task_management_models import *
 from models.estimator import *
+from views_helpers import *
+from django.test import *
 import random
+from synthetic_data import *
 
-class JoinSimulation(TransactionTestCase):
+class JoinSimulation():
     """
     Tests join algorithm on non-live data
     """
@@ -105,35 +108,37 @@ class JoinSimulation(TransactionTestCase):
                 try:
                     if task_type is "eval_joinable_filter":
                         primary_item_pk = PrimaryItem.objects.filter(primary_item).pk 
-                        if primary_item_pk in JFTasks_Dict:
-                            value = JFTasks_Dict[primary_item_pk]
+                        if primary_item_pk in self.JFTasks_Dict:
+                            value = self.JFTasks_Dict[primary_item_pk]
                         else:
                             value = (primary_item_pk,"NA",[],[]) 
                         value[2] += time_taken #add assignment time to hit
                         value[3] += worker_vote #add worker answer to hit
-                        JFTasks_Dict[primary_item_pk] = value
+                        self.JFTasks_Dict[primary_item_pk] = value
 
                     elif task_type is "list_secondary":
                         primary_item_pk = PrimaryItem.objects.filter(primary_item).pk 
-                        if primary_item_pk in FindPairsTasks_Dict:
-                            value = FindPairsTasks_Dict[primary_item.pk] 
+                        if primary_item_pk in self.FindPairsTasks_Dict:
+                            value = self.FindPairsTasks_Dict[primary_item.pk] 
                         else:
                             value = (primary_item_pk,"NA",[],[])
                         value[2] += time_taken #add assignment time to hit
                         value[3] += worker_vote #add worker answer to hit
-                        FindPairsTasks_Dict[primary_item_pk] = value
+                        self.FindPairsTasks_Dict[primary_item_pk] = value
 
                     elif task_type is "eval_sec_pred":
-                        if secondary_item in SecPredTasks_Dict:
-                            value = SecPredTasks_Dict[secondary_item]   
+                        if secondary_item in self.SecPredTasks_Dict:
+                            value = self.SecPredTasks_Dict[secondary_item]   
                         else:
                             value = ("NA", secondary_item,[],[])
                         value[2] += time_taken #add assignment time to hit
                         value[3] += worker_vote #add worker answer to hit
 
                     elif task_type is "eval_pjf":
+                        return "pjf"
                         #TODO implement pjf
                     elif task_type is "eval_join_cond":
+                        return "eval_join"
                         #TODO implement join_condition (if necessary)
                 except:
                     print "Error reading in row ", line_count
@@ -205,25 +210,25 @@ class JoinSimulation(TransactionTestCase):
         prejoin_task_stats = TaskStats.objects.create(task_type=3)
         sec_pred_task_stats = TaskStats.objects.create(task_type=4)
 
-        if REAL_DATA is True:
+        if toggles.REAL_DATA is True:
             self.load_primary_real() #load primary list
             self.load_real_data() #load worker responses into dictionaries
         else:
-            syn_load_data() #load primary list
-            if JOIN_TYPE = 0: # joinable filter join
-                syn_load_joinable_filter_tasks(JFTasks_Dict)
-            elif JOIN_TYPE = 1: # item-wise join
-                syn_load_find_pairs_tasks(FindPairsTasks_Dict)
-                syn_load_sec_pred_tasks(SecPredTasks_Dict)
-            elif JOIN_TYPE = 2: # pre-join filtered join
+            syn_load_list() #load primary list
+            if JOIN_TYPE == 0: # joinable filter join
+                syn_load_joinable_filter_tasks(self.JFTasks_Dict)
+            elif JOIN_TYPE == 1: # item-wise join
+                syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
+                syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
+            elif JOIN_TYPE == 2: # pre-join filtered join
                 #TODO load secondary list
                 #TODO load prejoin filter tasks
-                syn_load_join_pair_tasks(JoinPairTasks_Dict)
-                syn_load_sec_pred_tasks(SecPredTasks_Dict)
+                syn_load_join_pair_tasks(self.JoinPairTasks_Dict)
+                syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
 
-        generate_worker_ids()
+        self.generate_worker_ids()
         
-        while(PrimaryItem.objects.filter(is_done=False).exists()) #TODO is this the while loop we want to use?
+        while(PrimaryItem.objects.filter(is_done=False).exists()): #TODO is this the while loop we want to use?
             
             # pick worker
             worker_id = random.choice(self.worker_ids)
@@ -233,32 +238,36 @@ class JoinSimulation(TransactionTestCase):
             if type(task) is JFTask:
                 task_type = 0
                 my_item = task.primary_item.pk
-                (prim, sec, times, responses) = JFTasks_Dict(my_item)
+                (prim, sec, times, responses) = self.JFTasks_Dict[my_item]
             elif type(task) is FindPairsTask:
                 task_type = 1
                 my_item = task.primary_item.pk
-                (prim, sec, times, responses) = FindPairsTasks_Dict(my_item)
+                (prim, sec, times, responses) = self.FindPairsTasks_Dict[my_item]
             elif type(task) is JoinPairTask:
                 task_type = 2
                 # my_item = task.primary_item.pk
                 # my_item = task.secondary_item.name
-                # (prim, sec, times, responses) = JoinPairTasks_Dict(my_item)
+                # (prim, sec, times, responses) = self.JoinPairTasks_Dict[my_item]
                 (prim, sec, times, responses) = ("these", "are", "placeholder", "values")
             elif type(task) is PJFTask:
                 task_type = 3
                 # my_item = task.primary_item.pk
-                # (prim, sec, times, responses) = PJFTasks_Dict(my_item)
+                # (prim, sec, times, responses) = self.PJFTasks_Dict[my_item]
                 (prim, sec, times, responses) = ("these", "are", "placeholder", "values")
             elif type(task) is SecPredTask:
                 task_type = 4
                 my_item = task.secondary_item.name
-                (prim, sec, times, responses) = SecPredTasks_Dict(my_item)
+                (prim, sec, times, responses) = self.SecPredTasks_Dict[my_item]
 
             # ISSUE TASK
             #choose a (matching) time and response for the task
-            ind = random.randint(0, len(times))
-            task_time = times[ind]
-            task_answer = responses[ind]
+            if toggles.REAL_DATA:
+                ind = random.randint(0, len(times))
+                task_time = times[ind]
+                task_answer = responses[ind]
+            else:
+                task_time = times
+                task_answer = responses
 
             if sec is not "NA":
                 sec = SecondaryItem.objects.get(name=sec).pk

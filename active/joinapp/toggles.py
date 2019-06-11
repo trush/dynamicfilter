@@ -25,7 +25,7 @@ REAL_DATA = True # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
-JOIN_TYPE = 0 
+JOIN_TYPE = 1
 NUM_WORKERS = 100 # number of distinct workers
 
 # ________ Consensus Settings _________#
@@ -66,3 +66,5 @@ PJF_TIME_SECONDARY = 20
 THRESHOLD = 0.1
 
 
+#_____ Toggles to be organized ______ -created for runsim to work#
+REAL_DATA = False #used in join_simulations run_sim

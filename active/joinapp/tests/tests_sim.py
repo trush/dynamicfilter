@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 
 from django.test import *
+from joinapp.join_simulations import *
 
-from joinapp.models.items import *
-from joinapp.models.estimator import *
-from joinapp.models.task_management_models import *
+class Simulation_Tests(TestCase):
+    def test_sim(self):
+        sim = JoinSimulation()
+        sim.run_sim()

@@ -10,7 +10,6 @@ import math
 
 # The .. means we are importing from the outer folder
 from .. import toggles
-from .. import views_helpers
 from estimator import FStatistic
 
 ## @brief Model representing an item in the secondary list
