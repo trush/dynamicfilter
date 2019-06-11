@@ -278,6 +278,7 @@ class JoinSimulation():
             self.reset_database()
             #more processing happens here
         #more stuff happens here
+        return results_list
 
     ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
     def run_sim(self):
