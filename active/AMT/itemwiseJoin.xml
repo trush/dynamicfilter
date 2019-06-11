@@ -70,9 +70,7 @@
             <div class="panel panel-primary">
                 <div class="panel-heading"><strong>Consent Notification</strong></div>
 
-                <div class="panel-body">This task is part of a research project 
-                    aimed at figuring out how easy or difficult questions are 
-                    about various items. The goal is to learn which questions 
+                <div class="panel-body">This task is part of a research project. The goal is to learn which questions 
                     are easier in order to adjust the order in which questions 
                     are asked. You must give consent in order to submit this HIT. If you do not want to participate, please return the HIT.<br>    
                     
@@ -93,7 +91,7 @@
                         <li>You will be provided with a hotel in St. Louis, MO.</li>
                         <li>You will be asked to find restaurants related to the hotel by some criterion.</li>
                         <li>Please separate each answer with a new line, and produce as many as you can.</li>
-                        <li>If you find no restaurants that fit the criterion, leave the field blank.</li>
+                        <li>If you find no restaurants that fit the criterion, check the box marked "There are no matches" and please indicate the sources you used in the answer space.</li>
                         <li>As long as you try to find the information, your answer will not affect your reward.</li>
                         <li>You may provide feedback on the clarity of the instructions, the 
                             presentation, the difficulty of the task, or anything else.</li>
@@ -108,9 +106,13 @@
                 <p><label>Item: XXX(ITEM_NAME_HERE)XXX</label></p>
 
                 <table>
-                    <p><label>Find every restaurant within 0.4 miles of this hotel (located in Saint Louis, MO). Write each restaurant's name and address, separated by a semicolon, and separate each entry with a new line. If you find none, leave the field blank. Please use standard abbreviations for addresses, e.g. St for Street or Dr for Drive.</label></p>
+                    <p><label>Find every restaurant within 0.4 miles of this hotel (located in Saint Louis, MO). Write each restaurant's name and address, separated by a semicolon, and separate each entry with a new line. If you find none, check the box labeled "There are no matches" and list your resources instead. Please use standard abbreviations for addresses, e.g. St for Street or Dr for Drive.</label></p>
                     <p><label>For example, for a restaurant named MyEatery at 1234 Street Lane and a restaurant named MyRestaurant at 2345 Lane Street, enter:<br>MyEatery; 1234 Street Ln<br>MyRestaurant; 2345 Lane St</label></p>
+                    <label>Your response:<br>
                     <textarea name="workervote" id="responses" rows="4" cols="50" required></textarea>
+                    <br>
+                    <input id="markedblank" name="markedblank" type="checkbox" onclick="toggleSubmit()"/>
+                    <label for="markedblank">There are no matches (mark your sources in the textbox above)</label>
                 </table>
 
                 <br />

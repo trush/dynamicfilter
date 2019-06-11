@@ -255,8 +255,8 @@ class JoinSimulation():
         PJFTasks_Dict.clear()
         SecPredTasks_Dict.clear()
 
-        sim_time = 0
-        num_tasks_completed = 0
+        self.sim_time = 0
+        self.num_tasks_completed = 0
 
 
 
@@ -270,6 +270,15 @@ class JoinSimulation():
 
     # optimal for comparison that runs all the true influential restaurants before the false ones ## <<< only useful in real data simulations
 
+    ## @brief runs run_sim with the same settings NUM_SIMS times
+    def run_multi_sims(self):
+        results_list = []
+        for i in range(toggles.NUM_SIMS):
+            results_list.append(self.run_sim())
+            self.reset_database()
+            #more processing happens here
+        #more stuff happens here
+        return results_list
 
     ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
     def run_sim(self):
