@@ -23,7 +23,7 @@ class SecondaryItem(models.Model):
     ## Maybe unnecessary? In our case this would be restaurant
     item_type = models.CharField(max_length=50)
     ## If this item has not yet reached consensus on matching some primary item, it should not give out tasks
-    matches_some = models.BooleanField(default=False)
+    matches_some = models.BooleanField(db_index=True, default=False)
 
     ## Consensus - None if not reached, True if item fulfills predicate, False if not
     second_pred_result = models.NullBooleanField(db_index=True, default=None)
