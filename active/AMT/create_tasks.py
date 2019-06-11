@@ -51,7 +51,7 @@ for line in f:
   question2 = question2.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
   new_hit = mturk.create_hit(
       Title = 'Determine a characteristic of a hotel',
-      Description = 'Determine whether the given hotel is within 0.4 miles of a restaurant with good parking',
+      Description = 'Determine whether a given hotel is within 0.4 miles of a restaurant with good parking',
       Keywords = 'text, enumeration, matching',
       QualificationRequirements = [{
           'QualificationTypeId':"000000000000000000L0",
@@ -68,7 +68,6 @@ for line in f:
   print "A new HIT has been created. You can preview it here:"
   print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
-
 
   #  question1 = str(open(name='prejoinFilter.xml',mode='r').read())
   #  question1 = question1.replace('XXX(ITEM_NAME_HERE)XXX', hotel)

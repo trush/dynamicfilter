@@ -32,6 +32,7 @@ for row in hitid_csv:
     if hit['HIT']['HITStatus'] == 'Assignable' or hit['HIT']['HITStatus'] == u'Assignable':
       mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=datetime(2019, 1, 1))
       print "hit " + hit_id + " expired from MTurk."
+      finished_hits.append((hit_id, hotel, task, restaurant))
     elif hit['HIT']['HITStatus'] == 'Reviewable' or hit['HIT']['HITStatus'] == u'Reviewable':
       all_assigns = mturk.list_assignments_for_hit(HITId=hit_id)['Assignments']
       for assign in all_assigns:
