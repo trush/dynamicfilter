@@ -213,7 +213,7 @@ class JoinPairTask(models.Model):
     ## True if the task passes with consensus
     ## False if the task doesn't pass
     ## None consensus is not reached
-    result = models.NullBooleanField(default=None)
+    result = models.NullBooleanField(db_index=True, default=None)
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
     
@@ -310,7 +310,7 @@ class SecPredTask(models.Model):
     ## True if the IT pair passes with consensus
     ## False if the IT pair doesn't pass
     ## None consensus is not reached
-    result = models.NullBooleanField(default=None)
+    result = models.NullBooleanField(db_index=True, default=None)
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
     
