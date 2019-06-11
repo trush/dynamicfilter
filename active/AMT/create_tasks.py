@@ -37,7 +37,7 @@ for line in f:
       Reward = '0.10',
       MaxAssignments = 10,
       LifetimeInSeconds = 172800,
-      AssignmentDurationInSeconds = 600,
+      AssignmentDurationInSeconds = 1200,
       AutoApprovalDelayInSeconds = 14400,
       Question = question,
   ) ## averages ?? time
@@ -60,7 +60,7 @@ for line in f:
       Reward = '0.10',
       MaxAssignments = 10,
       LifetimeInSeconds = 172800,
-      AssignmentDurationInSeconds = 600,
+      AssignmentDurationInSeconds = 1200,
       AutoApprovalDelayInSeconds = 14400,
       Question = question2,
   ) ## averages ?? time

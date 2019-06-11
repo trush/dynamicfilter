@@ -90,10 +90,10 @@
 
                 <div class="panel-body">
                     <ol>
-                        <li>You will be provided with an item.</li>
-                        <li>You will be asked to find other items based on some criterion.</li>
-                        <li>Please separate items with new lines, and produce as many items as you can.</li>
-                        <li>If you find no items that fit the criterion, leave the field blank.</li>
+                        <li>You will be provided with a hotel in St. Louis, MO.</li>
+                        <li>You will be asked to find restaurants related to the hotel by some criterion.</li>
+                        <li>Please separate each answer with a new line, and produce as many as you can.</li>
+                        <li>If you find no restaurants that fit the criterion, leave the field blank.</li>
                         <li>As long as you try to find the information, your answer will not affect your reward.</li>
                         <li>You may provide feedback on the clarity of the instructions, the 
                             presentation, the difficulty of the task, or anything else.</li>
@@ -110,8 +110,7 @@
                 <table>
                     <p><label>Find every restaurant within 0.4 miles of this hotel (located in Saint Louis, MO). Write each restaurant's name and address, separated by a semicolon, and separate each entry with a new line. If you find none, leave the field blank. Please use standard abbreviations for addresses, e.g. St for Street or Dr for Drive.</label></p>
                     <p><label>For example, for a restaurant named MyEatery at 1234 Street Lane and a restaurant named MyRestaurant at 2345 Lane Street, enter:<br>MyEatery; 1234 Street Ln<br>MyRestaurant; 2345 Lane St</label></p>
-                    <textarea name="workervote" id="responses" rows="4" cols="50" placeholder="MyEatery; 1234 Street Ln
-                    MyRestaurant; 2345 Lane St"></textarea>
+                    <textarea name="workervote" id="responses" rows="4" cols="50" required></textarea>
                 </table>
 
                 <br />
