@@ -364,12 +364,12 @@ class JoinSimulation():
             # UPDATE STATE AFTER TASK
             gather_task(task_type,task_answer,task_time,prim,sec)
             
-            sim_time += task_time
-            num_tasks_completed += 1
+            self.sim_time += task_time
+            self.num_tasks_completed += 1
 
         
-        sim_time_arr += [sim_time]
-        num_tasks_completed_arr += [num_tasks_completed]
+        self.sim_time_arr += [sim_time]
+        self.num_tasks_completed_arr += [num_tasks_completed]
 
         #when finished: 
             # compare results to ground truth to determine accuracy

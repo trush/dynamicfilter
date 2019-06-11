@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
 import items
-import joinapp.views_helpers
+from .. import find_consensus
 
 ## @brief Model representing a worker on MTurk
 @python_2_unicode_compatible
@@ -99,7 +99,7 @@ class JFTask(models.Model):
 
     ## @brief Calls find_consensus to update the result of the task if possible
     def update_result(self):
-        self.result = views_helpers.find_consensus(self)
+        self.result = find_consensus.find_consensus(self)
 
     ## @brief Updates state after an assignment for this task is completed
     # @param answer response from the assignment (0 or 1)
@@ -156,6 +156,7 @@ class FindPairsTask(models.Model):
     # @param answer A list of secondary items
     # @param time How long it took to execute the incoming assingment
     def get_task(self, answer, time):
+        from estimator import *
         #update average time
         self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
 
@@ -232,7 +233,7 @@ class JoinPairTask(models.Model):
     ## checks and updates whether or not consensus has been reached
     def update_result(self):
         #have we reached consensus?
-        self.result = views_helpers.find_consensus(self)
+        self.result = find_consensus.find_consensus(self)
         self.save()
 
         #if we have reached consensus and the result is a match, add our secondary item to the
@@ -323,7 +324,7 @@ class SecPredTask(models.Model):
 
     ## @brief Checks if consensus has been reached to update result attribute
     def update_result(self):
-        self.result = views_helpers.find_consensus(self)
+        self.result = find_consensus.find_consensus(self)
 
     ## @brief Updates state based on an incoming worker answer
     # @param answer worker answer (0 or 1)

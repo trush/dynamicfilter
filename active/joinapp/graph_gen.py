@@ -2,6 +2,9 @@ from simulation_files.plotScript import *
 import toggles
 import numpy as np
 
+def gen_message(dest):
+    print "Generated graph: " + dest+".png"
+
 # taken from graphGen.py from dynamicfilterapp
 def task_distributions(data, dest, real):
     dataL = [data[i][1] for i in range(len(data))]
