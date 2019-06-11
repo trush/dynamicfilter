@@ -1,5 +1,8 @@
-from items import *
+from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 
+import items
+import joinapp.views_helpers
 
 ## @brief Model representing a worker on MTurk
 @python_2_unicode_compatible
@@ -161,13 +164,13 @@ class FindPairsTask(models.Model):
 
         # Find join pair tasks that match each match we found, creating new ones if necessary
         for match in answer:
-            sec_item = SecondaryItem.get(id = match)
+            sec_item = items.SecondaryItem.objects.get(pk = match)
             matching_join_pairs = join_pair_tasks.filter(secondary_item = sec_item, primary_item = self.primary_item)
 
             #create a new join pair task if it does not exist in our list of join pair tasks
             #NOTE: We may at some point need to address adding join pair tasks that exist to our list
             if not matching_join_pairs.exists():
-                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = num_tasks)
+                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks)
 
         #get join pairs from this task (again)
         join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
