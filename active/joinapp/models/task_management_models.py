@@ -16,10 +16,10 @@ class Worker(models.Model):
 ## @brief Model representing types of tasks and the statistics we need to store for each type
 @python_2_unicode_compatible
 class TaskStats(models.Model):
-    ## 0 = joinable filter task
-    # 1 = find pairs task
-    # 2 = join pairs task
-    # 3 = pre-join filter task
+    ## 0 = joinable filter task <br>
+    # 1 = find pairs task <br>
+    # 2 = join pairs task <br>
+    # 3 = pre-join filter task <br>
     # 4 = secondary predicate task
     task_type = models.IntegerField(default=0)
     
@@ -27,11 +27,11 @@ class TaskStats(models.Model):
     ## the amount of time it takes to complete a task
     cost = models.FloatField(default=0)
 
-    ## when ambiguity is 0, workers answer correctly 100% of time and randomly 0% of time
+    ## when ambiguity is 0, workers answer correctly 100% of time and randomly 0% of time <br>
     ## when ambiguity is 0.5, workers answer correctly 50% of time and randomly 50% of time
     ambiguity = models.FloatField(default=0)
 
-    ## when selectivity is 0, no items pass
+    ## when selectivity is 0, no items pass <br>
     ## when selectivity is 1, all items pass
     selectivity = models.FloatField(default=0)
 
@@ -85,8 +85,8 @@ class JFTask(models.Model):
     time = models.FloatField(default=0)
 
     # result: 
-    ## True if the task passes with consensus
-    ## False if the task doesn't pass
+    ## True if the task passes with consensus <br>
+    ## False if the task doesn't pass <br>
     ## None consensus is not reached
     result = models.NullBooleanField(default=None)
     yes_votes = models.IntegerField(default=0)
@@ -134,7 +134,7 @@ class FindPairsTask(models.Model):
     time = models.FloatField(default=0)
 
     # consensus: 
-    ## True if the task pair reaches consensus
+    ## True if the task pair reaches consensus <br>
     ## False if consensus is not reached
     consensus = models.NullBooleanField(default=False)
 
@@ -209,21 +209,16 @@ class JoinPairTask(models.Model):
     ## total worker time spent processing this task
     time = models.FloatField(default=0)
 
-    # many to one relationship for finding consensus for find pairs task
+    ## many to one relationship used for finding consensus for find pairs task
     find_pairs_task = models.ForeignKey(FindPairsTask)
 
     # result: 
-    ## True if the task passes with consensus
-    ## False if the task doesn't pass
+    ## True if the task passes with consensus <br>
+    ## False if the task doesn't pass <br>
     ## None consensus is not reached
     result = models.NullBooleanField(db_index=True, default=None)
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
-    
-    
-    result = models.NullBooleanField(default=None)
-
-    consensus = models.BooleanField(default=False)
     
     ## @brief ToString method
     def __str__(self):
@@ -282,8 +277,8 @@ class PJFTask(models.Model):
     time = models.FloatField(default=0)
 
     # consensus: 
-    ## True if the IT pair passes with consensus
-    ## False if the IT pair doesn't pass
+    ## True if the IT pair passes with consensus <br>
+    ## False if the IT pair doesn't pass <br>
     ## None consensus is not reached
     consensus = models.NullBooleanField(default=None)
 
