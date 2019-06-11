@@ -142,7 +142,93 @@ class JoinSimulation(TransactionTestCase):
 
     ## ground truth determination ##
     # way to compare results from simulation with ground truth
+    def accuracy_real_data(self):
+        #___ JF Task Accuracy ___#
+        total_tasks = []
+        correct_tasks = []
+        for JFTask in JFTask.objects.all():
+            if JFTask.result is not None:
+                total_tasks += JFTask
+        for task in total_tasks:
+            ground_truth = determine_ground_truth(JFTasks_Dict[task.primary_item.pk][3])
+            if task.result is ground_truth:
+                correct_tasks += task
+        #Print Accuracy
+        print_accuracy(len(total_tasks),len(correct_tasks),"joinable filter")
 
+        #___ Secondary Predicate Task Accuracy ___#
+        total_tasks = []
+        correct_tasks = []
+        for task in SecPredTask.objects.all():
+            if task.result is not None:
+                total_tasks += task
+        for task in total_tasks:
+            ground_truth = determine_ground_truth(SecPredTasks_Dict[task.secondary_item.name][3])
+            if task.result is ground_truth:
+                correct_tasks += task
+        #Print Accuracy
+        print_accuracy(len(total_tasks),len(correct_tasks),"secondary predicate")
+        
+        #___ Query Accuracy __#
+        total_items = []
+        correct_items = []
+        for primary_item in PrimaryItem.objects.all():
+            if primary_item.is_done is True:
+                total_items += primary_item
+        for primary_item in total_items:
+            ground_truth = determine_ground_truth(JFTasks_Dict[task.primary_item.pk][3])
+            if primary_item.eval_result is ground_truth:
+                correct_items += primary_item
+        #Print Accuracy
+        print_accuracy(len(total_items),len(correct_items),"primary item evaluation")
+
+
+    def accuracy_syn_data(self):
+        #___ JF Task Accuracy ___#
+        total_tasks = []
+        correct_tasks = []
+        for JFTask in JFTask.objects.all():
+            if JFTask.result is not None:
+                total_tasks += JFTask
+        for task in total_tasks:
+            ground_truth = JFTasks_Dict[task.primary_item.pk][3]
+            if task.result is ground_truth:
+                correct_tasks += task
+        #Print Accuracy
+        print_accuracy(len(total_tasks),len(correct_tasks),"joinable filter")
+
+        #___ Secondary Predicate Task Accuracy ___#
+        total_tasks = []
+        correct_tasks = []
+        for task in SecPredTask.objects.all():
+            if task.result is not None:
+                total_tasks += task
+        for task in total_tasks:
+            ground_truth = SecPredTasks_Dict[task.secondary_item.name][3]
+            if task.result is ground_truth:
+                correct_tasks += task
+        #Print Accuracy
+        print_accuracy(len(total_tasks),len(correct_tasks),"secondary predicate")
+
+    #______ Helpers for Accuracy ______#
+    def print_accuracy(total_num, correct_num, task_string):
+        if total_num is not 0:
+            accuracy = correct_num/total_num*100
+        else:
+            accuracy = 100
+        print str(correct_num) + " out of " + str(total_num) + " " + task_string + " tasks were correct."
+        print task_string + " Accuracy is " + str(accuracy)
+
+    def determine_ground_truth(answer_list):
+        yes_votes = 0
+        no_votes = 0
+        for answer in answer_list:
+            if answer is 1:
+                yes_votes += 1
+            elif answer is 0:
+                no_votes += 0
+        return yes_votes > no_votes
+    
     ## reset database
     def reset_database(self):
         # TODO finish this
