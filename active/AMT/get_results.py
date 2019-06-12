@@ -18,10 +18,10 @@ mturk = boto3.client('mturk',
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my Sandbox account"
 #csv that holds recorded hits
-my_csv = csv.reader(open('HIT_IDs_test1.csv', 'r'), delimiter = ',') 
+my_csv = csv.reader(open('HIT_IDs.csv', 'r'), delimiter = ',') 
 
 # results csv
-results = csv.writer(open('HIT_RESULTS_test1.csv', 'w'), delimiter = ',')
+results = csv.writer(open('HIT_RESULTS.csv', 'w'), delimiter = ',')
 
 # header row for results csv
 first_row = ["Hit Id", "Hotel", "Restaurant", "Task", "Assignment Id", "Assignment Status", "Time Taken", "workervote", "feedback"]
@@ -42,12 +42,12 @@ for row in my_csv:
             # The list of response fields from the HIT's form
             answers_list =  xmltodict.parse(assignment['Answer'])['QuestionFormAnswers']['Answer']
             print answers_list
-            # if answers_list[0]['QuestionIdentifier'] != 'consent':
-            #     raise Exception("Unexpected format: consent field is not first")
-            # elif answers_list[0]['FreeText'] != 'on':
-            #     raise Exception("consent not granted for assignment", assignment['AssignmentId'])
-            # else:
-            #     print "consent",answers_list[0]['FreeText']
+            if answers_list[0]['QuestionIdentifier'] != 'consent':
+                raise Exception("Unexpected format: consent field is not first")
+            elif answers_list[0]['FreeText'] != 'on':
+                raise Exception("consent not granted for assignment", assignment['AssignmentId'])
+            else:
+                print "consent",answers_list[0]['FreeText']
             # Metadata from assignment, formatted for csv
             newRow = [assignment["HITId"], "(" + hotel + ")"," (" + restaurant + ")", "(" + task + ")",assignment["AssignmentId"], \
                 assignment["AssignmentStatus"],str((assignment["SubmitTime"] - assignment["AcceptTime"]).total_seconds())]

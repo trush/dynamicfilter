@@ -22,7 +22,7 @@ if response == 'yes':
 else:
   print response
   sys.exit()
-csv = open('HIT_IDs_test1.csv', "a") 
+csv = open('HIT_IDs.csv', "a") 
 
 #list of posted hits
 hit_list = []
