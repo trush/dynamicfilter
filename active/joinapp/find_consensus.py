@@ -24,7 +24,7 @@ def find_consensus(item):
     #print("Uncertainty: " + str(uncertLevel))
 
     consensus = (larger == item.yes_votes)
-
+    print "consensus is:", consensus
     if votes_cast >= toggles.CUT_OFF:
         # item.ambiguity = "Most Ambiguity"
         return consensus

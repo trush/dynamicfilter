@@ -44,7 +44,7 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 #_______ Selectivity and Ambiguity Settings _________#
 JF_AMBIGUITY = 0.1
 JF_SELECTIVITY = 0.1
-SEC_PRED_SELECTIVITY = 0.1 # Actually a join-wide toggle
+SEC_PRED_SELECTIVITY = 0.7 # Actually a join-wide toggle
 SEC_PRED_AMBIGUITY = 0.1 # Actually a join-wide toggle
 JOIN_COND_AMBIGUITY = 0.1 
 JOIN_COND_SELECTIVITY = 0.1 # given that these pairs were created by the crowd
