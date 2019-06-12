@@ -36,7 +36,8 @@ for row in hitid_csv:
     elif hit['HIT']['HITStatus'] == 'Reviewable' or hit['HIT']['HITStatus'] == u'Reviewable':
       all_assigns = mturk.list_assignments_for_hit(HITId=hit_id)['Assignments']
       for assign in all_assigns:
-        mturk.approve_assignment(AssignmentId = assign['AssignmentId'])
+        if assign['AssignmentStatus'] != 'Approved' and assign['AssignmentStatus'] != 'Rejected':
+          mturk.approve_assignment(AssignmentId = assign['AssignmentId'])
       mturk.delete_hit(HITId=hit_id)
       print "Reviewable hit " + hit_id + " deleted from MTurk."
     else:
