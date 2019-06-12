@@ -208,8 +208,8 @@ class JoinSimulation():
             accuracy = float(correct_num)/float(total_num)*100
         else:
             accuracy = 100
-        print str(correct_num) + " out of " + str(total_num) + " " + task_string + " tasks were correct."
-        print task_string + " Accuracy is " + str(accuracy) + "%"
+        print "* " + str(correct_num) + " out of " + str(total_num) + " " + task_string + " tasks were correct."
+        print "* " + task_string + " Accuracy is " + str(accuracy) + "%"
 
     ## @brief helper for accuracy_real_data()
     # @param answer_list list of worker responses
@@ -383,15 +383,27 @@ class JoinSimulation():
         num_find_pairs_tasks = FindPairsTask.objects.all().count()
         num_sec_pred_tasks = SecPredTask.objects.all().count()
 
-        print num_prim_pass, "items passed the query"
-        print num_prim_fail, "items failed the query"
-        print "The simulation failed to evaluate", num_prim_missed, "primary items"
-        print "Query selectivity:", join_selectivity
-        print "Worker time spent:", self.sim_time
-        print "Total number of tasks processed:", self.num_tasks_completed
-        print "Number of joinable-filter tasks:", num_jf_tasks
-        print "Number of find pairs tasks:", num_find_pairs_tasks
-        print "Number of secondary predicate tasks:", num_sec_pred_tasks
+        num_jf_assignments = 0
+        for jftask in JFTask.objects.all():
+            num_jf_assignments += jftask.num_tasks
+        num_find_pairs_assignments = 0
+        for fptask in FindPairsTask.objects.all():
+            num_find_pairs_assignments += fptask.num_tasks
+        num_sec_pred_assignments = 0
+        for sptask in SecPredTask.objects.all():
+            num_sec_pred_assignments += sptask.num_tasks
+
+
+
+        print "*", num_prim_pass, "items passed the query"
+        print "*", num_prim_fail, "items failed the query"
+        print "* The simulation failed to evaluate", num_prim_missed, "primary items"
+        print "* Query selectivity:", join_selectivity
+        print "* Worker time spent:", self.sim_time
+        print "* Total number of tasks processed:", self.num_tasks_completed
+        print "* # of joinable-filter tasks:", num_jf_tasks, "# of joinable-filter assignments:", num_jf_assignments
+        print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments
+        print "* # of secondary predicate tasks:", num_sec_pred_tasks, "# secondary predicate assignments:", num_sec_pred_assignments
         if REAL_DATA is True:
             self.accuracy_real_data() #does its own printing
         else:
