@@ -3,6 +3,7 @@ import keys
 pubkey = keys.pubkey
 privkey = keys.privkey
 
+import sys
 import boto3
 MTURK_SANDBOX = 'https://mturk-requester-sandbox.us-east-1.amazonaws.com'
 
@@ -12,9 +13,16 @@ mturk = boto3.client('mturk',
   region_name='us-east-1',
   endpoint_url = MTURK_SANDBOX
 )
-print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my Sandbox account"
+print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my account"
+print "Are you sure you want to post HITs to this account?"
+response = raw_input()
 
-csv = open('HIT_IDs.csv', "a") 
+if response == 'yes':
+  print "posting HITs"
+else:
+  print response
+  sys.exit()
+csv = open('HIT_IDs_test1.csv', "a") 
 
 #list of posted hits
 hit_list = []
@@ -27,15 +35,15 @@ for line in f:
   question = str(open(name='itemwiseJoin.xml',mode='r').read())
   question = question.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
   new_hit = mturk.create_hit(
-      Title = 'Match restaurants to a hotel based on proximity',
-      Description = 'Find restaurants within 0.4 miles of the given hotel',
+      Title = 'Match hospitals to a hotel based on proximity',
+      Description = 'Find hospitals within 2 miles of the given hotel',
       Keywords = 'text, enumeration, matching',
       QualificationRequirements = [{
           'QualificationTypeId':"000000000000000000L0",
           'Comparator':"GreaterThan",
           'IntegerValues':[90]}],
-      Reward = '0.10',
-      MaxAssignments = 10,
+      Reward = '0.30',
+      MaxAssignments = 9,
       LifetimeInSeconds = 172800,
       AssignmentDurationInSeconds = 1200,
       AutoApprovalDelayInSeconds = 14400,
@@ -47,27 +55,27 @@ for line in f:
   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
 
-  question2 = str(open(name='joinableFilter.xml',mode='r').read())
-  question2 = question2.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
-  new_hit = mturk.create_hit(
-      Title = 'Determine a characteristic of a hotel',
-      Description = 'Determine whether a given hotel is within 0.4 miles of a restaurant with good parking',
-      Keywords = 'text, enumeration, matching',
-      QualificationRequirements = [{
-          'QualificationTypeId':"000000000000000000L0",
-          'Comparator':"GreaterThan",
-          'IntegerValues':[90]}],
-      Reward = '0.10',
-      MaxAssignments = 10,
-      LifetimeInSeconds = 172800,
-      AssignmentDurationInSeconds = 1200,
-      AutoApprovalDelayInSeconds = 14400,
-      Question = question2,
-  ) ## averages ?? time
-  hit_list.append((new_hit, hotel, "eval_joinable_filter", None))
-  print "A new HIT has been created. You can preview it here:"
-  print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
-  print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
+  # question2 = str(open(name='joinableFilter.xml',mode='r').read())
+  # question2 = question2.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
+  # new_hit = mturk.create_hit(
+  #     Title = 'Determine a characteristic of a hotel',
+  #     Description = 'Determine whether a given hotel is within 2 miles of a hospital with ',
+  #     Keywords = 'text, enumeration, matching',
+  #     QualificationRequirements = [{
+  #         'QualificationTypeId':"000000000000000000L0",
+  #         'Comparator':"GreaterThan",
+  #         'IntegerValues':[90]}],
+  #     Reward = '0.30',
+  #     MaxAssignments = 9,
+  #     LifetimeInSeconds = 172800,
+  #     AssignmentDurationInSeconds = 1200,
+  #     AutoApprovalDelayInSeconds = 14400,
+  #     Question = question2,
+  # ) ## averages ?? time
+  # hit_list.append((new_hit, hotel, "eval_joinable_filter", None))
+  # print "A new HIT has been created. You can preview it here:"
+  # print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
+  # print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
   #  question1 = str(open(name='prejoinFilter.xml',mode='r').read())
   #  question1 = question1.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
@@ -75,8 +83,8 @@ for line in f:
   #      Title = 'Find zip code of hotels',
   #      Description = 'Label the zip code of a given hotel',
   #      Keywords = 'text, quick, labeling',
-  #      Reward = '0.10',
-  #      MaxAssignments = 1,
+  #      Reward = '0.30',
+  #      MaxAssignments = 9,
   #      LifetimeInSeconds = 172800,
   #      AssignmentDurationInSeconds = 600,
   #      AutoApprovalDelayInSeconds = 14400,
@@ -88,9 +96,9 @@ for line in f:
   #  print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
 # add posted hits to an external csv
-for (hit, hotel, task, restaurant) in hit_list:
+for (hit, hotel, task, hospital) in hit_list:
   hitid = hit['HIT']['HITId']
-  csv.write(str(hitid) + ", " + str(hotel) + ", " + str(task) + ", " + str(restaurant) + "\n")
+  csv.write(str(hitid) + ", " + str(hotel) + ", " + str(task) + ", " + str(hospital) + "\n")
 # Remember to modify the URL above when you're publishing
 # HITs to the live marketplace.
 # Use: https://worker.mturk.com/mturk/preview?groupId=
