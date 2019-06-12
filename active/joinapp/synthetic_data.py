@@ -26,7 +26,8 @@ def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
         for sec_pk in sec_pk_list: #build the worker response
             sec_item = "Secondary Item " + str(sec_pk) + "; " + str(sec_pk) + " Address {{NEWENTRY}}"
             worker_response += sec_item
-        value = (primary.pk, "NA", FIND_PAIRS_TASK_TIME, worker_response)
+        time = FIND_PAIRS_TASK_TIME_MEAN
+        value = (primary.pk, "NA", time, worker_response)
         FindPairsTasks_Dict[primary.pk] = value
 
 ## @brief  Populates the JFTasks_Dict with joinable filter tasks (one for each primary item)
@@ -39,7 +40,8 @@ def syn_load_joinable_filter_tasks(JFTasks_Dict):
             ground_truth = True
         else:
             ground_truth = False
-        value = (primary.pk, "NA", JF_TASK_TIME, ground_truth)
+        time = JF_TASK_TIME_MEAN
+        value = (primary.pk, "NA", time, ground_truth)
         JFTasks_Dict[primary.pk] = value
 
 ## @brief Populates the SecPredTasks_Dict with secondary predicate tasks (one for each secondary item)
@@ -53,7 +55,8 @@ def syn_load_sec_pred_tasks(SecPredTasks_Dict):
             ground_truth = True
         else:
             ground_truth = False
-        value = ("NA", str(secondary), SEC_PRED_TASK_TIME, ground_truth)
+        time = SEC_PRED_TASK_TIME_MEAN
+        value = ("NA", str(secondary), time, ground_truth)
         SecPredTasks_Dict[str(secondary)] = value
 
 # @brief Not implemented/possibly not neccessary
@@ -89,13 +92,13 @@ def syn_answer_find_pairs_task(hit):
         answer += np.random.choice(real_secondaries, size = None, replace = False) + "{{NEWENTRY}}"
     else:
         answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
-    
-    return (answer, task_time)
+    time = np.random.normal(FIND_PAIRS_TASK_TIME_MEAN, FIND_PAIRS_TASK_TIME_SD, 1)
+    return (answer, time)
 
 ## @brief gives a worker response to a joinable filter task based on a JFTasks_Dict hit
 #   @param answer placeholder answer to be filled out by this function
 #   @param time placeholder time to be filled out by this function
-def syn_answer_joinable_filter_task(answer,time, hit):
+def syn_answer_joinable_filter_task(hit):
     (primary,secondary,task_time,truth) = hit
 
     #determine answer
@@ -107,7 +110,8 @@ def syn_answer_joinable_filter_task(answer,time, hit):
             answer = 0
     else:
         answer = random.choice([0,1])
-    time = task_time
+    time = np.random.normal(JF_TASK_TIME_MEAN, JF_TASK_TIME_SD, 1)
+    return (answer,time)
 
 ## @brief gives a worker response to a secondary predicate task based on a SecPredTasks_Dict hit
 #   @param hit TODO fill this out
@@ -125,7 +129,7 @@ def syn_answer_sec_pred_task(hit):
             answer = random.choice([0,1])
     else:
         answer = random.choice([0,1])
-    time = task_time
+    time = np.random.normal(SEC_PRED_TASK_TIME_MEAN, SEC_PRED_TASK_TIME_SD, 1)
     return(answer,time)
 
 ## @brief gives a worker response to a join pair task based on a JoinPairTasks_Dict hit
