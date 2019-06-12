@@ -324,11 +324,12 @@ class SecPredTask(models.Model):
         self.result = find_consensus.find_consensus(self)
         self.secondary_item.second_pred_result = self.result
         self.secondary_item.save()
-
+        print "We are in update_result"
         if self.result == True:
             for prim_item in self.secondary_item.primary_items.all():
                 prim_item.is_done = True
                 prim_item.eval_result = True
+                print "We are here!"
                 prim_item.save()
         else:
             for prim_item in self.secondary_item.primary_items.all():

@@ -132,70 +132,70 @@ class JoinSimulation():
     def accuracy_real_data(self):
         #___ JF Task Accuracy ___#
         total_tasks = []
-        correct_tasks = []
-        for JFTask in JFTask.objects.all():
-            if JFTask.result is not None:
-                total_tasks += JFTask
+        correct_tasks = 0
+        for task in JFTask.objects.all():
+            if task.result is not None:
+                total_tasks += [task]
         for task in total_tasks:
-            ground_truth = self.determine_ground_truth(JFTasks_Dict[task.primary_item.pk][3])
+            ground_truth = self.determine_ground_truth(self.JFTasks_Dict[task.primary_item.pk][3])
             if task.result is ground_truth:
-                correct_tasks += task
+                correct_tasks += 1
         #Print Accuracy
-        self.print_accuracy(len(total_tasks),len(correct_tasks),"joinable filter")
+        self.print_accuracy(len(total_tasks),correct_tasks,"joinable filter")
 
         #___ Secondary Predicate Task Accuracy ___#
         total_tasks = []
-        correct_tasks = []
+        correct_tasks = 0
         for task in SecPredTask.objects.all():
             if task.result is not None:
-                total_tasks += task
+                total_tasks += [task]
         for task in total_tasks:
-            ground_truth = self.determine_ground_truth(SecPredTasks_Dict[task.secondary_item.name][3])
+            ground_truth = self.determine_ground_truth(self.SecPredTasks_Dict[task.secondary_item.name][3])
             if task.result is ground_truth:
-                correct_tasks += task
+                correct_tasks += 1
         #Print Accuracy
-        self.print_accuracy(len(total_tasks),len(correct_tasks),"secondary predicate")
+        self.print_accuracy(len(total_tasks),correct_tasks,"secondary predicate")
         
         #___ Query Accuracy __#
         total_items = []
-        correct_items = []
+        correct_items = 0
         for primary_item in PrimaryItem.objects.all():
             if primary_item.is_done is True:
-                total_items += primary_item
+                total_items += [primary_item]
         for primary_item in total_items:
-            ground_truth = self.determine_ground_truth(JFTasks_Dict[task.primary_item.pk][3])
+            ground_truth = self.determine_ground_truth(self.JFTasks_Dict[task.primary_item.pk][3])
             if primary_item.eval_result is ground_truth:
-                correct_items += primary_item
+                correct_items += 1
         #Print Accuracy
-        self.print_accuracy(len(total_items),len(correct_items),"primary item evaluation")
+        self.print_accuracy(len(total_items),correct_items,"primary item evaluation")
 
     ## @brief Print accuracy for synthetic data
     def accuracy_syn_data(self):
         #___ JF Task Accuracy ___#
         total_tasks = []
-        correct_tasks = []
-        for JFTask in JFTask.objects.all():
-            if JFTask.result is not None:
-                total_tasks += JFTask
+        correct_tasks = 0
+        for task in JFTask.objects.all():
+            if task.result is not None:
+                total_tasks += [task]
         for task in total_tasks:
-            ground_truth = JFTasks_Dict[task.primary_item.pk][3]
+            ground_truth = self.JFTasks_Dict[task.primary_item.pk][3]
             if task.result is ground_truth:
-                correct_tasks += task
+                correct_tasks += 1
         #Print Accuracy
-        self.print_accuracy(len(total_tasks),len(correct_tasks),"joinable filter")
+        self.print_accuracy(len(total_tasks),correct_tasks,"joinable filter")
 
         #___ Secondary Predicate Task Accuracy ___#
         total_tasks = []
-        correct_tasks = []
+        correct_tasks = 0
         for task in SecPredTask.objects.all():
             if task.result is not None:
-                total_tasks += task
+                total_tasks += [task]
         for task in total_tasks:
-            ground_truth = SecPredTasks_Dict[task.secondary_item.name][3]
+            ground_truth = self.SecPredTasks_Dict[task.secondary_item.name][3]
             if task.result is ground_truth:
-                correct_tasks += task
+                correct_tasks += 1
         #Print Accuracy
-        self.print_accuracy(len(total_tasks),len(correct_tasks),"secondary predicate")
+        self.print_accuracy(len(total_tasks),correct_tasks,"secondary predicate")
 
     #______ Helpers for Accuracy ______#
 
@@ -338,9 +338,7 @@ class JoinSimulation():
                 (prim, sec, times, responses) = ("these", "are", "placeholder", "values")
             elif type(task) is SecPredTask:
                 task_type = 4
-                print(task)
                 my_item = task.secondary_item.name
-                print task.secondary_item
                 (prim, sec, times, responses) = self.SecPredTasks_Dict[my_item]
 
             #__________________________  ISSUE TASK __________________________#
@@ -371,6 +369,9 @@ class JoinSimulation():
 
 
         #__________________________ RESULTS __________________________#
+        for item in PrimaryItem.objects.all():
+            item.refresh_from_db()
+        
         num_prim_pass = PrimaryItem.objects.filter(eval_result = True).count()
         num_prim_fail = PrimaryItem.objects.filter(eval_result = False).count()
         num_prim_missed = PrimaryItem.objects.filter(eval_result = None).count()
@@ -383,8 +384,8 @@ class JoinSimulation():
         print num_prim_fail, "items failed the query"
         print "The simulation failed to evaluate", num_prim_missed, "primary items"
         print "Query selectivity:", join_selectivity
-        print "Worker time spent:", sim_time
-        print "Total number of tasks processed:", num_tasks_completed
+        print "Worker time spent:", self.sim_time
+        print "Total number of tasks processed:", self.num_tasks_completed
         print "Number of joinable-filter tasks:", num_jf_tasks
         print "Number of find pairs tasks:", num_find_pairs_tasks
         print "Number of secondary predicate tasks:", num_sec_pred_tasks
@@ -393,4 +394,4 @@ class JoinSimulation():
         else:
             self.accuracy_syn_data() #does its own printing
 
-        return (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, sim_time, num_tasks_completed)
+        return (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
