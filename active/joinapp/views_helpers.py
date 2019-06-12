@@ -165,7 +165,7 @@ def collect_find_pairs(answer, cost, item1_id):
 
 ## takes a string of entries (separated by the string {{NEWENTRY}}) for find_pairs and parses them
 def parse_pairs(pairs):
-    if pairs is None:
+    if pairs is None or pairs is "":
         return []
     else:
         processed = []

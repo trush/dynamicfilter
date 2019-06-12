@@ -12,8 +12,8 @@ FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SE
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
-MEAN_SEC_PER_PRIM = 20
-SD_SEC_PER_PRIM = 4
+MEAN_SEC_PER_PRIM = 5
+SD_SEC_PER_PRIM = 1
 SAMPLE_W_REPLACE_NUM_SEC = False
 
 #________ For Real Data ________#
@@ -21,13 +21,14 @@ INPUT_PATH = ''
 PRIMARY_ITEM_TYPE = "Hotel"  # "Hotel" or "Restaurant"
 
 #________ Simulation Settings ________#
-REAL_DATA = True # real or synthetic data
+REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
 JOIN_TYPE = 1
 NUM_WORKERS = 100 # number of distinct workers
 NUM_SIMS = 10 # number of simulations to run
+PROB_CHOOSING_TRUE_SEC_ITEM = 1
 
 # ________ Consensus Settings _________#
 # Values used in the find_consensus for an item/task function
@@ -44,10 +45,10 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 #_______ Selectivity and Ambiguity Settings _________#
 JF_AMBIGUITY = 0.1
 JF_SELECTIVITY = 0.1
-SEC_PRED_SELECTIVITY = 0.7 # Actually a join-wide toggle
+SEC_PRED_SELECTIVITY = 0.3 # Actually a join-wide toggle
 SEC_PRED_AMBIGUITY = 0.1 # Actually a join-wide toggle
-JOIN_COND_AMBIGUITY = 0.1 
-JOIN_COND_SELECTIVITY = 0.1 # given that these pairs were created by the crowd
+JOIN_COND_AMBIGUITY = 0 
+JOIN_COND_SELECTIVITY = 0.8 # given that these pairs were created by the crowd
 PJF_SELECTIVITY_PRIMARY = 0.1 # PJF selectivity for primary list 
 PJF_SELECTIVITY_SECONDARY = 0.1 # PJF selectivity for secondary list
 PJF_AMBIGUITY_PRIMARY = 0.1
@@ -65,7 +66,3 @@ PJF_TIME_SECONDARY = 20
 # Used in the enumeration estimate in chao_estimator(). If the difference between the size of list2 and the size of the 
 # estimated number is less than this fraction of the size of the estimate then chao_estimator() will return True.
 THRESHOLD = 0.1
-
-
-#_____ Toggles to be organized ______ -created for runsim to work#
-REAL_DATA = False #used in join_simulations run_sim
