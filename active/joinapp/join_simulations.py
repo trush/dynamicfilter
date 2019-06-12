@@ -191,7 +191,7 @@ class JoinSimulation():
             if task.result is not None:
                 total_tasks += [task]
         for task in total_tasks:
-            ground_truth = self.SecPredTasks_Dict[task.secondary_item.name][3]
+            a,b,c,ground_truth = self.SecPredTasks_Dict[task.secondary_item.name]
             if task.result is ground_truth:
                 correct_tasks += 1
         #Print Accuracy
@@ -205,11 +205,11 @@ class JoinSimulation():
     # @param task_string string representing type of task
     def print_accuracy(self,total_num, correct_num, task_string):
         if total_num is not 0:
-            accuracy = correct_num/total_num*100
+            accuracy = float(correct_num)/float(total_num)*100
         else:
             accuracy = 100
         print str(correct_num) + " out of " + str(total_num) + " " + task_string + " tasks were correct."
-        print task_string + " Accuracy is " + str(accuracy)
+        print task_string + " Accuracy is " + str(accuracy) + "%"
 
     ## @brief helper for accuracy_real_data()
     # @param answer_list list of worker responses
@@ -309,7 +309,7 @@ class JoinSimulation():
                 syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
 
         self.generate_worker_ids()
-        
+
         while(PrimaryItem.objects.filter(is_done=False).exists()): #TODO is this the while loop we want to use?
             
             # pick worker
@@ -348,8 +348,11 @@ class JoinSimulation():
                 task_time = times[ind]
                 task_answer = responses[ind]
             else:
-                task_time = times
-                task_answer = responses
+                if task_type is 4:
+                    task_answer,task_time = syn_answer_sec_pred_task((prim, sec, times, responses))
+                elif task_type is 1:
+                    task_answer,task_time = syn_answer_find_pairs_task((prim, sec, times, responses))
+
 
             if sec is not "NA":
                 sec = SecondaryItem.objects.get(name=sec).pk

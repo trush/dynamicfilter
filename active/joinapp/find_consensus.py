@@ -8,7 +8,7 @@ from scipy.special import btdtr
 #   @param item task that needs to be evaluated for consensus
 def find_consensus(item):
     if item.yes_votes + item.no_votes < toggles.NUM_CERTAIN_VOTES:
-        item.ambiguity = "No Consensus"
+        #item.ambiguity = "No Consensus"
         return None
     votes_cast = item.yes_votes + item.no_votes
     larger = max(item.yes_votes, item.no_votes)
@@ -24,7 +24,6 @@ def find_consensus(item):
     #print("Uncertainty: " + str(uncertLevel))
 
     consensus = (larger == item.yes_votes)
-    print "consensus is:", consensus
     if votes_cast >= toggles.CUT_OFF:
         # item.ambiguity = "Most Ambiguity"
         return consensus
