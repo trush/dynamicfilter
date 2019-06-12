@@ -240,6 +240,8 @@ class JoinPairTask(models.Model):
             self.primary_item.add_secondary_item(self.secondary_item)
             self.secondary_item.matches_some = True
             self.secondary_item.save()
+            self.primary_item.save()
+
 
     ## @brief Updates state after an assignment for this task is completed
     # @param answer A list of secondary items
@@ -324,20 +326,22 @@ class SecPredTask(models.Model):
         self.result = find_consensus.find_consensus(self)
         self.secondary_item.second_pred_result = self.result
         self.secondary_item.save()
-        print "We are in update_result"
-        if self.result == True:
+        self.save()
+        self.refresh_from_db()
+        if self.result is True:
             for prim_item in self.secondary_item.primary_items.all():
                 prim_item.is_done = True
                 prim_item.eval_result = True
-                print "We are here!"
                 prim_item.save()
-        else:
+        elif self.result is False:
             for prim_item in self.secondary_item.primary_items.all():
+                prim_item.refresh_from_db()
                 #if this secondary item is the last one
-                if prim_item.secondary_items.count() == 1:
+                if prim_item.secondary_items.all().count() <= 1:
                     prim_item.is_done = True
                     prim_item.eval_result = False
-                    prim_item.save()
+                prim_item.save()
+
             self.secondary_item.primary_items.clear()
             
 
@@ -348,10 +352,12 @@ class SecPredTask(models.Model):
     # @param time amount of time taken for the worker to complete the task
     def get_task(self, answer, time):
         #update yes_votes or no_votes based on answer
-        if answer:
+        if answer is 1:
             self.yes_votes += 1
-        else:
+        elif answer is 0:
             self.no_votes += 1
+        else:
+            print "weird answer"
 
         #update average time
         self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
@@ -362,30 +368,5 @@ class SecPredTask(models.Model):
         #check whether we've reached consensus
         self.update_result()
         self.save()
-
-    ## @brief Updates database when a secondary item has reached consensus
-    def when_done(self):
-        """
-        Checks if consensus is reached and updates variables accordingly
-        """
-        if self.result == True:
-            primary_set = self.secondary_item.primary_items.all()
-            for primary_item in primary_set:
-                primary_item.eval_result = True
-                primary_item.save()
-            self.secondary_item.second_pred_result = True
-        
-        #Mark hotels done, remove restaurant
-        elif self.result == False:            
-            #Decrement counter of related primary items by 1
-            primary_set = self.secondary_item.primary_items.all()
-
-            for primary_item in primary_set:
-                primary_item.num_sec_items -= 1
-                primary_item.save()
-            
-            #Removes all relationships with this item
-            self.secondary_item.primary_items.clear()
-            self.secondary_item.second_pred_result = False
 
 
