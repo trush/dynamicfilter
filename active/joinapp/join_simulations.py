@@ -378,7 +378,7 @@ class JoinSimulation():
         num_prim_pass = PrimaryItem.objects.filter(eval_result = True).count()
         num_prim_fail = PrimaryItem.objects.filter(eval_result = False).count()
         num_prim_missed = PrimaryItem.objects.filter(eval_result = None).count()
-        join_selectivity = num_prim_pass/PrimaryItem.objects.all().count()
+        join_selectivity = float(num_prim_pass)/float(PrimaryItem.objects.all().count())
         num_jf_tasks = JFTask.objects.all().count()
         num_find_pairs_tasks = FindPairsTask.objects.all().count()
         num_sec_pred_tasks = SecPredTask.objects.all().count()
