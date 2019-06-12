@@ -17,9 +17,10 @@ def syn_load_list():
 #  values: (primary item pk, "NA", task time, ground truth)
 #  @param FindPairsTasks_Dict simulation dictionary for find-pairs tasks
 def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
+    random.seed()
     num_sec_per_prim = np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM, NUM_PRIM_ITEMS) #make a distribution of how many secondary items each primary item is joined with
     for primary in PrimaryItem.objects.all():
-        num_sec = int(np.random.choice(num_sec_per_prim, size = None, replace = SAMPLE_W_REPLACE_NUM_SEC, p = None)) #for this primary item, choose how many secondary
+        num_sec = min(NUM_SEC_ITEMS, int(np.random.choice(num_sec_per_prim, size = None, replace = SAMPLE_W_REPLACE_NUM_SEC, p = None))) #for this primary item, choose how many secondary
         sec_pk_list = random.sample(range(NUM_SEC_ITEMS), num_sec) #randomly select the pks of the secondary items to associate with this primary item
         worker_response = ""
         for sec_pk in sec_pk_list: #build the worker response
@@ -46,6 +47,7 @@ def syn_load_joinable_filter_tasks(JFTasks_Dict):
 #   values: ("NA", secondary item name, task time, ground truth)
 #   @param SecPredTasks_Dict simulation dictionary for secondary predicate tasks
 def syn_load_sec_pred_tasks(SecPredTasks_Dict):
+    random.seed()
     for secondary in range(NUM_SEC_ITEMS):
         if random.random() < SEC_PRED_SELECTIVITY:
             ground_truth = True
@@ -70,13 +72,14 @@ def syn_load_join_pair_tasks(JoinPairTasks_Dict):
 ## @brief gives a worker response to a find pairs task based on a FindPairsTasks_Dict hit
 #   @param answer placeholder answer to be filled out by this function
 #   @param time placeholder time to be filled out by this function
-def syn_answer_find_pairs_task(answer,time, hit):
+def syn_answer_find_pairs_task(hit):
+    random.seed()
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
     num_sec = int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1))
     answer = ""
     #pick all items except one
-    for i in (range(num_sec) - 1) :
+    for i in (range(num_sec -1)) :
         if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
             answer += np.random.choice(real_secondaries, size = None, replace = False) + "{{NEWENTRY}}"
         else:
@@ -87,7 +90,7 @@ def syn_answer_find_pairs_task(answer,time, hit):
     else:
         answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
     
-    time = task_time
+    return (answer, task_time)
 
 ## @brief gives a worker response to a joinable filter task based on a JFTasks_Dict hit
 #   @param answer placeholder answer to be filled out by this function
@@ -96,6 +99,7 @@ def syn_answer_joinable_filter_task(answer,time, hit):
     (primary,secondary,task_time,truth) = hit
 
     #determine answer
+    random.seed()
     if random.random() > JF_AMBIGUITY:
         if truth is True:
             answer = 1
@@ -106,20 +110,23 @@ def syn_answer_joinable_filter_task(answer,time, hit):
     time = task_time
 
 ## @brief gives a worker response to a secondary predicate task based on a SecPredTasks_Dict hit
-#   @param answer placeholder answer to be filled out by this function
-#   @param time placeholder time to be filled out by this function
-def syn_answer_sec_pred_task(answer,time, hit):
+#   @param hit TODO fill this out
+def syn_answer_sec_pred_task(hit):
     (primary,secondary,task_time,truth) = hit
 
     #determine answer
+    random.seed()
     if random.random() > SEC_PRED_AMBIGUITY:
         if truth is True:
             answer = 1
         elif truth is False:
             answer = 0
+        else:
+            answer = random.choice([0,1])
     else:
         answer = random.choice([0,1])
     time = task_time
+    return(answer,time)
 
 ## @brief gives a worker response to a join pair task based on a JoinPairTasks_Dict hit
 #   @remarks Not used in current implementation
@@ -132,6 +139,7 @@ def syn_answer_join_pair_task(answer,time, hit):
     (primary,secondary,task_time,truth) = hit
 
     #determine answer
+    random.seed()
     if random.random() > JOIN_COND_AMBIGUITY:
         if truth is True:
             answer = 1
