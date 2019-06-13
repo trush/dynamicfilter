@@ -249,11 +249,11 @@ class JoinSimulation():
 
 
         #clear dictionaries #TODO is this necessary since they're within the class
-        JFTasks_Dict.clear()
-        FindPairsTask.clear()
-        JoinPairTasks_Dict.clear()
-        PJFTasks_Dict.clear()
-        SecPredTasks_Dict.clear()
+        self.JFTasks_Dict.clear()
+        self.FindPairsTasks_Dict.clear()
+        self.JoinPairTasks_Dict.clear()
+        self.PJFTasks_Dict.clear()
+        self.SecPredTasks_Dict.clear()
 
         self.sim_time = 0
         self.num_tasks_completed = 0
@@ -275,6 +275,7 @@ class JoinSimulation():
         results_list = []
         for i in range(toggles.NUM_SIMS):
             results_list.append(self.run_sim())
+            print "-----------------------------------------------------------"
             self.reset_database()
             #more processing happens here
         #more stuff happens here
@@ -353,13 +354,11 @@ class JoinSimulation():
                 elif task_type is 1:
                     task_answer,task_time = syn_answer_find_pairs_task((prim, sec, times, responses))
 
-
             if sec is not "NA":
                 sec = SecondaryItem.objects.get(name=sec).pk
             else:
                 sec = None
             
-
             #__________________________ UPDATE STATE AFTER TASK __________________________ #
             gather_task(task_type,task_answer,task_time,prim,sec)
             

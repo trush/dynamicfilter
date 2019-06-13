@@ -66,7 +66,9 @@ def choose_task_sec_pred(worker):
     sec_item = sec_items_left.order_by('?').first() # random secondary item
     sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     # choose new secondary item if worker has worked on it
-    while worker in sec_pred_task.workers.all():  
+    while worker in sec_pred_task.workers.all():
+        sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
+        print "number of sec items left:", sec_items_left.count()
         sec_item = sec_items_left.order_by('?').first()
         sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     sec_pred_task.workers.add(worker)
