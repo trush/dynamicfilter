@@ -63,12 +63,20 @@ def choose_task_find_pairs(prim_items_list,worker):
 def choose_task_sec_pred(worker):
     # only secondary items that haven't reached consensus but match at least one primary item
     sec_items_left = SecondaryItem.objects.filter(second_pred_result=None).exclude(matches_some = False)
+    #debugging
+    # if sec_items_left.count() is 0:
+    #     print "primary items left:" , PrimaryItem.objects.filter(is_done = False)
+    #     for primary in PrimaryItem.objects.filter(is_done = False):
+    #         print "secondary items:", primary.secondary_items.all()
+    #         print "false secondary items:", primary.secondary_items.all().filter(second_pred_result=False)
     sec_item = sec_items_left.order_by('?').first() # random secondary item
     sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     # choose new secondary item if worker has worked on it
     while worker in sec_pred_task.workers.all():
         sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
-        print "number of sec items left:", sec_items_left.count()
+        if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
+            sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
+            print "useless task issued"
         sec_item = sec_items_left.order_by('?').first()
         sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     sec_pred_task.workers.add(worker)
