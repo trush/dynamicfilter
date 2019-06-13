@@ -106,7 +106,7 @@
                 <p><label>Item: XXX(ITEM_NAME_HERE)XXX</label></p>
 
                 <table>
-                    <p><label>Find every hospital within 2 miles of this hotel (located in Saint Louis, MO). Write each hospital's name and address, separated by a semicolon, and separate each entry with a new line. If you find none, check the box labeled "There are no matches" and list your resources instead. Please use standard abbreviations for addresses, e.g. St for Street or Dr for Drive.</label></p>
+                    <p><label>Find every hospital within 2.5 miles of this hotel (located in Saint Louis, MO). Write each hospital's name and address, separated by a semicolon, and separate each entry with a new line. If you find none, check the box labeled "There are no matches" and list your resources instead. Please use standard abbreviations for addresses, e.g. St for Street or Dr for Drive.</label></p>
                     <p><label>For example, for a hospital named MyHospital at 1234 Street Lane and a hospital named MyMedics at 2345 Lane Street, enter:<br>MyHospital; 1234 Street Ln<br>MyMedics; 2345 Lane St</label></p>
                     <label>Your response:<br>
                     <textarea name="workervote" id="responses" rows="4" cols="50" required></textarea>
