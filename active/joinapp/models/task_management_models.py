@@ -338,11 +338,15 @@ class SecPredTask(models.Model):
                 prim_item.refresh_from_db()
                 #if this secondary item is the last one
                 if prim_item.secondary_items.all().count() <= 1:
+                # num_sec_items = prim_item.secondary_items.all().count()
+                # num_sec_items_false = prim_item.secondary_items.all().filter(second_pred_result = False).count()
+                # if num_sec_items is num_sec_items_false:
                     prim_item.is_done = True
                     prim_item.eval_result = False
                 prim_item.save()
 
             self.secondary_item.primary_items.clear()
+            self.secondary_item.save()
             
 
         
