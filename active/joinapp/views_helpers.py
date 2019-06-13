@@ -149,6 +149,8 @@ def collect_find_pairs(answer, cost, item1_id):
     for match in answer:
         #disambiguate matches with strings
         disamb_match = disambiguate_str(match)
+        if disamb_match == "":
+            continue
 
         #find or create a secondary item that matches this name
         known_sec_items = SecondaryItem.objects.filter(name = disamb_match)
@@ -165,7 +167,7 @@ def collect_find_pairs(answer, cost, item1_id):
 
 ## takes a string of entries (separated by the string {{NEWENTRY}}) for find_pairs and parses them
 def parse_pairs(pairs):
-    if pairs is None or pairs is "":
+    if pairs is None or pairs is "" or pairs == 'None':
         return []
     else:
         processed = []
@@ -176,16 +178,23 @@ def parse_pairs(pairs):
         return processed
 
 ## turns string responses into unique identifying strings
-#NOTE: this function is specific to our example (hotels and restaurants)
+#NOTE: this function is specific to our example (hotels and hospitals)
 # new functions must be written for different queries
 def disambiguate_str(sec_item_str):
-    #we want the first 4 non-whitespace characters after the semicolon
+    #we want the (numeric) non-whitespace characters after the semicolon
     semicol_pos = sec_item_str.rfind(';')
+    if ';' not in sec_item_str:
+        if sec_item_str != '' and sec_item_str[0].isdigit():
+            semicol_pos = -1
+        elif ',' in sec_item_str:
+            semicol_pos = sec_item_str.find(',')
     addr = sec_item_str[semicol_pos+1:].strip()
     for i in range(len(addr)):
         if addr[i].isspace():
             addr = addr[:i]
             break
+    if addr == "" or (not addr[0].isdigit()):
+        addr = ""
     return addr
     
 ## Collect Join Pair task
