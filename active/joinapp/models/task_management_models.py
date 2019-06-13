@@ -3,6 +3,7 @@ from django.utils.encoding import python_2_unicode_compatible
 
 import items
 from .. import find_consensus
+from .. import toggles
 
 ## @brief Model representing a worker on MTurk
 @python_2_unicode_compatible
@@ -144,15 +145,28 @@ class FindPairsTask(models.Model):
 
     ## @brief Updates whether or not consensus has been reached
     def update_consensus(self):
-        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
+        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self)
         if not join_pair_tasks.exists():
-            self.consensus = True
-            self.primary_item.found_all_pairs = True
-            self.primary_item.save()
-            self.save()
+            if self.num_tasks >= toggles.NUM_CERTAIN_VOTES:
+                self.consensus = True
+                self.primary_item.found_all_pairs = True
+                self.primary_item.is_done = True
+                self.primary_item.eval_result = False
+                self.primary_item.save()
+                self.save()
+            else:
+                self.consensus = False
+                self.save()
         else:
-            self.consensus = False
-            self.save()
+            join_pair_tasks = join_pair_tasks.filter(result = None)
+            if not join_pair_tasks.exists():
+                self.consensus = True
+                self.primary_item.found_all_pairs = True
+                self.primary_item.save()
+                self.save()
+            else:
+                self.consensus = False
+                self.save()
 
     ## @brief Updates state after an assignment for this task is completed
     # @param answer A list of secondary items
