@@ -13,7 +13,7 @@ FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SE
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
 MEAN_SEC_PER_PRIM = 5
-SD_SEC_PER_PRIM = 1
+SD_SEC_PER_PRIM = 0
 SAMPLE_W_REPLACE_NUM_SEC = False
 
 #________ For Real Data ________#
@@ -26,8 +26,8 @@ REAL_DATA = False # real or synthetic data
 # 1 = item-wise join
 # 2 = pre-join filtered join
 JOIN_TYPE = 1
-NUM_WORKERS = 100 # number of distinct workers
-NUM_SIMS = 10 # number of simulations to run
+NUM_WORKERS = 200 # number of distinct workers
+NUM_SIMS = 5 # number of simulations to run
 PROB_CHOOSING_TRUE_SEC_ITEM = 1
 
 # ________ Consensus Settings _________#
@@ -45,8 +45,8 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 #_______ Selectivity and Ambiguity Settings _________#
 JF_AMBIGUITY = 0.1
 JF_SELECTIVITY = 0.1
-SEC_PRED_SELECTIVITY = 0.3 # Actually a join-wide toggle
-SEC_PRED_AMBIGUITY = 0.1 # Actually a join-wide toggle
+SEC_PRED_SELECTIVITY = 0.2 
+SEC_PRED_AMBIGUITY = 0.3 
 JOIN_COND_AMBIGUITY = 0 
 JOIN_COND_SELECTIVITY = 0.8 # given that these pairs were created by the crowd
 PJF_SELECTIVITY_PRIMARY = 0.1 # PJF selectivity for primary list 
