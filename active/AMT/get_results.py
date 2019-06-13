@@ -41,7 +41,6 @@ for row in my_csv:
         for assignment in worker_results['Assignments']:
             # The list of response fields from the HIT's form
             answers_list =  xmltodict.parse(assignment['Answer'])['QuestionFormAnswers']['Answer']
-            print answers_list
             if answers_list[0]['QuestionIdentifier'] != 'consent':
                 raise Exception("Unexpected format: consent field is not first")
             elif answers_list[0]['FreeText'] != 'on':
