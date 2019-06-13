@@ -281,11 +281,11 @@ class PJFTask(models.Model):
     ## worker time spent processing this task
     time = models.FloatField(default=0)
 
+    # TODO: figure out how to reach consensus and update pjf in the items
     # consensus: 
-    ## True if the IT pair passes with consensus <br>
-    ## False if the IT pair doesn't pass <br>
-    ## None consensus is not reached
-    consensus = models.NullBooleanField(default=None)
+    ## True if the prejoin filter reaches consensus
+    ## False if the prejoin filter hasn't reached consensus
+    consensus = models.BooleanField(default=None)
 
     ## @brief ToString method
     def __str__(self):
@@ -338,11 +338,15 @@ class SecPredTask(models.Model):
                 prim_item.refresh_from_db()
                 #if this secondary item is the last one
                 if prim_item.secondary_items.all().count() <= 1:
+                # num_sec_items = prim_item.secondary_items.all().count()
+                # num_sec_items_false = prim_item.secondary_items.all().filter(second_pred_result = False).count()
+                # if num_sec_items is num_sec_items_false:
                     prim_item.is_done = True
                     prim_item.eval_result = False
                 prim_item.save()
 
             self.secondary_item.primary_items.clear()
+            self.secondary_item.save()
             
 
         

@@ -79,19 +79,35 @@ def syn_answer_find_pairs_task(hit):
     random.seed()
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
-    num_sec = int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1))
+    num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
+    this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
     answer = ""
     #pick all items except one
-    for i in (range(num_sec -1)) :
+    if num_sec > 1:
+        for i in range(num_sec - 1) :
+            if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
+                answer += this_secondaries[i] + "{{NEWENTRY}}"
+            else:
+                answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
+    # pick last secondary item
+    if num_sec > 0:
         if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
-            answer += np.random.choice(real_secondaries, size = None, replace = False) + "{{NEWENTRY}}"
+            answer += this_secondaries[num_sec -1] + "{{NEWENTRY}}"
         else:
             answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
-    # pick last secondary item
-    if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
-        answer += np.random.choice(real_secondaries, size = None, replace = False) + "{{NEWENTRY}}"
-    else:
-        answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
+    # #pick all items except one
+    # for i in (range(num_sec -1)) :
+    #     print "real secondaries:", real_secondaries
+    #     if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
+    #         answer += np.random.choice(real_secondaries, size = None, replace = False) + "{{NEWENTRY}}"
+    #     else:
+    #         answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
+    # # pick last secondary item
+    # print "real secondaries:", real_secondaries
+    # if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
+    #     answer += np.random.choice(real_secondaries, size = None, replace = False) + "{{NEWENTRY}}"
+    # else:
+    #     answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
     time = np.random.normal(FIND_PAIRS_TASK_TIME_MEAN, FIND_PAIRS_TASK_TIME_SD, 1)
     return (answer, time)
 
