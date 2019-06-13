@@ -281,11 +281,11 @@ class PJFTask(models.Model):
     ## worker time spent processing this task
     time = models.FloatField(default=0)
 
+    # TODO: figure out how to reach consensus and update pjf in the items
     # consensus: 
-    ## True if the IT pair passes with consensus <br>
-    ## False if the IT pair doesn't pass <br>
-    ## None consensus is not reached
-    consensus = models.NullBooleanField(default=None)
+    ## True if the prejoin filter reaches consensus
+    ## False if the prejoin filter hasn't reached consensus
+    consensus = models.BooleanField(default=None)
 
     ## @brief ToString method
     def __str__(self):
