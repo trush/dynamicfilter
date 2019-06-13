@@ -1,6 +1,7 @@
 import random
 import string
 import csv
+import numpy as np
 import toggles
 from models.items import *
 from models.task_management_models import *
@@ -273,9 +274,21 @@ class JoinSimulation():
     ## @brief runs run_sim with the same settings NUM_SIMS times
     def run_multi_sims(self):
         results_list = []
+        join_selectivities = []
+        num_jf_tasks_arr = []
+        num_find_pairs_tasks_arr = []
+        num_sec_pred_tasks_arr = []
+
+        # results list is a list of tuples in the form (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
         for i in range(toggles.NUM_SIMS):
-            results_list.append(self.run_sim())
+            results = self.run_sim()
             print "-----------------------------------------------------------"
+            results_list.append(results)
+            join_selectivities.append(results[0])
+            num_jf_tasks_arr.append(results[1])
+            num_find_pairs_tasks_arr.append(results[2])
+            num_sec_pred_tasks_arr.append(results[3])
+            
             self.reset_database()
             #more processing happens here
         #more stuff happens here
