@@ -9,4 +9,5 @@ class Simulation_Tests(TestCase):
     #     sim.run_sim()
     def test_multi_sim(self):
         sim = JoinSimulation()
-        sim.run_multi_sims()
+        results = sim.run_multi_sims()
+        sim.graph_multi_sim(results)

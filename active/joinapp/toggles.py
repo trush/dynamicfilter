@@ -5,15 +5,15 @@ PRIMARY_LIST = ''#TODO hotel list
 REAL_DATA_CSV = ''#TODO MTURK data CSV
 
 #_____________________________ For Synthetic Data _____________________________#
-NUM_PRIM_ITEMS = 50
-NUM_SEC_ITEMS = 200
+NUM_PRIM_ITEMS = 20
+NUM_SEC_ITEMS = 100
 HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no  <not currently in use?
 FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SEC_ITEMS+2), "Fake 3; " + str(NUM_SEC_ITEMS+3), "Fake 4; " + str(NUM_SEC_ITEMS+4), "Fake 5; " + str(NUM_SEC_ITEMS+5)] #fake secondary items to choose from
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
-MEAN_SEC_PER_PRIM = 10
-SD_SEC_PER_PRIM = 2
+MEAN_SEC_PER_PRIM = 5
+SD_SEC_PER_PRIM = 0
 SAMPLE_W_REPLACE_NUM_SEC = False
 
 #________ For Real Data ________#
@@ -45,8 +45,8 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 #_______ Selectivity and Ambiguity Settings _________#
 JF_AMBIGUITY = 0.1
 JF_SELECTIVITY = 0.1
-SEC_PRED_SELECTIVITY = 0.3 
-SEC_PRED_AMBIGUITY = 0.1 
+SEC_PRED_SELECTIVITY = 0.2 
+SEC_PRED_AMBIGUITY = 0.3 
 JOIN_COND_AMBIGUITY = 0 
 JOIN_COND_SELECTIVITY = 0.8 # given that these pairs were created by the crowd
 PJF_SELECTIVITY_PRIMARY = 0.1 # PJF selectivity for primary list 

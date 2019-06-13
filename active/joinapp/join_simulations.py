@@ -10,6 +10,7 @@ from views_helpers import *
 from django.test import *
 import random
 from synthetic_data import *
+import matplotlib.pyplot as graph
 
 ## @brief Functionality for testing the join algorithm on non-live data
 class JoinSimulation():
@@ -274,25 +275,29 @@ class JoinSimulation():
     ## @brief runs run_sim with the same settings NUM_SIMS times
     def run_multi_sims(self):
         results_list = []
-        join_selectivities = []
-        num_jf_tasks_arr = []
-        num_find_pairs_tasks_arr = []
-        num_sec_pred_tasks_arr = []
+        join_selectivity_arr = []
+        num_jf_assignments_arr = []
+        num_find_pairs_assignments_arr = []
+        num_sec_pred_assignments_arr = []
+        time_arr = []
+        total_assignments_arr = []
 
         # results list is a list of tuples in the form (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
         for i in range(toggles.NUM_SIMS):
             results = self.run_sim()
             print "-----------------------------------------------------------"
             results_list.append(results)
-            join_selectivities.append(results[0])
-            num_jf_tasks_arr.append(results[1])
-            num_find_pairs_tasks_arr.append(results[2])
-            num_sec_pred_tasks_arr.append(results[3])
+            join_selectivity_arr.append(results[0])
+            num_jf_assignments_arr.append(results[1])
+            num_find_pairs_assignments_arr.append(results[2])
+            num_sec_pred_assignments_arr.append(results[3])
+            time_arr.append(results[4])
+            total_assignments_arr.append(results[5])
             
             self.reset_database()
             #more processing happens here
         #more stuff happens here
-        return results_list
+        return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr)
 
     ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
     def run_sim(self):
@@ -411,7 +416,7 @@ class JoinSimulation():
         print "*", num_prim_fail, "items failed the query"
         print "* The simulation failed to evaluate", num_prim_missed, "primary items"
         print "* Query selectivity:", join_selectivity
-        print "* Worker time spent:", self.sim_time
+        print "* Worker time spent:", self.sim_time[0]
         print "* Total number of tasks processed:", self.num_tasks_completed
         print "* # of joinable-filter tasks:", num_jf_tasks, "# of joinable-filter assignments:", num_jf_assignments
         print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments
@@ -421,4 +426,9 @@ class JoinSimulation():
         else:
             self.accuracy_syn_data() #does its own printing
 
-        return (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
+        return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
+
+    def graph_multi_sim(self,sim_results):
+        #(join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr)
+        graph.hist(x = sim_results[4], bins = None,range = None, histtype = 'step')
+
