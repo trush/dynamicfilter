@@ -271,7 +271,6 @@ def collect_join_pair(answer, cost, item1_id, item2_id):
     return this_task.result
 
 ## Collect Prejoin Filter task
-# NOTE: not functional because get_task for PJFTask is not written
 def collect_prejoin_filter(answer, cost, item1_id=None, item2_id=None):
     # primary item or secondary item task
     if item1_id is not None:
