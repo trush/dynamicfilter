@@ -297,6 +297,7 @@ class JoinSimulation():
             self.reset_database()
             #more processing happens here
         #more stuff happens here
+
         return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr)
 
     ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles

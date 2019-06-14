@@ -21,15 +21,21 @@ class SecondaryItem(models.Model):
 
     ## Maybe unnecessary? In our case this would be restaurant
     item_type = models.CharField(max_length=50)
+
     ## If this item has not yet reached consensus on matching some primary item, it should not give out tasks
     matches_some = models.BooleanField(db_index=True, default=False)
 
     ## Consensus - None if not reached, True if item fulfills predicate, False if not
     second_pred_result = models.NullBooleanField(db_index=True, default=None)
+
     ## Number of primary items related to this item
     num_prim_items = models.IntegerField(default=0)
+
     ## Used in the estimator model for determining when we have completed our search for secondary items
     fstatistic = models.ForeignKey(FStatistic, default=None, null=True, blank=True)
+
+    ## prejoin filter
+    pjf = models.CharField(max_length=10)
     
     ## @brief ToString method
     def __str__(self):
@@ -47,6 +53,7 @@ class PrimaryItem(models.Model):
 
     ## Boolean representing whether or not this primary item passes the joinable filter
     eval_result = models.BooleanField(db_index=True, default=False)
+
     ## Is this item done being processed or not
     is_done = models.BooleanField(db_index=True, default=False)
 
@@ -59,6 +66,9 @@ class PrimaryItem(models.Model):
     ## According to the Chao estimator, have all secondary items for this primary item been found
     found_all_pairs = models.BooleanField(db_index=True, default=False)
     
+    ## prejoin filter
+    pjf = models.CharField(max_length=10)
+
     ## @brief ToString method
     def __str__(self):
         return str(self.name)

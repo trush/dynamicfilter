@@ -10,8 +10,7 @@ MTURK_SANDBOX = 'https://mturk-requester-sandbox.us-east-1.amazonaws.com'
 mturk = boto3.client('mturk',
   aws_access_key_id = pubkey,
   aws_secret_access_key = privkey,
-  region_name='us-east-1',
-  endpoint_url = MTURK_SANDBOX
+  region_name='us-east-1'
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my account"
 print "Are you sure you want to post HITs to this account?"
@@ -36,13 +35,13 @@ for line in f:
   question = question.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
   new_hit = mturk.create_hit(
       Title = 'Match hospitals to a hotel based on proximity',
-      Description = 'Find hospitals within 2 miles of the given hotel',
+      Description = 'Find hospitals within 2.5 miles of the given hotel',
       Keywords = 'text, enumeration, matching',
       QualificationRequirements = [{
           'QualificationTypeId':"000000000000000000L0",
           'Comparator':"GreaterThan",
           'IntegerValues':[90]}],
-      Reward = '0.30',
+      Reward = '0.25',
       MaxAssignments = 9,
       LifetimeInSeconds = 172800,
       AssignmentDurationInSeconds = 1200,
@@ -51,7 +50,7 @@ for line in f:
   ) ## averages ?? time
   hit_list.append((new_hit, hotel, "list_secondary", None))
   print "A new HIT has been created. You can preview it here:"
-  print "https://workersandbox.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
+  print "https://worker.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
 
