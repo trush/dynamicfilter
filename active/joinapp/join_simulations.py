@@ -335,8 +335,12 @@ class JoinSimulation():
             worker_id = random.choice(self.worker_ids)
             
             #__________________________  CHOOSE TASK __________________________#
-            if JOIN_TYPE == 1:
+            if JOIN_TYPE is 0: # joinable filter
+                task = choose_task_joinable_filter(worker_id)
+            elif JOIN_TYPE is 1: # item-wise join
                 task = choose_task(worker_id, estimator)
+
+    
             if type(task) is JFTask:
                 task_type = 0
                 my_item = task.primary_item.pk
@@ -372,6 +376,8 @@ class JoinSimulation():
                     task_answer,task_time = syn_answer_sec_pred_task((prim, sec, times, responses))
                 elif task_type is 1:
                     task_answer,task_time = syn_answer_find_pairs_task((prim, sec, times, responses))
+                elif task_type is 0:
+                    task_answer,task_time = syn_answer_joinable_filter_task((prim, sec, times, responses))
 
             if sec is not "NA":
                 sec = SecondaryItem.objects.get(name=sec).pk

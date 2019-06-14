@@ -17,8 +17,8 @@ def choose_task(workerID, estimator):
     # returns task that was chosen and updated
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
     ### algorithm determining what type of task/join to use ###
-    # if toggles.JOIN_TYPE is 0: # joinable filter
-        # return choose_task_joinable_filter(new_worker)
+    #if toggles.JOIN_TYPE is 0: # joinable filter
+       # return choose_task_joinable_filter(new_worker)
     # elif toggles.JOIN_TYPE is 1 or 2:
     # find pairs for all primary items
     prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
@@ -67,18 +67,29 @@ def choose_task_pjf(worker):
 
 ## @brief chooses a joinable filter task based on a worker
 # @param worker workerID of the worker this task is going to
-def choose_task_joinable_filter(worker):
-    prim_item = PrimaryItem.objects.order_by('?').first() # random primary item
-    joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)[0]
-    prims_left = PrimaryItem.objects.exclude(pk=prim_item.pk)
-    # choose new primary item if the random one has reached consensus or if worker has worked on it
-    while joinable_filter_task.result == None or worker in joinable_filter_task.workers:
-        prims_left = prims_left.exclude(pk=prim_item.pk)
-        prim_item = prims_left.order_by('?').first()
+def choose_task_joinable_filter(workerID):
+    worker = Worker.objects.get_or_create(worker_id=workerID)[0]
+    prim_items_left = PrimaryItem.objects.exclude(is_done = True).order_by('?')
+    prim_items_left_count = prim_items_left.count()
+    print_statement = " - WHY WAS THIS TASK ISSUED" #for determining if weird useless tasks are issued
+    while prim_items_left_count is not 0: #choose current primary item
+        prim_item = prim_items_left.first() # random primary item
         joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)[0]
+        if worker not in joinable_filter_task.workers.all():
+            joinable_filter_task.workers.add(worker)
+            joinable_filter_task.save()
+            return joinable_filter_task
+        else:
+            prim_items_left.exclude(pk = prim_item.pk)
+            prim_items_left_count -= 1
+            print_statement = "" #for overriding the previous setting
+    print "useless joinable filter task issued" + print_statement
+    prim_item = PrimaryItem.objects.order_by('?').first()
+    joinable_filter_task = JFTask.objects.get_or_create(primary_item=prim_item)[0]
     joinable_filter_task.workers.add(worker)
     joinable_filter_task.save()
     return joinable_filter_task
+
 
 ## @brief chooses a find pairs task based on a worker
 # @param prim_items_list the current primary list objects available
@@ -128,7 +139,7 @@ def choose_task_sec_pred(worker):
         sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
         if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
             sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
-            print "useless task issued"
+            print "useless secondary predicate task issued"
         sec_item = sec_items_left.order_by('?').first()
         sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     sec_pred_task.workers.add(worker)
