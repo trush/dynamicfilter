@@ -330,10 +330,9 @@ class JoinSimulation():
         self.generate_worker_ids()
 
         while(PrimaryItem.objects.filter(is_done=False).exists()): #TODO is this the while loop we want to use?
-            
             # pick worker
             worker_id = random.choice(self.worker_ids)
-
+            
             #__________________________  CHOOSE TASK __________________________#
             task = choose_task(worker_id, estimator)
             if type(task) is JFTask:
