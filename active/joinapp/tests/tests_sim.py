@@ -10,4 +10,4 @@ class Simulation_Tests(TestCase):
     def test_multi_sim(self):
         sim = JoinSimulation()
         results = sim.run_multi_sims()
-        sim.graph_multi_sim(results)
+        #sim.graph_multi_sim(results)

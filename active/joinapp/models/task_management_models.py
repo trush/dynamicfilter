@@ -147,6 +147,7 @@ class FindPairsTask(models.Model):
         join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
         if not join_pair_tasks.exists():
             self.consensus = True
+            self.primary_item.refresh_from_db()
             self.primary_item.found_all_pairs = True
             self.primary_item.save()
             self.save()
@@ -193,7 +194,6 @@ class FindPairsTask(models.Model):
             estimator = Estimator.objects.all().first()
             #update estimator
             estimator.update_chao_estimator_variables(join_pair_task)
-
         self.num_tasks += 1
         self.update_consensus()
         self.save()
@@ -237,8 +237,14 @@ class JoinPairTask(models.Model):
         #primary item's list of matches
         #Running this multiple times is fine, the relationship is not duplicated
         if self.result is True:
-            self.primary_item.add_secondary_item(self.secondary_item)
-            self.secondary_item.matches_some = True
+            if self.secondary_item.second_pred_result is None:
+                self.primary_item.add_secondary_item(self.secondary_item)
+                self.secondary_item.matches_some = True
+            elif self.secondary_item.second_pred_result is True:
+                self.primary_item.add_secondary_item(self.secondary_item)
+                self.primary_item.is_done = True
+                self.primary_item.eval_result = True
+                
             self.secondary_item.save()
             self.primary_item.save()
 
@@ -337,16 +343,17 @@ class SecPredTask(models.Model):
             for prim_item in self.secondary_item.primary_items.all():
                 prim_item.refresh_from_db()
                 #if this secondary item is the last one
-                if prim_item.secondary_items.all().count() <= 1:
-                # num_sec_items = prim_item.secondary_items.all().count()
-                # num_sec_items_false = prim_item.secondary_items.all().filter(second_pred_result = False).count()
-                # if num_sec_items is num_sec_items_false:
+                #if prim_item.secondary_items.all().count() <= 1:
+                num_sec_items = prim_item.secondary_items.all().count()
+                num_sec_items_false = prim_item.secondary_items.all().filter(second_pred_result = False).count()
+                if num_sec_items is num_sec_items_false:
                     prim_item.is_done = True
                     prim_item.eval_result = False
                 prim_item.save()
 
             self.secondary_item.primary_items.clear()
             self.secondary_item.save()
+            
             
 
         
