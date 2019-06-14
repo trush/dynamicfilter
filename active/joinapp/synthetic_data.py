@@ -18,14 +18,16 @@ def syn_load_list():
 #  @param FindPairsTasks_Dict simulation dictionary for find-pairs tasks
 def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
     random.seed()
-    num_sec_per_prim = np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM, NUM_PRIM_ITEMS) #make a distribution of how many secondary items each primary item is joined with
     for primary in PrimaryItem.objects.all():
-        num_sec = min(NUM_SEC_ITEMS, int(np.random.choice(num_sec_per_prim, size = None, replace = SAMPLE_W_REPLACE_NUM_SEC, p = None))) #for this primary item, choose how many secondary
-        sec_pk_list = random.sample(range(NUM_SEC_ITEMS), num_sec) #randomly select the pks of the secondary items to associate with this primary item
-        worker_response = ""
-        for sec_pk in sec_pk_list: #build the worker response
-            sec_item = "Secondary Item " + str(sec_pk) + "; " + str(sec_pk) + " Address {{NEWENTRY}}"
-            worker_response += sec_item
+        if random.random() > PROB_NONE_SECONDARY: #if worker response is not "None"
+            num_sec = int(min(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM, size = None), NUM_SEC_ITEMS)) #for this primary item, choose how many secondary
+            sec_pk_list = random.sample(range(NUM_SEC_ITEMS), num_sec) #randomly select the pks of the secondary items to associate with this primary item
+            worker_response = ""
+            for sec_pk in sec_pk_list: #build the worker response
+                sec_item = "Secondary Item " + str(sec_pk) + "; " + str(sec_pk) + " Address {{NEWENTRY}}"
+                worker_response += sec_item
+        else: #if worker response is "None"
+            worker_response = "None"
         time = FIND_PAIRS_TASK_TIME_MEAN
         value = (primary.pk, "NA", time, worker_response)
         FindPairsTasks_Dict[primary.pk] = value
@@ -82,32 +84,22 @@ def syn_answer_find_pairs_task(hit):
     num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
     this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
     answer = ""
+    fake_items = FAKE_SEC_ITEM_LIST
     #pick all items except one
     if num_sec > 1:
         for i in range(num_sec - 1) :
             if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
                 answer += this_secondaries[i] + "{{NEWENTRY}}"
             else:
-                answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
+                answer += np.random.choice(fake_items, size = None, replace = False) + "{{NEWENTRY}}"
     # pick last secondary item
     if num_sec > 0:
         if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
             answer += this_secondaries[num_sec -1] + "{{NEWENTRY}}"
         else:
-            answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
-    # #pick all items except one
-    # for i in (range(num_sec -1)) :
-    #     print "real secondaries:", real_secondaries
-    #     if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
-    #         answer += np.random.choice(real_secondaries, size = None, replace = False) + "{{NEWENTRY}}"
-    #     else:
-    #         answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
-    # # pick last secondary item
-    # print "real secondaries:", real_secondaries
-    # if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
-    #     answer += np.random.choice(real_secondaries, size = None, replace = False) + "{{NEWENTRY}}"
-    # else:
-    #     answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
+            answer += np.random.choice(fake_items, size = None, replace = False) + "{{NEWENTRY}}"
+    else:
+        answer = "None"
     time = np.random.normal(FIND_PAIRS_TASK_TIME_MEAN, FIND_PAIRS_TASK_TIME_SD, 1)
     return (answer, time)
 

@@ -1,5 +1,5 @@
 import toggles
-
+import random
 from django.db.models.query import EmptyQuerySet
 
 from models.items import *
@@ -16,12 +16,17 @@ def choose_task(workerID, estimator):
     # only implemented for IW join
     # returns task that was chosen and updated
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
-    # if task_type = JF:
+    ### algorithm determining what type of task/join to use ###
+    # if toggles.JOIN_TYPE is 0: # joinable filter
         # return choose_task_joinable_filter(new_worker)
+    # elif toggles.JOIN_TYPE is 1 or 2:
     # find pairs for all primary items
     prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
     if prim_items_left.exists():
         return choose_task_find_pairs(prim_items_left, new_worker)
+    # this is used once we enumerate the entire second list 
+    # elif toggles.JOIN_TYPE is 2 and (PrimaryItem.objects.filter(pjf='').exists() or SecondaryItem.objects.filter(pjf='').exists()):
+        # return choose_task_pjf(new_worker)
     else:
         return choose_task_sec_pred(new_worker)
 
@@ -42,6 +47,23 @@ def choose_task_1(workerID, estimator):
         return choose_task_find_pairs(prim_items_left, new_worker)
 
 #_______________________ CHOOSE TASKS HELPERS _______________________#
+
+## @brief chooses a pre join filter task based on a worker
+# @param worker workerID of the worker this task is going to
+def choose_task_pjf(worker):
+    # first does all primary item pjf tasks
+    prim_items_left = PrimaryItem.objects.filter(pjf='')
+    if prim_items_left.exists():
+        prim_item = prim_items_left.order_by('?').first() # random primary item
+        pjf_task = PJFTask.objects.get_or_create(primary_item=prim_item)[0]
+    # secondary item pjf tasks
+    else:
+        sec_items_left = SecondaryItem.objects.filter(pjf='')
+        sec_item = sec_items_left.order_by('?').first() # random secondary item
+        pjf_task = PJFTask.objects.get_or_create(secondary_item=sec_item)[0]
+    pjf_task.workers.add(worker)
+    pjf_task.save()
+    return pjf_task
 
 ## @brief chooses a joinable filter task based on a worker
 # @param worker workerID of the worker this task is going to
@@ -74,6 +96,26 @@ def choose_task_find_pairs(prim_items_list,worker):
     find_pairs_task.save()
     return find_pairs_task
 
+## @brief chooses a join pair task based on a worker
+# @param worker workerID of the worker this task is going to
+# @param pjfs a list of strings representing prejoin filters
+def choose_task_join_pairs(worker):
+    prim_item = PrimaryItem.objects.all().order_by('?').first() # random primary item
+    sec_item = SecondaryItem.objects.filter(pjf=prim_item.pjf).order_by('?').first() # random secondary item with same pjf
+    join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
+    prims_left = PrimaryItem.objects.exclude(pk=prim_item.pk)
+    secs_left = SecondaryItem.objects.exclude(pk=sec_item.pk)
+    while join_pair_task.result is not None:
+        prims_left = prims_left.exclude(pk=prim_item.pk)
+        secs_left = secs_left.exclude(pk=sec_item.pk)
+        prim_item = prims_left.order_by('?').first()
+        sec_item = secs_left.filter(pjf=prim_item.pjf).order_by('?').first()
+        join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
+    join_pair_task.workers.add(worker)
+    join_pair_task.save()
+    return join_pair_task
+        
+
 ## @brief chooses a secondary predicate task based on a worker
 # @param worker workerID of the worker this task is going to
 def choose_task_sec_pred(worker):
@@ -92,8 +134,6 @@ def choose_task_sec_pred(worker):
     sec_pred_task.workers.add(worker)
     sec_pred_task.save()
     return sec_pred_task
-
-#_____ASSIGN TASKS_____#
 
 #_____GATHER TASKS_____#
 
@@ -169,6 +209,8 @@ def collect_find_pairs(answer, cost, item1_id):
     for match in answer:
         #disambiguate matches with strings
         disamb_match = disambiguate_str(match)
+        if disamb_match == "":
+            continue
 
         #find or create a secondary item that matches this name
         known_sec_items = SecondaryItem.objects.filter(name = disamb_match)
@@ -185,7 +227,7 @@ def collect_find_pairs(answer, cost, item1_id):
 
 ## takes a string of entries (separated by the string {{NEWENTRY}}) for find_pairs and parses them
 def parse_pairs(pairs):
-    if pairs is None or pairs is "":
+    if pairs is None or pairs is "" or pairs == 'None':
         return []
     else:
         processed = []
@@ -196,16 +238,23 @@ def parse_pairs(pairs):
         return processed
 
 ## turns string responses into unique identifying strings
-#NOTE: this function is specific to our example (hotels and restaurants)
+#NOTE: this function is specific to our example (hotels and hospitals)
 # new functions must be written for different queries
 def disambiguate_str(sec_item_str):
-    #we want the first 4 non-whitespace characters after the semicolon
+    #we want the (numeric) non-whitespace characters after the semicolon
     semicol_pos = sec_item_str.rfind(';')
+    if ';' not in sec_item_str:
+        if sec_item_str != '' and sec_item_str[0].isdigit():
+            semicol_pos = -1
+        elif ',' in sec_item_str:
+            semicol_pos = sec_item_str.find(',')
     addr = sec_item_str[semicol_pos+1:].strip()
     for i in range(len(addr)):
         if addr[i].isspace():
             addr = addr[:i]
             break
+    if addr == "" or (not addr[0].isdigit()):
+        addr = ""
     return addr
     
 ## Collect Join Pair task
@@ -233,8 +282,36 @@ def collect_join_pair(answer, cost, item1_id, item2_id):
 
 ## Collect Prejoin Filter task
 def collect_prejoin_filter(answer, cost, item1_id=None, item2_id=None):
-    #I don't know
-    return True
+    # primary item or secondary item task
+    if item1_id is not None:
+        #load primary item from db
+        primary_item = PrimaryItem.objects.get(pk = item1_id)
+        #use primary item to find the relevant task
+        our_tasks = PJFTask.objects.filter(primary_item = primary_item)
+        #if we have a prejoin filter task with these items, it is our task.
+        #otherwise, we must create a new task
+        if not our_tasks.exists():
+            this_task = PJFTask.objects.create(primary_item = primary_item)
+        else:
+            this_task = PJFTask.objects.get(primary_item = primary_item)
+    else:
+        #load secondary item from db
+        secondary_item = SecondaryItem.objects.get(pk = item2_id)
+        #use secondary item to find the relevant task
+        our_tasks = PJFTask.objects.filter(secondary_item = secondary_item)
+        #if we have a prejoin filter task with these items, it is our task.
+        #otherwise, we must create a new task
+        if not our_tasks.exists():
+            this_task = PJFTask.objects.create(secondary_item = secondary_item)
+        else:
+            this_task = PJFTask.objects.get(secondary_item = secondary_item)
+
+    # allow model functionality to update its fields accordingly
+    this_task.get_task(answer, cost)
+
+    #return the result from this_task for use
+    this_task.refresh_from_db()
+    return this_task.consensus
 
 ## Collect secondary predicate task
 def collect_secondary_predicate(answer, cost, item2_id):

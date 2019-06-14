@@ -3,6 +3,7 @@ from django.utils.encoding import python_2_unicode_compatible
 
 import items
 from .. import find_consensus
+from .. import toggles
 
 ## @brief Model representing a worker on MTurk
 @python_2_unicode_compatible
@@ -11,7 +12,7 @@ class Worker(models.Model):
     worker_id = models.CharField(max_length=20)
     ## ToString method
     def __str__(self):
-        return str(worker_id)
+        return "Worker ID: " + str(worker_id)
  
 ## @brief Model representing types of tasks and the statistics we need to store for each type
 @python_2_unicode_compatible
@@ -103,7 +104,7 @@ class JFTask(models.Model):
 
     ## @brief Updates state after an assignment for this task is completed
     # @param answer response from the assignment (0 or 1)
-    # @param time How long it took to execute the incoming assingment
+    # @param time How long it took to execute the incoming assignment
     def get_task(self, answer, time):
         #update yes_votes or no_votes based on answer
         if answer:
@@ -144,20 +145,33 @@ class FindPairsTask(models.Model):
 
     ## @brief Updates whether or not consensus has been reached
     def update_consensus(self):
-        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
+        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self)
         if not join_pair_tasks.exists():
-            self.consensus = True
             self.primary_item.refresh_from_db()
-            self.primary_item.found_all_pairs = True
-            self.primary_item.save()
-            self.save()
+            if self.num_tasks >= toggles.NUM_CERTAIN_VOTES:
+                self.consensus = True
+                self.primary_item.found_all_pairs = True
+                self.primary_item.is_done = True
+                self.primary_item.eval_result = False
+                self.primary_item.save()
+                self.save()
+            else:
+                self.consensus = False
+                self.save()
         else:
-            self.consensus = False
-            self.save()
+            join_pair_tasks = join_pair_tasks.filter(result = None)
+            if not join_pair_tasks.exists():
+                self.consensus = True
+                self.primary_item.found_all_pairs = True
+                self.primary_item.save()
+                self.save()
+            else:
+                self.consensus = False
+                self.save()
 
     ## @brief Updates state after an assignment for this task is completed
     # @param answer A list of secondary items
-    # @param time How long it took to execute the incoming assingment
+    # @param time How long it took to execute the incoming assignment
     def get_task(self, answer, time):
         from estimator import *
         #update average time
@@ -233,8 +247,8 @@ class JoinPairTask(models.Model):
         self.result = find_consensus.find_consensus(self)
         self.save()
 
-        #if we have reached consensus and the result is a match, add our secondary item to the
-        #primary item's list of matches
+        #if we have reached consensus and the result is a match, add our secondary item to the 
+        # primary item's list of matches <br>
         #Running this multiple times is fine, the relationship is not duplicated
         if self.result is True:
             if self.secondary_item.second_pred_result is None:
@@ -250,8 +264,8 @@ class JoinPairTask(models.Model):
 
 
     ## @brief Updates state after an assignment for this task is completed
-    # @param answer A list of secondary items
-    # @param time How long it took to execute the incoming assingment
+    # @param answer Worker answer (Boolean)
+    # @param time How long it took to execute the incoming assignment
     def get_task(self, answer, time):
         #update yes_votes or no_votes based on answer
         if answer:
@@ -288,10 +302,9 @@ class PJFTask(models.Model):
     time = models.FloatField(default=0)
 
     # consensus: 
-    ## True if the IT pair passes with consensus <br>
-    ## False if the IT pair doesn't pass <br>
-    ## None consensus is not reached
-    consensus = models.NullBooleanField(default=None)
+    ## True if the prejoin filter reaches consensus <br>
+    ## False if the prejoin filter hasn't reached consensus
+    consensus = models.BooleanField(default=None)
 
     ## @brief ToString method
     def __str__(self):
@@ -301,6 +314,115 @@ class PJFTask(models.Model):
             return "Pre-Join Filter for item " + str(self.secondary_item)
         else:
             raise Exception("No item")
+    
+    ## @brief Updates whether or not consensus has been reached
+    def update_consensus(self):
+        # all item pjf pairs with this item 
+        item_pjf_pairs = ItemPJFPair.objects.filter(pjf_task = self)
+        item_pjf_pairs = item_pjf_pairs.filter(consensus = True)
+        # if there is a pjf that has reached consensus, update consensus to true
+        if item_pjf_pairs.exists():
+            self.consensus = True
+            ItemPJFPair.objects.filter(pjf_task = self)
+            self.save()
+        else:
+            self.consensus = False
+            self.save()
+
+    ## @brief Updates state after an assignment for this task is completed
+    # @param answer A string containing the pjf
+    # @param time How long it took to execute the incoming assignment
+    def get_task(self, answer, time):
+        # primary item task
+        if self.primary_item is not None:
+            pair = ItemPJFPair.objects.filter(primary_item=self,pjf=answer)
+            #create a new item pjf pair if it does not exist
+            if not pair.exists():
+                ItemPJFPair.objects.create(primary_item=self.primary_item,pjf=answer,pjf_task = self,no_votes = self.num_tasks)
+            item_pjf_pairs = ItemPJFPair.objects.filter(primary_item=self.primary_item)
+        # secondary item task
+        elif self.secondary_item is not None:
+            pair = ItemPJFPair.objects.filter(secondary_item=self,pjf=answer)
+            #create a new item pjf pair if it does not exist
+            if not pair.exists():
+                ItemPJFPair.objects.create(secondary_item=self.secondary_item,pjf=answer,pjf_task = self,no_votes = self.num_tasks)
+            item_pjf_pairs = ItemPJFPair.objects.filter(secondary_item=self.secondary_item)
+        # get_task for each item pjf pair associated with this 
+        for item in item_pjf_pairs:
+            item.get_task(answer)
+
+        #update average time
+        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #update number of tasks so far
+        self.num_tasks += 1
+
+        #check whether we've reached consensus
+        self.update_consensus()
+        self.save()
+
+
+## @brief Model representing an item and pre-join filter pair
+## Used for reaching consensus on a pre-join filter for PJFTask
+@python_2_unicode_compatible
+class ItemPJFPair(models.Model):
+    """
+    Model representing pairs of items and pre-join filter tasks.
+    """
+    ## primary item associated with this join
+    primary_item = models.ForeignKey('PrimaryItem', default=None, null=True)
+    ## secondary item associated with this join
+    secondary_item = models.ForeignKey('SecondaryItem', default=None, null=True)
+    
+    ## prejoin filter associated with this join
+    pjf = models.CharField(max_length=10)
+
+    ## many to one relationship used for finding consensus
+    pjf_task = models.ForeignKey(PJFTask)
+
+    # consensus: 
+    ## True if the pjf reaches consensus <br>
+    ## False if the pjf doesn't reach consensus
+    consensus = models.BooleanField(db_index=True, default=False)
+    yes_votes = models.IntegerField(default=0)
+    no_votes = models.IntegerField(default=0)
+
+    ## @brief ToString method
+    def __str__(self):
+        if self.primary_item is not None:
+            return "Pre-Join Filter for item " + str(self.primary_item) + " is " + self.pjf
+        elif self.secondary_item is not None:
+            return "Pre-Join Filter for item " + str(self.secondary_item) + " is " + self.pjf
+        else:
+            raise Exception("No item")
+
+    ## checks and updates whether or not consensus has been reached
+    def update_consensus(self):
+        #have we reached consensus?
+        self.consensus = find_consensus.find_consensus(self)
+        self.save()
+
+        #if we have reached consensus, then set the item's pjf
+        if self.consensus is True:
+            if self.primary_item is not None:
+                self.primary_item.pjf = self.pjf
+                self.primary_item.save()
+            elif self.secondary_item is not None:
+                self.secondary_item.pjf = self.pjf
+                self.secondary_item.save()
+
+    ## @brief Updates state after an assignment for PJFTask is completed
+    # @param answer A string containing the pjf
+    def get_task(self, answer):
+        #update yes_votes or no_votes based on answer
+        if answer is self.pjf:
+            self.yes_votes += 1
+        else:
+            self.no_votes += 1
+
+        #check whether we've reached consensus
+        self.update_consensus()
+        self.save()
 
 ## @brief Model representing a secondary predicate task
 @python_2_unicode_compatible
@@ -316,8 +438,8 @@ class SecPredTask(models.Model):
     time = models.FloatField(default=0)
 
     # result: 
-    ## True if the IT pair passes with consensus
-    ## False if the IT pair doesn't pass
+    ## True if the IT pair passes with consensus <br>
+    ## False if the IT pair doesn't pass <br>
     ## None consensus is not reached
     result = models.NullBooleanField(db_index=True, default=None)
     yes_votes = models.IntegerField(default=0)

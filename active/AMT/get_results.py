@@ -14,9 +14,8 @@ mturk = boto3.client('mturk',
   aws_access_key_id = pubkey,
   aws_secret_access_key = privkey,
   region_name='us-east-1',
-  endpoint_url = MTURK_SANDBOX
 )
-print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my Sandbox account"
+print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my account"
 #csv that holds recorded hits
 my_csv = csv.reader(open('HIT_IDs.csv', 'r'), delimiter = ',') 
 
@@ -41,9 +40,11 @@ for row in my_csv:
         for assignment in worker_results['Assignments']:
             # The list of response fields from the HIT's form
             answers_list =  xmltodict.parse(assignment['Answer'])['QuestionFormAnswers']['Answer']
-            print answers_list
             if answers_list[0]['QuestionIdentifier'] != 'consent':
-                raise Exception("Unexpected format: consent field is not first")
+                print "***"
+                print "warning: consent not first for HIT ", hit_id
+                print "hotel: ", hotel, " task: ", task, "assignment"
+                print "***"
             elif answers_list[0]['FreeText'] != 'on':
                 raise Exception("consent not granted for assignment", assignment['AssignmentId'])
             else:
