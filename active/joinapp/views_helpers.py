@@ -30,6 +30,22 @@ def choose_task(workerID, estimator):
     else:
         return choose_task_sec_pred(new_worker)
 
+def choose_task_1(workerID, estimator):
+    # only implemented for IW join
+    # returns task that was chosen and updated
+    new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
+    # if task_type = JF:
+        # return choose_task_joinable_filter(new_worker)
+    # find pairs for all primary items
+    prim_has_sec = PrimaryItem.objects.exclude(is_done=True).filter(found_all_pairs=True)
+
+    if prim_has_sec.exists():
+        return choose_task_sec_pred(new_worker)
+
+    prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
+    if prim_items_left.exists():
+        return choose_task_find_pairs(prim_items_left, new_worker)
+
 #_______________________ CHOOSE TASKS HELPERS _______________________#
 
 ## @brief chooses a pre join filter task based on a worker
@@ -105,12 +121,6 @@ def choose_task_join_pairs(worker):
 def choose_task_sec_pred(worker):
     # only secondary items that haven't reached consensus but match at least one primary item
     sec_items_left = SecondaryItem.objects.filter(second_pred_result=None).exclude(matches_some = False)
-    #debugging
-    # if sec_items_left.count() is 0:
-    #     print "primary items left:" , PrimaryItem.objects.filter(is_done = False)
-    #     for primary in PrimaryItem.objects.filter(is_done = False):
-    #         print "secondary items:", primary.secondary_items.all()
-    #         print "false secondary items:", primary.secondary_items.all().filter(second_pred_result=False)
     sec_item = sec_items_left.order_by('?').first() # random secondary item
     sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     # choose new secondary item if worker has worked on it

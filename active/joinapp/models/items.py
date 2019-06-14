@@ -71,7 +71,7 @@ class PrimaryItem(models.Model):
 
     ## @brief ToString method
     def __str__(self):
-        return str(self.name) + "Name:" + str(self.name) 
+        return str(self.name)
     
     ## @brief Checks if this item is associated with zero secondary items
     def check_empty(self):
