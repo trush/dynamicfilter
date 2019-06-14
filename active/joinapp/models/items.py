@@ -35,7 +35,7 @@ class SecondaryItem(models.Model):
     fstatistic = models.ForeignKey(FStatistic, default=None, null=True, blank=True)
 
     ## prejoin filter
-    pjf = models.CharField(max_length=10)
+    pjf = models.CharField(max_length=10, default = "false") #TODO default is a placeholder
     
     ## @brief ToString method
     def __str__(self):
@@ -67,7 +67,7 @@ class PrimaryItem(models.Model):
     found_all_pairs = models.BooleanField(db_index=True, default=False)
     
     ## prejoin filter
-    pjf = models.CharField(max_length=10)
+    pjf = models.CharField(max_length=10, default = "false") #TODO default is a placeholder
 
     ## @brief ToString method
     def __str__(self):
