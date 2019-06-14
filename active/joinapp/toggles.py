@@ -5,8 +5,8 @@ PRIMARY_LIST = ''#TODO hotel list
 REAL_DATA_CSV = ''#TODO MTURK data CSV
 
 #_____________________________ For Synthetic Data _____________________________#
-NUM_PRIM_ITEMS = 90
-NUM_SEC_ITEMS = 70
+NUM_PRIM_ITEMS = 10
+NUM_SEC_ITEMS = 50
 HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no  <not currently in use?
 FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SEC_ITEMS+2), "Fake 3; " + str(NUM_SEC_ITEMS+3), "Fake 4; " + str(NUM_SEC_ITEMS+4), "Fake 5; " + str(NUM_SEC_ITEMS+5)] #fake secondary items to choose from
 
