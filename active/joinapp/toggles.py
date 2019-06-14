@@ -5,16 +5,16 @@ PRIMARY_LIST = ''#TODO hotel list
 REAL_DATA_CSV = ''#TODO MTURK data CSV
 
 #_____________________________ For Synthetic Data _____________________________#
-NUM_PRIM_ITEMS = 20
-NUM_SEC_ITEMS = 100
+NUM_PRIM_ITEMS = 90
+NUM_SEC_ITEMS = 70
 HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no  <not currently in use?
 FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SEC_ITEMS+2), "Fake 3; " + str(NUM_SEC_ITEMS+3), "Fake 4; " + str(NUM_SEC_ITEMS+4), "Fake 5; " + str(NUM_SEC_ITEMS+5)] #fake secondary items to choose from
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
-MEAN_SEC_PER_PRIM = 5
-SD_SEC_PER_PRIM = 0
-SAMPLE_W_REPLACE_NUM_SEC = False
+MEAN_SEC_PER_PRIM = 3
+SD_SEC_PER_PRIM = 0.5
+PROB_NONE_SECONDARY = 0.5
 
 #________ For Real Data ________#
 INPUT_PATH = ''
@@ -27,7 +27,7 @@ REAL_DATA = False # real or synthetic data
 # 2 = pre-join filtered join
 JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 5 # number of simulations to run
+NUM_SIMS = 15 # number of simulations to run
 PROB_CHOOSING_TRUE_SEC_ITEM = 1
 
 # ________ Consensus Settings _________#
