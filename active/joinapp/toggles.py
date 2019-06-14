@@ -28,7 +28,7 @@ REAL_DATA = False # real or synthetic data
 JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 15 # number of simulations to run
-PROB_CHOOSING_TRUE_SEC_ITEM = 1
+PROB_CHOOSING_TRUE_SEC_ITEM = 0.95
 
 # ________ Consensus Settings _________#
 # Values used in the find_consensus for an item/task function

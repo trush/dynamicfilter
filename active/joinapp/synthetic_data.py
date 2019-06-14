@@ -84,19 +84,20 @@ def syn_answer_find_pairs_task(hit):
     num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
     this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
     answer = ""
+    fake_items = FAKE_SEC_ITEM_LIST
     #pick all items except one
     if num_sec > 1:
         for i in range(num_sec - 1) :
             if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
                 answer += this_secondaries[i] + "{{NEWENTRY}}"
             else:
-                answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
+                answer += np.random.choice(fake_items, size = None, replace = False) + "{{NEWENTRY}}"
     # pick last secondary item
     if num_sec > 0:
         if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
             answer += this_secondaries[num_sec -1] + "{{NEWENTRY}}"
         else:
-            answer += np.random.choice(FAKE_SEC_ITEM_LIST, size = None, replace = True) + "{{NEWENTRY}}"
+            answer += np.random.choice(fake_items, size = None, replace = False) + "{{NEWENTRY}}"
     else:
         answer = "None"
     time = np.random.normal(FIND_PAIRS_TASK_TIME_MEAN, FIND_PAIRS_TASK_TIME_SD, 1)
