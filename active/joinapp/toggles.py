@@ -14,7 +14,7 @@ FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SE
 # to determine how many secondary items each primary item is going to be matched with 
 MEAN_SEC_PER_PRIM = 3
 SD_SEC_PER_PRIM = 0.5
-SAMPLE_W_REPLACE_NUM_SEC = False
+PROB_NONE_SECONDARY = 0.5
 
 #________ For Real Data ________#
 INPUT_PATH = ''
