@@ -234,7 +234,7 @@ class JoinPairTask(models.Model):
     time = models.FloatField(default=0)
 
     ## many to one relationship used for finding consensus for find pairs task
-    find_pairs_task = models.ForeignKey(FindPairsTask)
+    find_pairs_task = models.ForeignKey(FindPairsTask, null = True, default = None)
 
     # result: 
     ## True if the task passes with consensus <br>
