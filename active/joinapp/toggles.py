@@ -14,7 +14,7 @@ FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SE
 # to determine how many secondary items each primary item is going to be matched with 
 MEAN_SEC_PER_PRIM = 3
 SD_SEC_PER_PRIM = 0.5
-PROB_NONE_SECONDARY = 0.5
+PROB_NONE_SECONDARY = 0
 
 #________ For Real Data ________#
 INPUT_PATH = ''
@@ -71,3 +71,6 @@ PJF_TIME_SECONDARY_SD = 3
 # Used in the enumeration estimate in chao_estimator(). If the difference between the size of list2 and the size of the 
 # estimated number is less than this fraction of the size of the estimate then chao_estimator() will return True.
 THRESHOLD = 0.1
+
+#_________Task Settings___________#
+SEC_INFLUENTIAL = True

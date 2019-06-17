@@ -1,22 +1,30 @@
 # This file deletes all completed hits and removes all incomplete hits
 # from MTurk. Use with care.
 import keys
-from datetime import datetime
 pubkey = keys.pubkey
 privkey = keys.privkey
 
+from datetime import datetime
+import csv
 import boto3
 MTURK_SANDBOX = 'https://mturk-requester-sandbox.us-east-1.amazonaws.com'
 
 mturk = boto3.client('mturk',
   aws_access_key_id = pubkey,
   aws_secret_access_key = privkey,
-  region_name='us-east-1',
-  endpoint_url = MTURK_SANDBOX
+  region_name='us-east-1'
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my Sandbox account"
+print "Are you sure you want to delete HITs from this account?"
+response = raw_input()
+
+if response == 'yes':
+  print "posting HITs"
+else:
+  print response
+  sys.exit()
 # contains IDs of all published HITs and their corresponding hotels
-hitid_csv = open('HIT_IDs.csv', "r") 
+hitid_csv = csv.reader(open('HIT_IDs.csv', "r"), delimiter=',', quotechar = '"')
 # all_hits = mturk.list_hits()['HITs']
 
 #tracks undeletable hits
@@ -24,7 +32,7 @@ finished_hits = []
 
 for row in hitid_csv:
     # gets hit id from csv
-    (hit_id, hotel, task, restaurant) = [x.strip() for x in row.split(',')]
+    [hit_id, hotel, task, restaurant] = row
 
     hit = mturk.get_hit(HITId = hit_id)
 

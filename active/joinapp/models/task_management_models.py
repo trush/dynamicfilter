@@ -157,8 +157,7 @@ class FindPairsTask(models.Model):
             if self.num_tasks >= toggles.NUM_CERTAIN_VOTES:
                 self.consensus = True
                 self.primary_item.found_all_pairs = True
-                self.primary_item.is_done = True
-                self.primary_item.eval_result = False
+                self.primary_item.update_state()
                 self.primary_item.save()
                 self.save()
             else:
@@ -168,7 +167,9 @@ class FindPairsTask(models.Model):
             join_pair_tasks = join_pair_tasks.filter(result = None)
             if not join_pair_tasks.exists():
                 self.consensus = True
+                self.primary_item.refresh_from_db()
                 self.primary_item.found_all_pairs = True
+                self.primary_item.update_state()
                 self.primary_item.save()
                 self.save()
             else:
@@ -233,7 +234,7 @@ class JoinPairTask(models.Model):
     time = models.FloatField(default=0)
 
     ## many to one relationship used for finding consensus for find pairs task
-    find_pairs_task = models.ForeignKey(FindPairsTask)
+    find_pairs_task = models.ForeignKey(FindPairsTask, null = True, default = None)
 
     # result: 
     ## True if the task passes with consensus <br>
@@ -259,14 +260,15 @@ class JoinPairTask(models.Model):
         if self.result is True:
             if self.secondary_item.second_pred_result is None:
                 self.primary_item.add_secondary_item(self.secondary_item)
+                self.primary_item.refresh_from_db()
+                self.secondary_item.refresh_from_db()
                 self.secondary_item.matches_some = True
-            elif self.secondary_item.second_pred_result is True:
+                self.secondary_item.save()
+            else:
                 self.primary_item.add_secondary_item(self.secondary_item)
-                self.primary_item.is_done = True
-                self.primary_item.eval_result = True
+                self.primary_item.update_state()
                 
             self.secondary_item.save()
-            self.primary_item.save()
 
 
     ## @brief Updates state after an assignment for this task is completed
@@ -462,30 +464,9 @@ class SecPredTask(models.Model):
         self.secondary_item.second_pred_result = self.result
         self.secondary_item.save()
         self.save()
-        self.refresh_from_db()
-        if self.result is True:
-            for prim_item in self.secondary_item.primary_items.all():
-                prim_item.is_done = True
-                prim_item.eval_result = True
-                prim_item.save()
-        elif self.result is False:
-            for prim_item in self.secondary_item.primary_items.all():
-                prim_item.refresh_from_db()
-                #if this secondary item is the last one
-                #if prim_item.secondary_items.all().count() <= 1:
-                num_sec_items = prim_item.secondary_items.all().count()
-                num_sec_items_false = prim_item.secondary_items.all().filter(second_pred_result = False).count()
-                if num_sec_items is num_sec_items_false:
-                    prim_item.is_done = True
-                    prim_item.eval_result = False
-                prim_item.save()
-
-            self.secondary_item.primary_items.clear()
-            self.secondary_item.save()
-            
-            
-
-        
+        for prim_item in self.secondary_item.primary_items.all():
+            prim_item.refresh_from_db()
+            prim_item.update_state()
 
     ## @brief Updates state based on an incoming worker answer
     # @param answer worker answer (0 or 1)
