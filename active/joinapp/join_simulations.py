@@ -24,6 +24,9 @@ class JoinSimulation():
     ## Amount of worker-time spent during the simulation
     sim_time = 0
 
+    ## For graphing # of primary items left vs. number of tasks completed
+    # number of primary items left
+    num_prim_left = []
 
     #_____ For tests that run multiple simulations _____#
 
@@ -259,6 +262,7 @@ class JoinSimulation():
 
         self.sim_time = 0
         self.num_tasks_completed = 0
+        self.num_prim_left = []
 
 
 
@@ -281,6 +285,7 @@ class JoinSimulation():
         num_sec_pred_assignments_arr = []
         time_arr = []
         total_assignments_arr = []
+        num_prim_left_arr = []
 
         # results list is a list of tuples in the form (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
         for i in range(toggles.NUM_SIMS):
@@ -293,12 +298,13 @@ class JoinSimulation():
             num_sec_pred_assignments_arr.append(results[3])
             time_arr.append(results[4])
             total_assignments_arr.append(results[5])
+            num_prim_left_arr.append(self.num_prim_left)
             
             self.reset_database()
             #more processing happens here
         #more stuff happens here
 
-        return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr)
+        return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr, num_prim_left_arr)
 
     ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
     def run_sim(self):
@@ -330,9 +336,13 @@ class JoinSimulation():
 
         self.generate_worker_ids()
 
+
         while(PrimaryItem.objects.filter(is_done=False).exists()): #TODO is this the while loop we want to use?
             # pick worker
             worker_id = random.choice(self.worker_ids)
+
+            self.num_prim_left += [PrimaryItem.objects.filter(is_done=False).count()]
+
             #__________________________  CHOOSE TASK __________________________#
             if JOIN_TYPE is 0: # joinable filter
                 task = choose_task_joinable_filter(worker_id)
