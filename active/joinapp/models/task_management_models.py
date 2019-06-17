@@ -253,9 +253,13 @@ class JoinPairTask(models.Model):
         if self.result is True:
             if self.secondary_item.second_pred_result is None:
                 self.primary_item.add_secondary_item(self.secondary_item)
+                self.primary_item.refresh_from_db()
+                self.secondary_item.refresh_from_db()
                 self.secondary_item.matches_some = True
             elif self.secondary_item.second_pred_result is True:
                 self.primary_item.add_secondary_item(self.secondary_item)
+                self.primary_item.refresh_from_db()
+                self.secondary_item.refresh_from_db()
                 self.primary_item.is_done = True
                 self.primary_item.eval_result = True
                 
