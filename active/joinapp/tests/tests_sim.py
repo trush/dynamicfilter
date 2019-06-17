@@ -12,4 +12,4 @@ class Simulation_Tests(TestCase):
         sim = JoinSimulation()
         results = sim.run_multi_sims()
         #sim.graph_multi_sim(results)
-        hist_gen(results[4], "joinapp/simulation_files/test2.png", labels = ('time','frequency'), title='Testing Itemwise Join', xRange=(None,None), yRange=(None,None), smoothness=True)
+        #hist_gen(results[4], "joinapp/simulation_files/test2.png", labels = ('time','frequency'), title='Testing Itemwise Join', xRange=(None,None), yRange=(None,None), smoothness=True)

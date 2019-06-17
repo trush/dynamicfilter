@@ -35,11 +35,11 @@ class SecondaryItem(models.Model):
     fstatistic = models.ForeignKey(FStatistic, default=None, null=True, blank=True)
 
     ## prejoin filter
-    pjf = models.CharField(max_length=10)
+    pjf = models.CharField(max_length=10, default="False")
     
     ## @brief ToString method
     def __str__(self):
-        return str(self.name) + "Name:" + str(self.name)           
+        return str(self.name)          
 
 ## @brief Model representing an item in the primary list
 # In our example, primary items are hotels
@@ -67,7 +67,7 @@ class PrimaryItem(models.Model):
     found_all_pairs = models.BooleanField(db_index=True, default=False)
     
     ## prejoin filter
-    pjf = models.CharField(max_length=10)
+    pjf = models.CharField(max_length=10, default=False)
 
     ## @brief ToString method
     def __str__(self):
@@ -91,4 +91,24 @@ class PrimaryItem(models.Model):
     def add_secondary_item(self, sec_item_to_add):
         self.secondary_items.add(sec_item_to_add)
         self.num_sec_items += 1
+        self.save()
+
+        sec_item_to_add.num_prim_items += 1
+        sec_item_to_add.save()
+
+    ## @brief updates is_done and eval_result
+    def update_state(self):
+        # if we have a secondary item that is true
+        num_false = self.secondary_items.filter(second_pred_result=False).count()
+        if self.secondary_items.filter(second_pred_result=True).exists():
+            self.is_done = True
+            self.eval_result = True
+        # if we have no pairs but we've already found all pairs
+        elif self.found_all_pairs and self.num_sec_items is 0:
+            self.is_done = True
+            self.eval_result = False
+        # if we found all pairs and they all fail the sec pred
+        if self.found_all_pairs and (self.num_sec_items is num_false):
+            self.is_done = True
+            self.eval_result = False
         self.save()

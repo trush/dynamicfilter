@@ -333,9 +333,8 @@ class JoinSimulation():
         while(PrimaryItem.objects.filter(is_done=False).exists()): #TODO is this the while loop we want to use?
             # pick worker
             worker_id = random.choice(self.worker_ids)
-            
             #__________________________  CHOOSE TASK __________________________#
-            task = choose_task(worker_id, estimator)
+            task = choose_task_1(worker_id, estimator)
             if type(task) is JFTask:
                 task_type = 0
                 my_item = task.primary_item.pk
@@ -379,6 +378,7 @@ class JoinSimulation():
             
             #__________________________ UPDATE STATE AFTER TASK __________________________ #
             gather_task(task_type,task_answer,task_time,prim,sec)
+            
             
             self.sim_time += task_time
             self.num_tasks_completed += 1
