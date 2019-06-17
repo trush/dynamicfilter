@@ -133,7 +133,6 @@ def choose_task_join_pairs(worker):
 def choose_task_sec_pred(worker):
     # only secondary items that haven't reached consensus but match at least one primary item
     sec_items_left = SecondaryItem.objects.filter(second_pred_result=None).exclude(matches_some = False)
-    print "sec items left", sec_items_left
     if toggles.SEC_INFLUENTIAL is True:
         sec_item = sec_items_left.order_by('num_prim_items').first() # item related to the most primary items
         sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
