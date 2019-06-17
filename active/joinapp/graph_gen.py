@@ -3,12 +3,12 @@ import toggles
 import numpy as np
 
 def gen_message(dest):
-    print "Generated graph: " + dest +".png"
+    print "Generated graph: " + dest
 
-def graph_time_vs_freq(results, task_dest):
-    """
-    Generates time vs. frequency graph for run_multi_sims
-    """
+## @brief graphs a histogram of time to run simulations
+# @param results from multiple simulation runs
+# @param task_dest where the graph will save
+def graph_time(results, task_dest):
     data = results[4]
     dest = task_dest #joinapp/simulation_files/test.png
     labels = ('time','frequency')
@@ -19,6 +19,31 @@ def graph_time_vs_freq(results, task_dest):
 
     hist_gen(data, dest, labels, title, xRange, yRange, smoothness)
     
+    gen_message(task_dest)
+
+## @brief graphs a line graph of primary items left vs. tasks completed
+# @param results from multiple simulation runs
+# @param task_dest where the graph will save
+def graph_prim_items_left(results, task_dest):
+    xL = []
+    for n in range(len(results[5])):
+        xpoints = range(results[5][n])
+        xL.append(xpoints)
+    yL = results[6]
+    legendList = []
+    for n in range(len(results[5])):
+        legendList.append(n)
+    dest = task_dest
+    labels = ('tasks completed','number of primary items left')
+    title = 'IW find pair all then sec pred all'
+    stderrL = []
+    square = False
+    xRange = (None,None)
+    yRange = (None,None)
+    scatter = False
+
+    multi_line_graph_gen(xL, yL, legendList, dest, labels, title, stderrL, square, xRange, yRange, scatter)
+
     gen_message(task_dest)
 
 
