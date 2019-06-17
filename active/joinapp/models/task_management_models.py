@@ -101,15 +101,21 @@ class JFTask(models.Model):
     ## @brief Calls find_consensus to update the result of the task if possible
     def update_result(self):
         self.result = find_consensus.find_consensus(self)
+        if self.result is True or self.result is False:
+            self.primary_item.is_done = True
+            self.primary_item.eval_result = self.result
+        self.primary_item.save()
+        self.save()
+        self.refresh_from_db()
 
     ## @brief Updates state after an assignment for this task is completed
     # @param answer response from the assignment (0 or 1)
     # @param time How long it took to execute the incoming assignment
     def get_task(self, answer, time):
         #update yes_votes or no_votes based on answer
-        if answer:
+        if answer is 1:
             self.yes_votes += 1
-        else:
+        elif answer is 0:
             self.no_votes += 1
 
         #update average time
