@@ -1,6 +1,7 @@
 import csv
 import string
 
+all_seconds = {}
 
 ## takes a string of entries (separated by the string {{NEWENTRY}}) for find_pairs and parses them
 def parse_pairs(pairs):
@@ -30,13 +31,19 @@ def disambiguate_str(sec_item_str):
         if addr[i].isspace():
             addr = addr[:i]
             break
+    if addr == "1":
+        if "barnes" in sec_item_str:
+            addr = "1b"
     if addr == "" or (not addr[0].isdigit()):
         addr = ""
+    else:
+        if addr not in all_seconds:
+            all_seconds[addr] = sec_item_str
     return addr
 
 hit_csv = csv.reader(open('HIT_RESULTS.csv', 'r'), delimiter = ',') 
 # results csv
-cleaned_hits = csv.writer(open('CLEANED_ROUND1.csv', 'w'), delimiter = ',')
+cleaned_hits = csv.writer(open('CLEANED_ROUND1_trial.csv', 'w'), delimiter = ',')
 
 header = next(hit_csv)
 print header
@@ -87,11 +94,11 @@ for assignment in hit_csv:
     time += float(assignment[6])
     num_assignments += 1
 
-    if assignment[0] != curr_hit:
+    if assignment[1] != curr_hit:
         if num_empty_this_hit > 4:
             num_hits_mostly_empty += 1.0
         num_empty_this_hit = 0
-        curr_hit = assignment[0]
+        curr_hit = assignment[1]
         matches_dict[curr_hit] = {}
 
     for ans in cleaned_ans_list:
@@ -105,16 +112,34 @@ for assignment in hit_csv:
     num_assign_this_hit += 1
     cleaned_hits.writerow([assignment[0],assignment[1],assignment[2],assignment[3],assignment[4],assignment[5],assignment[6],answer,assignment[8]])
 
+sec_item_votes = {}
+sec_item_csv = csv.writer(open('HOSPITAL_ROUGH.csv', 'w'), delimiter = ',')
+interest_sec_items = ['1b','660','3933','3844','12303','11365','915','6420','1438','515','4930','4921','4353','10296','1027','2727','1','4455','4400','1127']
+
 if num_assignments > 0:
-    print "avg time:",str(time/num_assignments)
-    print "proportion empty:", str(num_empty/num_assignments)
-    print "num mostly empty hits:", num_hits_mostly_empty
-
-    for hit in matches_dict:
-        print "hit", hit
-        for ans in matches_dict[hit]:
-            print "\t addr:",ans,"\tvotes yes:",matches_dict[hit][ans]
-
     print "I can't parse these",len(cant_parse),"assignments:"
     for entry in cant_parse:
         print "\tHIT",entry[0],"\tAssignment",entry[1]
+
+    for hit in matches_dict:
+        print "hotel", hit
+        for ans in matches_dict[hit]:
+            print "\t addr:",ans,"\tvotes yes:",matches_dict[hit][ans]
+            if ans not in sec_item_votes:
+                sec_item_votes[ans] = 0
+            sec_item_votes[ans] +=matches_dict[hit][ans]
+    
+    print "there are",len(all_seconds),"addresses"
+    for addr in all_seconds:
+        if sec_item_votes[addr] > 15:
+            print "******************************"
+        print "address:",addr,"votes:",sec_item_votes[addr],"\tfull name:", all_seconds[addr]
+        if sec_item_votes[addr] > 15:
+            print "******************************"
+    
+    for item in interest_sec_items:
+        sec_item_csv.writerow([item,sec_item_votes[item],all_seconds[item]])
+
+    print "avg time:",str(time/num_assignments)
+    print "proportion empty:", str(num_empty/num_assignments)
+    print "num mostly empty hits:", num_hits_mostly_empty
