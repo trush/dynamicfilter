@@ -29,7 +29,7 @@ def choose_task(workerID, estimator):
         # return choose_task_pjf(new_worker)
     else:
         return choose_task_sec_pred(new_worker)
-
+## choose task 1 is itemwise followed by 2ndary predicate, but done item by item.
 def choose_task_1(workerID, estimator):
     # only implemented for IW join
     # returns task that was chosen and updated
@@ -39,7 +39,8 @@ def choose_task_1(workerID, estimator):
     # find pairs for all primary items
     prim_has_sec = PrimaryItem.objects.exclude(is_done=True).filter(found_all_pairs=True)
 
-    if prim_has_sec.exists():
+
+    if prim_has_sec.exists():        
         return choose_task_sec_pred(new_worker)
 
     prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
@@ -121,16 +122,29 @@ def choose_task_join_pairs(worker):
 def choose_task_sec_pred(worker):
     # only secondary items that haven't reached consensus but match at least one primary item
     sec_items_left = SecondaryItem.objects.filter(second_pred_result=None).exclude(matches_some = False)
-    sec_item = sec_items_left.order_by('?').first() # random secondary item
-    sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
-    # choose new secondary item if worker has worked on it
-    while worker in sec_pred_task.workers.all():
-        sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
-        if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
-            sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
-            print "useless task issued"
-        sec_item = sec_items_left.order_by('?').first()
+    print "sec items left", sec_items_left
+    if toggles.SEC_INFLUENTIAL is True:
+        sec_item = sec_items_left.order_by('num_prim_items').first() # item related to the most primary items
         sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
+        # choose new secondary item if worker has worked on it
+        while worker in sec_pred_task.workers.all():
+            sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
+            if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
+                sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
+                print "useless task issued"
+            sec_item = sec_items_left.order_by('num_prim_items').first()
+            sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
+    else:
+        sec_item = sec_items_left.order_by('?').first() # random secondary item
+        sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
+        # choose new secondary item if worker has worked on it
+        while worker in sec_pred_task.workers.all():
+            sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
+            if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
+                sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
+                print "useless task issued"
+            sec_item = sec_items_left.order_by('?').first()
+            sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     sec_pred_task.workers.add(worker)
     sec_pred_task.save()
     return sec_pred_task

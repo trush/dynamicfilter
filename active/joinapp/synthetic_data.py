@@ -82,7 +82,8 @@ def syn_answer_find_pairs_task(hit):
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
     num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
-    this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
+    if num_sec is not 0:
+        this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
     answer = ""
     fake_items = FAKE_SEC_ITEM_LIST
     #pick all items except one
