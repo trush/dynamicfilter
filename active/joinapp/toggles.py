@@ -5,8 +5,13 @@ PRIMARY_LIST = ''#TODO hotel list
 REAL_DATA_CSV = '/simulation_files/CLEANED_ROUND1.csv'#TODO MTURK data CSV
 
 #_____________________________ For Synthetic Data _____________________________#
+<<<<<<< HEAD
+NUM_PRIM_ITEMS = 20
+NUM_SEC_ITEMS = 50
+=======
 NUM_PRIM_ITEMS = 90
-NUM_SEC_ITEMS = 40
+NUM_SEC_ITEMS = 70
+>>>>>>> ed78c46946498fe156885b491f45e5806f646e7c
 HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no  <not currently in use?
 FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SEC_ITEMS+2), "Fake 3; " + str(NUM_SEC_ITEMS+3), "Fake 4; " + str(NUM_SEC_ITEMS+4), "Fake 5; " + str(NUM_SEC_ITEMS+5)] #fake secondary items to choose from
 
@@ -27,7 +32,11 @@ REAL_DATA = False # real or synthetic data
 # 2 = pre-join filtered join
 JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 20 # number of simulations to run
+<<<<<<< HEAD
+NUM_SIMS = 5 # number of simulations to run
+=======
+NUM_SIMS = 100 # number of simulations to run
+>>>>>>> ed78c46946498fe156885b491f45e5806f646e7c
 PROB_CHOOSING_TRUE_SEC_ITEM = 0.95
 
 # ________ Consensus Settings _________#
@@ -71,3 +80,6 @@ PJF_TIME_SECONDARY_SD = 3
 # Used in the enumeration estimate in chao_estimator(). If the difference between the size of list2 and the size of the 
 # estimated number is less than this fraction of the size of the estimate then chao_estimator() will return True.
 THRESHOLD = 0.1
+
+#_________Task Settings___________#
+SEC_INFLUENTIAL = True

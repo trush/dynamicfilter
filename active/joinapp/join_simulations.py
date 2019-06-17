@@ -222,7 +222,7 @@ class JoinSimulation():
             if answer is 1:
                 yes_votes += 1
             elif answer is 0:
-                no_votes += 0
+                no_votes += 1
         return yes_votes > no_votes
     
     ## @brief resets database after a simulation
@@ -333,10 +333,13 @@ class JoinSimulation():
         while(PrimaryItem.objects.filter(is_done=False).exists()): #TODO is this the while loop we want to use?
             # pick worker
             worker_id = random.choice(self.worker_ids)
-            
             #__________________________  CHOOSE TASK __________________________#
-            if JOIN_TYPE == 1:
+            if JOIN_TYPE is 0: # joinable filter
+                task = choose_task_joinable_filter(worker_id)
+            elif JOIN_TYPE is 1: # item-wise join
                 task = choose_task(worker_id, estimator)
+
+    
             if type(task) is JFTask:
                 task_type = 0
                 my_item = task.primary_item.pk
@@ -372,6 +375,8 @@ class JoinSimulation():
                     task_answer,task_time = syn_answer_sec_pred_task((prim, sec, times, responses))
                 elif task_type is 1:
                     task_answer,task_time = syn_answer_find_pairs_task((prim, sec, times, responses))
+                elif task_type is 0:
+                    task_answer,task_time = syn_answer_joinable_filter_task((prim, sec, times, responses))
 
             if sec is not "NA":
                 sec = SecondaryItem.objects.get(name=sec).pk
@@ -380,6 +385,7 @@ class JoinSimulation():
             
             #__________________________ UPDATE STATE AFTER TASK __________________________ #
             gather_task(task_type,task_answer,task_time,prim,sec)
+            
             
             self.sim_time += task_time
             self.num_tasks_completed += 1

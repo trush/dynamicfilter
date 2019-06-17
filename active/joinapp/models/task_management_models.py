@@ -101,15 +101,21 @@ class JFTask(models.Model):
     ## @brief Calls find_consensus to update the result of the task if possible
     def update_result(self):
         self.result = find_consensus.find_consensus(self)
+        if self.result is True or self.result is False:
+            self.primary_item.is_done = True
+            self.primary_item.eval_result = self.result
+        self.primary_item.save()
+        self.save()
+        self.refresh_from_db()
 
     ## @brief Updates state after an assignment for this task is completed
     # @param answer response from the assignment (0 or 1)
     # @param time How long it took to execute the incoming assignment
     def get_task(self, answer, time):
         #update yes_votes or no_votes based on answer
-        if answer:
+        if answer is 1:
             self.yes_votes += 1
-        else:
+        elif answer is 0:
             self.no_votes += 1
 
         #update average time
@@ -151,8 +157,7 @@ class FindPairsTask(models.Model):
             if self.num_tasks >= toggles.NUM_CERTAIN_VOTES:
                 self.consensus = True
                 self.primary_item.found_all_pairs = True
-                self.primary_item.is_done = True
-                self.primary_item.eval_result = False
+                self.primary_item.update_state()
                 self.primary_item.save()
                 self.save()
             else:
@@ -162,7 +167,9 @@ class FindPairsTask(models.Model):
             join_pair_tasks = join_pair_tasks.filter(result = None)
             if not join_pair_tasks.exists():
                 self.consensus = True
+                self.primary_item.refresh_from_db()
                 self.primary_item.found_all_pairs = True
+                self.primary_item.update_state()
                 self.primary_item.save()
                 self.save()
             else:
@@ -256,15 +263,12 @@ class JoinPairTask(models.Model):
                 self.primary_item.refresh_from_db()
                 self.secondary_item.refresh_from_db()
                 self.secondary_item.matches_some = True
-            elif self.secondary_item.second_pred_result is True:
+                self.secondary_item.save()
+            else:
                 self.primary_item.add_secondary_item(self.secondary_item)
-                self.primary_item.refresh_from_db()
-                self.secondary_item.refresh_from_db()
-                self.primary_item.is_done = True
-                self.primary_item.eval_result = True
+                self.primary_item.update_state()
                 
             self.secondary_item.save()
-            self.primary_item.save()
 
 
     ## @brief Updates state after an assignment for this task is completed
@@ -459,30 +463,9 @@ class SecPredTask(models.Model):
         self.secondary_item.second_pred_result = self.result
         self.secondary_item.save()
         self.save()
-        self.refresh_from_db()
-        if self.result is True:
-            for prim_item in self.secondary_item.primary_items.all():
-                prim_item.is_done = True
-                prim_item.eval_result = True
-                prim_item.save()
-        elif self.result is False:
-            for prim_item in self.secondary_item.primary_items.all():
-                prim_item.refresh_from_db()
-                #if this secondary item is the last one
-                #if prim_item.secondary_items.all().count() <= 1:
-                num_sec_items = prim_item.secondary_items.all().count()
-                num_sec_items_false = prim_item.secondary_items.all().filter(second_pred_result = False).count()
-                if num_sec_items is num_sec_items_false:
-                    prim_item.is_done = True
-                    prim_item.eval_result = False
-                prim_item.save()
-
-            self.secondary_item.primary_items.clear()
-            self.secondary_item.save()
-            
-            
-
-        
+        for prim_item in self.secondary_item.primary_items.all():
+            prim_item.refresh_from_db()
+            prim_item.update_state()
 
     ## @brief Updates state based on an incoming worker answer
     # @param answer worker answer (0 or 1)
