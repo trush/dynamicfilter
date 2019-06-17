@@ -133,8 +133,6 @@ def choose_task_join_pairs(worker):
 def choose_task_sec_pred(worker):
     # only secondary items that haven't reached consensus but match at least one primary item
     sec_items_left = SecondaryItem.objects.filter(second_pred_result=None).exclude(matches_some = False)
-<<<<<<< HEAD
-    print "sec items left", sec_items_left
     if toggles.SEC_INFLUENTIAL is True:
         sec_item = sec_items_left.order_by('num_prim_items').first() # item related to the most primary items
         sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
@@ -148,17 +146,6 @@ def choose_task_sec_pred(worker):
             sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     else:
         sec_item = sec_items_left.order_by('?').first() # random secondary item
-=======
-    sec_item = sec_items_left.order_by('?').first() # random secondary item
-    sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
-    # choose new secondary item if worker has worked on it
-    while worker in sec_pred_task.workers.all():
-        sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
-        if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
-            sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
-            print "useless secondary predicate task issued"
-        sec_item = sec_items_left.order_by('?').first()
->>>>>>> ed78c46946498fe156885b491f45e5806f646e7c
         sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
         # choose new secondary item if worker has worked on it
         while worker in sec_pred_task.workers.all():
