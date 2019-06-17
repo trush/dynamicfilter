@@ -222,7 +222,7 @@ class JoinSimulation():
             if answer is 1:
                 yes_votes += 1
             elif answer is 0:
-                no_votes += 0
+                no_votes += 1
         return yes_votes > no_votes
     
     ## @brief resets database after a simulation
