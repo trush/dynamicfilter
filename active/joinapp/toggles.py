@@ -27,7 +27,7 @@ REAL_DATA = False # real or synthetic data
 # 2 = pre-join filtered join
 JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 100 # number of simulations to run
+NUM_SIMS = 20 # number of simulations to run
 PROB_CHOOSING_TRUE_SEC_ITEM = 0.95
 
 # ________ Consensus Settings _________#
