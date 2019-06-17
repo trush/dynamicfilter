@@ -71,11 +71,7 @@ class PrimaryItem(models.Model):
     found_all_pairs = models.BooleanField(db_index=True, default=False)
     
     ## prejoin filter
-<<<<<<< HEAD
-    pjf = models.CharField(max_length=10, default=False)
-=======
     pjf = models.CharField(max_length=10, default = "false") #TODO default is a placeholder
->>>>>>> ed78c46946498fe156885b491f45e5806f646e7c
 
     ## @brief ToString method
     def __str__(self):
