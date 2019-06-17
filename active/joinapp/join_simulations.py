@@ -222,7 +222,7 @@ class JoinSimulation():
             if answer is 1:
                 yes_votes += 1
             elif answer is 0:
-                no_votes += 0
+                no_votes += 1
         return yes_votes > no_votes
     
     ## @brief resets database after a simulation
@@ -334,7 +334,12 @@ class JoinSimulation():
             # pick worker
             worker_id = random.choice(self.worker_ids)
             #__________________________  CHOOSE TASK __________________________#
-            task = choose_task_1(worker_id, estimator)
+            if JOIN_TYPE is 0: # joinable filter
+                task = choose_task_joinable_filter(worker_id)
+            elif JOIN_TYPE is 1: # item-wise join
+                task = choose_task(worker_id, estimator)
+
+    
             if type(task) is JFTask:
                 task_type = 0
                 my_item = task.primary_item.pk
@@ -370,6 +375,8 @@ class JoinSimulation():
                     task_answer,task_time = syn_answer_sec_pred_task((prim, sec, times, responses))
                 elif task_type is 1:
                     task_answer,task_time = syn_answer_find_pairs_task((prim, sec, times, responses))
+                elif task_type is 0:
+                    task_answer,task_time = syn_answer_joinable_filter_task((prim, sec, times, responses))
 
             if sec is not "NA":
                 sec = SecondaryItem.objects.get(name=sec).pk
@@ -427,8 +434,4 @@ class JoinSimulation():
             self.accuracy_syn_data() #does its own printing
 
         return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
-
-    def graph_multi_sim(self,sim_results):
-        #(join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr)
-        graph.hist(x = sim_results[4], bins = None,range = None, histtype = 'step')
 
