@@ -345,9 +345,11 @@ class JoinSimulation():
 
             #__________________________  CHOOSE TASK __________________________#
             if JOIN_TYPE is 0: # joinable filter
-                task = choose_task_joinable_filter(worker_id)
+                task = choose_task_JF(worker_id)
             elif JOIN_TYPE is 1: # item-wise join
-                task = choose_task(worker_id, estimator)
+                task = choose_task_IW(worker_id, estimator)
+            elif JOIN_TYPE is 2:
+                task = choose_task_PJF(worker_id, estimator)
 
     
             if type(task) is JFTask:

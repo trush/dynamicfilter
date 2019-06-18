@@ -12,8 +12,8 @@ FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SE
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
-MEAN_SEC_PER_PRIM = 3
-SD_SEC_PER_PRIM = 0.5
+MEAN_SEC_PER_PRIM = 10
+SD_SEC_PER_PRIM = 3
 PROB_NONE_SECONDARY = 0
 
 #________ For Real Data ________#
