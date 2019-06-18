@@ -161,3 +161,40 @@ def syn_answer_join_pair_task(answer,time, hit):
     else:
         answer = random.choice([0,1])
     time = task_time
+
+
+
+
+
+
+#______________________________ Load Synthetic Data w/ Prejoin Filters ______________________________#
+def syn_load_pjfs(SecPJFTasks_Dict):
+    random.seed()
+    for primary in PrimaryItem.objects.all():
+        pjf = random.choice(PJF_LIST)
+        value = (primary.pk, "NA", PJF_TIME_PRIMARY_MEAN, pjf)
+        PrimPJFTasks_Dict[primary.pk] = value
+    for secondary in range(NUM_SEC_ITEMS):
+        pjf = random.choice(PJF_LIST)
+        value = ("NA", str(secondary), PJF_TIME_SECONDARY_MEAN, pjf)
+        SecPJFTasks_Dict[str(secondary)] = value
+
+def syn_load_join_pairs(JoinPairTasks_Dict):
+    for pjf in PJF_LIST:
+        primary_items = []
+        secondary_items = []
+        for primary in PrimaryItem.objects.all():
+            value = PrimPJFTasks_Dict[primary.pk]
+            if value[3] is pjf:
+                primary_items += [primary]
+        for secondary in range(NUM_SEC_ITEMS):
+            value = SecPJFTasks_Dict[str(secondary)]
+            if value[3] is pjf:
+                secondary_items += [secondary]
+        for primary in primary_items:
+            for secondary in secondary_items:
+                if random.random() < JP_SELECTIVITY_W_PJF:
+                    answer = 0
+                else:
+                    answer = 1
+                JoinPairTasks_Dict[(primary.pk,str(secondary)] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)

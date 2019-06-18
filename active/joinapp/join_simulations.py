@@ -24,6 +24,9 @@ class JoinSimulation():
     ## Amount of worker-time spent during the simulation
     sim_time = 0
 
+    ## For graphing # of primary items left vs. number of tasks completed
+    # number of primary items left
+    num_prim_left = []
 
     #_____ For tests that run multiple simulations _____#
 
@@ -33,6 +36,9 @@ class JoinSimulation():
     ## Amount of worker-time spent during each of multiple simulations
     sim_time_arr = []
 
+    ## Number of unnecessary tasks issued:
+    num_wasted_tasks = 0 #TODO
+    wasted_time = 0 #TODO
     
     
     #_____ For real data simulations only _____#
@@ -44,24 +50,28 @@ class JoinSimulation():
     #__________________________________  Dictionaries ________________________________#
 
     ## Key: primary item pk <br>
-    ## Value: (primary item pk, "NA", time taken list, worker response list)
+    ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
     JFTasks_Dict = dict()
 
     ## Key: primary item pk <br>
-    ## Value: (primary item pk, "NA", time taken list, worker response list)
+    ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
     FindPairsTasks_Dict = dict() 
 
-    ## Key: not implemented <br>
-    ## Value: not implemented
-    PJFTasks_Dict = dict()
-
     ## Key: secondary item name <br>
-    ## Value: ("NA", secondary item name, time taken list, worker response list)
+    ## Value: ("NA", secondary item name, time taken list, worker response list/ground truth)
     SecPredTasks_Dict = dict() 
 
-    ## Key: not implemented (might not need to) <br>
-    ## Value: not implemented (might not need to)
+    ## Key: (primary item pk, secondary item name) <br>
+    ## Value: (pjf, time taken list, worker response list/ground truth )
     JoinPairTasks_Dict = dict() 
+
+    ## Key: secondary item name <br>
+    ## Value: ("NA", secondary item name, time taken list, worker response list/ground truth)
+    SecPJFTasks_Dict = dict()
+
+    ## Key: primary item pk <br>
+    ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
+    PrimPJFTasks_Dict = dict()
 
     #_____________________ Loading Data _____________________ #
     
@@ -259,6 +269,7 @@ class JoinSimulation():
 
         self.sim_time = 0
         self.num_tasks_completed = 0
+        self.num_prim_left = []
 
 
 
@@ -281,6 +292,7 @@ class JoinSimulation():
         num_sec_pred_assignments_arr = []
         time_arr = []
         total_assignments_arr = []
+        num_prim_left_arr = []
 
         # results list is a list of tuples in the form (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
         for i in range(toggles.NUM_SIMS):
@@ -293,12 +305,13 @@ class JoinSimulation():
             num_sec_pred_assignments_arr.append(results[3])
             time_arr.append(results[4])
             total_assignments_arr.append(results[5])
+            num_prim_left_arr.append(self.num_prim_left)
             
             self.reset_database()
             #more processing happens here
         #more stuff happens here
 
-        return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr)
+        return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr, num_prim_left_arr)
 
     ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
     def run_sim(self):
@@ -330,9 +343,13 @@ class JoinSimulation():
 
         self.generate_worker_ids()
 
+
         while(PrimaryItem.objects.filter(is_done=False).exists()): #TODO is this the while loop we want to use?
             # pick worker
             worker_id = random.choice(self.worker_ids)
+
+            self.num_prim_left += [PrimaryItem.objects.filter(is_done=False).count()]
+
             #__________________________  CHOOSE TASK __________________________#
             if JOIN_TYPE is 0: # joinable filter
                 task = choose_task_joinable_filter(worker_id)

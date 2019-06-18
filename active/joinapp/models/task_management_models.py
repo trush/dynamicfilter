@@ -328,10 +328,11 @@ class PJFTask(models.Model):
         # all item pjf pairs with this item 
         item_pjf_pairs = ItemPJFPair.objects.filter(pjf_task = self)
         item_pjf_pairs = item_pjf_pairs.filter(consensus = True)
-        # if there is a pjf that has reached consensus, update consensus to true
+        # if there is a pjf that has reached consensus, update consensus to true 
+        # and delete all item pjf pairs associated with this task
         if item_pjf_pairs.exists():
             self.consensus = True
-            ItemPJFPair.objects.filter(pjf_task = self)
+            ItemPJFPair.objects.filter(pjf_task = self).delete()
             self.save()
         else:
             self.consensus = False
@@ -404,7 +405,7 @@ class ItemPJFPair(models.Model):
         else:
             raise Exception("No item")
 
-    ## checks and updates whether or not consensus has been reached
+    ## @brief checks and updates whether or not consensus has been reached
     def update_consensus(self):
         #have we reached consensus?
         self.consensus = find_consensus.find_consensus(self)
