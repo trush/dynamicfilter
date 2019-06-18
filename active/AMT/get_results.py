@@ -17,7 +17,7 @@ mturk = boto3.client('mturk',
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my account"
 #csv that holds recorded hits
-my_csv = csv.reader(open('HIT_IDs.csv', 'r'), delimiter = ',') 
+my_csv = csv.reader(open('HIT_IDs.csv', 'r'), delimiter = ',') #read from SANDBOX_HIT_IDs for sandbox data
 
 # results csv
 results = csv.writer(open('HIT_RESULTS.csv', 'w'), delimiter = ',')

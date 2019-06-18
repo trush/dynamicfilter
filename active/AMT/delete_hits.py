@@ -13,6 +13,7 @@ mturk = boto3.client('mturk',
   aws_access_key_id = pubkey,
   aws_secret_access_key = privkey,
   region_name='us-east-1'
+  # endpoint_url = MTURK_SANDBOX
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my Sandbox account"
 print "Are you sure you want to delete HITs from this account?"
@@ -24,7 +25,7 @@ else:
   print response
   sys.exit()
 # contains IDs of all published HITs and their corresponding hotels
-hitid_csv = csv.reader(open('HIT_IDs.csv', "r"), delimiter=',', quotechar = '"')
+hitid_csv = csv.reader(open('HIT_IDs.csv', "r"), delimiter=',', quotechar = '"')#delete from SANDBOX_HIT_IDs for sandbox data
 # all_hits = mturk.list_hits()['HITs']
 
 #tracks undeletable hits
