@@ -291,12 +291,9 @@ class JoinPairTask(models.Model):
         self.update_result()
         self.save()
 
-## @brief Model representing a pre join filter
+## @brief Model representing a pre join filter task
 @python_2_unicode_compatible
 class PJFTask(models.Model):
-    """
-    Model representing pairs of items and pre-join filter tasks.
-    """
     ## workers who have worked or are working on this task
     workers = models.ManyToManyField(Worker,related_name="pre_join_task")
     
