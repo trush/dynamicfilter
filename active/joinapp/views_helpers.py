@@ -307,7 +307,7 @@ def collect_join_pair(answer, cost, item1_id, item2_id):
 
 ## Collect Prejoin Filter task
 def collect_prejoin_filter(answer, cost, item1_id=None, item2_id=None):
-    # primary item or secondary item task
+    # primary item task
     if item1_id is not None:
         #load primary item from db
         primary_item = PrimaryItem.objects.get(pk = item1_id)
@@ -319,6 +319,7 @@ def collect_prejoin_filter(answer, cost, item1_id=None, item2_id=None):
             this_task = PJFTask.objects.create(primary_item = primary_item)
         else:
             this_task = PJFTask.objects.get(primary_item = primary_item)
+    # secondary item task
     else:
         #load secondary item from db
         secondary_item = SecondaryItem.objects.get(pk = item2_id)
