@@ -23,7 +23,7 @@ if response == 'yes':
 else:
   print response
   sys.exit()
-mycsv = open('HIT_IDs.csv', "a") 
+mycsv = open('HIT_IDs.csv', "a") #post to SANDBOX_HIT_IDs for sandbox data
 
 #list of posted hits
 hit_list = []

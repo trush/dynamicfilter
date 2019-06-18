@@ -343,12 +343,15 @@ class JoinSimulation():
 
         self.generate_worker_ids()
 
+        # list of assignments in progress, to be used in timed simulations
+        active_assignments = {}
 
         while(PrimaryItem.objects.filter(is_done=False).exists()): #TODO is this the while loop we want to use?
             # pick worker
             worker_id = random.choice(self.worker_ids)
 
             self.num_prim_left += [PrimaryItem.objects.filter(is_done=False).count()]
+
 
             #__________________________  CHOOSE TASK __________________________#
             if JOIN_TYPE is 0: # joinable filter
@@ -401,11 +404,24 @@ class JoinSimulation():
                 sec = None
             
             #__________________________ UPDATE STATE AFTER TASK __________________________ #
-            gather_task(task_type,task_answer,task_time,prim,sec)
+            if toggles.SIMULATE_TIME:
+                fin_list = []
+                for assignment in active_assignments:
+                    active_assignments[assignment] -= toggles.TIME_STEP
+                    if active_assignments[assignment] < 0:
+                        fin_list.append(assignment)
+                active_tasks[(task_type,task_answer,task_time,prim,sec)] = task_time
+                for assignment in fin_list:
+                    gather_task(assignment)
+                    active_assignments.pop(assignment)
+                    self.num_tasks_completed += 1
+                    self.sim_time += task_time
+            else:
+                gather_task(task_type,task_answer,task_time,prim,sec)
             
             
-            self.sim_time += task_time
-            self.num_tasks_completed += 1
+                self.sim_time += task_time
+                self.num_tasks_completed += 1
 
         
         self.sim_time_arr += [self.sim_time]

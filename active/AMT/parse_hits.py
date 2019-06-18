@@ -129,7 +129,7 @@ for assignment in hit_csv:
     # cleaned_hits.writerow([assignment[0],assignment[1],assignment[2],assignment[3],assignment[4],assignment[5],assignment[6],answer,assignment[8]])
 
 sec_item_votes = {}
-# sec_item_csv = csv.writer(open('HOSPITAL_ROUGH.csv', 'w'), delimiter = ',')
+sec_item_csv = csv.writer(open('HOSPITAL_ROUGH.csv', 'w'), delimiter = ',')
 interest_sec_items = ['1b','660','3933','3844','12303','11365','915','6420','1438','515','4930','4921','4353','10296','1027','2727','1','4455','4400','1127']
 
 if num_assignments > 0:
@@ -150,6 +150,8 @@ if num_assignments > 0:
         if sec_item_votes[addr] > 15:
             print "******************************"
         print "address:",addr,"votes:",sec_item_votes[addr],"\tfull name:", all_seconds[addr]
+        if sec_item_votes[addr] > 1:
+            sec_item_csv.writerow([addr,sec_item_votes[addr],all_seconds[addr]])
         if sec_item_votes[addr] > 15:
             print "******************************"
     
