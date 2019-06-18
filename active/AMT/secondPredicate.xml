@@ -104,7 +104,7 @@
                 <p><label>Item: XXX(ITEM_NAME_HERE)XXX</label></p>
 
                 <table>
-                    <p><label>Question: Does this hospital or clinic promote price transparency? </label></p>
+                    <p><label>Question: Does this hospital or clinic have an emergency room with a wait time that can be found online? </label></p>
                     <input type="radio" name="workervote" id="r_true" value="1" required />
                     <label for="r_true">Yes</label>
                     <br/>
