@@ -13,8 +13,8 @@ PJF_LIST = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
-MEAN_SEC_PER_PRIM = 3
-SD_SEC_PER_PRIM = 0.5
+MEAN_SEC_PER_PRIM = 10
+SD_SEC_PER_PRIM = 3
 PROB_NONE_SECONDARY = 0
 
 #________ For Real Data ________#
@@ -65,10 +65,8 @@ FIND_PAIRS_TASK_TIME_MEAN = 20
 FIND_PAIRS_TASK_TIME_SD = 3
 SEC_PRED_TASK_TIME_MEAN = 20
 SEC_PRED_TASK_TIME_SD = 3
-PJF_TIME_PRIMARY_MEAN = 20
-PJF_TIME_PRIMARY_SD = 3
-PJF_TIME_SECONDARY_MEAN = 20
-PJF_TIME_SECONDARY_SD = 3
+PJF_TIME_MEAN = 20
+PJF_TIME_SD = 3
 JOIN_PAIRS_TIME_MEAN = 20
 JOIN_PAIRS_TIME_SD = 3
 
