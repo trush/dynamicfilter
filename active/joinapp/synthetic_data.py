@@ -75,8 +75,7 @@ def syn_load_join_pair_tasks(JoinPairTasks_Dict):
 #_______________________________ Give a Worker Answer _______________________________#
 
 ## @brief gives a worker response to a find pairs task based on a FindPairsTasks_Dict hit
-#   @param answer placeholder answer to be filled out by this function
-#   @param time placeholder time to be filled out by this function
+#   @param hit tuple with information about the ground truth for this task
 def syn_answer_find_pairs_task(hit):
     random.seed()
     (primary, secondary, task_time, truth) = hit
@@ -105,8 +104,7 @@ def syn_answer_find_pairs_task(hit):
     return (answer, time)
 
 ## @brief gives a worker response to a joinable filter task based on a JFTasks_Dict hit
-#   @param answer placeholder answer to be filled out by this function
-#   @param time placeholder time to be filled out by this function
+#   @param hit tuple with information about the ground truth for this task
 def syn_answer_joinable_filter_task(hit):
     (primary,secondary,task_time,truth) = hit
 
@@ -123,7 +121,7 @@ def syn_answer_joinable_filter_task(hit):
     return (answer,time)
 
 ## @brief gives a worker response to a secondary predicate task based on a SecPredTasks_Dict hit
-#   @param hit TODO fill this out
+#   @param hit tuple with information about the ground truth for this task
 def syn_answer_sec_pred_task(hit):
     (primary,secondary,task_time,truth) = hit
 
@@ -143,8 +141,8 @@ def syn_answer_sec_pred_task(hit):
 
 ## @brief gives a worker response to a join pair task based on a JoinPairTasks_Dict hit
 #   @remarks Not used in current implementation
-#   @param answer placeholder answer to be filled out by this function
-#   @param time placeholder time to be filled out by this function
+#   @param hit tuple with information about the ground truth for this task
+#TODO
 def syn_answer_join_pair_task(answer,time, hit):
     """
     gives a worker answer to a join pair task based on a JoinPairTasks_Dict hit
@@ -163,22 +161,47 @@ def syn_answer_join_pair_task(answer,time, hit):
     time = task_time
 
 
+## @brief gives a worker response to a pjf task based on a PJF Dictionary hit
+#   @param hit tuple with information about the ground truth for this task
+#TODO implement in simulation
+def syn_answer_pjf_task(hit):
+    (primary,secondary,task_time,truth) = hit
+
+    #determine answer
+    random.seed()
+    if random.random() > PJF_AMBIGUITY:
+        answer = truth
+    else:
+        answer = random.choice(PJF_LIST)
+    time = np.random.normal(PJF_TIME_PRIMARY_MEAN, PJF_TIME_SD, 1)
+    return (answer,time)
 
 
 
 
 #______________________________ Load Synthetic Data w/ Prejoin Filters ______________________________#
-def syn_load_pjfs(SecPJFTasks_Dict):
+
+## @brief Populates the SecPJFTasks_Dict and PrimPJFTasks_Dict with pjf tasks (one for each item)
+#   keys: secondary item name or primary item pk
+#   values: ("NA" or primary item pk, secondary item name or "NA", task time, ground truth)
+#   @param SecPJFTasks_Dict simulation dictionary for secondary item pjf tasks
+#   @param PrimPJFTasks_Dict simulation dictionary for primary item pjf tasks
+def syn_load_pjfs(SecPJFTasks_Dict,PrimPJFTasks_Dict):
     random.seed()
     for primary in PrimaryItem.objects.all():
         pjf = random.choice(PJF_LIST)
-        value = (primary.pk, "NA", PJF_TIME_PRIMARY_MEAN, pjf)
+        value = (primary.pk, "NA", PJF_TIME_MEAN, pjf)
         PrimPJFTasks_Dict[primary.pk] = value
     for secondary in range(NUM_SEC_ITEMS):
         pjf = random.choice(PJF_LIST)
-        value = ("NA", str(secondary), PJF_TIME_SECONDARY_MEAN, pjf)
+        value = ("NA", str(secondary), PJF_TIME_MEAN, pjf)
         SecPJFTasks_Dict[str(secondary)] = value
 
+
+## @brief Populates the JoinPairTasks_Dict with join pair tasks
+#   keys: (primary pk, secondary item name)
+#   values: (pjf, , task time, ground truth)
+#   @param SecPJFTasks_Dict simulation dictionary for secondary item pjf tasks
 def syn_load_join_pairs(JoinPairTasks_Dict):
     for pjf in PJF_LIST:
         primary_items = []
@@ -193,6 +216,7 @@ def syn_load_join_pairs(JoinPairTasks_Dict):
                 secondary_items += [secondary]
         for primary in primary_items:
             for secondary in secondary_items:
+                ramdom.seed()
                 if random.random() < JP_SELECTIVITY_W_PJF:
                     answer = 0
                 else:
