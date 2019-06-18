@@ -36,6 +36,9 @@ class JoinSimulation():
     ## Amount of worker-time spent during each of multiple simulations
     sim_time_arr = []
 
+    ## Number of unnecessary tasks issued:
+    num_wasted_tasks = 0 #TODO
+    wasted_time = 0 #TODO
     
     
     #_____ For real data simulations only _____#
@@ -47,24 +50,28 @@ class JoinSimulation():
     #__________________________________  Dictionaries ________________________________#
 
     ## Key: primary item pk <br>
-    ## Value: (primary item pk, "NA", time taken list, worker response list)
+    ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
     JFTasks_Dict = dict()
 
     ## Key: primary item pk <br>
-    ## Value: (primary item pk, "NA", time taken list, worker response list)
+    ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
     FindPairsTasks_Dict = dict() 
 
-    ## Key: not implemented <br>
-    ## Value: not implemented
-    PJFTasks_Dict = dict()
-
     ## Key: secondary item name <br>
-    ## Value: ("NA", secondary item name, time taken list, worker response list)
+    ## Value: ("NA", secondary item name, time taken list, worker response list/ground truth)
     SecPredTasks_Dict = dict() 
 
-    ## Key: not implemented (might not need to) <br>
-    ## Value: not implemented (might not need to)
+    ## Key: (primary item pk, secondary item name) <br>
+    ## Value: (pjf, time taken list, worker response list/ground truth )
     JoinPairTasks_Dict = dict() 
+
+    ## Key: secondary item name <br>
+    ## Value: ("NA", secondary item name, time taken list, worker response list/ground truth)
+    SecPJFTasks_Dict = dict()
+
+    ## Key: primary item pk <br>
+    ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
+    PrimPJFTasks_Dict = dict()
 
     #_____________________ Loading Data _____________________ #
     
