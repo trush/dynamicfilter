@@ -60,6 +60,8 @@ def choose_task_PJF(workerID, estimator):
         return choose_task_find_pairs(prim_items_left, new_worker)
     elif (PrimaryItem.objects.filter(pjf='').exists() or SecondaryItem.objects.filter(pjf='').exists()):
         return choose_task_pjf_helper(new_worker)
+    elif JoinPairTask.objects.filter(result=None).exists():
+        return choose_task_join_pairs(new_worker)
     else:
         return choose_task_sec_pred(new_worker)
     
