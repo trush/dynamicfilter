@@ -19,7 +19,7 @@ print "Are you sure you want to delete HITs from this account?"
 response = raw_input()
 
 if response == 'yes':
-  print "posting HITs"
+  print "deleting HITs"
 else:
   print response
   sys.exit()

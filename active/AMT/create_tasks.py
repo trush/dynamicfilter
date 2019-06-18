@@ -12,6 +12,7 @@ mturk = boto3.client('mturk',
   aws_access_key_id = pubkey,
   aws_secret_access_key = privkey,
   region_name='us-east-1'
+  # endpoint_url = MTURK_SANDBOX
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my account"
 print "Are you sure you want to post HITs to this account?"
@@ -52,33 +53,11 @@ for line in f:
       AutoApprovalDelayInSeconds = 14400,
       Question = question,
   ) ## averages ?? time
-  hit_list.append((new_hit, hotel, "eval_secondary_pred(1)", None))
+  hit_list.append((new_hit, hotel, "eval_secondary_pred", None))
   print "A new HIT has been created. You can preview it here:"
   print "https://worker.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
-  
-  question = str(open(name='secondPredicate2.xml',mode='r').read())
-  question = question.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
-  new_hit = mturk.create_hit(
-      Title = 'Evaluate a property of a hospital or clinic',
-      Description = 'Answer the given yes/no question about the given hospital or clinic',
-      Keywords = 'text, enumeration, matching',
-      QualificationRequirements = [{
-          'QualificationTypeId':"000000000000000000L0",
-          'Comparator':"GreaterThan",
-          'IntegerValues':[90]}],
-      Reward = '0.10',
-      MaxAssignments = 9,
-      LifetimeInSeconds = 172800,
-      AssignmentDurationInSeconds = 1200,
-      AutoApprovalDelayInSeconds = 14400,
-      Question = question,
-  ) ## averages ?? time
-  hit_list.append((new_hit, hotel , "eval_secondary_pred(2)", None))
-  print "A new HIT has been created. You can preview it here:"
-  print "https://worker.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
-  print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
 
 # f = open('Hotel_items.csv')
