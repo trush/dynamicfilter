@@ -9,6 +9,7 @@ NUM_PRIM_ITEMS = 90
 NUM_SEC_ITEMS = 70
 HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no  <not currently in use?
 FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SEC_ITEMS+2), "Fake 3; " + str(NUM_SEC_ITEMS+3), "Fake 4; " + str(NUM_SEC_ITEMS+4), "Fake 5; " + str(NUM_SEC_ITEMS+5)] #fake secondary items to choose from
+PJF_LIST = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
@@ -53,6 +54,7 @@ PJF_SELECTIVITY_PRIMARY = 0.1 # PJF selectivity for primary list
 PJF_SELECTIVITY_SECONDARY = 0.1 # PJF selectivity for secondary list
 PJF_AMBIGUITY_PRIMARY = 0.1
 PJF_AMBIGUITY_SECONDARY = 0.1
+JP_SELECTIVITY_W_PJF = 0.7 #likelyhood of being a pair given that they are in the same PJF
 
 #__________________ Time Settings _____________________#
 JF_TASK_TIME_MEAN = 100
@@ -61,10 +63,10 @@ FIND_PAIRS_TASK_TIME_MEAN = 20
 FIND_PAIRS_TASK_TIME_SD = 3
 SEC_PRED_TASK_TIME_MEAN = 20
 SEC_PRED_TASK_TIME_SD = 3
-PJF_TIME_PRIMARY_MEAN = 20
-PJF_TIME_PRIMARY_SD = 3
-PJF_TIME_SECONDARY_MEAN = 20
-PJF_TIME_SECONDARY_SD = 3
+PJF_TIME_MEAN = 20
+PJF_TIME_SD = 3
+JOIN_PAIRS_TIME_MEAN = 20
+JOIN_PAIRS_TIME_SD = 3
 
 
 #______ Miscellany ___________#
