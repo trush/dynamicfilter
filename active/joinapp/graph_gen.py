@@ -26,10 +26,24 @@ def graph_time(results, task_dest):
 # @param task_dest where the graph will save
 def graph_prim_items_left(results, task_dest):
     xL = []
+    #gets assignments for x list
     for n in range(len(results[5])):
         xpoints = range(results[5][n])
         xL.append(xpoints)
     yL = results[6]
+
+
+    # print "y list ",len(yL[0])
+    # print "x list ",len(xL[0])
+    # for yList in yL:
+    #     for xList in xL:
+    #         if len(yList) < len(xList):
+    #             xList = xList[:len(xList)-len(yList)]
+    #         elif len(xList) < len(yList):
+    #             yList = yList[:len(yList)-len(xList)]
+    #             xList += [0]*(len(yList)-len(xList))
+
+
     legendList = []
     for n in range(len(results[5])):
         legendList.append(n)

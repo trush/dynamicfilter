@@ -264,7 +264,8 @@ class JoinSimulation():
         self.JFTasks_Dict.clear()
         self.FindPairsTasks_Dict.clear()
         self.JoinPairTasks_Dict.clear()
-        self.PJFTasks_Dict.clear()
+        self.PrimPJFTasks_Dict.clear()
+        self.SecPJFTasks_Dict.clear()
         self.SecPredTasks_Dict.clear()
 
         self.sim_time = 0
@@ -345,6 +346,9 @@ class JoinSimulation():
 
         # list of assignments in progress, to be used in timed simulations
         active_assignments = {}
+        #holds the keys for the assignments
+        assignment_keys = {}
+        key_counter = 0
 
         while(PrimaryItem.objects.filter(is_done=False).exists()): #TODO is this the while loop we want to use?
             # pick worker
@@ -404,18 +408,22 @@ class JoinSimulation():
                 sec = SecondaryItem.objects.get(name=sec).pk
             else:
                 sec = None
+
             
             #__________________________ UPDATE STATE AFTER TASK __________________________ #
             if toggles.SIMULATE_TIME:
                 fin_list = []
-                for assignment in active_assignments:
-                    active_assignments[assignment] -= toggles.TIME_STEP
-                    if active_assignments[assignment] < 0:
-                        fin_list.append(assignment)
-                active_tasks[(task_type,task_answer,task_time,prim,sec)] = task_time
-                for assignment in fin_list:
-                    gather_task(assignment)
-                    active_assignments.pop(assignment)
+                for key in active_assignments:
+                    active_assignments[key] -= toggles.TIME_STEP
+                    if active_assignments[key] < 0:
+                        fin_list.append(key)
+                assignment_keys[key_counter] = (task_type,task_answer,task_time,prim,sec)
+                active_assignments[key_counter] = task_time
+                key_counter += 1
+                for key in fin_list:
+                    assignment = assignment_keys[key]
+                    gather_task(assignment[0],assignment[1],assignment[2],assignment[3],assignment[4])
+                    active_assignments.pop(key)
                     self.num_tasks_completed += 1
                     self.sim_time += task_time
             else:
@@ -425,6 +433,17 @@ class JoinSimulation():
                 self.sim_time += task_time
                 self.num_tasks_completed += 1
 
+        #simulate time cleanup loop, gets rid of ungathered tasks
+        if toggles.SIMULATE_TIME:
+            fin_list = []
+            print active_assignments
+            for key in active_assignments:
+                fin_list.append(key)
+            print active_assignments
+            for key in fin_list:
+                active_assignments.pop(key)
+                self.num_tasks_completed += 1
+                self.sim_time += task_time
         
         self.sim_time_arr += [self.sim_time]
         self.num_tasks_completed_arr += [self.num_tasks_completed]

@@ -20,7 +20,7 @@ def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
     random.seed()
     for primary in PrimaryItem.objects.all():
         if random.random() > PROB_NONE_SECONDARY: #if worker response is not "None"
-            num_sec = int(min(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM, size = None), NUM_SEC_ITEMS)) #for this primary item, choose how many secondary
+            num_sec = int(max(0,min(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM, size = None), NUM_SEC_ITEMS))) #for this primary item, choose how many secondary
             sec_pk_list = random.sample(range(NUM_SEC_ITEMS), num_sec) #randomly select the pks of the secondary items to associate with this primary item
             worker_response = ""
             for sec_pk in sec_pk_list: #build the worker response
@@ -221,4 +221,4 @@ def syn_load_join_pairs(JoinPairTasks_Dict):
                     answer = 0
                 else:
                     answer = 1
-                JoinPairTasks_Dict[(primary.pk,str(secondary)] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
+                JoinPairTasks_Dict[(primary.pk,str(secondary))] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
