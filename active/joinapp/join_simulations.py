@@ -281,7 +281,8 @@ class JoinSimulation():
         self.JFTasks_Dict.clear()
         self.FindPairsTasks_Dict.clear()
         self.JoinPairTasks_Dict.clear()
-        self.PJFTasks_Dict.clear()
+        self.PrimPJFTasks_Dict.clear()
+        self.SecPJFTasks_Dict.clear()
         self.SecPredTasks_Dict.clear()
 
         self.sim_time = 0
@@ -407,6 +408,8 @@ class JoinSimulation():
 
             #__________________________  ISSUE TASK __________________________#
             #choose a (matching) time and response for the task
+            (prim,sec,time,answer) = hit
+
             if toggles.REAL_DATA:
                 ind = random.randint(0, len(times))
                 task_time = times[ind]
@@ -421,13 +424,14 @@ class JoinSimulation():
                 elif task_type is 0:
                     task_answer,task_time = syn_answer_joinable_filter_task(hit)
 
-            if hit[1] is not "NA":
+
+            if sec is not "NA":
                 sec = SecondaryItem.objects.get(name=sec).pk
             else:
                 sec = None
             
             #__________________________ UPDATE STATE AFTER TASK __________________________ #
-            gather_task(task_type,task_answer,task_time,hit[0],sec)
+            gather_task(task_type,task_answer,task_time,prim,sec)
             
             
             self.sim_time += task_time
