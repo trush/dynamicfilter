@@ -49,7 +49,7 @@ def syn_load_joinable_filter_tasks(JFTasks_Dict):
         else:
             ground_truth = False
         time = JF_TASK_TIME_MEAN
-        value = (primary.pk, "NA", time, ground_truth)
+        value = (primary.pk, "None", time, ground_truth)
         JFTasks_Dict[primary.pk] = value
 
 ## @brief Populates the SecPredTasks_Dict with secondary predicate tasks (one for each secondary item)
@@ -64,7 +64,7 @@ def syn_load_sec_pred_tasks(SecPredTasks_Dict):
         else:
             ground_truth = False
         time = SEC_PRED_TASK_TIME_MEAN
-        value = ("NA", str(secondary), time, ground_truth)
+        value = ("None", str(secondary), time, ground_truth)
         SecPredTasks_Dict[str(secondary)] = value
 
 
@@ -179,11 +179,11 @@ def syn_load_pjfs(SecPJFTasks_Dict,PrimPJFTasks_Dict):
     random.seed()
     for primary in PrimaryItem.objects.all():
         pjf = random.choice(PJF_LIST)
-        value = (primary.pk, "NA", PJF_TIME_MEAN, pjf)
+        value = (primary.pk, "None", PJF_TIME_MEAN, pjf)
         PrimPJFTasks_Dict[primary.pk] = value
     for secondary in range(NUM_SEC_ITEMS):
         pjf = random.choice(PJF_LIST)
-        value = ("NA", str(secondary), PJF_TIME_MEAN, pjf)
+        value = ("None", str(secondary), PJF_TIME_MEAN, pjf)
         SecPJFTasks_Dict[str(secondary)] = value
 
 

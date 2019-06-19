@@ -404,6 +404,10 @@ class JoinSimulation():
             elif type(task) is SecPredTask:
                 task_type = 4
                 my_item = task.secondary_item.name
+                # Check for fake items
+                if REAL_DATA is False:
+                    if int(my_item) >= NUM_SEC_ITEMS:
+                        print "-----------------------A FAKE ITEM REACHED CONSENSUS-----------------------"
                 hit = self.SecPredTasks_Dict[my_item]
 
             #__________________________  ISSUE TASK __________________________#
@@ -443,9 +447,25 @@ class JoinSimulation():
 
 
         #__________________________ RESULTS __________________________#
+        print "Finsihed simulation, printing results....."
+
         for item in PrimaryItem.objects.all():
             item.refresh_from_db()
         
+        overlap_list = []
+        for item in SecondaryItem.objects.all():
+            item.refresh_from_db()
+            overlap_list += [item.num_prim_items]
+        
+        i = max(overlap_list)
+        while i >= 0:
+            num_i_prims = SecondaryItem.objects.filter(num_prim_items = i).count()
+            print "*", num_i_prims, "secondary item(s) were associated with", i, "primary items"
+            i -= 1
+
+        print "Mean primary per secondary:", np.mean(overlap_list)
+        print "Standard deviation primary per secondary:", np.std(overlap_list)
+
         num_prim_pass = PrimaryItem.objects.filter(eval_result = True).count()
         num_prim_fail = PrimaryItem.objects.filter(eval_result = False).count()
         num_prim_missed = PrimaryItem.objects.filter(eval_result = None).count()
