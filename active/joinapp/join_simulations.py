@@ -273,7 +273,8 @@ class JoinSimulation():
         JFTask.objects.all().delete()
         FindPairsTask.objects.all().delete()
         JoinPairTask.objects.all().delete()
-        PJFTask.objects.all().delete()
+        PrimPJFTask.objects.all().delete()
+        SecPJFTask.objects.all().delete()
         SecPredTask.objects.all().delete()
 
 
@@ -394,6 +395,7 @@ class JoinSimulation():
                 task_type = 1
                 my_item = task.primary_item.pk
                 hit = self.FindPairsTasks_Dict[my_item]
+                print FStatistic.objects.all()
             elif type(task) is JoinPairTask:
                 task_type = 2
                 my_prim_item = task.primary_item.pk
@@ -418,7 +420,12 @@ class JoinSimulation():
 
             #__________________________  ISSUE TASK __________________________#
             #choose a (matching) time and response for the task
-            (prim,sec,time,answer) = hit
+            if task_type is not 2:
+                (prim,sec,time,answer) = hit
+            else:
+                (pjf,time,answer) = hit
+                prim = my_prim_item
+                sec = my_sec_item
 
             if toggles.REAL_DATA:
                 ind = random.randint(0, len(times))
@@ -429,13 +436,14 @@ class JoinSimulation():
                     task_answer,task_time = syn_answer_sec_pred_task(hit)
                 elif task_type is 3:
                     task_answer,task_time = syn_answer_pjf_task(hit)
+                elif task_type is 2:
+                    task_answer,task_time = syn_answer_join_pair_task(hit)
                 elif task_type is 1:
                     task_answer,task_time = syn_answer_find_pairs_task(hit)
                 elif task_type is 0:
                     task_answer,task_time = syn_answer_joinable_filter_task(hit)
 
-
-            if sec is not "NA":
+            if sec is not "None":
                 sec = SecondaryItem.objects.get(name=sec).pk
             else:
                 sec = None
@@ -459,6 +467,7 @@ class JoinSimulation():
                     self.sim_time += task_time
             else:
                 gather_task(task_type,task_answer,task_time,prim,sec)
+            estimator.chao_estimator()
             
             
                 self.sim_time += task_time
