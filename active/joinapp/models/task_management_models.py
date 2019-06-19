@@ -83,7 +83,9 @@ class JFTask(models.Model):
     num_tasks = models.IntegerField(default=0)
     
     ## total worker time spent processing this task
-    time = models.FloatField(default=0)
+    total_time = models.FloatField(default=0)
+    ## average time per worker spent processing this task:
+    average_time = models.FloatField(default=0)
 
     # result: 
     ## True if the task passes with consensus <br>
@@ -119,7 +121,9 @@ class JFTask(models.Model):
             self.no_votes += 1
 
         #update average time
-        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+        self.average_time = (self.average_time * self.num_tasks + time) / (self.num_tasks + 1)
+        #update total tiime
+        self.total_time += time
 
         #update number of tasks so far
         self.num_tasks += 1
@@ -138,7 +142,9 @@ class FindPairsTask(models.Model):
     ## number of assignments processed for this task
     num_tasks = models.IntegerField(default=0)
     ## total worker time spent processing this task
-    time = models.FloatField(default=0)
+    total_time = models.FloatField(default=0)
+    ## average time per worker spent processing this task:
+    average_time = models.FloatField(default=0)
 
     # consensus: 
     ## True if the task pair reaches consensus <br>
@@ -182,7 +188,10 @@ class FindPairsTask(models.Model):
     def get_task(self, answer, time):
         from estimator import *
         #update average time
-        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+        self.average_time = (self.average_time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #update total time
+        self.total_time += time
 
         #get join pairs from this task
         join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
@@ -231,7 +240,9 @@ class JoinPairTask(models.Model):
     ## number of assignments processed for a task
     num_tasks = models.IntegerField(default=0)
     ## total worker time spent processing this task
-    time = models.FloatField(default=0)
+    total_time = models.FloatField(default=0)
+    ## average time per worker spent processing this task:
+    average_time = models.FloatField(default=0)
 
     ## many to one relationship used for finding consensus for find pairs task
     find_pairs_task = models.ForeignKey(FindPairsTask, null = True, default = None)
@@ -282,7 +293,10 @@ class JoinPairTask(models.Model):
             self.no_votes += 1
 
         #update average time
-        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+        self.average_time = (self.average_time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #update total time
+        self.total_time += time
 
         #update number of tasks so far
         self.num_tasks += 1
@@ -303,8 +317,10 @@ class PJFTask(models.Model):
     secondary_item = models.ForeignKey('SecondaryItem', default=None, null=True)
     ## number of assignments processed for this task
     num_tasks = models.IntegerField(default=0)
-    ## worker time spent processing this task
-    time = models.FloatField(default=0)
+    ## total worker time spent processing this task
+    total_time = models.FloatField(default=0)
+    ## average time per worker spent processing this task:
+    average_time = models.FloatField(default=0)
 
     # consensus: 
     ## True if the prejoin filter reaches consensus <br>
@@ -358,7 +374,10 @@ class PJFTask(models.Model):
             item.get_task(answer)
 
         #update average time
-        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+        self.average_time = (self.average_time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #update total time
+        self.total_time += time
 
         #update number of tasks so far
         self.num_tasks += 1
@@ -441,7 +460,9 @@ class SecPredTask(models.Model):
     ## total number of assingments processed for this task
     num_tasks = models.IntegerField(default=0)
     ## total worker time spent processing this task
-    time = models.FloatField(default=0)
+    total_time = models.FloatField(default=0)
+    ## average time per worker spent processing this task:
+    average_time = models.FloatField(default=0)
 
     # result: 
     ## True if the IT pair passes with consensus <br>
@@ -478,7 +499,10 @@ class SecPredTask(models.Model):
             print "weird answer"
 
         #update average time
-        self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
+        self.average_time = (self.average_time * self.num_tasks + time) / (self.num_tasks + 1)
+
+        #update total time
+        self.total_time += time
 
         #update number of tasks so far
         self.num_tasks += 1
