@@ -463,8 +463,10 @@ class JoinSimulation():
             print "*", num_i_prims, "secondary item(s) were associated with", i, "primary items"
             i -= 1
 
+        print ""
         print "Mean primary per secondary:", np.mean(overlap_list)
         print "Standard deviation primary per secondary:", np.std(overlap_list)
+        print ""
 
         num_prim_pass = PrimaryItem.objects.filter(eval_result = True).count()
         num_prim_fail = PrimaryItem.objects.filter(eval_result = False).count()
