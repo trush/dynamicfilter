@@ -12,6 +12,12 @@ def syn_load_list():
     for i in range(toggles.NUM_PRIM_ITEMS):
         PrimaryItem.objects.create(name = "primary item" + str(i))
 
+## @brief load/create instance of secondary list (when toggle is set so that secondary list exists)
+def syn_load_second_list():
+    for i in range(NUM_SEC_ITEMS):
+        SecondaryItem.objects.create(name = str(i))
+
+
 ## @brief Populates the FindPairsTasks_Dict with find pair tasks (one for each primary item)
 #  keys: primary item pk
 #  values: (primary item pk, "NA", task time, ground truth)
@@ -43,7 +49,7 @@ def syn_load_joinable_filter_tasks(JFTasks_Dict):
         else:
             ground_truth = False
         time = JF_TASK_TIME_MEAN
-        value = (primary.pk, "NA", time, ground_truth)
+        value = (primary.pk, "None", time, ground_truth)
         JFTasks_Dict[primary.pk] = value
 
 ## @brief Populates the SecPredTasks_Dict with secondary predicate tasks (one for each secondary item)
@@ -58,17 +64,8 @@ def syn_load_sec_pred_tasks(SecPredTasks_Dict):
         else:
             ground_truth = False
         time = SEC_PRED_TASK_TIME_MEAN
-        value = ("NA", str(secondary), time, ground_truth)
+        value = ("None", str(secondary), time, ground_truth)
         SecPredTasks_Dict[str(secondary)] = value
-
-# @brief Not implemented/possibly not neccessary
-def syn_load_join_pair_tasks(JoinPairTasks_Dict):
-    """
-    Populates the JoinPairTasks_Dict with join condition tasks (one for each secondary/primary item pair)
-    keys: (primary.secondary, 0)
-    values: (primary item id, secondary item id, task time, ground truth)
-    """
-    #TODO Likely not necessary
 
 
 
@@ -142,28 +139,20 @@ def syn_answer_sec_pred_task(hit):
 ## @brief gives a worker response to a join pair task based on a JoinPairTasks_Dict hit
 #   @remarks Not used in current implementation
 #   @param hit tuple with information about the ground truth for this task
-#TODO
-def syn_answer_join_pair_task(answer,time, hit):
-    """
-    gives a worker answer to a join pair task based on a JoinPairTasks_Dict hit
-    """
-    (primary,secondary,task_time,truth) = hit
+def syn_answer_join_pair_task(hit):
+    (pjf, time, truth) = hit
 
     #determine answer
     random.seed()
     if random.random() > JOIN_COND_AMBIGUITY:
-        if truth is True:
-            answer = 1
-        elif truth is False:
-            answer = 0
+        answer = truth
     else:
         answer = random.choice([0,1])
     time = task_time
-
+    return (answer,time)
 
 ## @brief gives a worker response to a pjf task based on a PJF Dictionary hit
 #   @param hit tuple with information about the ground truth for this task
-#TODO implement in simulation
 def syn_answer_pjf_task(hit):
     (primary,secondary,task_time,truth) = hit
 
@@ -190,11 +179,11 @@ def syn_load_pjfs(SecPJFTasks_Dict,PrimPJFTasks_Dict):
     random.seed()
     for primary in PrimaryItem.objects.all():
         pjf = random.choice(PJF_LIST)
-        value = (primary.pk, "NA", PJF_TIME_MEAN, pjf)
+        value = (primary.pk, "None", PJF_TIME_MEAN, pjf)
         PrimPJFTasks_Dict[primary.pk] = value
     for secondary in range(NUM_SEC_ITEMS):
         pjf = random.choice(PJF_LIST)
-        value = ("NA", str(secondary), PJF_TIME_MEAN, pjf)
+        value = ("None", str(secondary), PJF_TIME_MEAN, pjf)
         SecPJFTasks_Dict[str(secondary)] = value
 
 
@@ -202,7 +191,7 @@ def syn_load_pjfs(SecPJFTasks_Dict,PrimPJFTasks_Dict):
 #   keys: (primary pk, secondary item name)
 #   values: (pjf, , task time, ground truth)
 #   @param SecPJFTasks_Dict simulation dictionary for secondary item pjf tasks
-def syn_load_join_pairs(JoinPairTasks_Dict):
+def syn_load_join_pairs(JoinPairTasks_Dict,PrimPJFTasks_Dict,SecPJFTasks_Dict):
     for pjf in PJF_LIST:
         primary_items = []
         secondary_items = []
@@ -216,7 +205,7 @@ def syn_load_join_pairs(JoinPairTasks_Dict):
                 secondary_items += [secondary]
         for primary in primary_items:
             for secondary in secondary_items:
-                ramdom.seed()
+                random.seed()
                 if random.random() < JP_SELECTIVITY_W_PJF:
                     answer = 0
                 else:
