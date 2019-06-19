@@ -199,9 +199,9 @@ def syn_load_join_pairs(JoinPairTasks_Dict):
                 secondary_items += [secondary]
         for primary in primary_items:
             for secondary in secondary_items:
-                ramdom.seed()
+                random.seed()
                 if random.random() < JP_SELECTIVITY_W_PJF:
                     answer = 0
                 else:
                     answer = 1
-                JoinPairTasks_Dict[(primary.pk,str(secondary)] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
+                JoinPairTasks_Dict[(primary.pk,str(secondary))] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
