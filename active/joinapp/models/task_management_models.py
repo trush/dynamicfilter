@@ -143,7 +143,7 @@ class FindPairsTask(models.Model):
     # consensus: 
     ## True if the task pair reaches consensus <br>
     ## False if consensus is not reached
-    consensus = models.NullBooleanField(default=False)
+    consensus = models.BooleanField(default=False)
 
     ## @brief ToString method
     def __str__(self):
@@ -269,6 +269,12 @@ class JoinPairTask(models.Model):
                 self.primary_item.update_state()
                 
             self.secondary_item.save()
+        # for prejoin filter join, update found all pairs
+        # NOTE: not sure if this is functional (might be edge cases)
+        if toggles.JOIN_TYPE is 2:
+            if not JoinPairTask.objects.filter(result=None).filter(primary_item=self.primary_item).exists():
+                self.primary_item.found_all_pairs = True
+                self.primary_item.save()
 
 
     ## @brief Updates state after an assignment for this task is completed
@@ -309,7 +315,7 @@ class PJFTask(models.Model):
     # consensus: 
     ## True if the prejoin filter reaches consensus <br>
     ## False if the prejoin filter hasn't reached consensus
-    consensus = models.BooleanField(default=None)
+    consensus = models.BooleanField(default=False)
 
     ## @brief ToString method
     def __str__(self):
@@ -324,11 +330,18 @@ class PJFTask(models.Model):
     def update_consensus(self):
         # all item pjf pairs with this item 
         item_pjf_pairs = ItemPJFPair.objects.filter(pjf_task = self)
-        item_pjf_pairs = item_pjf_pairs.filter(consensus = True)
+        item_pjf_pairs = item_pjf_pairs.exclude(result = None)
         # if there is a pjf that has reached consensus, update consensus to true 
         # and delete all item pjf pairs associated with this task
         if item_pjf_pairs.exists():
             self.consensus = True
+                #if we have reached consensus, then set the item's pjf
+            if self.primary_item is not None:
+                self.primary_item.pjf = item_pjf_pairs.first().pjf
+                self.primary_item.save()
+            elif self.secondary_item is not None:
+                self.secondary_item.pjf = item_pjf_pairs.first().pjf
+                self.secondary_item.save()
             ItemPJFPair.objects.filter(pjf_task = self).delete()
             self.save()
         else:
@@ -341,14 +354,14 @@ class PJFTask(models.Model):
     def get_task(self, answer, time):
         # primary item task
         if self.primary_item is not None:
-            pair = ItemPJFPair.objects.filter(primary_item=self,pjf=answer)
+            pair = ItemPJFPair.objects.filter(primary_item=self.primary_item,pjf=answer)
             #create a new item pjf pair if it does not exist
             if not pair.exists():
                 ItemPJFPair.objects.create(primary_item=self.primary_item,pjf=answer,pjf_task = self,no_votes = self.num_tasks)
             item_pjf_pairs = ItemPJFPair.objects.filter(primary_item=self.primary_item)
         # secondary item task
         elif self.secondary_item is not None:
-            pair = ItemPJFPair.objects.filter(secondary_item=self,pjf=answer)
+            pair = ItemPJFPair.objects.filter(secondary_item=self.secondary_item,pjf=answer)
             #create a new item pjf pair if it does not exist
             if not pair.exists():
                 ItemPJFPair.objects.create(secondary_item=self.secondary_item,pjf=answer,pjf_task = self,no_votes = self.num_tasks)
@@ -387,9 +400,10 @@ class ItemPJFPair(models.Model):
     pjf_task = models.ForeignKey(PJFTask)
 
     # consensus: 
-    ## True if the pjf reaches consensus <br>
-    ## False if the pjf doesn't reach consensus
-    consensus = models.BooleanField(db_index=True, default=False)
+    ## True if the pjf item pair passes with consensus <br>
+    ## False if the pjf item pair doesn't pass with consensus
+    ## None if the pjf item pair doesn't reach consensus
+    result = models.NullBooleanField(db_index=True, default=False)
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
 
@@ -403,19 +417,10 @@ class ItemPJFPair(models.Model):
             raise Exception("No item")
 
     ## @brief checks and updates whether or not consensus has been reached
-    def update_consensus(self):
+    def update_result(self):
         #have we reached consensus?
-        self.consensus = find_consensus.find_consensus(self)
+        self.result = find_consensus.find_consensus(self)
         self.save()
-
-        #if we have reached consensus, then set the item's pjf
-        if self.consensus is True:
-            if self.primary_item is not None:
-                self.primary_item.pjf = self.pjf
-                self.primary_item.save()
-            elif self.secondary_item is not None:
-                self.secondary_item.pjf = self.pjf
-                self.secondary_item.save()
 
     ## @brief Updates state after an assignment for PJFTask is completed
     # @param answer A string containing the pjf
@@ -427,7 +432,7 @@ class ItemPJFPair(models.Model):
             self.no_votes += 1
 
         #check whether we've reached consensus
-        self.update_consensus()
+        self.update_result()
         self.save()
 
 ## @brief Model representing a secondary predicate task

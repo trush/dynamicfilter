@@ -58,11 +58,13 @@ def choose_task_PJF(workerID, estimator):
     if not estimator.has_2nd_list:
         prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
         return choose_task_find_pairs(prim_items_left, new_worker)
-    elif (PrimaryItem.objects.filter(pjf='').exists() or SecondaryItem.objects.filter(pjf='').exists()):
+    elif (PrimaryItem.objects.filter(pjf='false').exists() or SecondaryItem.objects.filter(pjf='false').exists()):
         return choose_task_pjf_helper(new_worker)
-    elif JoinPairTask.objects.filter(result=None).exists():
+    elif PrimaryItem.objects.filter(found_all_pairs=False).exists():
+        print "finished pjf"
         return choose_task_join_pairs(new_worker)
     else:
+        print "started sec pred"
         return choose_task_sec_pred(new_worker)
     
 #_______________________ CHOOSE TASKS HELPERS _______________________#
@@ -71,13 +73,13 @@ def choose_task_PJF(workerID, estimator):
 # @param worker workerID of the worker this task is going to
 def choose_task_pjf_helper(worker):
     # first does all primary item pjf tasks
-    prim_items_left = PrimaryItem.objects.filter(pjf='')
+    prim_items_left = PrimaryItem.objects.filter(pjf='false')
     if prim_items_left.exists():
         prim_item = prim_items_left.order_by('?').first() # random primary item
         pjf_task = PJFTask.objects.get_or_create(primary_item=prim_item)[0]
     # secondary item pjf tasks
     else:
-        sec_items_left = SecondaryItem.objects.filter(pjf='')
+        sec_items_left = SecondaryItem.objects.filter(pjf='false')
         sec_item = sec_items_left.order_by('?').first() # random secondary item
         pjf_task = PJFTask.objects.get_or_create(secondary_item=sec_item)[0]
     pjf_task.workers.add(worker)
@@ -115,7 +117,7 @@ def choose_task_joinable_filter_helper(worker):
 def choose_task_find_pairs(prim_items_list,worker):
     prim_item = prim_items_list.order_by('?').first() # random primary item
     find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
-    prims_left = PrimaryItem.objects.exclude(pk=prim_item.pk)
+    prims_left = PrimaryItem.objects.all()
     # choose new primary item if the random one has reached consensus or if worker has worked on it
     while find_pairs_task.consensus == True: # TODO: implement this: or worker in find_pairs_task.workers.all():
         prims_left = prims_left.exclude(pk=prim_item.pk)
@@ -129,12 +131,12 @@ def choose_task_find_pairs(prim_items_list,worker):
 # @param worker workerID of the worker this task is going to
 # @param pjfs a list of strings representing prejoin filters
 def choose_task_join_pairs(worker):
-    prim_item = PrimaryItem.objects.all().order_by('?').first() # random primary item
+    prim_item = PrimaryItem.objects.filter(found_all_pairs=False).order_by('?').first() # random primary item
     sec_item = SecondaryItem.objects.filter(pjf=prim_item.pjf).order_by('?').first() # random secondary item with same pjf
     join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
     # if the task has reached consensus, choose another random one
     while join_pair_task.result is not None:
-        prim_item = PrimaryItem.objects.all().order_by('?').first()
+        prim_item = PrimaryItem.objects.filter(found_all_pairs=False).order_by('?').first()
         sec_item = SecondaryItem.objects.all().filter(pjf=prim_item.pjf).order_by('?').first()
         join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
     join_pair_task.workers.add(worker)
@@ -179,7 +181,7 @@ def choose_task_sec_pred(worker):
 #   @param task_type An integer representing the type of task being recieved
 #   @param answer A string or (0,1) representing the worker response
 #   @param cost The amount of time it took the worker to complete the hit
-def gather_task(task_type, answer, cost, item1_id = None, item2_id = None):
+def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
     if item1_id is None and item2_id is None:
         raise Exception("no item given")
 
@@ -319,9 +321,9 @@ def collect_join_pair(answer, cost, item1_id, item2_id):
     return this_task.result
 
 ## Collect Prejoin Filter task
-def collect_prejoin_filter(answer, cost, item1_id=None, item2_id=None):
+def collect_prejoin_filter(answer, cost, item1_id="None", item2_id="None"):
     # primary item task
-    if item1_id is not None:
+    if item1_id is not "None":
         #load primary item from db
         primary_item = PrimaryItem.objects.get(pk = item1_id)
         #use primary item to find the relevant task
