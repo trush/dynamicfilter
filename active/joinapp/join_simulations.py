@@ -314,7 +314,7 @@ class JoinSimulation():
         # results list is a list of tuples in the form (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
         for i in range(toggles.NUM_SIMS):
             results = self.run_sim()
-            print "-----------------------------------------------------------"
+            print "---------------------------------------------------------------------"
             results_list.append(results)
             join_selectivity_arr.append(results[0])
             num_jf_assignments_arr.append(results[1])
@@ -353,9 +353,12 @@ class JoinSimulation():
                 syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
                 syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
             elif JOIN_TYPE == 2: # pre-join filtered join
-                #TODO Load secondary list? TOGGLE?
+                if HAVE_SEC_LIST is True:
+                    syn_load_second_list()
+                    estimator.has_2nd_list = True
+                syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
                 syn_load_pjfs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict)
-                syn_load_join_pair_tasks(self.JoinPairTasks_Dict)
+                syn_load_join_pairs(self.JoinPairTasks_Dict,self.PrimPJFTasks_Dict,self.SecPJFTasks_Dict)
                 syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
 
         self.generate_worker_ids()
@@ -418,13 +421,13 @@ class JoinSimulation():
                 elif task_type is 0:
                     task_answer,task_time = syn_answer_joinable_filter_task(hit)
 
-            if sec is not "NA":
+            if hit[1] is not "NA":
                 sec = SecondaryItem.objects.get(name=sec).pk
             else:
                 sec = None
             
             #__________________________ UPDATE STATE AFTER TASK __________________________ #
-            gather_task(task_type,task_answer,task_time,prim,sec)
+            gather_task(task_type,task_answer,task_time,hit[0],sec)
             
             
             self.sim_time += task_time
