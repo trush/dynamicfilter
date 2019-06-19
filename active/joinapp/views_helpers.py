@@ -261,6 +261,7 @@ def collect_find_pairs(answer, cost, item1_id):
     #call the model's function to update its state
     this_task.get_task(sec_items_list, cost)
 
+    this_task.refresh_from_db()
     return this_task.consensus
 
 ## takes a string of entries (separated by the string {{NEWENTRY}}) for find_pairs and parses them
