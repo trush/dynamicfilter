@@ -13,7 +13,7 @@ PJF_LIST = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
-MEAN_SEC_PER_PRIM = 10
+MEAN_SEC_PER_PRIM = 5
 SD_SEC_PER_PRIM = 3
 PROB_NONE_SECONDARY = 0
 
@@ -28,10 +28,10 @@ REAL_DATA = False # real or synthetic data
 # 2 = pre-join filtered join
 JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 3 # number of simulations to run
+NUM_SIMS = 1 # number of simulations to run
 PROB_CHOOSING_TRUE_SEC_ITEM = 0.95
 SIMULATE_TIME = False
-TIME_STEP = 10
+TIME_STEP = 5
 
 # ________ Consensus Settings _________#
 # Values used in the find_consensus for an item/task function

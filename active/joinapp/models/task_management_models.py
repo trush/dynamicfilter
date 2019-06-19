@@ -158,6 +158,7 @@ class FindPairsTask(models.Model):
                 self.consensus = True
                 self.primary_item.found_all_pairs = True
                 self.primary_item.update_state()
+                self.primary_item.refresh_from_db()
                 self.primary_item.save()
                 self.save()
             else:
@@ -170,6 +171,7 @@ class FindPairsTask(models.Model):
                 self.primary_item.refresh_from_db()
                 self.primary_item.found_all_pairs = True
                 self.primary_item.update_state()
+                self.primary_item.refresh_from_db()
                 self.primary_item.save()
                 self.save()
             else:
@@ -180,7 +182,7 @@ class FindPairsTask(models.Model):
     # @param answer A list of secondary items
     # @param time How long it took to execute the incoming assignment
     def get_task(self, answer, time):
-        from estimator import *
+        from estimator import Estimator
         #update average time
         self.time = (self.time * self.num_tasks + time) / (self.num_tasks + 1)
 
@@ -267,6 +269,7 @@ class JoinPairTask(models.Model):
             else:
                 self.primary_item.add_secondary_item(self.secondary_item)
                 self.primary_item.update_state()
+                self.primary_item.refresh_from_db()
                 
             self.secondary_item.save()
 
@@ -461,7 +464,7 @@ class SecPredTask(models.Model):
         self.secondary_item.second_pred_result = self.result
         self.secondary_item.save()
         self.save()
-        for prim_item in self.secondary_item.primary_items.all():
+        for prim_item in self.secondary_item.primary_items.all().filter(is_done=False):
             prim_item.refresh_from_db()
             prim_item.update_state()
 
