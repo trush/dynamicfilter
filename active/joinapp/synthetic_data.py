@@ -61,15 +61,6 @@ def syn_load_sec_pred_tasks(SecPredTasks_Dict):
         value = ("NA", str(secondary), time, ground_truth)
         SecPredTasks_Dict[str(secondary)] = value
 
-# @brief Not implemented/possibly not neccessary
-def syn_load_join_pair_tasks(JoinPairTasks_Dict):
-    """
-    Populates the JoinPairTasks_Dict with join condition tasks (one for each secondary/primary item pair)
-    keys: (primary.secondary, 0)
-    values: (primary item id, secondary item id, task time, ground truth)
-    """
-    #TODO Likely not necessary
-
 
 
 #_______________________________ Give a Worker Answer _______________________________#
@@ -142,28 +133,20 @@ def syn_answer_sec_pred_task(hit):
 ## @brief gives a worker response to a join pair task based on a JoinPairTasks_Dict hit
 #   @remarks Not used in current implementation
 #   @param hit tuple with information about the ground truth for this task
-#TODO
-def syn_answer_join_pair_task(answer,time, hit):
-    """
-    gives a worker answer to a join pair task based on a JoinPairTasks_Dict hit
-    """
-    (primary,secondary,task_time,truth) = hit
+def syn_answer_join_pair_task(hit):
+    (pjf, time, truth) = hit
 
     #determine answer
     random.seed()
     if random.random() > JOIN_COND_AMBIGUITY:
-        if truth is True:
-            answer = 1
-        elif truth is False:
-            answer = 0
+        answer = truth
     else:
         answer = random.choice([0,1])
     time = task_time
-
+    return (answer,time)
 
 ## @brief gives a worker response to a pjf task based on a PJF Dictionary hit
 #   @param hit tuple with information about the ground truth for this task
-#TODO implement in simulation
 def syn_answer_pjf_task(hit):
     (primary,secondary,task_time,truth) = hit
 
