@@ -150,7 +150,7 @@ def choose_task_sec_pred(worker):
     # only secondary items that haven't reached consensus but match at least one primary item
     sec_items_left = SecondaryItem.objects.filter(second_pred_result=None).exclude(matches_some = False)
     if toggles.SEC_INFLUENTIAL is True:
-        sec_item = sec_items_left.order_by('num_prim_items').first() # item related to the most primary items
+        sec_item = sec_items_left.order_by('-num_prim_items').first() # item related to the most primary items
         sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
         # choose new secondary item if worker has worked on it
         while worker in sec_pred_task.workers.all():
@@ -263,6 +263,7 @@ def collect_find_pairs(answer, cost, item1_id):
     #call the model's function to update its state
     this_task.get_task(sec_items_list, cost)
 
+    this_task.refresh_from_db()
     return this_task.consensus
 
 ## takes a string of entries (separated by the string {{NEWENTRY}}) for find_pairs and parses them

@@ -1,5 +1,8 @@
 import csv
 import string
+import matplotlib.pyplot as plt
+import numpy
+from scipy import stats
 
 all_seconds = {}
 
@@ -41,9 +44,9 @@ def disambiguate_str(sec_item_str):
             all_seconds[addr] = sec_item_str
     return addr
 
-hit_csv = csv.reader(open('HIT_RESULTS.csv', 'r'), delimiter = ',') 
-# results csv
-cleaned_hits = csv.writer(open('CLEANED_ROUND1_trial.csv', 'w'), delimiter = ',')
+hit_csv = csv.reader(open('HIT_RESULTS_ROUND1.csv', 'r'), delimiter = ',') 
+# # results csv
+# cleaned_hits = csv.writer(open('CLEANED_ROUND1_trial.csv', 'w'), delimiter = ',')
 
 header = next(hit_csv)
 print header
@@ -63,6 +66,10 @@ num_empty_this_hit = 0
 num_hits_mostly_empty = 0
 matches_dict = {}
 cant_parse = []
+time_to_num = {}
+ans_to_num = {}
+times_total = []
+num_ans_each = []
 
 for assignment in hit_csv:
     #trash assignments with: MyHospital, MyMedics in name, unparseables
@@ -87,6 +94,15 @@ for assignment in hit_csv:
         cant_parse.append((assignment[0],assignment[4],filter(lambda x: x != "",ans_list)))
         continue
 
+    if len(cleaned_ans_list) in time_to_num:
+        time_to_num[len(cleaned_ans_list)] += float(assignment[6])
+        ans_to_num[len(cleaned_ans_list)] += 1
+    else:
+        time_to_num[len(cleaned_ans_list)] = float(assignment[6])
+        ans_to_num[len(cleaned_ans_list)] = 1
+    times_total += [float(assignment[6])]
+    num_ans_each += [len(cleaned_ans_list)]
+
     if answer == 'None':
         num_empty += 1.0
         num_empty_this_hit += 1.0
@@ -110,7 +126,7 @@ for assignment in hit_csv:
 
 
     num_assign_this_hit += 1
-    cleaned_hits.writerow([assignment[0],assignment[1],assignment[2],assignment[3],assignment[4],assignment[5],assignment[6],answer,assignment[8]])
+    # cleaned_hits.writerow([assignment[0],assignment[1],assignment[2],assignment[3],assignment[4],assignment[5],assignment[6],answer,assignment[8]])
 
 sec_item_votes = {}
 sec_item_csv = csv.writer(open('HOSPITAL_ROUGH.csv', 'w'), delimiter = ',')
@@ -134,12 +150,42 @@ if num_assignments > 0:
         if sec_item_votes[addr] > 15:
             print "******************************"
         print "address:",addr,"votes:",sec_item_votes[addr],"\tfull name:", all_seconds[addr]
+        if sec_item_votes[addr] > 1:
+            sec_item_csv.writerow([addr,sec_item_votes[addr],all_seconds[addr]])
         if sec_item_votes[addr] > 15:
             print "******************************"
     
-    for item in interest_sec_items:
-        sec_item_csv.writerow([item,sec_item_votes[item],all_seconds[item]])
+    # for item in interest_sec_items:
+    #     sec_item_csv.writerow([item,sec_item_votes[item],all_seconds[item]])
 
     print "avg time:",str(time/num_assignments)
     print "proportion empty:", str(num_empty/num_assignments)
     print "num mostly empty hits:", num_hits_mostly_empty
+    avg_tim_list = []
+    num_ans_list = []
+    for num_responses in ans_to_num:
+        print "avg time:", time_to_num[num_responses]/ans_to_num[num_responses], "\tfor", num_responses,"responses"
+        print num_responses,"ocurred", ans_to_num[num_responses],"times"
+        avg_tim_list += [time_to_num[num_responses]/ans_to_num[num_responses]]
+        num_ans_list += [num_responses]
+    
+    for i in range(1,3):
+        fit = numpy.polyfit(num_ans_each,times_total,i, full=True)
+        print "degree", i,"residuals", fit[1][0]
+        print fit
+        fit_fn = numpy.poly1d(fit[0])
+
+        plt.plot(num_ans_each,times_total,'ro', num_ans_list, fit_fn(num_ans_list), '--k')
+        plt.axis([0,17,0,1500])
+        plt.show()
+
+    
+    for i in range(1,3):
+        fit = numpy.polyfit(num_ans_list,avg_tim_list,i, full=True)
+        print "degree", i,"residuals", fit[1][0]
+        print fit
+        fit_fn = numpy.poly1d(fit[0])
+
+        plt.plot(num_ans_list,avg_tim_list,'ro', num_ans_list, fit_fn(num_ans_list), '--k')
+        plt.axis([0,17,0,1500])
+        plt.show()
