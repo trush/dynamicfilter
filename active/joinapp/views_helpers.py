@@ -8,29 +8,35 @@ from models.task_management_models import *
 
 #_______________________ CHOOSE TASKS _______________________#
 
+## @brief chooses the next task to issue for a joinable filter query
+# @param workerID workerID of the worker this task is going to
+def choose_task_JF(workerID):
+    new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
+    return choose_task_joinable_filter_helper(new_worker)
 
-## @brief chooses the next task to issue based on the state of the query
+## @brief chooses the next task to issue for an item-wise join where all 
+## find pairs tasks are evaluated first, then secondary predicate tasks
 # @param workerID workerID of the worker this task is going to
 # @param estimator the estimator used to determine when the second list is complete
-def choose_task(workerID, estimator):
+def choose_task_IW(workerID, estimator):
     # only implemented for IW join
     # returns task that was chosen and updated
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
     ### algorithm determining what type of task/join to use ###
-    #if toggles.JOIN_TYPE is 0: # joinable filter
-       # return choose_task_joinable_filter(new_worker)
     # elif toggles.JOIN_TYPE is 1 or 2:
     # find pairs for all primary items
     prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
     if prim_items_left.exists():
         return choose_task_find_pairs(prim_items_left, new_worker)
     # this is used once we enumerate the entire second list 
-    # elif toggles.JOIN_TYPE is 2 and (PrimaryItem.objects.filter(pjf='').exists() or SecondaryItem.objects.filter(pjf='').exists()):
-        # return choose_task_pjf(new_worker)
     else:
         return choose_task_sec_pred(new_worker)
-## choose task 1 is itemwise followed by 2ndary predicate, but done item by item.
-def choose_task_1(workerID, estimator):
+
+## @brief chooses the next task to issue for an item-wise join where one
+## find pairs task is evaluated first, then a secondary predicate task (item by item)
+# @param workerID workerID of the worker this task is going to
+# @param estimator the estimator used to determine when the second list is complete
+def choose_task_IW1(workerID, estimator):
     # only implemented for IW join
     # returns task that was chosen and updated
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
@@ -38,20 +44,32 @@ def choose_task_1(workerID, estimator):
         # return choose_task_joinable_filter(new_worker)
     # find pairs for all primary items
     prim_has_sec = PrimaryItem.objects.exclude(is_done=True).filter(found_all_pairs=True)
-
-
     if prim_has_sec.exists():        
         return choose_task_sec_pred(new_worker)
-
     prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
     if prim_items_left.exists():
         return choose_task_find_pairs(prim_items_left, new_worker)
 
+## @brief chooses the next task to issue for a pre-join filter join
+# @param workerID workerID of the worker this task is going to
+# @param estimator the estimator used to determine when the second list is complete
+def choose_task_PJF(workerID, estimator):
+    new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
+    if not estimator.has_2nd_list:
+        prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
+        return choose_task_find_pairs(prim_items_left, new_worker)
+    elif (PrimaryItem.objects.filter(pjf='').exists() or SecondaryItem.objects.filter(pjf='').exists()):
+        return choose_task_pjf_helper(new_worker)
+    elif JoinPairTask.objects.filter(result=None).exists():
+        return choose_task_join_pairs(new_worker)
+    else:
+        return choose_task_sec_pred(new_worker)
+    
 #_______________________ CHOOSE TASKS HELPERS _______________________#
 
 ## @brief chooses a pre join filter task based on a worker
 # @param worker workerID of the worker this task is going to
-def choose_task_pjf(worker):
+def choose_task_pjf_helper(worker):
     # first does all primary item pjf tasks
     prim_items_left = PrimaryItem.objects.filter(pjf='')
     if prim_items_left.exists():
@@ -68,8 +86,7 @@ def choose_task_pjf(worker):
 
 ## @brief chooses a joinable filter task based on a worker
 # @param worker workerID of the worker this task is going to
-def choose_task_joinable_filter(workerID):
-    worker = Worker.objects.get_or_create(worker_id=workerID)[0]
+def choose_task_joinable_filter_helper(worker):
     prim_items_left = PrimaryItem.objects.exclude(is_done = True).order_by('?')
     prim_items_left_count = prim_items_left.count()
     print_statement = " - WHY WAS THIS TASK ISSUED" #for determining if weird useless tasks are issued
@@ -115,13 +132,10 @@ def choose_task_join_pairs(worker):
     prim_item = PrimaryItem.objects.all().order_by('?').first() # random primary item
     sec_item = SecondaryItem.objects.filter(pjf=prim_item.pjf).order_by('?').first() # random secondary item with same pjf
     join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
-    prims_left = PrimaryItem.objects.exclude(pk=prim_item.pk)
-    secs_left = SecondaryItem.objects.exclude(pk=sec_item.pk)
+    # if the task has reached consensus, choose another random one
     while join_pair_task.result is not None:
-        prims_left = prims_left.exclude(pk=prim_item.pk)
-        secs_left = secs_left.exclude(pk=sec_item.pk)
-        prim_item = prims_left.order_by('?').first()
-        sec_item = secs_left.filter(pjf=prim_item.pjf).order_by('?').first()
+        prim_item = PrimaryItem.objects.all().order_by('?').first()
+        sec_item = SecondaryItem.objects.all().filter(pjf=prim_item.pjf).order_by('?').first()
         join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
     join_pair_task.workers.add(worker)
     join_pair_task.save()
