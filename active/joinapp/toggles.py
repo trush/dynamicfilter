@@ -5,16 +5,27 @@ PRIMARY_LIST = ''#TODO hotel list
 REAL_DATA_CSV = '/simulation_files/CLEANED_ROUND1.csv'#TODO MTURK data CSV
 
 #_____________________________ For Synthetic Data _____________________________#
+<<<<<<< HEAD
 NUM_PRIM_ITEMS = 10
 NUM_SEC_ITEMS = 10
 HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no 
+=======
+NUM_PRIM_ITEMS = 50
+NUM_SEC_ITEMS = 30
+HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
+>>>>>>> c715b7ea88c54a949d5cca028f9fac15492b92d1
 FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SEC_ITEMS+2), "Fake 3; " + str(NUM_SEC_ITEMS+3), "Fake 4; " + str(NUM_SEC_ITEMS+4), "Fake 5; " + str(NUM_SEC_ITEMS+5)] #fake secondary items to choose from
 PJF_LIST = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
+<<<<<<< HEAD
 MEAN_SEC_PER_PRIM = 3
 SD_SEC_PER_PRIM = 0.5
+=======
+MEAN_SEC_PER_PRIM = 5
+SD_SEC_PER_PRIM = 3
+>>>>>>> c715b7ea88c54a949d5cca028f9fac15492b92d1
 PROB_NONE_SECONDARY = 0
 
 #________ For Real Data ________#
@@ -26,10 +37,12 @@ REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
-JOIN_TYPE = 2
+JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 3 # number of simulations to run
+NUM_SIMS = 1 # number of simulations to run
 PROB_CHOOSING_TRUE_SEC_ITEM = 0.95
+SIMULATE_TIME = False
+TIME_STEP = 5
 
 # ________ Consensus Settings _________#
 # Values used in the find_consensus for an item/task function

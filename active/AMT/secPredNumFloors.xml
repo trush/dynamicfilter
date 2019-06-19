@@ -104,13 +104,8 @@
                 <p><label>Item: XXX(ITEM_NAME_HERE)XXX</label></p>
 
                 <table>
-                    <p><label>Question: Does this hospital or clinic have 5 or more floors? </label></p>
-                    <input type="radio" name="workervote" id="r_true" value="1" required />
-                    <label for="r_true">Yes</label>
-                    <br/>
-                    <input type="radio" name="workervote" id="r_false" value="0"/>
-                    <label for="r_false">No</label>
-                    </br>
+                    <p><label>Question: How many floors does this hospital or clinic have? </label></p>
+                    <textarea name="workervote" row = "1" cols = "2" required />
                 </table>
 
                 <br />

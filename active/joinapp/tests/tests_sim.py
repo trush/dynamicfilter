@@ -17,4 +17,4 @@ class Simulation_Tests(TestCase):
         #graph_gen.graph_time(results, "joinapp/simulation_files/test4_2.png")
         #sim.graph_multi_sim(results)
         #hist_gen(results[4], "joinapp/simulation_files/test2.png", labels = ('time','frequency'), title='Testing Itemwise Join', xRange=(None,None), yRange=(None,None), smoothness=True)
-        graph_gen.graph_prim_items_left(results, "joinapp/simulation_files/influential.png")
+        #graph_gen.graph_prim_items_left(results, "joinapp/simulation_files/influential.png")
