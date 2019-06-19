@@ -12,6 +12,12 @@ def syn_load_list():
     for i in range(toggles.NUM_PRIM_ITEMS):
         PrimaryItem.objects.create(name = "primary item" + str(i))
 
+## @brief load/create instance of secondary list (when toggle is set so that secondary list exists)
+def syn_load_second_list():
+    for i in range(NUM_SEC_ITEMS):
+        SecondaryItem.objects.create(name = str(i))
+
+
 ## @brief Populates the FindPairsTasks_Dict with find pair tasks (one for each primary item)
 #  keys: primary item pk
 #  values: (primary item pk, "NA", task time, ground truth)
@@ -185,7 +191,7 @@ def syn_load_pjfs(SecPJFTasks_Dict,PrimPJFTasks_Dict):
 #   keys: (primary pk, secondary item name)
 #   values: (pjf, , task time, ground truth)
 #   @param SecPJFTasks_Dict simulation dictionary for secondary item pjf tasks
-def syn_load_join_pairs(JoinPairTasks_Dict):
+def syn_load_join_pairs(JoinPairTasks_Dict,PrimPJFTasks_Dict,SecPJFTasks_Dict):
     for pjf in PJF_LIST:
         primary_items = []
         secondary_items = []
