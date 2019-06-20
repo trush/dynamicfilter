@@ -488,7 +488,7 @@ class JoinSimulation():
 
 
         #__________________________ RESULTS __________________________#
-        print "Finsihed simulation, printing results....."
+        print "Finished simulation, printing results....."
 
         for item in PrimaryItem.objects.all():
             item.refresh_from_db()
