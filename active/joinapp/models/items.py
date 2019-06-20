@@ -107,20 +107,17 @@ class PrimaryItem(models.Model):
         if self.secondary_items.filter(second_pred_result=True).exists():
             self.is_done = True
             self.eval_result = True
-            print "we are here finishing", self,"because some pair is True"
         # if we have no pairs but we've already found all pairs
         elif self.found_all_pairs and self.num_sec_items is 0:
             self.is_done = True
             self.eval_result = False
-            print "we are here finishing", self, "because there are no matches"
         # if we found all pairs and they all fail the sec pred
         if self.found_all_pairs and (self.num_sec_items is num_false):
             self.is_done = True
             self.eval_result = False
-            print "we are here finishing", self, "because all 2nds are False"
-        self.save()
+        # if a primary item has all pairs and all results of pairs are false
         if not JoinPairTask.objects.filter(primary_item=self).exclude(result=False).exists() and self.has_all_join_pairs:
             self.is_done = True
             self.eval_result = False
-            self.save()
+        self.save()
 
