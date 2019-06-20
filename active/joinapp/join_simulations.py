@@ -395,7 +395,6 @@ class JoinSimulation():
                 task_type = 1
                 my_item = task.primary_item.pk
                 hit = self.FindPairsTasks_Dict[my_item]
-                print FStatistic.objects.all()
             elif type(task) is JoinPairTask:
                 task_type = 2
                 my_prim_item = task.primary_item.pk
@@ -467,11 +466,12 @@ class JoinSimulation():
                     self.sim_time += task_time
             else:
                 gather_task(task_type,task_answer,task_time,prim,sec)
-            estimator.chao_estimator()
-            
-            
                 self.sim_time += task_time
                 self.num_tasks_completed += 1
+
+            #update chao estimator
+            estimator.refresh_from_db()
+            estimator.chao_estimator()
 
         #simulate time cleanup loop, gets rid of ungathered tasks
         if toggles.SIMULATE_TIME:
