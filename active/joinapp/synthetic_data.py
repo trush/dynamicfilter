@@ -200,9 +200,9 @@ def syn_load_join_pairs(JoinPairTasks_Dict,PrimPJFTasks_Dict,SecPJFTasks_Dict):
                 pjf = value_prim[3]
                 random.seed()
                 if random.random() < JP_SELECTIVITY_W_PJF:
-                    answer = 0
-                else:
                     answer = 1
+                else:
+                    answer = 0
             else:
                 pjf = "No Match"
                 answer = 0

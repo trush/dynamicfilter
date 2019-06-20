@@ -5,15 +5,15 @@ PRIMARY_LIST = ''#TODO hotel list
 REAL_DATA_CSV = '/simulation_files/CLEANED_ROUND1.csv'#TODO MTURK data CSV
 
 #_____________________________ For Synthetic Data _____________________________#
-NUM_PRIM_ITEMS = 10
-NUM_SEC_ITEMS = 10
+NUM_PRIM_ITEMS = 90
+NUM_SEC_ITEMS = 100
 HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no 
 FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SEC_ITEMS+2), "Fake 3; " + str(NUM_SEC_ITEMS+3), "Fake 4; " + str(NUM_SEC_ITEMS+4), "Fake 5; " + str(NUM_SEC_ITEMS+5)] #fake secondary items to choose from
 PJF_LIST = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
-MEAN_SEC_PER_PRIM = 3
+MEAN_SEC_PER_PRIM = 5
 SD_SEC_PER_PRIM = 0.5
 PROB_NONE_SECONDARY = 0
 
@@ -48,12 +48,12 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 #_______ Selectivity and Ambiguity Settings _________#
 JF_AMBIGUITY = 0.1
 JF_SELECTIVITY = 0.1
-SEC_PRED_SELECTIVITY = 0.5 
-SEC_PRED_AMBIGUITY = 0.3
+SEC_PRED_SELECTIVITY = 0.5
+SEC_PRED_AMBIGUITY = 0
 JOIN_COND_AMBIGUITY = 0 
-JOIN_COND_SELECTIVITY = 0.8 # given that these pairs were created by the crowd
-PJF_AMBIGUITY = 0.1
-JP_SELECTIVITY_W_PJF = 0.7 #likelyhood of being a pair given that they are in the same PJF
+JOIN_COND_SELECTIVITY = 0.3 # given that these pairs were created by the crowd
+PJF_AMBIGUITY = 0
+JP_SELECTIVITY_W_PJF = 0.3 #likelyhood of being a pair given that they are in the same PJF
 
 #__________________ Time Settings _____________________#
 JF_TASK_TIME_MEAN = 100
