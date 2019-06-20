@@ -31,6 +31,9 @@ class SecondaryItem(models.Model):
     ## Number of primary items related to this item
     num_prim_items = models.IntegerField(default=0)
 
+    ## Number of primary items related to this item that are not done
+    num_prims_left = models.IntegerField(default=0)
+
     ## Used in the estimator model for determining when we have completed our search for secondary items
     fstatistic = models.ForeignKey(FStatistic, default=None, null=True, blank=True)
 
@@ -66,6 +69,9 @@ class PrimaryItem(models.Model):
     ## According to the Chao estimator, have all secondary items for this primary item been found
     found_all_pairs = models.BooleanField(db_index=True, default=False)
     
+    # For updating is_done in a pre join filter
+    has_all_join_pairs = models.BooleanField(db_index=True, default=False)
+
     ## prejoin filter
     pjf = models.CharField(max_length=10, default = "false") #TODO default is a placeholder
 
@@ -92,26 +98,41 @@ class PrimaryItem(models.Model):
         self.secondary_items.add(sec_item_to_add)
         self.num_sec_items += 1
         self.save()
-
         sec_item_to_add.num_prim_items += 1
+        if not self.is_done:
+            sec_item_to_add.num_prims_left += 1
         sec_item_to_add.save()
 
     ## @brief updates is_done and eval_result
     def update_state(self):
-        # if we have a secondary item that is true
-        num_false = self.secondary_items.filter(second_pred_result=False).count()
-        if self.secondary_items.filter(second_pred_result=True).exists():
-            self.is_done = True
-            self.eval_result = True
-            print "we are here finishing", self,"because some pair is True"
-        # if we have no pairs but we've already found all pairs
-        elif self.found_all_pairs and self.num_sec_items is 0:
-            self.is_done = True
-            self.eval_result = False
-            print "we are here finishing", self, "because there are no matches"
-        # if we found all pairs and they all fail the sec pred
-        if self.found_all_pairs and (self.num_sec_items is num_false):
-            self.is_done = True
-            self.eval_result = False
-            print "we are here finishing", self, "because all 2nds are False"
+        from task_management_models import JoinPairTask
+        if self.is_done is False:
+            # if we have a secondary item that is true
+            num_false = self.secondary_items.filter(second_pred_result=False).count()
+            if self.secondary_items.filter(second_pred_result=True).exists():
+                self.is_done = True
+                self.eval_result = True
+                self.found_all_pairs = True
+                for sec in self.secondary_items.all():
+                    sec.refresh_from_db()
+                    sec.num_prims_left -= 1
+                    sec.save()
+                #print "we are here finishing", self,"because some pair is True"
+            # if we have no pairs but we've already found all pairs
+            # if we found all pairs and they all fail the sec pred
+            
+            elif self.found_all_pairs and (self.num_sec_items is num_false):
+                self.is_done = True
+                self.eval_result = False
+                for sec in self.secondary_items.all():
+                    sec.refresh_from_db()
+                    sec.num_prims_left -= 1
+                    sec.save()
+                #print "we are here finishing", self, "because all 2nds are False"
+
         self.save()
+        if not JoinPairTask.objects.filter(primary_item=self).exclude(result=False).exists() and self.has_all_join_pairs:
+            self.is_done = True
+            self.eval_result = False
+            self.save()
+

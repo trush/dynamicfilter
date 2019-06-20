@@ -105,6 +105,9 @@ class JFTask(models.Model):
         self.result = find_consensus.find_consensus(self)
         if self.result is True or self.result is False:
             self.primary_item.is_done = True
+            for sec in self.primary_item.secondary_items.all():
+                sec.num_prims_left -= 1
+                sec.save()
             self.primary_item.eval_result = self.result
         self.primary_item.save()
         self.save()
@@ -164,8 +167,6 @@ class FindPairsTask(models.Model):
                 self.consensus = True
                 self.primary_item.found_all_pairs = True
                 self.primary_item.update_state()
-                self.primary_item.refresh_from_db()
-                self.primary_item.save()
                 self.save()
             else:
                 self.consensus = False
@@ -177,8 +178,6 @@ class FindPairsTask(models.Model):
                 self.primary_item.refresh_from_db()
                 self.primary_item.found_all_pairs = True
                 self.primary_item.update_state()
-                self.primary_item.refresh_from_db()
-                self.primary_item.save()
                 self.save()
             else:
                 self.consensus = False
@@ -271,32 +270,27 @@ class JoinPairTask(models.Model):
         # primary item's list of matches <br>
         #Running this multiple times is fine, the relationship is not duplicated
         if self.result is True:
-            print "result is true"
-            if self.secondary_item.second_pred_result is None:
-                print "updating now"
+            if not self.primary_item.secondary_items.filter(name=self.secondary_item.name).exists():
                 self.primary_item.add_secondary_item(self.secondary_item)
-                self.primary_item.refresh_from_db()
+
+                if self.secondary_item.second_pred_result is None:
+                    self.primary_item.refresh_from_db()
+                    self.secondary_item.refresh_from_db()
+                    self.secondary_item.matches_some = True
+                    self.secondary_item.save()
+                else:
+                    self.primary_item.update_state()
+                    self.primary_item.refresh_from_db()
                 self.secondary_item.refresh_from_db()
-                self.secondary_item.matches_some = True
                 self.secondary_item.save()
-            else:
-               self.primary_item.add_secondary_item(self.secondary_item)
-               self.primary_item.update_state()
-               self.primary_item.refresh_from_db()
-                
-            self.secondary_item.save()
+
         # if the pair is not a match
         if self.result is False:
             # updates state of prim item if all join pairs are false
-            if not JoinPairTask.objects.exclude(result=False).exists():
-                self.primary_item.refresh_from_db()
-                self.primary_item.is_done = True
-                self.primary_item.eval_result = False
-                self.primary_item.save()
-        print "result ", self.result
+            self.primary_item.update_state()
+            self.primary_item.refresh_from_db()
 
         # for prejoin filter join, update found all pairs
-        # NOTE: not sure if this is functional (might be edge cases)
         if toggles.JOIN_TYPE is 2:
             if not JoinPairTask.objects.filter(primary_item=self.primary_item).filter(result=None).exists():
                 self.primary_item.refresh_from_db()
