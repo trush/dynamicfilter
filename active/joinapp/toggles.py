@@ -52,8 +52,6 @@ SEC_PRED_SELECTIVITY = 0.5
 SEC_PRED_AMBIGUITY = 0.3
 JOIN_COND_AMBIGUITY = 0 
 JOIN_COND_SELECTIVITY = 0.8 # given that these pairs were created by the crowd
-PJF_SELECTIVITY_PRIMARY = 0.1 # PJF selectivity for primary list 
-PJF_SELECTIVITY_SECONDARY = 0.1 # PJF selectivity for secondary list
 PJF_AMBIGUITY = 0.1
 JP_SELECTIVITY_W_PJF = 0.7 #likelyhood of being a pair given that they are in the same PJF
 
