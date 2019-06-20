@@ -140,7 +140,7 @@ def syn_answer_sec_pred_task(hit):
 #   @remarks Not used in current implementation
 #   @param hit tuple with information about the ground truth for this task
 def syn_answer_join_pair_task(hit):
-    (pjf, time, truth) = hit
+    (pjf, task_time, truth) = hit
 
     #determine answer
     random.seed()

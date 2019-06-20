@@ -273,8 +273,7 @@ class JoinSimulation():
         JFTask.objects.all().delete()
         FindPairsTask.objects.all().delete()
         JoinPairTask.objects.all().delete()
-        PrimPJFTask.objects.all().delete()
-        SecPJFTask.objects.all().delete()
+        PJFTask.objects.all().delete()
         SecPredTask.objects.all().delete()
 
 

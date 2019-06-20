@@ -5,16 +5,27 @@ PRIMARY_LIST = ''#TODO hotel list
 REAL_DATA_CSV = '/simulation_files/CLEANED_ROUND1.csv'#TODO MTURK data CSV
 
 #_____________________________ For Synthetic Data _____________________________#
+<<<<<<< HEAD
 NUM_PRIM_ITEMS = 50
 NUM_SEC_ITEMS = 30
 HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
+=======
+NUM_PRIM_ITEMS = 10
+NUM_SEC_ITEMS = 10
+HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no 
+>>>>>>> e2cefb5f2b4b736ea09638a6675126413bc5d361
 FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SEC_ITEMS+2), "Fake 3; " + str(NUM_SEC_ITEMS+3), "Fake 4; " + str(NUM_SEC_ITEMS+4), "Fake 5; " + str(NUM_SEC_ITEMS+5)] #fake secondary items to choose from
 PJF_LIST = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
+<<<<<<< HEAD
 MEAN_SEC_PER_PRIM = 5
 SD_SEC_PER_PRIM = 1
+=======
+MEAN_SEC_PER_PRIM = 3
+SD_SEC_PER_PRIM = 0.5
+>>>>>>> e2cefb5f2b4b736ea09638a6675126413bc5d361
 PROB_NONE_SECONDARY = 0
 
 #________ For Real Data ________#
@@ -26,7 +37,7 @@ REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
-JOIN_TYPE = 1
+JOIN_TYPE = 2
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 1 # number of simulations to run
 PROB_CHOOSING_TRUE_SEC_ITEM = 0.95
@@ -52,8 +63,6 @@ SEC_PRED_SELECTIVITY = 0.5
 SEC_PRED_AMBIGUITY = 0.3
 JOIN_COND_AMBIGUITY = 0 
 JOIN_COND_SELECTIVITY = 0.8 # given that these pairs were created by the crowd
-PJF_SELECTIVITY_PRIMARY = 0.1 # PJF selectivity for primary list 
-PJF_SELECTIVITY_SECONDARY = 0.1 # PJF selectivity for secondary list
 PJF_AMBIGUITY = 0.1
 JP_SELECTIVITY_W_PJF = 0.7 #likelyhood of being a pair given that they are in the same PJF
 

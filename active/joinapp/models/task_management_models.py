@@ -278,15 +278,22 @@ class JoinPairTask(models.Model):
                 self.secondary_item.matches_some = True
                 self.secondary_item.save()
             else:
-                self.primary_item.add_secondary_item(self.secondary_item)
-                self.primary_item.update_state()
-                self.primary_item.refresh_from_db()
+               self.primary_item.add_secondary_item(self.secondary_item)
+               self.primary_item.update_state()
+               self.primary_item.refresh_from_db()
                 
             self.secondary_item.save()
+
+        # if the pair is not a match
+        if self.result is False:
+            # updates state of prim item if all join pairs are false
+            self.primary_item.update_state()
+            self.primary_item.refresh_from_db()
+
         # for prejoin filter join, update found all pairs
-        # NOTE: not sure if this is functional (might be edge cases)
         if toggles.JOIN_TYPE is 2:
-            if not JoinPairTask.objects.filter(result=None).filter(primary_item=self.primary_item).exists():
+            if not JoinPairTask.objects.filter(primary_item=self.primary_item).filter(result=None).exists():
+                self.primary_item.refresh_from_db()
                 self.primary_item.found_all_pairs = True
                 self.primary_item.save()
 
