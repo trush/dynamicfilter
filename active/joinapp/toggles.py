@@ -26,12 +26,12 @@ REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
-JOIN_TYPE = 1
+JOIN_TYPE = 2
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 10 # number of simulations to run
 PROB_CHOOSING_TRUE_SEC_ITEM = 1
 SIMULATE_TIME = False
-TIME_STEP = 5
+TIME_STEP = 1
 
 # ________ Consensus Settings _________#
 # Values used in the find_consensus for an item/task function
@@ -52,10 +52,7 @@ SEC_PRED_SELECTIVITY = 0.5
 SEC_PRED_AMBIGUITY = 0
 JOIN_COND_AMBIGUITY = 0 
 JOIN_COND_SELECTIVITY = 0.8 # given that these pairs were created by the crowd
-PJF_SELECTIVITY_PRIMARY = 0.1 # PJF selectivity for primary list 
-PJF_SELECTIVITY_SECONDARY = 0.1 # PJF selectivity for secondary list
-PJF_AMBIGUITY_PRIMARY = 0.1
-PJF_AMBIGUITY_SECONDARY = 0.1
+PJF_AMBIGUITY = 0.1
 JP_SELECTIVITY_W_PJF = 0.7 #likelyhood of being a pair given that they are in the same PJF
 
 #__________________ Time Settings _____________________#

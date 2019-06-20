@@ -13,7 +13,7 @@ class FStatistic(models.Model):
     estimator = models.ForeignKey('Estimator')
 
     def __str__(self):
-        return "FStats for " + str(self.times_seen) + " with" + str(self.num_of_items) + "items."
+        return "FStats for " + str(self.times_seen) + " with " + str(self.num_of_items) + " items."
 
 ## @brief Model to keep track of the completeness of the second list.
 #  Stores variables needed in the chao_estimator() function.
@@ -70,27 +70,34 @@ class Estimator(models.Model):
                 sec_item.save()
 
         self.total_sample_size += 1
+        print "we are here with a sample", self.total_sample_size, self.pk
+        self.save()
     
 
-    ## @brief estimator returns true if the current size of the secondary list is within a certain 
+    ## @brief estimator sets has_2nd_list to true if the current size of the secondary list is within a certain 
     # threshold of the total size of the list (according to the chao estimator) and false otherwise.
     # @remarks Uses the Chao92 equation to estimate population size during enumeration.
     #	To understand the math computed in this function see: http://www.cs.albany.edu/~jhh/courses/readings/trushkowsky.icde13.enumeration.pdf 
     def chao_estimator(self):
+        # if we already have the 2nd list, don't do anything
+        if self.has_2nd_list is True:
+            return
         # prepping variables
         if self.total_sample_size <= 0:
-            return False
-        f_stat = FStatistic.objects.get(times_seen=1)
-        count = f_stat.num_of_items
+            return
+        f_stat_1 = FStatistic.objects.get(times_seen=1)
+        count = f_stat_1.num_of_items
 
         c_hat = 1-float(count)/self.total_sample_size
+        if c_hat == 0:
+            return 
         sum_fis = 0
 
         for f_stat in FStatistic.objects.filter(estimator = self):
-            n = f_stat.num_in_sample
+            n = f_stat.num_of_items
             sum_fis += n*(n-1)*f_stat.num_of_items
 
-        num_sec_items = SecondaryItem.objects.count()
+        num_sec_items = items.SecondaryItem.objects.count()
 
         gamma_2 = max((num_sec_items/c_hat*sum_fis)/\
                     (self.total_sample_size*(self.total_sample_size-1)) -1, 0)
@@ -98,5 +105,7 @@ class Estimator(models.Model):
         N_chao = num_sec_items/c_hat + self.total_sample_size*(1-c_hat)/(c_hat)*gamma_2
         # if we are comfortably within a small margin of the total set, we call it close enough
         if N_chao > 0 and abs(N_chao - num_sec_items) < toggles.THRESHOLD * N_chao:
-            return True
-        return False
+            self.has_2nd_list = True
+        else:
+            self.has_2nd_list = False
+        self.save()
