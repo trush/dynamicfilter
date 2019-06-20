@@ -70,6 +70,8 @@ class Estimator(models.Model):
                 sec_item.save()
 
         self.total_sample_size += 1
+        print "we are here with a sample", self.total_sample_size, self.pk
+        self.save()
     
 
     ## @brief estimator sets has_2nd_list to true if the current size of the secondary list is within a certain 
@@ -79,25 +81,31 @@ class Estimator(models.Model):
     def chao_estimator(self):
         # prepping variables
         if self.total_sample_size <= 0:
-            return False
+            return 
+        print "we are here"
         f_stat_1 = FStatistic.objects.get(times_seen=1)
         count = f_stat_1.num_of_items
 
         c_hat = 1-float(count)/self.total_sample_size
+        if c_hat == 0:
+            return 
         sum_fis = 0
 
         for f_stat in FStatistic.objects.filter(estimator = self):
-            n = f_stat.num_in_sample
+            n = f_stat.num_of_items
             sum_fis += n*(n-1)*f_stat.num_of_items
 
-        num_sec_items = SecondaryItem.objects.count()
+        num_sec_items = items.SecondaryItem.objects.count()
 
         gamma_2 = max((num_sec_items/c_hat*sum_fis)/\
                     (self.total_sample_size*(self.total_sample_size-1)) -1, 0)
         # final equation
         N_chao = num_sec_items/c_hat + self.total_sample_size*(1-c_hat)/(c_hat)*gamma_2
+        print "we are still here", num_sec_items,"/",c_hat," + ",self.total_sample_size,"*(1-",c_hat,")/(",c_hat,")*",gamma_2
         # if we are comfortably within a small margin of the total set, we call it close enough
         if N_chao > 0 and abs(N_chao - num_sec_items) < toggles.THRESHOLD * N_chao:
+            print "we are even here now??"
             self.has_2nd_list = True
-        self.has_2nd_list = False
+        else:
+            self.has_2nd_list = False
         self.save()
