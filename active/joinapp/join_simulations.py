@@ -273,8 +273,7 @@ class JoinSimulation():
         JFTask.objects.all().delete()
         FindPairsTask.objects.all().delete()
         JoinPairTask.objects.all().delete()
-        PrimPJFTask.objects.all().delete()
-        SecPJFTask.objects.all().delete()
+        PJFTask.objects.all().delete()
         SecPredTask.objects.all().delete()
 
 
@@ -467,11 +466,10 @@ class JoinSimulation():
                     self.sim_time += task_time
             else:
                 gather_task(task_type,task_answer,task_time,prim,sec)
-            estimator.chao_estimator()
-            
-            
                 self.sim_time += task_time
                 self.num_tasks_completed += 1
+
+            estimator.chao_estimator()
 
         #simulate time cleanup loop, gets rid of ungathered tasks
         if toggles.SIMULATE_TIME:

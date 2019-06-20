@@ -77,9 +77,12 @@ class Estimator(models.Model):
     # @remarks Uses the Chao92 equation to estimate population size during enumeration.
     #	To understand the math computed in this function see: http://www.cs.albany.edu/~jhh/courses/readings/trushkowsky.icde13.enumeration.pdf 
     def chao_estimator(self):
+        # if we already have the 2nd list, don't do anything
+        if self.has_2nd_list is True:
+            return
         # prepping variables
         if self.total_sample_size <= 0:
-            return False
+            self.has_2nd_list = False
         f_stat_1 = FStatistic.objects.get(times_seen=1)
         count = f_stat_1.num_of_items
 
