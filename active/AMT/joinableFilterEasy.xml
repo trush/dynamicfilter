@@ -69,9 +69,7 @@
             <div class="panel panel-primary">
                 <div class="panel-heading"><strong>Consent Notification</strong></div>
 
-                <div class="panel-body">This task is part of a research project 
-                    aimed at figuring out how easy or difficult questions are 
-                    about various items. The goal is to learn which questions 
+                <div class="panel-body">This task is part of a research project. The goal is to learn which questions 
                     are easier in order to adjust the order in which questions 
                     are asked. You must give consent in order to submit this HIT. If you do not want to participate, please return the HIT.<br>    
                     
@@ -105,7 +103,7 @@
                 <p><label>Item: XXX(ITEM_NAME_HERE)XXX</label></p>
 
                 <table>
-                    <p><label>Question: Is this hotel (located in Saint Louis, MO) within 0.4 miles of a restaurant with good parking? </label></p>
+                    <p><label>Question: Is this hotel (located in Saint Louis, MO) within 2.5 miles of a hospital that has 5 or more floors? </label></p>
                     <input type="radio" name="workervote" id="r_true" value="1" required />
                     <label for="r_true">Yes</label>
                     <br/>

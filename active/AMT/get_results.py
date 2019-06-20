@@ -23,7 +23,7 @@ my_csv = csv.reader(open('HIT_IDs.csv', 'r'), delimiter = ',') #read from SANDBO
 results = csv.writer(open('HIT_RESULTS.csv', 'w'), delimiter = ',')
 
 # header row for results csv
-first_row = ["Hit Id", "Hotel", "Restaurant", "Task", "Assignment Id", "Assignment Status", "Time Taken", "workervote", "feedback"]
+first_row = ["Hit Id", "Hotel", "Restaurant", "Task", "Assignment Id", "Assignment Status", "Time Taken", "workervote","supplement", "feedback"]
 results.writerow(first_row)
 
 #finds set of printable characters for string processing later
