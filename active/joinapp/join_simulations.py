@@ -560,3 +560,40 @@ class JoinSimulation():
 
         return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
 
+
+    # AMBER'S PROJECT 
+    # def compare_dif_sims():
+    #     random.seed()
+
+    #     #__________________________ LOAD DATA __________________________ #
+    #     estimator = Estimator.objects.create()
+    #     jf_task_stats = TaskStats.objects.create(task_type=0)
+    #     find_pairs_task_stats = TaskStats.objects.create(task_type=1)
+    #     join_pairs_task_stats = TaskStats.objects.create(task_type=2)
+    #     prejoin_task_stats = TaskStats.objects.create(task_type=3)
+    #     sec_pred_task_stats = TaskStats.objects.create(task_type=4)
+
+
+    #     syn_load_list() #load primary list for first simulation
+    #     syn_load_pjfs(self.SecPJFTasks_Dict, self.PrimPJFTasks_Dict) #load pre-join filter ground truth
+    #     syn_load_join_pairs_and_find_pairs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict,self.FindPairsTasks_Dict,self.JoinPairTasks_Dict) #load join pairs and find pairs ground truth
+    #     syn_load_sec_pred_tasks(self.SecPredTasks_Dict) #load secondary predicate ground truth
+
+    #     simList = [0,1,2] #fill with type and order of simulations
+
+
+    #     else:
+    #         syn_load_list() #load primary list
+    #         if JOIN_TYPE == 0: # joinable filter join
+    #             syn_load_joinable_filter_tasks(self.JFTasks_Dict)
+    #         elif JOIN_TYPE == 1: # item-wise join
+    #             syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
+    #             syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
+    #         elif JOIN_TYPE == 2: # pre-join filtered join
+    #             if HAVE_SEC_LIST is True:
+    #                 syn_load_second_list()
+    #                 estimator.has_2nd_list = True
+    #             syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
+    #             syn_load_pjfs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict)
+    #             syn_load_join_pairs(self.JoinPairTasks_Dict,self.PrimPJFTasks_Dict,self.SecPJFTasks_Dict)
+    #             syn_load_sec_pred_tasks(self.SecPredTasks_Dict)

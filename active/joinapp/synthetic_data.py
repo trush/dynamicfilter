@@ -209,6 +209,28 @@ def syn_load_join_pairs(JoinPairTasks_Dict,PrimPJFTasks_Dict,SecPJFTasks_Dict):
             JoinPairTasks_Dict[(primary.pk,str(secondary))] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
 
 
+#WORK IN PROGRES: FOR BETTER MULTI SIM
+def syn_load_join_pairs_and_find_pairs(SecPJFTasks_Dict,PrimPJFTasks_Dict,FindPairsTasks_Dict,JoinPairTasks_Dict):
+    for primary in PrimPJFTasks_Dict:
+        primPJF = PrimPJFTasks_Dict[primary][3]
+        FindPairsTasks_Dict[primary] = (primary,"None", FIND_PAIRS_TASK_TIME_MEAN, "")
+        for secondary in SecPJFTasks_Dict:
+            secPJF = SecPJFTasks_Dict[secondary][3]
+            if primPJF is secPJF:
+                if random.random() < JP_SELECTIVITY_W_PJF:
+                    answer = 1
+                    #add pair to find pairs
+                    primary_item,none,time,current_find_pairs = FindPairsTasks_Dict[primary][3]
+                    current_find_pairs += "Secondary Item " + secondary + "; " + secondary + " Address {{NEWENTRY}}"
+                    FindPairsTasks_Dict[primary] = (primary_item,none,time,current_find_pairs)
+                else:
+                    answer = 0
+            else:
+                pjf = "No Match"
+                answer = 0
+            JoinPairTasks_Dict[(primary,secondary)] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
+
+
     # for pjf in PJF_LIST:
     #     primary_items = []
     #     secondary_items = []
