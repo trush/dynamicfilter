@@ -327,6 +327,7 @@ class JoinSimulation():
             
             self.reset_database()
             #more processing happens here
+        print time_arr
         #more stuff happens here
 
         return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr, num_prim_left_arr)
@@ -394,7 +395,6 @@ class JoinSimulation():
                 task_type = 1
                 my_item = task.primary_item.pk
                 hit = self.FindPairsTasks_Dict[my_item]
-                print FStatistic.objects.all()
             elif type(task) is JoinPairTask:
                 task_type = 2
                 my_prim_item = task.primary_item.pk
@@ -469,6 +469,8 @@ class JoinSimulation():
                 self.sim_time += task_time
                 self.num_tasks_completed += 1
 
+            #update chao estimator
+            estimator.refresh_from_db()
             estimator.chao_estimator()
 
         #simulate time cleanup loop, gets rid of ungathered tasks
@@ -477,7 +479,6 @@ class JoinSimulation():
             print active_assignments
             for key in active_assignments:
                 fin_list.append(key)
-            print active_assignments
             for key in fin_list:
                 active_assignments.pop(key)
                 self.num_tasks_completed += 1
@@ -488,7 +489,7 @@ class JoinSimulation():
 
 
         #__________________________ RESULTS __________________________#
-        print "Finsihed simulation, printing results....."
+        print "Finished simulation, printing results....."
 
         for item in PrimaryItem.objects.all():
             item.refresh_from_db()
