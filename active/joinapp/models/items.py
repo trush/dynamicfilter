@@ -69,6 +69,9 @@ class PrimaryItem(models.Model):
     ## According to the Chao estimator, have all secondary items for this primary item been found
     found_all_pairs = models.BooleanField(db_index=True, default=False)
     
+    # For updating is_done in a pre join filter
+    has_all_join_pairs = models.BooleanField(db_index=True, default=False)
+
     ## prejoin filter
     pjf = models.CharField(max_length=10, default = "false") #TODO default is a placeholder
 
@@ -102,6 +105,7 @@ class PrimaryItem(models.Model):
 
     ## @brief updates is_done and eval_result
     def update_state(self):
+        from task_management_models import JoinPairTask
         if self.is_done is False:
             # if we have a secondary item that is true
             num_false = self.secondary_items.filter(second_pred_result=False).count()
@@ -127,3 +131,8 @@ class PrimaryItem(models.Model):
                 #print "we are here finishing", self, "because all 2nds are False"
 
         self.save()
+        if not JoinPairTask.objects.filter(primary_item=self).exclude(result=False).exists() and self.has_all_join_pairs:
+            self.is_done = True
+            self.eval_result = False
+            self.save()
+

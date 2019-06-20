@@ -35,7 +35,7 @@ def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
         else: #if worker response is "None"
             worker_response = "None"
         time = FIND_PAIRS_TASK_TIME_MEAN
-        value = (primary.pk, "NA", time, worker_response)
+        value = (primary.pk, "None", time, worker_response)
         FindPairsTasks_Dict[primary.pk] = value
 
 ## @brief  Populates the JFTasks_Dict with joinable filter tasks (one for each primary item)
@@ -140,7 +140,7 @@ def syn_answer_sec_pred_task(hit):
 #   @remarks Not used in current implementation
 #   @param hit tuple with information about the ground truth for this task
 def syn_answer_join_pair_task(hit):
-    (pjf, time, truth) = hit
+    (pjf, task_time, truth) = hit
 
     #determine answer
     random.seed()
@@ -162,7 +162,7 @@ def syn_answer_pjf_task(hit):
         answer = truth
     else:
         answer = random.choice(PJF_LIST)
-    time = np.random.normal(PJF_TIME_PRIMARY_MEAN, PJF_TIME_SD, 1)
+    time = np.random.normal(PJF_TIME_MEAN, PJF_TIME_SD, 1)
     return (answer,time)
 
 
@@ -192,22 +192,39 @@ def syn_load_pjfs(SecPJFTasks_Dict,PrimPJFTasks_Dict):
 #   values: (pjf, , task time, ground truth)
 #   @param SecPJFTasks_Dict simulation dictionary for secondary item pjf tasks
 def syn_load_join_pairs(JoinPairTasks_Dict,PrimPJFTasks_Dict,SecPJFTasks_Dict):
-    for pjf in PJF_LIST:
-        primary_items = []
-        secondary_items = []
-        for primary in PrimaryItem.objects.all():
-            value = PrimPJFTasks_Dict[primary.pk]
-            if value[3] is pjf:
-                primary_items += [primary]
+    for primary in PrimaryItem.objects.all():
+        value_prim = PrimPJFTasks_Dict[primary.pk]
         for secondary in range(NUM_SEC_ITEMS):
-            value = SecPJFTasks_Dict[str(secondary)]
-            if value[3] is pjf:
-                secondary_items += [secondary]
-        for primary in primary_items:
-            for secondary in secondary_items:
+            value_sec = SecPJFTasks_Dict[str(secondary)]
+            if value_prim[3] is value_sec[3]:
+                pjf = value_prim[3]
                 random.seed()
                 if random.random() < JP_SELECTIVITY_W_PJF:
                     answer = 0
                 else:
                     answer = 1
-                JoinPairTasks_Dict[(primary.pk,str(secondary))] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
+            else:
+                pjf = "No Match"
+                answer = 0
+            JoinPairTasks_Dict[(primary.pk,str(secondary))] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
+
+
+    # for pjf in PJF_LIST:
+    #     primary_items = []
+    #     secondary_items = []
+    #     for primary in PrimaryItem.objects.all():
+    #         value = PrimPJFTasks_Dict[primary.pk]
+    #         if value[3] is pjf:
+    #             primary_items += [primary]
+    #     for secondary in range(NUM_SEC_ITEMS):
+    #         value = SecPJFTasks_Dict[str(secondary)]
+    #         if value[3] is pjf:
+    #             secondary_items += [secondary]
+    #     for primary in primary_items:
+    #         for secondary in secondary_items:
+    #             random.seed()
+    #             if random.random() < JP_SELECTIVITY_W_PJF:
+    #                 answer = 0
+    #             else:
+    #                 answer = 1
+    #             JoinPairTasks_Dict[(primary.pk,str(secondary))] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
