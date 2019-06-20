@@ -11,8 +11,8 @@ MTURK_SANDBOX = 'https://mturk-requester-sandbox.us-east-1.amazonaws.com'
 mturk = boto3.client('mturk',
   aws_access_key_id = pubkey,
   aws_secret_access_key = privkey,
-  region_name='us-east-1'
-  # endpoint_url = MTURK_SANDBOX
+  region_name='us-east-1',
+  endpoint_url = MTURK_SANDBOX
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my account"
 print "Are you sure you want to post HITs to this account?"
@@ -36,7 +36,7 @@ for line in f:
     continue
   hotel = line[2]
   print hotel
-  question = str(open(name='secondPredicate.xml',mode='r').read())
+  question = str(open(name='secPredNumFloors.xml',mode='r').read())
   question = question.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
   new_hit = mturk.create_hit(
       Title = 'Evaluate a property of a hospital or clinic',
