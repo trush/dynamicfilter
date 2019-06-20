@@ -110,7 +110,7 @@ class PrimaryItem(models.Model):
             self.eval_result = False
             print "we are here finishing", self, "because there are no matches"
         # if we found all pairs and they all fail the sec pred
-        if self.found_all_pairs and (self.num_sec_items is num_false):
+        elif self.found_all_pairs and (self.num_sec_items is num_false):
             self.is_done = True
             self.eval_result = False
             print "we are here finishing", self, "because all 2nds are False"

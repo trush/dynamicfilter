@@ -470,7 +470,6 @@ class JoinSimulation():
             print active_assignments
             for key in active_assignments:
                 fin_list.append(key)
-            print active_assignments
             for key in fin_list:
                 active_assignments.pop(key)
                 self.num_tasks_completed += 1
@@ -481,7 +480,7 @@ class JoinSimulation():
 
 
         #__________________________ RESULTS __________________________#
-        print "Finsihed simulation, printing results....."
+        print "Finished simulation, printing results....."
 
         for item in PrimaryItem.objects.all():
             item.refresh_from_db()
