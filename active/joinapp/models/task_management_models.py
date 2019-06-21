@@ -356,7 +356,7 @@ class PJFTask(models.Model):
     def update_consensus(self):
         # all item pjf pairs with this item 
         item_pjf_pairs = ItemPJFPair.objects.filter(pjf_task = self)
-        item_pjf_pairs = item_pjf_pairs.exclude(result = None)
+        item_pjf_pairs = item_pjf_pairs.filter(result = True)
         # if there is a pjf that has reached consensus, update consensus to true 
         # and delete all item pjf pairs associated with this task
         if item_pjf_pairs.exists():
