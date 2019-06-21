@@ -289,13 +289,17 @@ class JoinPairTask(models.Model):
             # updates state of prim item if all join pairs are false
             self.primary_item.update_state()
             self.primary_item.refresh_from_db()
-
+        
         # for prejoin filter join, update found all pairs
-        if toggles.JOIN_TYPE is 2:
-            if not JoinPairTask.objects.filter(primary_item=self.primary_item).filter(result=None).exists():
-                self.primary_item.refresh_from_db()
-                self.primary_item.found_all_pairs = True
-                self.primary_item.save()
+        print "Primary item : ", self
+        print "Join pair tasks left: ", JoinPairTask.objects.filter(primary_item=self.primary_item).filter(result=None)
+        print " ****************************************** "
+        if not JoinPairTask.objects.filter(primary_item=self.primary_item).filter(result=None).exists() and self.primary_item.has_all_join_pairs:
+            print "in here"
+            self.primary_item.refresh_from_db()
+            self.primary_item.found_all_pairs = True
+            self.primary_item.save()
+
 
 
     ## @brief Updates state after an assignment for this task is completed
@@ -318,8 +322,9 @@ class JoinPairTask(models.Model):
         self.num_tasks += 1
 
         #check whether we've reached consensus
-        self.update_result()
         self.save()
+        self.update_result()
+        
 
 ## @brief Model representing a pre join filter task
 @python_2_unicode_compatible
@@ -356,7 +361,7 @@ class PJFTask(models.Model):
     def update_consensus(self):
         # all item pjf pairs with this item 
         item_pjf_pairs = ItemPJFPair.objects.filter(pjf_task = self)
-        item_pjf_pairs = item_pjf_pairs.exclude(result = None)
+        item_pjf_pairs = item_pjf_pairs.filter(result = True)
         # if there is a pjf that has reached consensus, update consensus to true 
         # and delete all item pjf pairs associated with this task
         if item_pjf_pairs.exists():

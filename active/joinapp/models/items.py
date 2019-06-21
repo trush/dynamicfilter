@@ -77,7 +77,7 @@ class PrimaryItem(models.Model):
 
     ## @brief ToString method
     def __str__(self):
-        return str(self.name)
+        return str(self.pk)
     
     ## @brief Checks if this item is associated with zero secondary items
     def check_empty(self):
@@ -129,9 +129,10 @@ class PrimaryItem(models.Model):
                     sec.num_prims_left -= 1
                     sec.save()
                 #print "we are here finishing", self, "because all 2nds are False"
+            # if there are no True or unfinished join pairs tasks and we have found all join pairs tasks
+            if not JoinPairTask.objects.filter(primary_item=self).exclude(result=False).exists() and self.has_all_join_pairs:
+                self.is_done = True
+                self.eval_result = False
 
-        if not JoinPairTask.objects.filter(primary_item=self).exclude(result=False).exists() and self.has_all_join_pairs:
-            self.is_done = True
-            self.eval_result = False
         self.save()
 
