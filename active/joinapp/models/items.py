@@ -130,9 +130,8 @@ class PrimaryItem(models.Model):
                     sec.save()
                 #print "we are here finishing", self, "because all 2nds are False"
 
-        self.save()
         if not JoinPairTask.objects.filter(primary_item=self).exclude(result=False).exists() and self.has_all_join_pairs:
             self.is_done = True
             self.eval_result = False
-            self.save()
+        self.save()
 
