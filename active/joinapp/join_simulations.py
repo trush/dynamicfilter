@@ -227,6 +227,21 @@ class JoinSimulation():
         #Print Accuracy
         self.print_accuracy(len(total_tasks),correct_tasks,"secondary predicate")
 
+        #___ Secondary Predicate Task Accuracy ___#
+        correct_prim_items = 0
+        for item in PrimaryItem.objects.all():
+            # find ground truth using dictionaries
+            ground_truth = False
+            for pair in self.JoinPairTasks_Dict:
+                if pair[0] is item.pk:
+                    if self.JoinPairTasks_Dict[pair][2]:
+                        if self.SecPredTasks_Dict[pair[1]][3]:
+                            ground_truth = True
+            if item.eval_result is ground_truth:
+                correct_prim_items += 1
+        self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items,"PRIMARY ITEMS")
+
+
     #______ Helpers for Accuracy ______#
 
     ## @brief print helper for accuracy functions
@@ -425,7 +440,6 @@ class JoinSimulation():
                 (pjf,time,answer) = hit
                 prim = my_prim_item
                 sec = my_sec_item
-
             if toggles.REAL_DATA:
                 ind = random.randint(0, len(times))
                 task_time = times[ind]
