@@ -274,12 +274,10 @@ class JoinSimulation():
             for prim in PrimaryItem.objects.all():
                 ground_truth = False #assume every primary fails the join
                 list_secondaries = parse_pairs(self.FindPairsTasks_Dict[prim.pk][3])
-                for sec in prim.secondary_items.all():
-                    if int(sec.name) < NUM_SEC_ITEMS: #if not a fake item
-                        sec_name = 'secondary item '+ sec.name + '; ' + sec.name + ' address'
-                        if sec_name in list_secondaries: #if its a match
-                            if self.SecPredTasks_Dict[sec.name][3] is True: #if the secondary item passes the predicate
-                                ground_truth = True
+                for sec in list_secondaries:
+                    sec_num = sec.split()[2][:-1]
+                    if self.SecPredTasks_Dict[sec_num][3] is True:
+                        ground_truth = True
                 if prim.eval_result is ground_truth:
                     correct_prim_items += 1
             self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
