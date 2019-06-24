@@ -205,19 +205,41 @@ class JoinSimulation():
     ## @brief Print accuracy for synthetic data
     def accuracy_syn_data(self):
         #___ JF Task Accuracy ___#
-        total_tasks = []
-        correct_tasks = 0
-        for task in JFTask.objects.all():
-            if task.result is not None:
-                total_tasks += [task]
-        for task in total_tasks:
-            ground_truth = self.JFTasks_Dict[task.primary_item.pk][3]
-            if task.result is ground_truth:
-                correct_tasks += 1
-        #Print Accuracy
-        self.print_accuracy(len(total_tasks),correct_tasks,"joinable filter")
+        if JOIN_TYPE is 0:
+            total_tasks = []
+            correct_tasks = 0
+            for task in JFTask.objects.all():
+                if task.result is not None:
+                    total_tasks += [task]
+            for task in total_tasks:
+                ground_truth = self.JFTasks_Dict[task.primary_item.pk][3]
+                if task.result is ground_truth:
+                    correct_tasks += 1
+            #Print Accuracy
+            self.print_accuracy(len(total_tasks),correct_tasks,"joinable filter")
 
-        print "" #newline
+            print "" #newline
+
+        #_____ Pre-Join Filter Task Accuracy _____#
+        if JOIN_TYPE is 2:
+            total_tasks = []
+            correct_tasks = 0
+            for task in PJFTask.objects.all():
+                if task.consensus is True:
+                    total_tasks += [task]
+            for task in total_tasks:
+                if task.primary_item is not None:
+                    ground_truth = self.PrimPJFTasks_Dict[task.primary_item.pk][3]
+                    if task.primary_item.pjf == ground_truth:
+                        correct_tasks += 1
+                elif task.secondary_item is not None:
+                    ground_truth = self.SecPJFTasks_Dict[task.secondary_item.name][3]
+                    if task.secondary_item.pjf == ground_truth:
+                        correct_tasks += 1
+            self.print_accuracy(len(total_tasks),correct_tasks,"pre-join filter")
+            
+            print "" #newline
+
         #___ Secondary Predicate Task Accuracy ___#
         total_tasks = []
         correct_tasks = 0
@@ -281,6 +303,21 @@ class JoinSimulation():
                 if prim.eval_result is ground_truth:
                     correct_prim_items += 1
             self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
+
+        elif JOIN_TYPE is 2: # for pre-join filter joins
+            correct_prim_items = 0
+            for prim in PrimaryItem.objects.all():
+                ground_truth = False
+                # check every pair of primary and secondary items to see if they are a pair
+                for sec in SecondaryItem.objects.all():
+                    if self.JoinPairTasks_Dict[(prim.pk, sec.name)][2]:
+                        # if secondary item passes
+                        if self.SecPredTasks_Dict[sec.name][3]:
+                            ground_truth = True
+                if prim.eval_result is ground_truth:
+                    correct_prim_items += 1
+            self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
+
 
 
 
