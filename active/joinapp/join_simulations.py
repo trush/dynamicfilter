@@ -327,11 +327,6 @@ class JoinSimulation():
         Estimator.objects.all().delete()
         TaskStats.objects.all().delete()
         FStatistic.objects.all().delete()
-        JFTask.objects.all().delete()
-        FindPairsTask.objects.all().delete()
-        JoinPairTask.objects.all().delete()
-        PJFTask.objects.all().delete()
-        SecPredTask.objects.all().delete()
 
 
         #clear dictionaries
@@ -416,6 +411,7 @@ class JoinSimulation():
                 if HAVE_SEC_LIST is True:
                     syn_load_second_list()
                     estimator.has_2nd_list = True
+                    estimator.save()
                 syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
                 syn_load_pjfs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict)
                 syn_load_join_pairs(self.JoinPairTasks_Dict,self.PrimPJFTasks_Dict,self.SecPJFTasks_Dict)
