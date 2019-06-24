@@ -73,6 +73,9 @@ class JoinSimulation():
     ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
     PrimPJFTasks_Dict = dict()
 
+    ## Key: fake secondary item name <br>
+    ## Value: ("NA", fake item name, time taken, ground truth)
+    FakeSecPredTasks_Dict = dict()
     #_____________________ Loading Data _____________________ #
     
     ## @brief Loads primary list into database
@@ -214,6 +217,7 @@ class JoinSimulation():
         #Print Accuracy
         self.print_accuracy(len(total_tasks),correct_tasks,"joinable filter")
 
+        print "" #newline
         #___ Secondary Predicate Task Accuracy ___#
         total_tasks = []
         correct_tasks = 0
@@ -221,25 +225,65 @@ class JoinSimulation():
             if task.result is not None:
                 total_tasks += [task]
         for task in total_tasks:
-            a,b,c,ground_truth = self.SecPredTasks_Dict[task.secondary_item.name]
+            if int(task.secondary_item.name) < NUM_SEC_ITEMS:
+                a,b,c,ground_truth = self.SecPredTasks_Dict[task.secondary_item.name]
+            else:
+                a,b,c,ground_truth = self.FakeSecPredTasks_Dict[task.secondary_item.name]
             if task.result is ground_truth:
                 correct_tasks += 1
         #Print Accuracy
         self.print_accuracy(len(total_tasks),correct_tasks,"secondary predicate")
 
-        #___ Secondary Predicate Task Accuracy ___#
-        correct_prim_items = 0
-        for item in PrimaryItem.objects.all():
+        #___ Find Pairs Accuracy ___#
+        if JOIN_TYPE is 1:
+            total_missed = 0
+            total_extra = 0
+            for prim in PrimaryItem.objects.all():
+                found_list = []
+                for sec in prim.secondary_items.all():
+                    sec_name = 'secondary item '+ sec.name + '; ' + sec.name + ' address'
+                    found_list += [sec_name]
+                true_list = parse_pairs(self.FindPairsTasks_Dict[prim.pk][3])
+                for item in true_list:
+                    if item not in found_list:
+                        total_missed += 1
+                for item in found_list:
+                    if item not in true_list:
+                        total_extra += 1
+            print ""
+            print "We missed " + str(total_missed) + " secondary items"
+            print "We had " + str(total_extra) + " extra items" 
+
+        
+        print "" #newline
+
+        #___ Primary Item Task Accuracy ___#
+        if JOIN_TYPE is 0: #for joinable filter tasks:
+            correct_prim_items = 0
+            for prim in PrimaryItem.objects.all():
+                ground_truth = False #assume every primary fails the join
+                if self.JFTasks_Dict[prim.pk][3] is True:
+                    ground_truth = True
+                if prim.eval_result is ground_truth:
+                    correct_prim_items += 1
+            self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
+        
+        elif JOIN_TYPE is 1: #for item wise join tasks
+            correct_prim_items = 0
             # find ground truth using dictionaries
-            ground_truth = False
-            for pair in self.JoinPairTasks_Dict:
-                if pair[0] is item.pk:
-                    if self.JoinPairTasks_Dict[pair][2]:
-                        if self.SecPredTasks_Dict[pair[1]][3]:
-                            ground_truth = True
-            if item.eval_result is ground_truth:
-                correct_prim_items += 1
-        self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items,"PRIMARY ITEMS")
+            for prim in PrimaryItem.objects.all():
+                ground_truth = False #assume every primary fails the join
+                list_secondaries = parse_pairs(self.FindPairsTasks_Dict[prim.pk][3])
+                for sec in prim.secondary_items.all():
+                    if int(sec.name) < NUM_SEC_ITEMS: #if not a fake item
+                        sec_name = 'secondary item '+ sec.name + '; ' + sec.name + ' address'
+                        if sec_name in list_secondaries: #if its a match
+                            if self.SecPredTasks_Dict[sec.name][3] is True: #if the secondary item passes the predicate
+                                ground_truth = True
+                if prim.eval_result is ground_truth:
+                    correct_prim_items += 1
+            self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
+
 
 
     #______ Helpers for Accuracy ______#
@@ -364,6 +408,7 @@ class JoinSimulation():
             elif JOIN_TYPE == 1: # item-wise join
                 syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
                 syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
+                syn_load_fake_sec_pred_tasks(self.FakeSecPredTasks_Dict)
             elif JOIN_TYPE == 2: # pre-join filtered join
                 if HAVE_SEC_LIST is True:
                     syn_load_second_list()
@@ -423,10 +468,11 @@ class JoinSimulation():
                 task_type = 4
                 my_item = task.secondary_item.name
                 # Check for fake items
-                if REAL_DATA is False:
-                    if int(my_item) >= NUM_SEC_ITEMS:
-                        print "-----------------------A FAKE ITEM REACHED CONSENSUS-----------------------"
-                hit = self.SecPredTasks_Dict[my_item]
+                if REAL_DATA is False and int(my_item) >= NUM_SEC_ITEMS:
+                    print "-----------------------A FAKE ITEM REACHED CONSENSUS-----------------------"
+                    hit = self.FakeSecPredTasks_Dict[my_item]
+                else:
+                    hit = self.SecPredTasks_Dict[my_item]
 
             #__________________________  ISSUE TASK __________________________#
             #choose a (matching) time and response for the task
@@ -436,6 +482,7 @@ class JoinSimulation():
                 (pjf,time,answer) = hit
                 prim = my_prim_item
                 sec = my_sec_item
+
             if toggles.REAL_DATA:
                 ind = random.randint(0, len(times))
                 task_time = times[ind]
@@ -504,25 +551,27 @@ class JoinSimulation():
         for item in PrimaryItem.objects.all():
             item.refresh_from_db()
         
-        overlap_list = []
-        for item in SecondaryItem.objects.all():
-            item.refresh_from_db()
-            overlap_list += [item.num_prim_items]
-        
-        i = max(overlap_list)
-        while i >= 0:
-            num_i_prims = SecondaryItem.objects.filter(num_prim_items = i).count()
-            print "*", num_i_prims, "secondary item(s) were associated with", i, "primary items"
-            i -= 1
+        if JOIN_TYPE is 1:
+            overlap_list = []
+            for item in SecondaryItem.objects.all():
+                item.refresh_from_db()
+                overlap_list += [item.num_prim_items]
+            if overlap_list is []:
+                print "NO SECONDARY ITEMS"
+            else:
+                i = max(overlap_list)
+                while i >= 0:
+                    num_i_prims = SecondaryItem.objects.filter(num_prim_items = i).count()
+                    print "*", num_i_prims, "secondary item(s) were associated with", i, "primary items"
+                    i -= 1
 
-        print ""
-        print "Mean primary per secondary:", np.mean(overlap_list)
-        print "Standard deviation primary per secondary:", np.std(overlap_list)
-        print ""
+                print ""
+                print "Mean primary per secondary:", np.mean(overlap_list)
+                print "Standard deviation primary per secondary:", np.std(overlap_list)
+                print ""
 
         num_prim_pass = PrimaryItem.objects.filter(eval_result = True).count()
         num_prim_fail = PrimaryItem.objects.filter(eval_result = False).count()
-        num_prim_missed = PrimaryItem.objects.filter(eval_result = None).count()
         join_selectivity = float(num_prim_pass)/float(PrimaryItem.objects.all().count())
         num_jf_tasks = JFTask.objects.all().count()
         num_find_pairs_tasks = FindPairsTask.objects.all().count()
@@ -542,54 +591,16 @@ class JoinSimulation():
 
         print "*", num_prim_pass, "items passed the query"
         print "*", num_prim_fail, "items failed the query"
-        print "* The simulation failed to evaluate", num_prim_missed, "primary items"
         print "* Query selectivity:", join_selectivity
         print "* Worker time spent:", self.sim_time[0]
         print "* Total number of tasks processed:", self.num_tasks_completed
         print "* # of joinable-filter tasks:", num_jf_tasks, "# of joinable-filter assignments:", num_jf_assignments
         print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments
         print "* # of secondary predicate tasks:", num_sec_pred_tasks, "# secondary predicate assignments:", num_sec_pred_assignments
+        print ""
         if REAL_DATA is True:
             self.accuracy_real_data() #does its own printing
         else:
             self.accuracy_syn_data() #does its own printing
 
         return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
-
-
-    # AMBER'S PROJECT 
-    # def compare_dif_sims():
-    #     random.seed()
-
-    #     #__________________________ LOAD DATA __________________________ #
-    #     estimator = Estimator.objects.create()
-    #     jf_task_stats = TaskStats.objects.create(task_type=0)
-    #     find_pairs_task_stats = TaskStats.objects.create(task_type=1)
-    #     join_pairs_task_stats = TaskStats.objects.create(task_type=2)
-    #     prejoin_task_stats = TaskStats.objects.create(task_type=3)
-    #     sec_pred_task_stats = TaskStats.objects.create(task_type=4)
-
-
-    #     syn_load_list() #load primary list for first simulation
-    #     syn_load_pjfs(self.SecPJFTasks_Dict, self.PrimPJFTasks_Dict) #load pre-join filter ground truth
-    #     syn_load_join_pairs_and_find_pairs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict,self.FindPairsTasks_Dict,self.JoinPairTasks_Dict) #load join pairs and find pairs ground truth
-    #     syn_load_sec_pred_tasks(self.SecPredTasks_Dict) #load secondary predicate ground truth
-
-    #     simList = [0,1,2] #fill with type and order of simulations
-
-
-    #     else:
-    #         syn_load_list() #load primary list
-    #         if JOIN_TYPE == 0: # joinable filter join
-    #             syn_load_joinable_filter_tasks(self.JFTasks_Dict)
-    #         elif JOIN_TYPE == 1: # item-wise join
-    #             syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
-    #             syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
-    #         elif JOIN_TYPE == 2: # pre-join filtered join
-    #             if HAVE_SEC_LIST is True:
-    #                 syn_load_second_list()
-    #                 estimator.has_2nd_list = True
-    #             syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
-    #             syn_load_pjfs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict)
-    #             syn_load_join_pairs(self.JoinPairTasks_Dict,self.PrimPJFTasks_Dict,self.SecPJFTasks_Dict)
-    #             syn_load_sec_pred_tasks(self.SecPredTasks_Dict)

@@ -67,6 +67,15 @@ def syn_load_sec_pred_tasks(SecPredTasks_Dict):
         value = ("None", str(secondary), time, ground_truth)
         SecPredTasks_Dict[str(secondary)] = value
 
+def syn_load_fake_sec_pred_tasks(FakeSecPredTasks_Dict):
+    for fake in FAKE_SEC_ITEM_LIST:
+        if random.random() < SEC_PRED_SELECTIVITY:
+            ground_truth = True
+        else:
+            ground_truth = False
+        time = SEC_PRED_TASK_TIME_MEAN
+        value = ("None", fake, time, ground_truth)
+        FakeSecPredTasks_Dict[fake] = value
 
 
 #_______________________________ Give a Worker Answer _______________________________#
