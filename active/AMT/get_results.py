@@ -14,6 +14,7 @@ mturk = boto3.client('mturk',
   aws_access_key_id = pubkey,
   aws_secret_access_key = privkey,
   region_name='us-east-1'
+  #endpoint_url = MTURK_SANDBOX
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my account"
 #csv that holds recorded hits
@@ -23,7 +24,7 @@ my_csv = csv.reader(open('HIT_IDs.csv', 'r'), delimiter = ',') #read from SANDBO
 results = csv.writer(open('HIT_RESULTS.csv', 'w'), delimiter = ',')
 
 # header row for results csv
-first_row = ["Hit Id", "Hotel", "Restaurant", "Task", "Assignment Id", "Assignment Status", "Time Taken", "workervote","supplement", "feedback"]
+first_row = ["Hit Id", "Worker Id", "Hotel", "Hospital", "Task", "Assignment Id", "Assignment Status", "Time Taken", "workervote","supplementary", "feedback"]
 results.writerow(first_row)
 
 #finds set of printable characters for string processing later
@@ -31,7 +32,7 @@ printable = set(string.printable)
 
 for row in my_csv:
     print row
-    [hit_id, hotel, task, restaurant] = row
+    [hit_id, hotel, task, hospital] = row
     # We are only publishing this task to one Worker
     # So we will get back an array with one item if it has been completed
     worker_results = mturk.list_assignments_for_hit(HITId=hit_id)
@@ -50,7 +51,7 @@ for row in my_csv:
             else:
                 print "consent",answers_list[0]['FreeText']
             # Metadata from assignment, formatted for csv
-            newRow = [assignment["HITId"], "(" + hotel + ")"," (" + restaurant + ")", "(" + task + ")",assignment["AssignmentId"], \
+            newRow = [assignment["HITId"], assignment["WorkerId"], "(" + hotel + ")"," (" + hospital + ")", "(" + task + ")",assignment["AssignmentId"], \
                 assignment["AssignmentStatus"],str((assignment["SubmitTime"] - assignment["AcceptTime"]).total_seconds())]
 
             #Nicer answers data structure  
@@ -66,10 +67,23 @@ for row in my_csv:
                 else:
                     answers_dict[question] = None
 
+            #replaces marked blank responses w/ "None"
             if u'markedblank' in answers_dict and answers_dict['markedblank'] == 'on':
-                newRow += ['None', str(answers_dict['feedback'])]
+                newRow += ['None']
             else:
-                newRow += [str(answers_dict['workervote']),str(answers_dict['feedback'])]
+                newRow += [str(answers_dict['workervote'])]
+
+            #Adds supplementary field if present
+            if 'supplementary' in answers_dict:
+                if answers_dict['supplementary'] == "":
+                    raise Exception ("A worker left a required field blank")
+                else:
+                    newRow += [str(answers_dict['supplementary'])]
+            else:
+                newRow += ["None"]
+
+            #Adds feedback
+            newRow += [str(answers_dict['feedback'])]
 
             print newRow
 
