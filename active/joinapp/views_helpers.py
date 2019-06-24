@@ -59,7 +59,7 @@ def choose_task_PJF(workerID, estimator):
         prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
         return choose_task_find_pairs(prim_items_left, new_worker)
 
-    elif (PrimaryItem.objects.filter(pjf='false').exists() or SecondaryItem.objects.filter(pjf='false').exists()):
+    elif PrimaryItem.objects.filter(pjf='false').exists() or SecondaryItem.objects.filter(pjf='false').exists():
         return choose_task_pjf_helper(new_worker)
 
     elif PrimaryItem.objects.filter(found_all_pairs=False).exists():
@@ -144,31 +144,15 @@ def choose_task_join_pairs(worker):
         prim_item.refresh_from_db()
         prim_item = PrimaryItem.objects.filter(found_all_pairs=False).order_by('?').first() # random primary item
         sec_items = SecondaryItem.objects.filter(pjf=prim_item.pjf) # associated secondary items
-    print "primary item ", prim_item.pk, " with secondary items ", sec_items.all(), " found all pairs: ", prim_item.found_all_pairs, " is done: ", prim_item.is_done
     sec_item = sec_items.order_by('?').first()
     join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
-    if prim_item.pjf is not sec_item.pjf:
-        raise Exception("mismatched prejoin filter 1")
     sec_items = sec_items.exclude(name=sec_item.name)
     # if the task has reached consensus, choose another random one
-    print "join pair task before: ", join_pair_task, "result: ", join_pair_task.result
     while join_pair_task.result is not None:
         sec_item = sec_items.order_by('?').first()
-        try:
-            sec_items = sec_items.exclude(name=sec_item.name)
-        except:
-            print "Primary item : ", prim_item
-            print "Join pair tasks left: ", JoinPairTask.objects.filter(primary_item=prim_item).filter(result=None)
-            print " INSIDE CHOOSE TASK *********"
-            print "primary item pjf: ", prim_item.pjf
-            for item in JoinPairTask.objects.filter(primary_item=prim_item).filter(result=None):
-                print "task: ", item, " pjf: ", item.secondary_item.pjf
-            raise Exception()
+        sec_items = sec_items.exclude(name=sec_item.name)
         join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
-        if prim_item.pjf is not sec_item.pjf:
-            raise Exception("mismatched prejoin filter 2")
     join_pair_task.workers.add(worker)
-    print "join pair task after: ", join_pair_task, "result: ", join_pair_task.result
     join_pair_task.save()
     return join_pair_task
         
@@ -367,7 +351,6 @@ def collect_prejoin_filter(answer, cost, item1_id="None", item2_id="None"):
         #otherwise, we must create a new task
         if not our_tasks.exists():
             this_task = PJFTask.objects.create(primary_item = primary_item)
-            raise Exception("creating pjf task")
         else:
             this_task = PJFTask.objects.get(primary_item = primary_item)
     # secondary item task
@@ -380,7 +363,6 @@ def collect_prejoin_filter(answer, cost, item1_id="None", item2_id="None"):
         #otherwise, we must create a new task
         if not our_tasks.exists():
             this_task = PJFTask.objects.create(secondary_item = secondary_item)
-            raise Exception("creating pjf task")
         else:
             this_task = PJFTask.objects.get(secondary_item = secondary_item)
 
