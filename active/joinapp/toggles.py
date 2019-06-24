@@ -5,26 +5,18 @@ PRIMARY_LIST = ''#TODO hotel list
 REAL_DATA_CSV = '/simulation_files/CLEANED_ROUND1.csv'#TODO MTURK data CSV
 
 #_____________________________ For Synthetic Data _____________________________#
-NUM_PRIM_ITEMS = 90
-<<<<<<< HEAD
-NUM_SEC_ITEMS = 100
-HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no 
-=======
-NUM_SEC_ITEMS = 70
+NUM_PRIM_ITEMS = 50
+NUM_SEC_ITEMS = 30
 HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
->>>>>>> 4c8932c330abf270e58cbd2e954e6bad78e2877a
-FAKE_SEC_ITEM_LIST = ["Fake 1; " + str(NUM_SEC_ITEMS+1), "Fake 2; " + str(NUM_SEC_ITEMS+2), "Fake 3; " + str(NUM_SEC_ITEMS+3), "Fake 4; " + str(NUM_SEC_ITEMS+4), "Fake 5; " + str(NUM_SEC_ITEMS+5)] #fake secondary items to choose from
+FAKE_SEC_ITEM_LIST = [str(NUM_SEC_ITEMS+1), str(NUM_SEC_ITEMS+2), str(NUM_SEC_ITEMS+3), str(NUM_SEC_ITEMS+4), str(NUM_SEC_ITEMS+5), str(NUM_SEC_ITEMS+6), str(NUM_SEC_ITEMS+7), str(NUM_SEC_ITEMS+8), str(NUM_SEC_ITEMS+9), str(NUM_SEC_ITEMS+10)] #fake secondary items to choose from
 PJF_LIST = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+CHANCE_FEWER_THAN_HALF = 0.5 #< NOT IN USE CURRENTLY
+CHANCE_MORE_THAN_7 = 0.7
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
-<<<<<<< HEAD
-MEAN_SEC_PER_PRIM = 5
-SD_SEC_PER_PRIM = 0.5
-=======
-MEAN_SEC_PER_PRIM = 15
+MEAN_SEC_PER_PRIM = 10
 SD_SEC_PER_PRIM = 0
->>>>>>> 4c8932c330abf270e58cbd2e954e6bad78e2877a
 PROB_NONE_SECONDARY = 0
 
 #________ For Real Data ________#
@@ -36,7 +28,7 @@ REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
-JOIN_TYPE = 2
+JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 10 # number of simulations to run
 PROB_CHOOSING_TRUE_SEC_ITEM = 1
@@ -46,7 +38,7 @@ TIME_STEP = 1
 # ________ Consensus Settings _________#
 # Values used in the find_consensus for an item/task function
 NUM_CERTAIN_VOTES = 5  # Recommended val: 5 (unless using agressive bayes)
-CUT_OFF = 21
+CUT_OFF = 21 #should be an odd number
 SINGLE_VOTE_CUTOFF = int(1+math.ceil(CUT_OFF/2.0))
 BAYES_ENABLED = True
 UNCERTAINTY_THRESHOLD = 0.2
@@ -56,9 +48,9 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 
 
 #_______ Selectivity and Ambiguity Settings _________#
-JF_AMBIGUITY = 0.1
+JF_AMBIGUITY = 0.5
 JF_SELECTIVITY = 0.1
-SEC_PRED_SELECTIVITY = 0.5 
+SEC_PRED_SELECTIVITY = 0.1
 SEC_PRED_AMBIGUITY = 0
 JOIN_COND_AMBIGUITY = 0 
 JOIN_COND_SELECTIVITY = 0.3 # given that these pairs were created by the crowd
@@ -82,6 +74,8 @@ JOIN_PAIRS_TIME_SD = 3
 # Used in the enumeration estimate in chao_estimator(). If the difference between the size of list2 and the size of the 
 # estimated number is less than this fraction of the size of the estimate then chao_estimator() will return True.
 THRESHOLD = 0.1
+YES_VOTES_THRESHOLD = 5
+NO_VOTES_THRESHOLD = 15
 
 #_________Task Settings___________#
 SEC_INFLUENTIAL = True
