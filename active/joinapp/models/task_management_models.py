@@ -205,7 +205,11 @@ class FindPairsTask(models.Model):
             #create a new join pair task if it does not exist in our list of join pair tasks
             #NOTE: We may at some point need to address adding join pair tasks that exist to our list
             if not matching_join_pairs.exists():
-                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks)
+                if self.primary_item.pjf == sec_item.pjf:
+                    same_pjf = True
+                else:
+                    same_pjf = False
+                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks, has_same_pjf = same_pjf)
 
         #get join pairs from this task (again)
         join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
@@ -256,8 +260,8 @@ class JoinPairTask(models.Model):
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
 
-    # # true if primary_item and secondary_item have the same pjf
-    # has_same_pjf = models.BooleanField(db_index=True, default=False)
+    # true if primary_item and secondary_item have the same pjf
+    has_same_pjf = models.BooleanField(db_index=True, default=False)
     
     ## @brief ToString method
     def __str__(self):
