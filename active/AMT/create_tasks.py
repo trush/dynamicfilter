@@ -23,21 +23,21 @@ if response == 'yes':
 else:
   print response
   sys.exit()
-mycsv = open('HIT_IDs.csv', "a") #post to SANDBOX_HIT_IDs for sandbox data
+mycsv = open('SANDBOX_HIT_IDs.csv', "a") #post to SANDBOX_HIT_IDs for sandbox data
 
 #list of posted hits
 hit_list = []
 
-f = csv.reader(open('HOSPITAL_CLEAN.csv','r'), delimiter=',')
+f = csv.reader(open('Hospital_cleaned.csv','r'), delimiter=',')
 header = True 
 for line in f:
   if header:
     header = False
     continue
-  hotel = line[2]
-  print hotel
+  hospital = line[2]
+  print hospital
   question = str(open(name='secPredNumFloors.xml',mode='r').read())
-  question = question.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
+  question = question.replace('XXX(ITEM_NAME_HERE)XXX', hospital)
   new_hit = mturk.create_hit(
       Title = 'Evaluate a property of a hospital or clinic',
       Description = 'Answer the given yes/no question about the given hospital or clinic',
@@ -45,7 +45,7 @@ for line in f:
       QualificationRequirements = [{
           'QualificationTypeId':"000000000000000000L0",
           'Comparator':"GreaterThan",
-          'IntegerValues':[90]}],
+          'IntegerValues':[99]}],
       Reward = '0.10',
       MaxAssignments = 9,
       LifetimeInSeconds = 172800,
@@ -53,39 +53,39 @@ for line in f:
       AutoApprovalDelayInSeconds = 14400,
       Question = question,
   ) ## averages ?? time
-  hit_list.append((new_hit, hotel, "eval_secondary_pred", None))
+  hit_list.append((new_hit, None, "eval_secondary_pred", hospital))
   print "A new HIT has been created. You can preview it here:"
   print "https://worker.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
 
 
-# f = open('Hotel_items.csv')
-# for line in f:
-#   line = line.rstrip('\n')
-#   hotel = line
-#   print hotel
-#   question = str(open(name='itemwiseJoin.xml',mode='r').read())
-#   question = question.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
-#   new_hit = mturk.create_hit(
-#       Title = 'Match hospitals to a hotel based on proximity',
-#       Description = 'Find hospitals within 2.5 miles of the given hotel',
-#       Keywords = 'text, enumeration, matching',
-#       QualificationRequirements = [{
-#           'QualificationTypeId':"000000000000000000L0",
-#           'Comparator':"GreaterThan",
-#           'IntegerValues':[90]}],
-#       Reward = '0.25',
-#       MaxAssignments = 9,
-#       LifetimeInSeconds = 172800,
-#       AssignmentDurationInSeconds = 1200,
-#       AutoApprovalDelayInSeconds = 14400,
-#       Question = question,
-#   ) ## averages ?? time
-#   hit_list.append((new_hit, hotel, "list_secondary", None))
-#   print "A new HIT has been created. You can preview it here:"
-#   print "https://worker.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
-#   print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
+f = open('Hotel_items.csv')
+for line in f:
+  line = line.rstrip('\n')
+  hotel = line
+  print hotel
+  question = str(open(name='itemwiseJoin.xml',mode='r').read())
+  question = question.replace('XXX(ITEM_NAME_HERE)XXX', hotel)
+  new_hit = mturk.create_hit(
+      Title = 'Match hospitals to a hotel based on proximity',
+      Description = 'Find hospitals within 2.5 miles of the given hotel',
+      Keywords = 'text, enumeration, matching',
+      QualificationRequirements = [{
+          'QualificationTypeId':"000000000000000000L0",
+          'Comparator':"GreaterThan",
+          'IntegerValues':[99]}],
+      Reward = '0.25',
+      MaxAssignments = 9,
+      LifetimeInSeconds = 172800,
+      AssignmentDurationInSeconds = 1200,
+      AutoApprovalDelayInSeconds = 14400,
+      Question = question,
+  ) ## averages ?? time
+  hit_list.append((new_hit, hotel, "list_secondary", None))
+  print "A new HIT has been created. You can preview it here:"
+  print "https://worker.mturk.com/mturk/preview?groupId=" + new_hit['HIT']['HITGroupId']
+  print "HITID = " + new_hit['HIT']['HITId'] + " (Use to Get Results)"
 
 
   # question2 = str(open(name='joinableFilter.xml',mode='r').read())
@@ -97,7 +97,7 @@ for line in f:
   #     QualificationRequirements = [{
   #         'QualificationTypeId':"000000000000000000L0",
   #         'Comparator':"GreaterThan",
-  #         'IntegerValues':[90]}],
+  #         'IntegerValues':[99]}],
   #     Reward = '0.30',
   #     MaxAssignments = 9,
   #     LifetimeInSeconds = 172800,
