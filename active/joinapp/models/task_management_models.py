@@ -341,10 +341,6 @@ class JoinPairTask(models.Model):
         #check whether we've reached consensus
         self.save()
         self.update_result()
-<<<<<<< HEAD
-=======
-        
->>>>>>> 56091536c423809dad11d3257ce0fe4890cf4ae3
 
 ## @brief Model representing a pre join filter task
 @python_2_unicode_compatible
@@ -496,11 +492,6 @@ class ItemPJFPair(models.Model):
         #check whether we've reached consensus
         self.save()
         self.update_result()
-<<<<<<< HEAD
-
-=======
-        
->>>>>>> 56091536c423809dad11d3257ce0fe4890cf4ae3
 
 ## @brief Model representing a secondary predicate task
 @python_2_unicode_compatible
