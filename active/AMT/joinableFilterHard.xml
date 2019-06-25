@@ -113,9 +113,9 @@
                 </table>
 
                 <br />
-                    <p> If yes, which hospital satisfied this request and how many floors did it have? <br />
-                    If no, what sources did you use? </p>
-                    <textarea name="supplementary" row="4" cols="50" required />
+                    <p> <label>If yes, which hospital satisfied this request and how many floors did it have? <br />
+                    If no, what sources did you use?</label> </p>
+                    <textarea name="supplementary" row="4" cols="50" required /></textarea>
                 <br />
                 <br />
                     <label>Feedback  <br/>
