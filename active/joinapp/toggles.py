@@ -13,7 +13,7 @@ PJF_LIST = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 # used in syn_load_find_pairs_tasks
 # to determine how many secondary items each primary item is going to be matched with 
-MEAN_SEC_PER_PRIM = 15
+MEAN_SEC_PER_PRIM = 7
 SD_SEC_PER_PRIM = 0
 PROB_NONE_SECONDARY = 0
 
@@ -26,7 +26,7 @@ REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
-JOIN_TYPE = 2
+JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 10 # number of simulations to run
 PROB_CHOOSING_TRUE_SEC_ITEM = 1

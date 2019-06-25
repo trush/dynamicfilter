@@ -127,14 +127,22 @@ def choose_task_joinable_filter_helper(worker):
 # @param prim_items_list the current primary list objects available
 # @param worker workerID of the worker this task is going to
 def choose_task_find_pairs(prim_items_list,worker):
-    prim_item = prim_items_list.order_by('?').first() # random primary item
-    find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
-    prims_left = PrimaryItem.objects.all()
-    # choose new primary item if the random one has reached consensus or if worker has worked on it
-    while find_pairs_task.consensus == True: # TODO: implement this: or worker in find_pairs_task.workers.all():
-        prims_left = prims_left.exclude(pk=prim_item.pk)
-        prim_item = prims_left.order_by('?').first()
+    #TODO: Toggle for in_progress if-statement?
+    #NOTE: IF WE DON"T WANT IN PROGRESS FOR FIND PAIRS, COMMENT OUT IF STATEMENT
+    #      AND HAVE THE FUNCTION JUST BE WHAT"S INSIDE THE ELSE STATEMENT AND THE STUFF AFTER
+    if FindPairsTask.objects.filter(in_progress=True).exists():
+        #Possible bugs with concurrency (multiple tasks in progress)
+        find_pairs_task = FindPairsTask.objects.get(in_progress=True)
+    else:
+        prim_item = prim_items_list.order_by('?').first() # random primary item
         find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
+        prims_left = PrimaryItem.objects.all()
+
+        # choose new primary item if the random one has reached consensus or if worker has worked on it
+        while find_pairs_task.consensus == True: # TODO: implement this: or worker in find_pairs_task.workers.all():
+            prims_left = prims_left.exclude(pk=prim_item.pk)
+            prim_item = prims_left.order_by('?').first()
+            find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
     find_pairs_task.workers.add(worker)
     find_pairs_task.save()
     return find_pairs_task
@@ -143,14 +151,17 @@ def choose_task_find_pairs(prim_items_list,worker):
 # @param worker workerID of the worker this task is going to
 # @param pjfs a list of strings representing prejoin filters
 def choose_task_join_pairs(worker, prim_item):
-    sec_item = SecondaryItem.objects.filter(pjf=prim_item.pjf).order_by('?').first()
-    join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
-    sec_items_left = SecondaryItem.objects.filter(pjf=prim_item.pjf).exclude(name=sec_item.name)
-    # if the task has reached consensus, choose another random one
-    while join_pair_task.result is not None:
-        sec_items_left = sec_items_left.exclude(name=sec_item.name)
-        sec_item = sec_items_left.order_by('?').first()
+    if JoinPairTask.objects.filter(in_progress=True).exists():
+        join_pair_task = JoinPairTask.objects.get(in_progress=True)
+    else:
+        sec_item = SecondaryItem.objects.filter(pjf=prim_item.pjf).order_by('?').first()
         join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
+        sec_items_left = SecondaryItem.objects.filter(pjf=prim_item.pjf).exclude(name=sec_item.name)
+        # if the task has reached consensus, choose another random one
+        while join_pair_task.result is not None:
+            sec_items_left = sec_items_left.exclude(name=sec_item.name)
+            sec_item = sec_items_left.order_by('?').first()
+            join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
     join_pair_task.workers.add(worker)
     join_pair_task.save()
     return join_pair_task
@@ -159,31 +170,34 @@ def choose_task_join_pairs(worker, prim_item):
 ## @brief chooses a secondary predicate task based on a worker
 # @param worker workerID of the worker this task is going to
 def choose_task_sec_pred(worker):
-    # only secondary items that haven't reached consensus but match at least one primary item
-    sec_items_left = SecondaryItem.objects.filter(second_pred_result=None).exclude(matches_some = False)
-    if toggles.SEC_INFLUENTIAL is True:
-        sec_item = sec_items_left.order_by('-num_prims_left').first() # item related to the most primary items
-        sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
-        # choose new secondary item if worker has worked on it
-        while worker in sec_pred_task.workers.all():
-            sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
-            if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
-                sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
-                print "useless task issued"
-            sec_item = sec_items_left.order_by('-num_prims_left').first()
-            sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
+    if SecPredTask.objects.filter(in_progress=True).exists():
+        sec_pred_task = SecPredTask.objects.get(in_progress=True)
     else:
-        sec_items_left = sec_items_left.filter(num_prims_left__gt=0)
-        sec_item = sec_items_left.order_by('?').first() # random secondary item
-        sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
-        # choose new secondary item if worker has worked on it
-        while worker in sec_pred_task.workers.all():
-            sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
-            if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
-                sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
-                print "useless task issued"
-            sec_item = sec_items_left.order_by('?').first()
+        # only secondary items that haven't reached consensus but match at least one primary item
+        sec_items_left = SecondaryItem.objects.filter(second_pred_result=None).exclude(matches_some = False)
+        if toggles.SEC_INFLUENTIAL is True:
+            sec_item = sec_items_left.order_by('-num_prims_left').first() # item related to the most primary items
             sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
+            # choose new secondary item if worker has worked on it
+            while worker in sec_pred_task.workers.all():
+                sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
+                if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
+                    sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
+                    print "useless task issued"
+                sec_item = sec_items_left.order_by('-num_prims_left').first()
+                sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
+        else:
+            sec_items_left = sec_items_left.filter(num_prims_left__gt=0)
+            sec_item = sec_items_left.order_by('?').first() # random secondary item
+            sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
+            # choose new secondary item if worker has worked on it
+            while worker in sec_pred_task.workers.all():
+                sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
+                if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
+                    sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
+                    print "useless task issued"
+                sec_item = sec_items_left.order_by('?').first()
+                sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
     sec_pred_task.workers.add(worker)
     sec_pred_task.save()
     return sec_pred_task
