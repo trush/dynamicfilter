@@ -327,7 +327,9 @@ class JoinSimulation():
             
             self.reset_database()
             #more processing happens here
-        print time_arr
+        print "Times:", time_arr
+        print "Find Pairs Assignments:", num_find_pairs_assignments_arr
+        print "Sec Pred Assignments:", num_sec_pred_assignments_arr
         #more stuff happens here
 
         return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr, num_prim_left_arr)
@@ -498,7 +500,7 @@ class JoinSimulation():
         for item in SecondaryItem.objects.all():
             item.refresh_from_db()
             overlap_list += [item.num_prim_items]
-        
+        """
         i = max(overlap_list)
         while i >= 0:
             num_i_prims = SecondaryItem.objects.filter(num_prim_items = i).count()
@@ -509,6 +511,7 @@ class JoinSimulation():
         print "Mean primary per secondary:", np.mean(overlap_list)
         print "Standard deviation primary per secondary:", np.std(overlap_list)
         print ""
+        """
 
         num_prim_pass = PrimaryItem.objects.filter(eval_result = True).count()
         num_prim_fail = PrimaryItem.objects.filter(eval_result = False).count()
