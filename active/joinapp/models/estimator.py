@@ -70,7 +70,10 @@ class Estimator(models.Model):
                 sec_item.save()
 
         self.total_sample_size += 1
+<<<<<<< HEAD
         #print "we are here with a sample", self.total_sample_size, self.pk
+=======
+>>>>>>> 56091536c423809dad11d3257ce0fe4890cf4ae3
         self.save()
     
 

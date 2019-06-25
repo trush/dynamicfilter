@@ -12,7 +12,7 @@ def graph_time(results, task_dest):
     data = results[4]
     dest = task_dest #joinapp/simulation_files/test.png
     labels = ('time','frequency')
-    title = 'test w/ 0 chance of none'
+    title = ''
     xRange = (None,None)
     yRange = (None,None)
     smoothness = True

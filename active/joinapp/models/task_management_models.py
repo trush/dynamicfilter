@@ -213,7 +213,11 @@ class FindPairsTask(models.Model):
             #create a new join pair task if it does not exist in our list of join pair tasks
             #NOTE: We may at some point need to address adding join pair tasks that exist to our list
             if not matching_join_pairs.exists():
-                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks)
+                if self.primary_item.pjf == sec_item.pjf:
+                    same_pjf = True
+                else:
+                    same_pjf = False
+                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks, has_same_pjf = same_pjf)
 
         #get join pairs from this task (again)
         join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
@@ -265,6 +269,9 @@ class JoinPairTask(models.Model):
     result = models.NullBooleanField(db_index=True, default=None)
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
+
+    # true if primary_item and secondary_item have the same pjf
+    has_same_pjf = models.BooleanField(db_index=True, default=False)
     
     ## @brief ToString method
     def __str__(self):
@@ -303,13 +310,13 @@ class JoinPairTask(models.Model):
             # updates state of prim item if all join pairs are false
             self.primary_item.update_state()
             self.primary_item.refresh_from_db()
-
+        
         # for prejoin filter join, update found all pairs
-        if toggles.JOIN_TYPE is 2:
-            if not JoinPairTask.objects.filter(primary_item=self.primary_item).filter(result=None).exists():
-                self.primary_item.refresh_from_db()
-                self.primary_item.found_all_pairs = True
-                self.primary_item.save()
+        if not JoinPairTask.objects.filter(primary_item=self.primary_item).filter(result=None).exists() and self.primary_item.has_all_join_pairs:
+            self.primary_item.refresh_from_db()
+            self.primary_item.found_all_pairs = True
+            self.primary_item.save()
+
 
 
     ## @brief Updates state after an assignment for this task is completed
@@ -334,6 +341,10 @@ class JoinPairTask(models.Model):
         #check whether we've reached consensus
         self.save()
         self.update_result()
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 56091536c423809dad11d3257ce0fe4890cf4ae3
 
 ## @brief Model representing a pre join filter task
 @python_2_unicode_compatible
@@ -372,7 +383,7 @@ class PJFTask(models.Model):
     def update_consensus(self):
         # all item pjf pairs with this item 
         item_pjf_pairs = ItemPJFPair.objects.filter(pjf_task = self)
-        item_pjf_pairs = item_pjf_pairs.exclude(result = None)
+        item_pjf_pairs = item_pjf_pairs.filter(result = True)
         # if there is a pjf that has reached consensus, update consensus to true 
         # and delete all item pjf pairs associated with this task
         if item_pjf_pairs.exists():
@@ -400,7 +411,7 @@ class PJFTask(models.Model):
             pair = ItemPJFPair.objects.filter(primary_item=self.primary_item,pjf=answer)
             #create a new item pjf pair if it does not exist
             if not pair.exists():
-                ItemPJFPair.objects.create(primary_item=self.primary_item,pjf=answer,pjf_task = self,no_votes = self.num_tasks)
+                ItemPJFPair.objects.create(primary_item=self.primary_item,pjf=answer,pjf_task = self,yes_votes=1,no_votes=self.num_tasks)
             item_pjf_pairs = ItemPJFPair.objects.filter(primary_item=self.primary_item)
         # secondary item task
         elif self.secondary_item is not None:
@@ -477,7 +488,7 @@ class ItemPJFPair(models.Model):
     # @param answer A string containing the pjf
     def get_task(self, answer):
         #update yes_votes or no_votes based on answer
-        if answer is self.pjf:
+        if answer == self.pjf:
             self.yes_votes += 1
         else:
             self.no_votes += 1
@@ -485,7 +496,11 @@ class ItemPJFPair(models.Model):
         #check whether we've reached consensus
         self.save()
         self.update_result()
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 56091536c423809dad11d3257ce0fe4890cf4ae3
 
 ## @brief Model representing a secondary predicate task
 @python_2_unicode_compatible

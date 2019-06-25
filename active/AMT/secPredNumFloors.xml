@@ -107,15 +107,13 @@
                     <p><label>Question: How many floors does this hospital or clinic have? </label></p>
                     <label> Answer: <br/> 
                     (required) </label>
-                    <textarea name="workervote" row = "1" cols = "5" required />
-                    </textarea>
+                    <textarea name="workervote" row = "1" cols = "5" required /></textarea>
 
                 </table>
                 <br />
                     <label> Resources Used: <br /> 
                     (required) </label>
-                    <textarea name="supplementary" row = "4" cols = "30" required/>
-                    </textarea>
+                    <textarea name="supplementary" row = "4" cols = "30" required/></textarea>
                 <br />
                 <br />
                     <label>Feedback <br/>
