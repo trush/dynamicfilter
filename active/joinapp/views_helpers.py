@@ -216,6 +216,10 @@ def choose_task_sec_pred(worker):
 def choose_task_sec_pred_by_prim(worker, prim_item):
     if SecPredTask.objects.filter(in_progress=True).exists():
         sec_pred_task = SecPredTask.objects.filter(in_progress=True).first()
+    else:
+        for sec in prim_item.secondary_items.all():
+            sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec)[0]
+    return sec_pred_task
 
 
 #_____GATHER TASKS_____#
