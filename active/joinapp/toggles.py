@@ -26,6 +26,7 @@ MEAN_SEC_PER_PRIM = 4
 SD_SEC_PER_PRIM = 0
 PROB_NONE_SECONDARY = 0.25
 
+
 #________ For Real Data ________#
 INPUT_PATH = ''
 PRIMARY_ITEM_TYPE = "Hotel"  # "Hotel" or "Restaurant"
@@ -59,9 +60,9 @@ JF_AMBIGUITY = 0.5
 JF_SELECTIVITY = 0.1
 SEC_PRED_SELECTIVITY = 0.5
 SEC_PRED_AMBIGUITY = 0
-JOIN_COND_AMBIGUITY = 0 
+JOIN_COND_AMBIGUITY = 0
 JOIN_COND_SELECTIVITY = 0.3 # given that these pairs were created by the crowd
-PJF_AMBIGUITY = 0
+PJF_AMBIGUITY = 0.5
 JP_SELECTIVITY_W_PJF = 0.3 #likelyhood of being a pair given that they are in the same PJF
 
 #__________________ Time Settings _____________________#

@@ -86,19 +86,8 @@ def syn_answer_find_pairs_task(hit):
     random.seed()
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
-    #TODO REVERT TO NORMAL : THIS IS PART OF CONSENSUS EXPLORATION
-    #num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
-    if len(real_secondaries) is 0:
-        num_sec = 0
-    # elif random.random() < CHANCE_MORE_THAN_7:
-    #     num_sec = random.choice([8,9,10])
-    else:
-        num_sec = int(random.choice(CROWD_RESPONSES) * len(real_secondaries))
-    # elif random.random() < CHANCE_FEWER_THAN_HALF:
-    #     num_sec = random.choice(range(len(real_secondaries)/2))
-    # else:
-    #     num_sec = random.choice(range(len(real_secondaries)))
-
+    #NOTE: returns all sec items on average, impacts influential's benefit
+    num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
     if num_sec is not 0:
         this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
     answer = ""
