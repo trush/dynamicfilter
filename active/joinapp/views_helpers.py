@@ -56,7 +56,6 @@ def choose_task_IW1(workerID, estimator):
 def choose_task_PJF(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
     if not estimator.has_2nd_list:
-        print "enumeration"
         prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
         return choose_task_find_pairs(prim_items_left, new_worker)
 
@@ -144,15 +143,36 @@ def choose_task_join_pairs(worker):
         prim_item.save()
         prim_item.refresh_from_db()
         prim_item = PrimaryItem.objects.filter(found_all_pairs=False).order_by('?').first() # random primary item
+        # if the last primary item has no pairs we issue a random placeholder task
+        if prim_item is None:
+            print "issuing placeholder task"
+            prim_item = PrimaryItem.objects.all().order_by('?').first()
+            sec_item = SecondaryItem.objects.all().order_by('?').first()
+            join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item)[0]
+            return join_pair_task
         sec_items = SecondaryItem.objects.filter(pjf=prim_item.pjf) # associated secondary items
     sec_item = sec_items.order_by('?').first()
-    join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item,has_same_pjf=True)[0]
+    join_pair_task = JoinPairTask.objects.filter(primary_item=prim_item,secondary_item=sec_item)
+    # set has_same_pjf to true in case join pairs task was created in find pairs
+    if join_pair_task.exists():
+        join_pair_task = JoinPairTask.objects.get(primary_item=prim_item,secondary_item=sec_item)
+        join_pair_task.has_same_pjf = True
+        join_pair_task.save()
+    else:
+        join_pair_task = JoinPairTask.objects.create(primary_item=prim_item,secondary_item=sec_item,has_same_pjf=True)
     sec_items = sec_items.exclude(name=sec_item.name)
     # if the task has reached consensus, choose another random one
     while join_pair_task.result is not None:
         sec_item = sec_items.order_by('?').first()
         sec_items = sec_items.exclude(name=sec_item.name)
-        join_pair_task = JoinPairTask.objects.get_or_create(primary_item=prim_item,secondary_item=sec_item,has_same_pjf=True)[0]
+        join_pair_task = JoinPairTask.objects.filter(primary_item=prim_item,secondary_item=sec_item)
+        # set has_same_pjf to true in case join pairs task was created in find pairs
+        if join_pair_task.exists():
+            join_pair_task = JoinPairTask.objects.get(primary_item=prim_item,secondary_item=sec_item)
+            join_pair_task.has_same_pjf = True
+            join_pair_task.save()
+        else:
+            join_pair_task = JoinPairTask.objects.create(primary_item=prim_item,secondary_item=sec_item,has_same_pjf=True)
     join_pair_task.workers.add(worker)
     join_pair_task.save()
     return join_pair_task
@@ -170,7 +190,7 @@ def choose_task_sec_pred(worker):
         while worker in sec_pred_task.workers.all():
             sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
             if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
-                sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
+                sec_items_left = SecondaryItem.objects.all()
                 print "useless task issued"
             sec_item = sec_items_left.order_by('-num_prims_left').first()
             sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
@@ -182,7 +202,7 @@ def choose_task_sec_pred(worker):
         while worker in sec_pred_task.workers.all():
             sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
             if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
-                sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
+                sec_items_left = SecondaryItem.objects.all()
                 print "useless task issued"
             sec_item = sec_items_left.order_by('?').first()
             sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
@@ -208,10 +228,6 @@ def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
         finished = collect_find_pairs(answer, cost, item1_id)
     elif task_type == 2:
         finished = collect_join_pair(answer, cost, item1_id, item2_id)
-        primary_item = PrimaryItem.objects.get(pk=item1_id)
-        if JoinPairTask.objects.filter(primary_item=primary_item).filter(has_same_pjf=True).count() is SecondaryItem.objects.filter(pjf=primary_item.pjf).count():
-            primary_item.has_all_join_pairs = True
-            primary_item.save()
     elif task_type == 3:
         finished = collect_prejoin_filter(answer, cost, item1_id, item2_id)
     else: #if task_type == 4:
@@ -329,9 +345,9 @@ def collect_join_pair(answer, cost, item1_id, item2_id):
     #if we have a join pair task with these items, it is our task.
     #otherwise, we must create a new task
     if not our_tasks.exists():
-        this_task = JoinPairTask.objects.create(primary_item = primary_item, secondary_item = secondary_item, has_same_pjf=True)
+        this_task = JoinPairTask.objects.create(primary_item = primary_item, secondary_item = secondary_item)
     else:
-        this_task = JoinPairTask.objects.get(primary_item = primary_item, secondary_item = secondary_item, has_same_pjf=True)
+        this_task = JoinPairTask.objects.get(primary_item = primary_item, secondary_item = secondary_item)
     
     #allow model functionality to update its fields accordingly
     this_task.get_task(answer, cost)

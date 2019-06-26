@@ -234,10 +234,11 @@ def syn_load_join_pairs_and_find_pairs(SecPJFTasks_Dict,PrimPJFTasks_Dict,FindPa
         for secondary in SecPJFTasks_Dict:
             secPJF = SecPJFTasks_Dict[secondary][3]
             if primPJF is secPJF:
+                pjf = primPJF
                 if random.random() < JP_SELECTIVITY_W_PJF:
                     answer = 1
                     #add pair to find pairs
-                    primary_item,none,time,current_find_pairs = FindPairsTasks_Dict[primary][3]
+                    primary_item,none,time,current_find_pairs = FindPairsTasks_Dict[primary]
                     current_find_pairs += "Secondary Item " + secondary + "; " + secondary + " Address {{NEWENTRY}}"
                     FindPairsTasks_Dict[primary] = (primary_item,none,time,current_find_pairs)
                 else:
