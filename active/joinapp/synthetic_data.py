@@ -86,10 +86,6 @@ def syn_answer_find_pairs_task(hit):
     random.seed()
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
-<<<<<<< HEAD
-    #NOTE: returns all sec items on average, impacts influential's benefit
-    num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
-=======
     #num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
     if len(real_secondaries) is 0:
         num_sec = 0
@@ -99,7 +95,6 @@ def syn_answer_find_pairs_task(hit):
         num_sec = random.choice(range(len(real_secondaries)))
 
 
->>>>>>> 56091536c423809dad11d3257ce0fe4890cf4ae3
     if num_sec is not 0:
         this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
     answer = ""
