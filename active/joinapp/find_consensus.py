@@ -43,15 +43,3 @@ def find_consensus(item):
     else:
         # item.ambiguity = "No Consensus"
         return None    
-
-"""
-#_________________________ EXPERIMENTAL FIND CONSENSUS _________________________#
-def find_consensus(item):
-    if item.yes_votes >= toggles.YES_VOTES_THRESHOLD:
-        consensus = True
-    elif item.no_votes >= toggles.NO_VOTES_THRESHOLD:
-        consensus = False
-    else:
-        consensus = None
-    return consensus
-""
