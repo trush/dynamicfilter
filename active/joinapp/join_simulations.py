@@ -449,9 +449,8 @@ class JoinSimulation():
                     syn_load_second_list()
                     estimator.has_2nd_list = True
                     estimator.save()
-                syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
                 syn_load_pjfs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict)
-                syn_load_join_pairs(self.JoinPairTasks_Dict,self.PrimPJFTasks_Dict,self.SecPJFTasks_Dict)
+                syn_load_join_pairs_and_find_pairs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict,self.FindPairsTasks_Dict,self.JoinPairTasks_Dict)
                 syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
 
         self.generate_worker_ids()
