@@ -284,44 +284,15 @@ class JoinSimulation():
         print "" #newline
 
         #___ Primary Item Task Accuracy ___#
-        if JOIN_TYPE is 0: #for joinable filter tasks:
-            correct_prim_items = 0
-            for prim in PrimaryItem.objects.all():
-                ground_truth = False #assume every primary fails the join
-                if self.JFTasks_Dict[prim.pk][3] is True:
-                    ground_truth = True
-                if prim.eval_result is ground_truth:
-                    correct_prim_items += 1
-            self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
+        correct_prim_items = 0
+        for prim in PrimaryItem.objects.all():
+            ground_truth = False #assume every primary fails the join
+            if self.JFTasks_Dict[prim.pk][3] is 1:
+                ground_truth = True
+            if prim.eval_result is ground_truth:
+                correct_prim_items += 1
+        self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
         
-        elif JOIN_TYPE is 1: #for item wise join tasks
-            correct_prim_items = 0
-            # find ground truth using dictionaries
-            for prim in PrimaryItem.objects.all():
-                ground_truth = False #assume every primary fails the join
-                list_secondaries = parse_pairs(self.FindPairsTasks_Dict[prim.pk][3])
-                for sec in list_secondaries:
-                    sec_num = sec.split()[2][:-1]
-                    if self.SecPredTasks_Dict[sec_num][3] is True:
-                        ground_truth = True
-                if prim.eval_result is ground_truth:
-                    correct_prim_items += 1
-            self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
-
-        elif JOIN_TYPE is 2: # for pre-join filter joins
-            correct_prim_items = 0
-            for prim in PrimaryItem.objects.all():
-                ground_truth = False
-                # check every pair of primary and secondary items to see if they are a pair
-                for sec in SecondaryItem.objects.all():
-                    if self.JoinPairTasks_Dict[(prim.pk, sec.name)][2]:
-                        # if secondary item passes
-                        if self.SecPredTasks_Dict[sec.name][3]:
-                            ground_truth = True
-                if prim.eval_result is ground_truth:
-                    correct_prim_items += 1
-            self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
-
 
 
 
