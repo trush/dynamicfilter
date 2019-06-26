@@ -87,6 +87,9 @@ class JFTask(models.Model):
     ## average time per worker spent processing this task:
     average_time = models.FloatField(default=0)
 
+    # Whether this task is being worked on/already has progress towards consensus
+    in_progress = models.BooleanField(default=True)
+
     # result: 
     ## True if the task passes with consensus <br>
     ## False if the task doesn't pass <br>
@@ -104,6 +107,7 @@ class JFTask(models.Model):
     def update_result(self):
         self.result = find_consensus.find_consensus(self)
         if self.result is True or self.result is False:
+            self.in_progress = False
             self.primary_item.is_done = True
             for sec in self.primary_item.secondary_items.all():
                 sec.num_prims_left -= 1
@@ -131,9 +135,9 @@ class JFTask(models.Model):
         #update number of tasks so far
         self.num_tasks += 1
 
+        self.save()
         #check whether we've reached consensus
         self.update_result()
-        self.save()
 
 ## @brief Model representing a find-pairs task for a primary item
 @python_2_unicode_compatible
@@ -148,6 +152,8 @@ class FindPairsTask(models.Model):
     total_time = models.FloatField(default=0)
     ## average time per worker spent processing this task:
     average_time = models.FloatField(default=0)
+    # Whether this task is being worked on/already has progress towards consensus
+    in_progress = models.BooleanField(default=True) 
 
     # consensus: 
     ## True if the task pair reaches consensus <br>
@@ -165,6 +171,7 @@ class FindPairsTask(models.Model):
             self.primary_item.refresh_from_db()
             if self.num_tasks >= toggles.NUM_CERTAIN_VOTES:
                 self.consensus = True
+                self.in_progress = False
                 self.primary_item.found_all_pairs = True
                 self.primary_item.update_state()
                 self.save()
@@ -175,6 +182,7 @@ class FindPairsTask(models.Model):
             join_pair_tasks = join_pair_tasks.filter(result = None)
             if not join_pair_tasks.exists():
                 self.consensus = True
+                self.in_progress = False
                 self.primary_item.refresh_from_db()
                 self.primary_item.found_all_pairs = True
                 self.primary_item.update_state()
@@ -205,7 +213,11 @@ class FindPairsTask(models.Model):
             #create a new join pair task if it does not exist in our list of join pair tasks
             #NOTE: We may at some point need to address adding join pair tasks that exist to our list
             if not matching_join_pairs.exists():
-                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks)
+                if self.primary_item.pjf == sec_item.pjf:
+                    same_pjf = True
+                else:
+                    same_pjf = False
+                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks, has_same_pjf = same_pjf)
 
         #get join pairs from this task (again)
         join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
@@ -244,6 +256,8 @@ class JoinPairTask(models.Model):
     total_time = models.FloatField(default=0)
     ## average time per worker spent processing this task:
     average_time = models.FloatField(default=0)
+    # Whether this task is being worked on/already has progress towards consensus
+    in_progress = models.BooleanField(default=True)
 
     ## many to one relationship used for finding consensus for find pairs task
     find_pairs_task = models.ForeignKey(FindPairsTask, null = True, default = None)
@@ -255,6 +269,9 @@ class JoinPairTask(models.Model):
     result = models.NullBooleanField(db_index=True, default=None)
     yes_votes = models.IntegerField(default=0)
     no_votes = models.IntegerField(default=0)
+
+    # true if primary_item and secondary_item have the same pjf
+    has_same_pjf = models.BooleanField(db_index=True, default=False)
     
     ## @brief ToString method
     def __str__(self):
@@ -270,6 +287,8 @@ class JoinPairTask(models.Model):
         # primary item's list of matches <br>
         #Running this multiple times is fine, the relationship is not duplicated
         if self.result is True:
+            self.in_progress = False
+            self.save()
             if not self.primary_item.secondary_items.filter(name=self.secondary_item.name).exists():
                 self.primary_item.add_secondary_item(self.secondary_item)
 
@@ -286,16 +305,18 @@ class JoinPairTask(models.Model):
 
         # if the pair is not a match
         if self.result is False:
+            self.in_progress = False
+            self.save()
             # updates state of prim item if all join pairs are false
             self.primary_item.update_state()
             self.primary_item.refresh_from_db()
-
+        
         # for prejoin filter join, update found all pairs
-        if toggles.JOIN_TYPE is 2:
-            if not JoinPairTask.objects.filter(primary_item=self.primary_item).filter(result=None).exists():
-                self.primary_item.refresh_from_db()
-                self.primary_item.found_all_pairs = True
-                self.primary_item.save()
+        if not JoinPairTask.objects.filter(primary_item=self.primary_item).filter(result=None).exists() and self.primary_item.has_all_join_pairs:
+            self.primary_item.refresh_from_db()
+            self.primary_item.found_all_pairs = True
+            self.primary_item.save()
+
 
 
     ## @brief Updates state after an assignment for this task is completed
@@ -318,8 +339,8 @@ class JoinPairTask(models.Model):
         self.num_tasks += 1
 
         #check whether we've reached consensus
-        self.update_result()
         self.save()
+        self.update_result()
 
 ## @brief Model representing a pre join filter task
 @python_2_unicode_compatible
@@ -336,7 +357,9 @@ class PJFTask(models.Model):
     ## total worker time spent processing this task
     total_time = models.FloatField(default=0)
     ## average time per worker spent processing this task:
-    average_time = models.FloatField(default=0)
+    average_time = models.FloatField(default=0)    
+    # Whether this task is being worked on/already has progress towards consensus
+    in_progress = models.BooleanField(default=True)
 
     # consensus: 
     ## True if the prejoin filter reaches consensus <br>
@@ -361,6 +384,7 @@ class PJFTask(models.Model):
         # and delete all item pjf pairs associated with this task
         if item_pjf_pairs.exists():
             self.consensus = True
+            self.in_progress = False
                 #if we have reached consensus, then set the item's pjf
             if self.primary_item is not None:
                 self.primary_item.pjf = item_pjf_pairs.first().pjf
@@ -383,7 +407,7 @@ class PJFTask(models.Model):
             pair = ItemPJFPair.objects.filter(primary_item=self.primary_item,pjf=answer)
             #create a new item pjf pair if it does not exist
             if not pair.exists():
-                ItemPJFPair.objects.create(primary_item=self.primary_item,pjf=answer,pjf_task = self,no_votes = self.num_tasks)
+                ItemPJFPair.objects.create(primary_item=self.primary_item,pjf=answer,pjf_task = self,yes_votes=1,no_votes=self.num_tasks)
             item_pjf_pairs = ItemPJFPair.objects.filter(primary_item=self.primary_item)
         # secondary item task
         elif self.secondary_item is not None:
@@ -406,8 +430,8 @@ class PJFTask(models.Model):
         self.num_tasks += 1
 
         #check whether we've reached consensus
-        self.update_consensus()
         self.save()
+        self.update_consensus()
 
 
 ## @brief Model representing an item and pre-join filter pair
@@ -427,6 +451,9 @@ class ItemPJFPair(models.Model):
 
     ## many to one relationship used for finding consensus
     pjf_task = models.ForeignKey(PJFTask)
+
+    # Whether this task is being worked on/already has progress towards consensus
+    in_progress = models.BooleanField(default=True)
 
     # consensus: 
     ## True if the pjf item pair passes with consensus <br>
@@ -449,20 +476,22 @@ class ItemPJFPair(models.Model):
     def update_result(self):
         #have we reached consensus?
         self.result = find_consensus.find_consensus(self)
+        if self.result is not None:
+            self.in_progress = False
         self.save()
 
     ## @brief Updates state after an assignment for PJFTask is completed
     # @param answer A string containing the pjf
     def get_task(self, answer):
         #update yes_votes or no_votes based on answer
-        if answer is self.pjf:
+        if answer == self.pjf:
             self.yes_votes += 1
         else:
             self.no_votes += 1
 
         #check whether we've reached consensus
-        self.update_result()
         self.save()
+        self.update_result()
 
 ## @brief Model representing a secondary predicate task
 @python_2_unicode_compatible
@@ -478,6 +507,8 @@ class SecPredTask(models.Model):
     total_time = models.FloatField(default=0)
     ## average time per worker spent processing this task:
     average_time = models.FloatField(default=0)
+    # Whether this task is being worked on/already has progress towards consensus
+    in_progress = models.BooleanField(default=True)
 
     # result: 
     ## True if the IT pair passes with consensus <br>
@@ -495,6 +526,8 @@ class SecPredTask(models.Model):
     def update_result(self):
         self.result = find_consensus.find_consensus(self)
         self.secondary_item.second_pred_result = self.result
+        if self.result is not None:
+            self.in_progress = False
         self.secondary_item.save()
         self.save()
         for prim_item in self.secondary_item.primary_items.all().filter(is_done=False):
@@ -523,7 +556,7 @@ class SecPredTask(models.Model):
         self.num_tasks += 1
 
         #check whether we've reached consensus
-        self.update_result()
         self.save()
+        self.update_result()
 
 
