@@ -281,7 +281,7 @@ class JoinSimulation():
                 if prim.eval_result is ground_truth:
                     correct_prim_items += 1
             self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
-
+            
 
 
     #______ Helpers for Accuracy ______#
@@ -354,7 +354,7 @@ class JoinSimulation():
     # optimal for comparison that runs all the true influential restaurants before the false ones ## <<< only useful in real data simulations
 
     ## @brief runs run_sim with the same settings NUM_SIMS times
-    def run_multi_sims(self):
+    def run_multi_sims(self): #TODO RESET THIS
         results_list = []
         join_selectivity_arr = []
         num_jf_assignments_arr = []
@@ -600,5 +600,5 @@ class JoinSimulation():
             self.accuracy_real_data() #does its own printing
         else:
             self.accuracy_syn_data() #does its own printing
-
         return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
+        
