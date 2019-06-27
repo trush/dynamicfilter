@@ -42,7 +42,11 @@ If you want Postgres to start automatically every time you turn on your computer
 Then tell Homebrew to start Postgres as a service\+: \begin{DoxyVerb}$> brew services start postgresql
 \end{DoxyVerb}
 \hypertarget{install_info_pgconfig}{}\subsubsection{Database configuration}\label{install_info_pgconfig}
+<<<<<<< HEAD
 The Django project for Dynamic Filter needs its own login credentials to interact with Postgres. The username and password should be the same as what is specified in the {\ttfamily D\+A\+T\+A\+B\+A\+S\+ES} configuration in {\ttfamily \mbox{\hyperlink{settings_8py}{dynamicfiltersite/settings.\+py}}}. Here we\textquotesingle{}ll assume a username of \char`\"{}webapp\char`\"{} with the password \char`\"{}dynamicfilter\char`\"{}. To get started with the setup, use the command-\/line client program {\ttfamily psql} to open a session with Postgres\+: \begin{DoxyVerb}$> psql postgres
+=======
+The Django project for Dynamic Filter needs its own login credentials to interact with Postgres. The username and password should be the same as what is specified in the {\ttfamily D\+A\+T\+A\+B\+A\+S\+ES} configuration in {\ttfamily dynamicfiltersite/settings.\+py}. Here we\textquotesingle{}ll assume a username of \char`\"{}webapp\char`\"{} with the password \char`\"{}dynamicfilter\char`\"{}. To get started with the setup, use the command-\/line client program {\ttfamily psql} to open a session with Postgres\+: \begin{DoxyVerb}$> psql postgres
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
 psql (10.3)
 Type "help" for help.
 
@@ -103,14 +107,23 @@ Next we will install the python packages {\ttfamily psycopg2}, {\ttfamily numpy}
 You can use {\ttfamily pip} to install each of these packages inside your virtual environment, replacing \char`\"{}\+P\+A\+C\+K\+A\+G\+E\char`\"{} with each of the package names\+: \begin{DoxyVerb}(dfenv) $> pip install PACKAGE
 \end{DoxyVerb}
 \hypertarget{install_info_running}{}\section{Running a Simulation}\label{install_info_running}
+<<<<<<< HEAD
 Now that the project is installed, we can run a few simulations of Dynamic Filter to see it in action. The simulations run as part of the unit testing framework within Django. We\textquotesingle{}ll be running commands from the Dynamic Filter directory that contains {\ttfamily \mbox{\hyperlink{manage_8py}{manage.\+py}}} (currently called {\ttfamily active}); {\ttfamily cd} into that directory if you aren\textquotesingle{}t there already.\hypertarget{install_info_simsetup}{}\subsection{Setup}\label{install_info_simsetup}
 Before we run simulations, you should check that Postgres has an up-\/to-\/date understanding of the Django models (described in in {\ttfamily \mbox{\hyperlink{models_8py}{models.\+py}}}). Django manages updates to its models with {\itshape migrations}, which are essentially a log of changes to the models that can be (re)played to update the models\textquotesingle{} representation in the Postgres database.
+=======
+Now that the project is installed, we can run a few simulations of Dynamic Filter to see it in action. The simulations run as part of the unit testing framework within Django. We\textquotesingle{}ll be running commands from the Dynamic Filter directory that contains {\ttfamily manage.\+py} (currently called {\ttfamily active}); {\ttfamily cd} into that directory if you aren\textquotesingle{}t there already.\hypertarget{install_info_simsetup}{}\subsection{Setup}\label{install_info_simsetup}
+Before we run simulations, you should check that Postgres has an up-\/to-\/date understanding of the Django models (described in in {\ttfamily models.\+py}). Django manages updates to its models with {\itshape migrations}, which are essentially a log of changes to the models that can be (re)played to update the models\textquotesingle{} representation in the Postgres database.
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
 
 First apply the initial migration to create the database tables\+: \begin{DoxyVerb}(dfenv) $> python manage.py migrate
 \end{DoxyVerb}
 
 
+<<<<<<< HEAD
 Now check if Django needs to make any new migration files to reflect changes in {\ttfamily \mbox{\hyperlink{models_8py}{models.\+py}}} that have been made since the initial one\+: \begin{DoxyVerb}(dfenv) $> python manage.py makemigrations dynamicfilterapp
+=======
+Now check if Django needs to make any new migration files to reflect changes in {\ttfamily models.\+py} that have been made since the initial one\+: \begin{DoxyVerb}(dfenv) $> python manage.py makemigrations dynamicfilterapp
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
 \end{DoxyVerb}
 
 
