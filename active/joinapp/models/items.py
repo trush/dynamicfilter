@@ -66,10 +66,12 @@ class PrimaryItem(models.Model):
     ## Number of secondary items related to this item
     num_sec_items = models.IntegerField(default=0)
 
-    ## According to the Chao estimator, have all secondary items for this primary item been found
+    ## have all secondary items that match this primary item been found
+    ## True if all join pairs tasks that exist for this primary item have reached consensus
     found_all_pairs = models.BooleanField(db_index=True, default=False)
     
-    # For updating is_done in a pre join filter
+    ## For updating is_done in a pre-join filter
+    ## True if all join pair tasks for this primary item with secondary items of the same pre-join filter exist
     has_all_join_pairs = models.BooleanField(db_index=True, default=False)
 
     ## prejoin filter
@@ -107,7 +109,7 @@ class PrimaryItem(models.Model):
     def update_state(self):
         from task_management_models import JoinPairTask
         if self.is_done is False:
-            # if we have a secondary item that is true
+            # if we have a secondary item that is true, the primary item is True
             num_false = self.secondary_items.filter(second_pred_result=False).count()
             if self.secondary_items.filter(second_pred_result=True).exists():
                 self.is_done = True
@@ -117,7 +119,7 @@ class PrimaryItem(models.Model):
                     sec.refresh_from_db()
                     sec.num_prims_left -= 1
                     sec.save()
-            # if we found all pairs and they all fail the sec pred
+            # if we found all pairs and they all fail the sec pred, the primary item is False
             elif self.found_all_pairs and (self.num_sec_items is num_false):
                 self.is_done = True
                 self.eval_result = False
@@ -125,10 +127,14 @@ class PrimaryItem(models.Model):
                     sec.refresh_from_db()
                     sec.num_prims_left -= 1
                     sec.save()
-            # if there are no True or unfinished join pairs tasks and we have found all join pairs tasks
-            if not JoinPairTask.objects.filter(primary_item=self).exclude(result=False).exists() and self.has_all_join_pairs:
-                self.is_done = True
-                self.eval_result = False
+            # if all primary items have made join pair tasks with secondary items with matching pjf
+            if JoinPairTask.objects.filter(primary_item=self).filter(has_same_pjf=True).count() is SecondaryItem.objects.filter(pjf=self.pjf).count():
+                self.has_all_join_pairs = True
+                # if primary item has no secondary items, then the primary item is False
+                if not JoinPairTask.objects.filter(primary_item=self).filter(has_same_pjf=True).exclude(result=False).exists():
+                    self.is_done = True
+                    self.eval_result = False
+                    self.found_all_pairs = True
 
         self.save()
 

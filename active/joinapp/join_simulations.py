@@ -58,6 +58,10 @@ class JoinSimulation():
     FindPairsTasks_Dict = dict() 
 
     ## Key: secondary item name <br>
+    ## Value: ("None", secondary item name, time taken list, worker response list/ground truth)
+    FindPairsSecTasks_Dict = dict() 
+
+    ## Key: secondary item name <br>
     ## Value: ("NA", secondary item name, time taken list, worker response list/ground truth)
     SecPredTasks_Dict = dict() 
 
@@ -391,7 +395,7 @@ class JoinSimulation():
     # optimal for comparison that runs all the true influential restaurants before the false ones ## <<< only useful in real data simulations
 
     ## @brief runs run_sim with the same settings NUM_SIMS times
-    def run_multi_sims(self):
+    def run_multi_sims(self): #TODO RESET THIS
         results_list = []
         join_selectivity_arr = []
         num_jf_assignments_arr = []
@@ -451,9 +455,8 @@ class JoinSimulation():
                     syn_load_second_list()
                     estimator.has_2nd_list = True
                     estimator.save()
-                syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
                 syn_load_pjfs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict)
-                syn_load_join_pairs(self.JoinPairTasks_Dict,self.PrimPJFTasks_Dict,self.SecPJFTasks_Dict)
+                syn_load_join_pairs_and_find_pairs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict,self.FindPairsTasks_Dict,self.JoinPairTasks_Dict)
                 syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
 
         self.generate_worker_ids()
@@ -588,24 +591,24 @@ class JoinSimulation():
         for item in PrimaryItem.objects.all():
             item.refresh_from_db()
         
-        if JOIN_TYPE is 1:
-            overlap_list = []
-            for item in SecondaryItem.objects.all():
-                item.refresh_from_db()
-                overlap_list += [item.num_prim_items]
-            if overlap_list is []:
-                print "NO SECONDARY ITEMS"
-            else:
-                i = max(overlap_list)
-                while i >= 0:
-                    num_i_prims = SecondaryItem.objects.filter(num_prim_items = i).count()
-                    print "*", num_i_prims, "secondary item(s) were associated with", i, "primary items"
-                    i -= 1
+        # if JOIN_TYPE is 1:
+        #     overlap_list = []
+        #     for item in SecondaryItem.objects.all():
+        #         item.refresh_from_db()
+        #         overlap_list += [item.num_prim_items]
+        #     if overlap_list is []:
+        #         print "NO SECONDARY ITEMS"
+        #     else:
+        #         i = max(overlap_list)
+        #         while i >= 0:
+        #             num_i_prims = SecondaryItem.objects.filter(num_prim_items = i).count()
+        #             print "*", num_i_prims, "secondary item(s) were associated with", i, "primary items"
+        #             i -= 1
 
-                print ""
-                print "Mean primary per secondary:", np.mean(overlap_list)
-                print "Standard deviation primary per secondary:", np.std(overlap_list)
-                print ""
+        #         print ""
+        #         print "Mean primary per secondary:", np.mean(overlap_list)
+        #         print "Standard deviation primary per secondary:", np.std(overlap_list)
+        #         print ""
 
         num_prim_pass = PrimaryItem.objects.filter(eval_result = True).count()
         num_prim_fail = PrimaryItem.objects.filter(eval_result = False).count()
@@ -639,5 +642,5 @@ class JoinSimulation():
             self.accuracy_real_data() #does its own printing
         else:
             self.accuracy_syn_data() #does its own printing
-
         return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
+        

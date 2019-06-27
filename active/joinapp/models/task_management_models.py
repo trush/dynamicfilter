@@ -213,11 +213,7 @@ class FindPairsTask(models.Model):
             #create a new join pair task if it does not exist in our list of join pair tasks
             #NOTE: We may at some point need to address adding join pair tasks that exist to our list
             if not matching_join_pairs.exists():
-                if self.primary_item.pjf == sec_item.pjf:
-                    same_pjf = True
-                else:
-                    same_pjf = False
-                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks, has_same_pjf = same_pjf)
+                JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks)
 
         #get join pairs from this task (again)
         join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
@@ -291,15 +287,14 @@ class JoinPairTask(models.Model):
             self.save()
             if not self.primary_item.secondary_items.filter(name=self.secondary_item.name).exists():
                 self.primary_item.add_secondary_item(self.secondary_item)
+                self.primary_item.update_state()
+                self.primary_item.refresh_from_db()
 
                 if self.secondary_item.second_pred_result is None:
-                    self.primary_item.refresh_from_db()
                     self.secondary_item.refresh_from_db()
                     self.secondary_item.matches_some = True
                     self.secondary_item.save()
-                else:
-                    self.primary_item.update_state()
-                    self.primary_item.refresh_from_db()
+
                 self.secondary_item.refresh_from_db()
                 self.secondary_item.save()
 
@@ -312,7 +307,7 @@ class JoinPairTask(models.Model):
             self.primary_item.refresh_from_db()
         
         # for prejoin filter join, update found all pairs
-        if not JoinPairTask.objects.filter(primary_item=self.primary_item).filter(result=None).exists() and self.primary_item.has_all_join_pairs:
+        if (not JoinPairTask.objects.filter(primary_item=self.primary_item).filter(has_same_pjf=True).filter(result=None).exists()) and self.primary_item.has_all_join_pairs:
             self.primary_item.refresh_from_db()
             self.primary_item.found_all_pairs = True
             self.primary_item.save()
@@ -414,7 +409,7 @@ class PJFTask(models.Model):
             pair = ItemPJFPair.objects.filter(secondary_item=self.secondary_item,pjf=answer)
             #create a new item pjf pair if it does not exist
             if not pair.exists():
-                ItemPJFPair.objects.create(secondary_item=self.secondary_item,pjf=answer,pjf_task = self,no_votes = self.num_tasks)
+                ItemPJFPair.objects.create(secondary_item=self.secondary_item,pjf=answer,pjf_task = self,yes_votes=1,no_votes = self.num_tasks)
             item_pjf_pairs = ItemPJFPair.objects.filter(secondary_item=self.secondary_item)
         # get_task for each item pjf pair associated with this 
         for item in item_pjf_pairs:
@@ -533,6 +528,7 @@ class SecPredTask(models.Model):
         for prim_item in self.secondary_item.primary_items.all().filter(is_done=False):
             prim_item.refresh_from_db()
             prim_item.update_state()
+            prim_item.save()
 
     ## @brief Updates state based on an incoming worker answer
     # @param answer worker answer (0 or 1)

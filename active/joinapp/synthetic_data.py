@@ -115,6 +115,8 @@ def syn_answer_find_pairs_task(hit):
     else:
         answer = "None"
     time = np.random.normal(FIND_PAIRS_TASK_TIME_MEAN, FIND_PAIRS_TASK_TIME_SD, 1)
+    # print "primary:", primary
+    # print "answer:", answer
     return (answer, time)
 
 ## @brief gives a worker response to a joinable filter task based on a JFTasks_Dict hit
@@ -234,10 +236,11 @@ def syn_load_join_pairs_and_find_pairs(SecPJFTasks_Dict,PrimPJFTasks_Dict,FindPa
         for secondary in SecPJFTasks_Dict:
             secPJF = SecPJFTasks_Dict[secondary][3]
             if primPJF is secPJF:
+                pjf = primPJF
                 if random.random() < JP_SELECTIVITY_W_PJF:
                     answer = 1
                     #add pair to find pairs
-                    primary_item,none,time,current_find_pairs = FindPairsTasks_Dict[primary][3]
+                    primary_item,none,time,current_find_pairs = FindPairsTasks_Dict[primary]
                     current_find_pairs += "Secondary Item " + secondary + "; " + secondary + " Address {{NEWENTRY}}"
                     FindPairsTasks_Dict[primary] = (primary_item,none,time,current_find_pairs)
                 else:
@@ -247,23 +250,71 @@ def syn_load_join_pairs_and_find_pairs(SecPJFTasks_Dict,PrimPJFTasks_Dict,FindPa
                 answer = 0
             JoinPairTasks_Dict[(primary,secondary)] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
 
+#WORK IN PROGRESS
+def syn_load_everything(sim):
+    random.seed()
+    #___________________ FILL PJF DICTIONARIES __________________#
+    for primary in PrimaryItem.objects.all():
+        pjf = random.choice(PJF_LIST)
+        value = (primary.pk, "None", PJF_TIME_MEAN, pjf)
+        sim.PrimPJFTasks_Dict[primary.pk] = value
+    for secondary in range(NUM_SEC_ITEMS):
+        pjf = random.choice(PJF_LIST)
+        value = ("None", str(secondary), PJF_TIME_MEAN, pjf)
+        sim.SecPJFTasks_Dict[str(secondary)] = value
 
-    # for pjf in PJF_LIST:
-    #     primary_items = []
-    #     secondary_items = []
-    #     for primary in PrimaryItem.objects.all():
-    #         value = PrimPJFTasks_Dict[primary.pk]
-    #         if value[3] is pjf:
-    #             primary_items += [primary]
-    #     for secondary in range(NUM_SEC_ITEMS):
-    #         value = SecPJFTasks_Dict[str(secondary)]
-    #         if value[3] is pjf:
-    #             secondary_items += [secondary]
-    #     for primary in primary_items:
-    #         for secondary in secondary_items:
-    #             random.seed()
-    #             if random.random() < JP_SELECTIVITY_W_PJF:
-    #                 answer = 0
-    #             else:
-    #                 answer = 1
-    #             JoinPairTasks_Dict[(primary.pk,str(secondary))] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
+    #_________________ FILL JOIN PAIRS, FIND PAIRS PRIM AND FIND PAIRS SEC _________________#
+    # populates find pairs dictionaries w/ empty entries
+    for primary in sim.PrimPJFTasks_Dict:
+        sim.FindPairsTasks_Dict[primary] = (primary,"None", FIND_PAIRS_TASK_TIME_MEAN, "")
+    for secondary in sim.SecPJFTasks_Dict:
+        sim.FindPairsSecTasks_Dict[secondary] = ("None", secondary, FIND_PAIRS_TASK_TIME_MEAN, "")
+    # matches primary items to secondary items
+    for primary in sim.PrimPJFTasks_Dict:
+        primPJF = sim.PrimPJFTasks_Dict[primary][3]
+        for secondary in sim.SecPJFTasks_Dict:
+            secPJF = sim.SecPJFTasks_Dict[secondary][3]
+            if primPJF is secPJF:
+                pjf = primPJF
+                if random.random() < JP_SELECTIVITY_W_PJF:
+                    answer = 1
+                    #add pair to primary find pairs
+                    primary_item,none,time,current_find_pairs = sim.FindPairsTasks_Dict[primary]
+                    current_find_pairs += "Secondary Item " + secondary + "; " + secondary + " Address {{NEWENTRY}}"
+                    sim.FindPairsTasks_Dict[primary] = (primary_item,none,time,current_find_pairs)
+                    #add pair to secondary find pairs
+                    none,secondary_item,time,current_find_pairs = sim.FindPairsSecTasks_Dict[secondary]
+                    current_find_pairs += "Primary Item " + str(primary) + "; " + str(primary) + " Address {{NEWENTRY}}"
+                    sim.FindPairsSecTasks_Dict[secondary] = (none,secondary_item,time,current_find_pairs)
+                else:
+                    answer = 0
+            else:
+                pjf = "No Match"
+                answer = 0
+            sim.JoinPairTasks_Dict[(primary,secondary)] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
+    
+    # fix none entries
+    for primary in sim.PrimPJFTasks_Dict:
+        if sim.FindPairsTasks_Dict[primary] is (primary,"None", FIND_PAIRS_TASK_TIME_MEAN, ""):
+            sim.FindPairsTasks_Dict[primary] = (primary,"None", FIND_PAIRS_TASK_TIME_MEAN, "None")
+    for secondary in sim.SecPJFTasks_Dict:
+        if sim.FindPairsSecTasks_Dict[secondary] is ("None", secondary, FIND_PAIRS_TASK_TIME_MEAN, ""):
+            sim.FindPairsSecTasks_Dict[secondary] = ("None", secondary, FIND_PAIRS_TASK_TIME_MEAN, "None")
+
+    #______________ FILL SECONDARY PREDICATE AND FAKE SECONDARY PREDICATE TASKS ______________#
+    syn_load_sec_pred_tasks(sim.SecPredTasks_Dict)
+    syn_load_fake_sec_pred_tasks(sim.FakeSecPredTasks_Dict)
+
+    #______________ FILL JOINABLE FILTER DICTIONARIES ____________#
+    for primary in sim.FindPairsTasks_Dict:
+        secondaries = sim.FindPairsTasks_Dict[primary][3]
+        print secondaries
+        sec_items = parse_pairs(secondaries)
+        print sec_items
+        answer = 0
+        for secondary in sec_items:
+            # "Secondary Item " + str(sec_pk) + "; " + str(sec_pk) + " Address {{NEWENTRY}}"
+            secondary = secondary.partition("item ")[2].partition(";")[0]
+            if sim.SecPredTasks_Dict[secondary][3] is True:
+                answer = 1
+        sim.JFTasks_Dict[primary] = (primary, "None", JF_TASK_TIME_MEAN, answer)
