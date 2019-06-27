@@ -1,0 +1,136 @@
+\hypertarget{namespaceget__results}{}\section{get\+\_\+results Namespace Reference}
+\label{namespaceget__results}\index{get\_results@{get\_results}}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespaceget__results_a472244c9add0e4115ce313312dde7224}{pubkey}} = keys.\+pubkey
+\item 
+\mbox{\hyperlink{namespaceget__results_ae5335a2167ab5606ba0586b71c1bbf8c}{privkey}} = keys.\+privkey
+\item 
+string \mbox{\hyperlink{namespaceget__results_ae62b2c698fe34f48fcc67433b6495a00}{M\+T\+U\+R\+K\+\_\+\+S\+A\+N\+D\+B\+OX}} = \textquotesingle{}https\+://\mbox{\hyperlink{namespaceget__results_a5d236ec2d0fb7be80dec953c4f7564d7}{mturk}}-\/requester-\/sandbox.\+us-\/east-\/1.amazonaws.\+com\textquotesingle{}
+\item 
+\mbox{\hyperlink{namespaceget__results_a5d236ec2d0fb7be80dec953c4f7564d7}{mturk}}
+\item 
+\mbox{\hyperlink{namespaceget__results_ab133ba8828d2f08f3cdd4fe1ba35eb28}{my\+\_\+csv}} = csv.\+reader(open(\textquotesingle{}H\+I\+T\+\_\+\+I\+Ds.\+csv\textquotesingle{}, \textquotesingle{}r\textquotesingle{}), delimiter = \textquotesingle{},\textquotesingle{})
+\item 
+\mbox{\hyperlink{namespaceget__results_a339bb5524b06e496a6aaa0a97a4a8d21}{results}} = csv.\+writer(open(\textquotesingle{}H\+I\+T\+\_\+\+R\+E\+S\+U\+L\+T\+S.\+csv\textquotesingle{}, \textquotesingle{}w\textquotesingle{}), delimiter = \textquotesingle{},\textquotesingle{})
+\item 
+list \mbox{\hyperlink{namespaceget__results_a2066d73776773d67d4f57e76c74457ec}{first\+\_\+row}} = \mbox{[}\char`\"{}Hit Id\char`\"{}, \char`\"{}Hotel\char`\"{}, \char`\"{}Restaurant\char`\"{}, \char`\"{}Task\char`\"{}, \char`\"{}Assignment Id\char`\"{}, \char`\"{}Assignment Status\char`\"{}, \char`\"{}Time Taken\char`\"{}, \char`\"{}workervote\char`\"{}, \char`\"{}feedback\char`\"{}\mbox{]}
+\item 
+\mbox{\hyperlink{namespaceget__results_a755cb7c1ef593735d8d3d0ab5a281b67}{printable}} = set(string.\+printable)
+\item 
+\mbox{\hyperlink{namespaceget__results_adecf8258a14164dab061b9f9f19f7eea}{worker\+\_\+results}} = mturk.\+list\+\_\+assignments\+\_\+for\+\_\+hit(H\+I\+T\+Id=hit\+\_\+id)
+\item 
+\mbox{\hyperlink{namespaceget__results_a2a2b7ee9a830d488099c572c9befefa7}{answers\+\_\+list}} = xmltodict.\+parse(assignment\mbox{[}\textquotesingle{}Answer\textquotesingle{}\mbox{]})\mbox{[}\textquotesingle{}Question\+Form\+Answers\textquotesingle{}\mbox{]}\mbox{[}\textquotesingle{}Answer\textquotesingle{}\mbox{]}
+\item 
+list \mbox{\hyperlink{namespaceget__results_a1f15916248cf6fdeace227e97b91ad44}{new\+Row}}
+\item 
+dictionary \mbox{\hyperlink{namespaceget__results_ac6397f9fcdf0dbf1cf734e9721b2fcaf}{answers\+\_\+dict}} = \{\}
+\item 
+\mbox{\hyperlink{namespaceget__results_a1a1b6bd27a93f9139a2f44d01f7b3ad1}{question}} = answer\+\_\+field\mbox{[}\textquotesingle{}Question\+Identifier\textquotesingle{}\mbox{]}
+\item 
+\mbox{\hyperlink{namespaceget__results_a0c6c25f56511447d8c63f297376435d7}{worker\+\_\+response}} = answer\+\_\+field\mbox{[}\textquotesingle{}Free\+Text\textquotesingle{}\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespaceget__results_ac6397f9fcdf0dbf1cf734e9721b2fcaf}\label{namespaceget__results_ac6397f9fcdf0dbf1cf734e9721b2fcaf}} 
+\index{get\_results@{get\_results}!answers\_dict@{answers\_dict}}
+\index{answers\_dict@{answers\_dict}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{answers\_dict}{answers\_dict}}
+{\footnotesize\ttfamily dictionary answers\+\_\+dict = \{\}}
+
+\mbox{\Hypertarget{namespaceget__results_a2a2b7ee9a830d488099c572c9befefa7}\label{namespaceget__results_a2a2b7ee9a830d488099c572c9befefa7}} 
+\index{get\_results@{get\_results}!answers\_list@{answers\_list}}
+\index{answers\_list@{answers\_list}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{answers\_list}{answers\_list}}
+{\footnotesize\ttfamily answers\+\_\+list = xmltodict.\+parse(assignment\mbox{[}\textquotesingle{}Answer\textquotesingle{}\mbox{]})\mbox{[}\textquotesingle{}Question\+Form\+Answers\textquotesingle{}\mbox{]}\mbox{[}\textquotesingle{}Answer\textquotesingle{}\mbox{]}}
+
+\mbox{\Hypertarget{namespaceget__results_a2066d73776773d67d4f57e76c74457ec}\label{namespaceget__results_a2066d73776773d67d4f57e76c74457ec}} 
+\index{get\_results@{get\_results}!first\_row@{first\_row}}
+\index{first\_row@{first\_row}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{first\_row}{first\_row}}
+{\footnotesize\ttfamily list first\+\_\+row = \mbox{[}\char`\"{}Hit Id\char`\"{}, \char`\"{}Hotel\char`\"{}, \char`\"{}Restaurant\char`\"{}, \char`\"{}Task\char`\"{}, \char`\"{}Assignment Id\char`\"{}, \char`\"{}Assignment Status\char`\"{}, \char`\"{}Time Taken\char`\"{}, \char`\"{}workervote\char`\"{}, \char`\"{}feedback\char`\"{}\mbox{]}}
+
+\mbox{\Hypertarget{namespaceget__results_a5d236ec2d0fb7be80dec953c4f7564d7}\label{namespaceget__results_a5d236ec2d0fb7be80dec953c4f7564d7}} 
+\index{get\_results@{get\_results}!mturk@{mturk}}
+\index{mturk@{mturk}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{mturk}{mturk}}
+{\footnotesize\ttfamily mturk}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 =  boto3.client(\textcolor{stringliteral}{'mturk'},}
+\DoxyCodeLine{2   aws\_access\_key\_id = pubkey,}
+\DoxyCodeLine{3   aws\_secret\_access\_key = privkey,}
+\DoxyCodeLine{4   region\_name=\textcolor{stringliteral}{'us-east-1'},}
+\DoxyCodeLine{5   endpoint\_url = MTURK\_SANDBOX}
+\DoxyCodeLine{6 )}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{namespaceget__results_ae62b2c698fe34f48fcc67433b6495a00}\label{namespaceget__results_ae62b2c698fe34f48fcc67433b6495a00}} 
+\index{get\_results@{get\_results}!MTURK\_SANDBOX@{MTURK\_SANDBOX}}
+\index{MTURK\_SANDBOX@{MTURK\_SANDBOX}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{MTURK\_SANDBOX}{MTURK\_SANDBOX}}
+{\footnotesize\ttfamily string M\+T\+U\+R\+K\+\_\+\+S\+A\+N\+D\+B\+OX = \textquotesingle{}https\+://\mbox{\hyperlink{namespaceget__results_a5d236ec2d0fb7be80dec953c4f7564d7}{mturk}}-\/requester-\/sandbox.\+us-\/east-\/1.amazonaws.\+com\textquotesingle{}}
+
+\mbox{\Hypertarget{namespaceget__results_ab133ba8828d2f08f3cdd4fe1ba35eb28}\label{namespaceget__results_ab133ba8828d2f08f3cdd4fe1ba35eb28}} 
+\index{get\_results@{get\_results}!my\_csv@{my\_csv}}
+\index{my\_csv@{my\_csv}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{my\_csv}{my\_csv}}
+{\footnotesize\ttfamily my\+\_\+csv = csv.\+reader(open(\textquotesingle{}H\+I\+T\+\_\+\+I\+Ds.\+csv\textquotesingle{}, \textquotesingle{}r\textquotesingle{}), delimiter = \textquotesingle{},\textquotesingle{})}
+
+\mbox{\Hypertarget{namespaceget__results_a1f15916248cf6fdeace227e97b91ad44}\label{namespaceget__results_a1f15916248cf6fdeace227e97b91ad44}} 
+\index{get\_results@{get\_results}!newRow@{newRow}}
+\index{newRow@{newRow}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{newRow}{newRow}}
+{\footnotesize\ttfamily list new\+Row}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 =  [assignment[\textcolor{stringliteral}{"HITId"}], \textcolor{stringliteral}{"("} + hotel + \textcolor{stringliteral}{")"},\textcolor{stringliteral}{" ("} + restaurant + \textcolor{stringliteral}{")"}, \textcolor{stringliteral}{"("} + task + \textcolor{stringliteral}{")"},assignment[\textcolor{stringliteral}{"AssignmentId"}], \(\backslash\)}
+\DoxyCodeLine{2                 assignment[\textcolor{stringliteral}{"AssignmentStatus"}],str((assignment[\textcolor{stringliteral}{"SubmitTime"}] - assignment[\textcolor{stringliteral}{"AcceptTime"}]).total\_seconds())]}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{namespaceget__results_a755cb7c1ef593735d8d3d0ab5a281b67}\label{namespaceget__results_a755cb7c1ef593735d8d3d0ab5a281b67}} 
+\index{get\_results@{get\_results}!printable@{printable}}
+\index{printable@{printable}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{printable}{printable}}
+{\footnotesize\ttfamily printable = set(string.\+printable)}
+
+\mbox{\Hypertarget{namespaceget__results_ae5335a2167ab5606ba0586b71c1bbf8c}\label{namespaceget__results_ae5335a2167ab5606ba0586b71c1bbf8c}} 
+\index{get\_results@{get\_results}!privkey@{privkey}}
+\index{privkey@{privkey}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{privkey}{privkey}}
+{\footnotesize\ttfamily privkey = keys.\+privkey}
+
+\mbox{\Hypertarget{namespaceget__results_a472244c9add0e4115ce313312dde7224}\label{namespaceget__results_a472244c9add0e4115ce313312dde7224}} 
+\index{get\_results@{get\_results}!pubkey@{pubkey}}
+\index{pubkey@{pubkey}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{pubkey}{pubkey}}
+{\footnotesize\ttfamily pubkey = keys.\+pubkey}
+
+\mbox{\Hypertarget{namespaceget__results_a1a1b6bd27a93f9139a2f44d01f7b3ad1}\label{namespaceget__results_a1a1b6bd27a93f9139a2f44d01f7b3ad1}} 
+\index{get\_results@{get\_results}!question@{question}}
+\index{question@{question}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{question}{question}}
+{\footnotesize\ttfamily question = answer\+\_\+field\mbox{[}\textquotesingle{}Question\+Identifier\textquotesingle{}\mbox{]}}
+
+\mbox{\Hypertarget{namespaceget__results_a339bb5524b06e496a6aaa0a97a4a8d21}\label{namespaceget__results_a339bb5524b06e496a6aaa0a97a4a8d21}} 
+\index{get\_results@{get\_results}!results@{results}}
+\index{results@{results}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{results}{results}}
+{\footnotesize\ttfamily results = csv.\+writer(open(\textquotesingle{}H\+I\+T\+\_\+\+R\+E\+S\+U\+L\+T\+S.\+csv\textquotesingle{}, \textquotesingle{}w\textquotesingle{}), delimiter = \textquotesingle{},\textquotesingle{})}
+
+\mbox{\Hypertarget{namespaceget__results_a0c6c25f56511447d8c63f297376435d7}\label{namespaceget__results_a0c6c25f56511447d8c63f297376435d7}} 
+\index{get\_results@{get\_results}!worker\_response@{worker\_response}}
+\index{worker\_response@{worker\_response}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{worker\_response}{worker\_response}}
+{\footnotesize\ttfamily worker\+\_\+response = answer\+\_\+field\mbox{[}\textquotesingle{}Free\+Text\textquotesingle{}\mbox{]}}
+
+\mbox{\Hypertarget{namespaceget__results_adecf8258a14164dab061b9f9f19f7eea}\label{namespaceget__results_adecf8258a14164dab061b9f9f19f7eea}} 
+\index{get\_results@{get\_results}!worker\_results@{worker\_results}}
+\index{worker\_results@{worker\_results}!get\_results@{get\_results}}
+\subsubsection{\texorpdfstring{worker\_results}{worker\_results}}
+{\footnotesize\ttfamily worker\+\_\+results = mturk.\+list\+\_\+assignments\+\_\+for\+\_\+hit(H\+I\+T\+Id=hit\+\_\+id)}
+

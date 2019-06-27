@@ -1,0 +1,123 @@
+\hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task}{}\section{P\+J\+F\+Task Class Reference}
+\label{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task}\index{PJFTask@{PJFTask}}
+
+
+Model representing a pre join filter.  
+
+
+
+
+Inherits Model.
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a23e8041ce1015febe4fdace3225714f9}{\+\_\+\+\_\+str\+\_\+\+\_\+}} (self)
+\begin{DoxyCompactList}\small\item\em To\+String method. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a42a0cd7f4a34b940f08fd182458c9aba}{workers}} = models.\+Many\+To\+Many\+Field(\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_worker}{Worker}},related\+\_\+name=\char`\"{}pre\+\_\+join\+\_\+task\char`\"{})
+\begin{DoxyCompactList}\small\item\em workers who have worked or are working on this task \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_aba1ada8f72cc448a543f1b01551172fa}{primary\+\_\+item}} = models.\+Foreign\+Key(\textquotesingle{}\mbox{\hyperlink{classjoinapp_1_1models_1_1items_1_1_primary_item}{Primary\+Item}}\textquotesingle{}, default=None, null=True)
+\begin{DoxyCompactList}\small\item\em primary item associated with this join \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a0a9178a9cf48b964cab2025b9788a615}{secondary\+\_\+item}} = models.\+Foreign\+Key(\textquotesingle{}\mbox{\hyperlink{classjoinapp_1_1models_1_1items_1_1_secondary_item}{Secondary\+Item}}\textquotesingle{}, default=None, null=True)
+\begin{DoxyCompactList}\small\item\em secondary item associated with this join \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_afc259a6f918180e978f96108b03d3411}{num\+\_\+tasks}} = models.\+Integer\+Field(default=0)
+\begin{DoxyCompactList}\small\item\em number of assignments processed for this task \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a70c092a6aebace0b1ea406e14da78a40}{time}} = models.\+Float\+Field(default=0)
+\begin{DoxyCompactList}\small\item\em worker time spent processing this task \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_acd4d1b3226891bb64f1fb71cff3a390e}{consensus}} = models.\+Null\+Boolean\+Field(default=None)
+\begin{DoxyCompactList}\small\item\em True if the IT pair passes with consensus ~\newline
+ False if the IT pair doesn\textquotesingle{}t pass ~\newline
+ None consensus is not reached. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Model representing a pre join filter. 
+
+\begin{DoxyVerb}Model representing pairs of items and pre-join filter tasks.
+\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a23e8041ce1015febe4fdace3225714f9}\label{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a23e8041ce1015febe4fdace3225714f9}} 
+\index{PJFTask@{PJFTask}!\_\_str\_\_@{\_\_str\_\_}}
+\index{\_\_str\_\_@{\_\_str\_\_}!PJFTask@{PJFTask}}
+\subsubsection{\texorpdfstring{\_\_str\_\_()}{\_\_str\_\_()}}
+{\footnotesize\ttfamily def \+\_\+\+\_\+str\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+To\+String method. 
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_acd4d1b3226891bb64f1fb71cff3a390e}\label{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_acd4d1b3226891bb64f1fb71cff3a390e}} 
+\index{PJFTask@{PJFTask}!consensus@{consensus}}
+\index{consensus@{consensus}!PJFTask@{PJFTask}}
+\subsubsection{\texorpdfstring{consensus}{consensus}}
+{\footnotesize\ttfamily consensus = models.\+Null\+Boolean\+Field(default=None)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+True if the IT pair passes with consensus ~\newline
+ False if the IT pair doesn\textquotesingle{}t pass ~\newline
+ None consensus is not reached. 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_afc259a6f918180e978f96108b03d3411}\label{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_afc259a6f918180e978f96108b03d3411}} 
+\index{PJFTask@{PJFTask}!num\_tasks@{num\_tasks}}
+\index{num\_tasks@{num\_tasks}!PJFTask@{PJFTask}}
+\subsubsection{\texorpdfstring{num\_tasks}{num\_tasks}}
+{\footnotesize\ttfamily num\+\_\+tasks = models.\+Integer\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+number of assignments processed for this task 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_aba1ada8f72cc448a543f1b01551172fa}\label{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_aba1ada8f72cc448a543f1b01551172fa}} 
+\index{PJFTask@{PJFTask}!primary\_item@{primary\_item}}
+\index{primary\_item@{primary\_item}!PJFTask@{PJFTask}}
+\subsubsection{\texorpdfstring{primary\_item}{primary\_item}}
+{\footnotesize\ttfamily primary\+\_\+item = models.\+Foreign\+Key(\textquotesingle{}\mbox{\hyperlink{classjoinapp_1_1models_1_1items_1_1_primary_item}{Primary\+Item}}\textquotesingle{}, default=None, null=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+primary item associated with this join 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a0a9178a9cf48b964cab2025b9788a615}\label{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a0a9178a9cf48b964cab2025b9788a615}} 
+\index{PJFTask@{PJFTask}!secondary\_item@{secondary\_item}}
+\index{secondary\_item@{secondary\_item}!PJFTask@{PJFTask}}
+\subsubsection{\texorpdfstring{secondary\_item}{secondary\_item}}
+{\footnotesize\ttfamily secondary\+\_\+item = models.\+Foreign\+Key(\textquotesingle{}\mbox{\hyperlink{classjoinapp_1_1models_1_1items_1_1_secondary_item}{Secondary\+Item}}\textquotesingle{}, default=None, null=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+secondary item associated with this join 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a70c092a6aebace0b1ea406e14da78a40}\label{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a70c092a6aebace0b1ea406e14da78a40}} 
+\index{PJFTask@{PJFTask}!time@{time}}
+\index{time@{time}!PJFTask@{PJFTask}}
+\subsubsection{\texorpdfstring{time}{time}}
+{\footnotesize\ttfamily time = models.\+Float\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+worker time spent processing this task 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a42a0cd7f4a34b940f08fd182458c9aba}\label{classjoinapp_1_1models_1_1task__management__models_1_1_p_j_f_task_a42a0cd7f4a34b940f08fd182458c9aba}} 
+\index{PJFTask@{PJFTask}!workers@{workers}}
+\index{workers@{workers}!PJFTask@{PJFTask}}
+\subsubsection{\texorpdfstring{workers}{workers}}
+{\footnotesize\ttfamily workers = models.\+Many\+To\+Many\+Field(\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_worker}{Worker}},related\+\_\+name=\char`\"{}pre\+\_\+join\+\_\+task\char`\"{})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+workers who have worked or are working on this task 
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+joinapp/models/\mbox{\hyperlink{task__management__models_8py}{task\+\_\+management\+\_\+models.\+py}}\end{DoxyCompactItemize}

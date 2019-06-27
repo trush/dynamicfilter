@@ -1,0 +1,185 @@
+\hypertarget{namespacejoinapp_1_1views__helpers}{}\section{joinapp.\+views\+\_\+helpers Namespace Reference}
+\label{namespacejoinapp_1_1views__helpers}\index{joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_a83cad79c1fca193b0ff978b9fddf0bfb}{choose\+\_\+task}} (worker\+ID, estimator)
+\begin{DoxyCompactList}\small\item\em chooses the next task to issue based on the state of the query \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_a6520bad88409993e2fd43bc18136589a}{choose\+\_\+task\+\_\+joinable\+\_\+filter}} (worker)
+\begin{DoxyCompactList}\small\item\em chooses a joinable filter task based on a worker \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_add72af02158504b79ecb6a29f5dfdb4e}{choose\+\_\+task\+\_\+find\+\_\+pairs}} (prim\+\_\+items\+\_\+list, worker)
+\begin{DoxyCompactList}\small\item\em chooses a find pairs task based on a worker \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_a1dbf2ade9c80cee800fe671327226ba4}{choose\+\_\+task\+\_\+sec\+\_\+pred}} (worker)
+\begin{DoxyCompactList}\small\item\em chooses a secondary predicate task based on a worker \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_af657777675d99bfe303a5ce3c1409144}{gather\+\_\+task}} (task\+\_\+type, answer, cost, item1\+\_\+id=None, item2\+\_\+id=None)
+\begin{DoxyCompactList}\small\item\em Generic gather\+\_\+task function that updates state after a worker response is recieved. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_a113ceb6af057c8c69cd05bb609e05f09}{collect\+\_\+joinable\+\_\+filter}} (answer, cost, item1\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Collect joinable filter task. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_a6226658bd9bc3aabc7b080290d636ace}{collect\+\_\+find\+\_\+pairs}} (answer, cost, item1\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Collect find pairs task. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_ad2bdb254b14e8e7446c6c6579cc3c036}{parse\+\_\+pairs}} (pairs)
+\begin{DoxyCompactList}\small\item\em takes a string of entries (separated by the string \{\{N\+E\+W\+E\+N\+T\+RY\}\}) for find\+\_\+pairs and parses them \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_ad080b70a78f91b79b90bbec5e960142d}{disambiguate\+\_\+str}} (sec\+\_\+item\+\_\+str)
+\begin{DoxyCompactList}\small\item\em turns string responses into unique identifying strings N\+O\+TE\+: this function is specific to our example (hotels and restaurants) new functions must be written for different queries \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_a30d5f30811b2373f09a4bb38dabfba68}{collect\+\_\+join\+\_\+pair}} (answer, cost, item1\+\_\+id, item2\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Collect Join Pair task. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_a24a97f8a3f6e60035249b2b382b353b0}{collect\+\_\+prejoin\+\_\+filter}} (answer, cost, item1\+\_\+id=None, item2\+\_\+id=None)
+\begin{DoxyCompactList}\small\item\em Collect Prejoin Filter task. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1views__helpers_af44e5e0c97dc944cf1229afb35ebf7df}{collect\+\_\+secondary\+\_\+predicate}} (answer, cost, item2\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Collect secondary predicate task. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_a83cad79c1fca193b0ff978b9fddf0bfb}\label{namespacejoinapp_1_1views__helpers_a83cad79c1fca193b0ff978b9fddf0bfb}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!choose\_task@{choose\_task}}
+\index{choose\_task@{choose\_task}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{choose\_task()}{choose\_task()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+choose\+\_\+task (\begin{DoxyParamCaption}\item[{}]{worker\+ID,  }\item[{}]{estimator }\end{DoxyParamCaption})}
+
+
+
+chooses the next task to issue based on the state of the query 
+
+
+\begin{DoxyParams}{Parameters}
+{\em worker\+ID} & worker\+ID of the worker this task is going to \\
+\hline
+{\em estimator} & the estimator used to determine when the second list is complete \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_add72af02158504b79ecb6a29f5dfdb4e}\label{namespacejoinapp_1_1views__helpers_add72af02158504b79ecb6a29f5dfdb4e}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!choose\_task\_find\_pairs@{choose\_task\_find\_pairs}}
+\index{choose\_task\_find\_pairs@{choose\_task\_find\_pairs}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{choose\_task\_find\_pairs()}{choose\_task\_find\_pairs()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+choose\+\_\+task\+\_\+find\+\_\+pairs (\begin{DoxyParamCaption}\item[{}]{prim\+\_\+items\+\_\+list,  }\item[{}]{worker }\end{DoxyParamCaption})}
+
+
+
+chooses a find pairs task based on a worker 
+
+
+\begin{DoxyParams}{Parameters}
+{\em prim\+\_\+items\+\_\+list} & the current primary list objects available \\
+\hline
+{\em worker} & worker\+ID of the worker this task is going to \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_a6520bad88409993e2fd43bc18136589a}\label{namespacejoinapp_1_1views__helpers_a6520bad88409993e2fd43bc18136589a}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!choose\_task\_joinable\_filter@{choose\_task\_joinable\_filter}}
+\index{choose\_task\_joinable\_filter@{choose\_task\_joinable\_filter}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{choose\_task\_joinable\_filter()}{choose\_task\_joinable\_filter()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+choose\+\_\+task\+\_\+joinable\+\_\+filter (\begin{DoxyParamCaption}\item[{}]{worker }\end{DoxyParamCaption})}
+
+
+
+chooses a joinable filter task based on a worker 
+
+
+\begin{DoxyParams}{Parameters}
+{\em worker} & worker\+ID of the worker this task is going to \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_a1dbf2ade9c80cee800fe671327226ba4}\label{namespacejoinapp_1_1views__helpers_a1dbf2ade9c80cee800fe671327226ba4}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!choose\_task\_sec\_pred@{choose\_task\_sec\_pred}}
+\index{choose\_task\_sec\_pred@{choose\_task\_sec\_pred}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{choose\_task\_sec\_pred()}{choose\_task\_sec\_pred()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+choose\+\_\+task\+\_\+sec\+\_\+pred (\begin{DoxyParamCaption}\item[{}]{worker }\end{DoxyParamCaption})}
+
+
+
+chooses a secondary predicate task based on a worker 
+
+
+\begin{DoxyParams}{Parameters}
+{\em worker} & worker\+ID of the worker this task is going to \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_a6226658bd9bc3aabc7b080290d636ace}\label{namespacejoinapp_1_1views__helpers_a6226658bd9bc3aabc7b080290d636ace}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!collect\_find\_pairs@{collect\_find\_pairs}}
+\index{collect\_find\_pairs@{collect\_find\_pairs}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{collect\_find\_pairs()}{collect\_find\_pairs()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+collect\+\_\+find\+\_\+pairs (\begin{DoxyParamCaption}\item[{}]{answer,  }\item[{}]{cost,  }\item[{}]{item1\+\_\+id }\end{DoxyParamCaption})}
+
+
+
+Collect find pairs task. 
+
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_a30d5f30811b2373f09a4bb38dabfba68}\label{namespacejoinapp_1_1views__helpers_a30d5f30811b2373f09a4bb38dabfba68}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!collect\_join\_pair@{collect\_join\_pair}}
+\index{collect\_join\_pair@{collect\_join\_pair}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{collect\_join\_pair()}{collect\_join\_pair()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+collect\+\_\+join\+\_\+pair (\begin{DoxyParamCaption}\item[{}]{answer,  }\item[{}]{cost,  }\item[{}]{item1\+\_\+id,  }\item[{}]{item2\+\_\+id }\end{DoxyParamCaption})}
+
+
+
+Collect Join Pair task. 
+
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_a113ceb6af057c8c69cd05bb609e05f09}\label{namespacejoinapp_1_1views__helpers_a113ceb6af057c8c69cd05bb609e05f09}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!collect\_joinable\_filter@{collect\_joinable\_filter}}
+\index{collect\_joinable\_filter@{collect\_joinable\_filter}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{collect\_joinable\_filter()}{collect\_joinable\_filter()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+collect\+\_\+joinable\+\_\+filter (\begin{DoxyParamCaption}\item[{}]{answer,  }\item[{}]{cost,  }\item[{}]{item1\+\_\+id }\end{DoxyParamCaption})}
+
+
+
+Collect joinable filter task. 
+
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_a24a97f8a3f6e60035249b2b382b353b0}\label{namespacejoinapp_1_1views__helpers_a24a97f8a3f6e60035249b2b382b353b0}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!collect\_prejoin\_filter@{collect\_prejoin\_filter}}
+\index{collect\_prejoin\_filter@{collect\_prejoin\_filter}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{collect\_prejoin\_filter()}{collect\_prejoin\_filter()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+collect\+\_\+prejoin\+\_\+filter (\begin{DoxyParamCaption}\item[{}]{answer,  }\item[{}]{cost,  }\item[{}]{item1\+\_\+id = {\ttfamily None},  }\item[{}]{item2\+\_\+id = {\ttfamily None} }\end{DoxyParamCaption})}
+
+
+
+Collect Prejoin Filter task. 
+
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_af44e5e0c97dc944cf1229afb35ebf7df}\label{namespacejoinapp_1_1views__helpers_af44e5e0c97dc944cf1229afb35ebf7df}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!collect\_secondary\_predicate@{collect\_secondary\_predicate}}
+\index{collect\_secondary\_predicate@{collect\_secondary\_predicate}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{collect\_secondary\_predicate()}{collect\_secondary\_predicate()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+collect\+\_\+secondary\+\_\+predicate (\begin{DoxyParamCaption}\item[{}]{answer,  }\item[{}]{cost,  }\item[{}]{item2\+\_\+id }\end{DoxyParamCaption})}
+
+
+
+Collect secondary predicate task. 
+
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_ad080b70a78f91b79b90bbec5e960142d}\label{namespacejoinapp_1_1views__helpers_ad080b70a78f91b79b90bbec5e960142d}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!disambiguate\_str@{disambiguate\_str}}
+\index{disambiguate\_str@{disambiguate\_str}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{disambiguate\_str()}{disambiguate\_str()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+disambiguate\+\_\+str (\begin{DoxyParamCaption}\item[{}]{sec\+\_\+item\+\_\+str }\end{DoxyParamCaption})}
+
+
+
+turns string responses into unique identifying strings N\+O\+TE\+: this function is specific to our example (hotels and restaurants) new functions must be written for different queries 
+
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_af657777675d99bfe303a5ce3c1409144}\label{namespacejoinapp_1_1views__helpers_af657777675d99bfe303a5ce3c1409144}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!gather\_task@{gather\_task}}
+\index{gather\_task@{gather\_task}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{gather\_task()}{gather\_task()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+gather\+\_\+task (\begin{DoxyParamCaption}\item[{}]{task\+\_\+type,  }\item[{}]{answer,  }\item[{}]{cost,  }\item[{}]{item1\+\_\+id = {\ttfamily None},  }\item[{}]{item2\+\_\+id = {\ttfamily None} }\end{DoxyParamCaption})}
+
+
+
+Generic gather\+\_\+task function that updates state after a worker response is recieved. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em task\+\_\+type} & An integer representing the type of task being recieved \\
+\hline
+{\em answer} & A string or (0,1) representing the worker response \\
+\hline
+{\em cost} & The amount of time it took the worker to complete the hit \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacejoinapp_1_1views__helpers_ad2bdb254b14e8e7446c6c6579cc3c036}\label{namespacejoinapp_1_1views__helpers_ad2bdb254b14e8e7446c6c6579cc3c036}} 
+\index{joinapp.views\_helpers@{joinapp.views\_helpers}!parse\_pairs@{parse\_pairs}}
+\index{parse\_pairs@{parse\_pairs}!joinapp.views\_helpers@{joinapp.views\_helpers}}
+\subsubsection{\texorpdfstring{parse\_pairs()}{parse\_pairs()}}
+{\footnotesize\ttfamily def joinapp.\+views\+\_\+helpers.\+parse\+\_\+pairs (\begin{DoxyParamCaption}\item[{}]{pairs }\end{DoxyParamCaption})}
+
+
+
+takes a string of entries (separated by the string \{\{N\+E\+W\+E\+N\+T\+RY\}\}) for find\+\_\+pairs and parses them 
+

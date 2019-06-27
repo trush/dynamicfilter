@@ -1,0 +1,154 @@
+\hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task}{}\section{J\+F\+Task Class Reference}
+\label{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task}\index{JFTask@{JFTask}}
+
+
+Model representing a joinable-\/filter task for a primary item.  
+
+
+
+
+Inherits Model.
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a23e8041ce1015febe4fdace3225714f9}{\+\_\+\+\_\+str\+\_\+\+\_\+}} (self)
+\begin{DoxyCompactList}\small\item\em To\+String method. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a9013f18300fef58695383b65dd3ad816}{update\+\_\+result}} (self)
+\begin{DoxyCompactList}\small\item\em Calls \mbox{\hyperlink{namespacejoinapp_1_1find__consensus}{find\+\_\+consensus}} to update the result of the task if possible. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a5c2eb6f87a32af834dd29469a6189f0c}{get\+\_\+task}} (self, answer, \mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a70c092a6aebace0b1ea406e14da78a40}{time}})
+\begin{DoxyCompactList}\small\item\em Updates state after an assignment for this task is completed. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a42a0cd7f4a34b940f08fd182458c9aba}{workers}} = models.\+Many\+To\+Many\+Field(\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_worker}{Worker}},related\+\_\+name=\char`\"{}joinable\+\_\+filter\+\_\+task\char`\"{})
+\begin{DoxyCompactList}\small\item\em workers who have worked or are working on this task \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_aba1ada8f72cc448a543f1b01551172fa}{primary\+\_\+item}} = models.\+Foreign\+Key(\textquotesingle{}\mbox{\hyperlink{classjoinapp_1_1models_1_1items_1_1_primary_item}{Primary\+Item}}\textquotesingle{}, default=None, null=True)
+\begin{DoxyCompactList}\small\item\em primary item this task is associated with \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_afc259a6f918180e978f96108b03d3411}{num\+\_\+tasks}} = models.\+Integer\+Field(default=0)
+\begin{DoxyCompactList}\small\item\em number of assignments processed for a task \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a70c092a6aebace0b1ea406e14da78a40}{time}} = models.\+Float\+Field(default=0)
+\begin{DoxyCompactList}\small\item\em total worker time spent processing this task \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a937d4dd628a8858b443a399410d2600b}{result}} = models.\+Null\+Boolean\+Field(default=None)
+\begin{DoxyCompactList}\small\item\em True if the task passes with consensus ~\newline
+ False if the task doesn\textquotesingle{}t pass ~\newline
+ None consensus is not reached. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_ab50f50bde4c2c1524460c48def8f27f3}{yes\+\_\+votes}} = models.\+Integer\+Field(default=0)
+\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a1e1b32e1e9767af8d38c4e2de888919f}{no\+\_\+votes}} = models.\+Integer\+Field(default=0)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Model representing a joinable-\/filter task for a primary item. 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a23e8041ce1015febe4fdace3225714f9}\label{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a23e8041ce1015febe4fdace3225714f9}} 
+\index{JFTask@{JFTask}!\_\_str\_\_@{\_\_str\_\_}}
+\index{\_\_str\_\_@{\_\_str\_\_}!JFTask@{JFTask}}
+\subsubsection{\texorpdfstring{\_\_str\_\_()}{\_\_str\_\_()}}
+{\footnotesize\ttfamily def \+\_\+\+\_\+str\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+To\+String method. 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a5c2eb6f87a32af834dd29469a6189f0c}\label{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a5c2eb6f87a32af834dd29469a6189f0c}} 
+\index{JFTask@{JFTask}!get\_task@{get\_task}}
+\index{get\_task@{get\_task}!JFTask@{JFTask}}
+\subsubsection{\texorpdfstring{get\_task()}{get\_task()}}
+{\footnotesize\ttfamily def get\+\_\+task (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{answer,  }\item[{}]{time }\end{DoxyParamCaption})}
+
+
+
+Updates state after an assignment for this task is completed. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em answer} & response from the assignment (0 or 1) \\
+\hline
+{\em time} & How long it took to execute the incoming assingment \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a9013f18300fef58695383b65dd3ad816}\label{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a9013f18300fef58695383b65dd3ad816}} 
+\index{JFTask@{JFTask}!update\_result@{update\_result}}
+\index{update\_result@{update\_result}!JFTask@{JFTask}}
+\subsubsection{\texorpdfstring{update\_result()}{update\_result()}}
+{\footnotesize\ttfamily def update\+\_\+result (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Calls \mbox{\hyperlink{namespacejoinapp_1_1find__consensus}{find\+\_\+consensus}} to update the result of the task if possible. 
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a1e1b32e1e9767af8d38c4e2de888919f}\label{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a1e1b32e1e9767af8d38c4e2de888919f}} 
+\index{JFTask@{JFTask}!no\_votes@{no\_votes}}
+\index{no\_votes@{no\_votes}!JFTask@{JFTask}}
+\subsubsection{\texorpdfstring{no\_votes}{no\_votes}}
+{\footnotesize\ttfamily no\+\_\+votes = models.\+Integer\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_afc259a6f918180e978f96108b03d3411}\label{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_afc259a6f918180e978f96108b03d3411}} 
+\index{JFTask@{JFTask}!num\_tasks@{num\_tasks}}
+\index{num\_tasks@{num\_tasks}!JFTask@{JFTask}}
+\subsubsection{\texorpdfstring{num\_tasks}{num\_tasks}}
+{\footnotesize\ttfamily num\+\_\+tasks = models.\+Integer\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+number of assignments processed for a task 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_aba1ada8f72cc448a543f1b01551172fa}\label{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_aba1ada8f72cc448a543f1b01551172fa}} 
+\index{JFTask@{JFTask}!primary\_item@{primary\_item}}
+\index{primary\_item@{primary\_item}!JFTask@{JFTask}}
+\subsubsection{\texorpdfstring{primary\_item}{primary\_item}}
+{\footnotesize\ttfamily primary\+\_\+item = models.\+Foreign\+Key(\textquotesingle{}\mbox{\hyperlink{classjoinapp_1_1models_1_1items_1_1_primary_item}{Primary\+Item}}\textquotesingle{}, default=None, null=True)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+primary item this task is associated with 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a937d4dd628a8858b443a399410d2600b}\label{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a937d4dd628a8858b443a399410d2600b}} 
+\index{JFTask@{JFTask}!result@{result}}
+\index{result@{result}!JFTask@{JFTask}}
+\subsubsection{\texorpdfstring{result}{result}}
+{\footnotesize\ttfamily result = models.\+Null\+Boolean\+Field(default=None)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+True if the task passes with consensus ~\newline
+ False if the task doesn\textquotesingle{}t pass ~\newline
+ None consensus is not reached. 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a70c092a6aebace0b1ea406e14da78a40}\label{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a70c092a6aebace0b1ea406e14da78a40}} 
+\index{JFTask@{JFTask}!time@{time}}
+\index{time@{time}!JFTask@{JFTask}}
+\subsubsection{\texorpdfstring{time}{time}}
+{\footnotesize\ttfamily time = models.\+Float\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+total worker time spent processing this task 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a42a0cd7f4a34b940f08fd182458c9aba}\label{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_a42a0cd7f4a34b940f08fd182458c9aba}} 
+\index{JFTask@{JFTask}!workers@{workers}}
+\index{workers@{workers}!JFTask@{JFTask}}
+\subsubsection{\texorpdfstring{workers}{workers}}
+{\footnotesize\ttfamily workers = models.\+Many\+To\+Many\+Field(\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_worker}{Worker}},related\+\_\+name=\char`\"{}joinable\+\_\+filter\+\_\+task\char`\"{})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+workers who have worked or are working on this task 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_ab50f50bde4c2c1524460c48def8f27f3}\label{classjoinapp_1_1models_1_1task__management__models_1_1_j_f_task_ab50f50bde4c2c1524460c48def8f27f3}} 
+\index{JFTask@{JFTask}!yes\_votes@{yes\_votes}}
+\index{yes\_votes@{yes\_votes}!JFTask@{JFTask}}
+\subsubsection{\texorpdfstring{yes\_votes}{yes\_votes}}
+{\footnotesize\ttfamily yes\+\_\+votes = models.\+Integer\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+joinapp/models/\mbox{\hyperlink{task__management__models_8py}{task\+\_\+management\+\_\+models.\+py}}\end{DoxyCompactItemize}

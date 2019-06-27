@@ -1,0 +1,140 @@
+\hypertarget{classdynamicfilterapp_1_1models_1_1_item}{}\section{Item Class Reference}
+\label{classdynamicfilterapp_1_1models_1_1_item}\index{Item@{Item}}
+
+
+Inherits Model.
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_a23e8041ce1015febe4fdace3225714f9}{\+\_\+\+\_\+str\+\_\+\+\_\+}} (self)
+\item 
+def \mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_ac83cd255885b9a7b8852cd66fad6da53}{add\+\_\+to\+\_\+queue}} (self)
+\item 
+def \mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_a438b59c52d810e87114f98c1996d6272}{remove\+\_\+from\+\_\+queue}} (self)
+\item 
+def \mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_a51829b63adb24ac48d350dee60181002}{reset}} (self)
+\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_a32565a7f740a6d8f36b5e5d781463e15}{item\+\_\+\+ID}} = models.\+Integer\+Field(default=None)
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_ab74e6bf80237ddc4109968cedc58c151}{name}} = models.\+Char\+Field(max\+\_\+length=100)
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_a2679318a14061852e50df3c6e4e42f62}{item\+\_\+type}} = models.\+Char\+Field(max\+\_\+length=50)
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_ade5a18d52133ef21f211020ceb464c07}{address}} = models.\+Char\+Field(max\+\_\+length=200, default=\textquotesingle{}\textquotesingle{})
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_a5fa9cf9c305aeeef558cdf041085ccf1}{has\+Failed}} = models.\+Boolean\+Field(db\+\_\+index=True, default=False)
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_a1abc5225054f7c37dcefe2ca69594650}{should\+Pass}} = models.\+Boolean\+Field(db\+\_\+index = True, default=False)
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_a4dfad4da8b9c480e78a3ad161ce723f1}{is\+Started}} = models.\+Boolean\+Field(default=False)
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_a088a878065d2b8209b1c4a23f482b70a}{almost\+False}} = models.\+Boolean\+Field(default=False)
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_af5ba33bf8fddcc8f610ee2d0091ded53}{in\+Queue}} = models.\+Boolean\+Field(default=False)
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1models_1_1_item_a9290ec0d1f62bda2041497209d4f9895}{pairs\+\_\+out}} = models.\+Integer\+Field(default=0)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}General model representing an item in the database
+\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_a23e8041ce1015febe4fdace3225714f9}\label{classdynamicfilterapp_1_1models_1_1_item_a23e8041ce1015febe4fdace3225714f9}} 
+\index{Item@{Item}!\_\_str\_\_@{\_\_str\_\_}}
+\index{\_\_str\_\_@{\_\_str\_\_}!Item@{Item}}
+\subsubsection{\texorpdfstring{\_\_str\_\_()}{\_\_str\_\_()}}
+{\footnotesize\ttfamily def \+\_\+\+\_\+str\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_ac83cd255885b9a7b8852cd66fad6da53}\label{classdynamicfilterapp_1_1models_1_1_item_ac83cd255885b9a7b8852cd66fad6da53}} 
+\index{Item@{Item}!add\_to\_queue@{add\_to\_queue}}
+\index{add\_to\_queue@{add\_to\_queue}!Item@{Item}}
+\subsubsection{\texorpdfstring{add\_to\_queue()}{add\_to\_queue()}}
+{\footnotesize\ttfamily def add\+\_\+to\+\_\+queue (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_a438b59c52d810e87114f98c1996d6272}\label{classdynamicfilterapp_1_1models_1_1_item_a438b59c52d810e87114f98c1996d6272}} 
+\index{Item@{Item}!remove\_from\_queue@{remove\_from\_queue}}
+\index{remove\_from\_queue@{remove\_from\_queue}!Item@{Item}}
+\subsubsection{\texorpdfstring{remove\_from\_queue()}{remove\_from\_queue()}}
+{\footnotesize\ttfamily def remove\+\_\+from\+\_\+queue (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_a51829b63adb24ac48d350dee60181002}\label{classdynamicfilterapp_1_1models_1_1_item_a51829b63adb24ac48d350dee60181002}} 
+\index{Item@{Item}!reset@{reset}}
+\index{reset@{reset}!Item@{Item}}
+\subsubsection{\texorpdfstring{reset()}{reset()}}
+{\footnotesize\ttfamily def reset (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_ade5a18d52133ef21f211020ceb464c07}\label{classdynamicfilterapp_1_1models_1_1_item_ade5a18d52133ef21f211020ceb464c07}} 
+\index{Item@{Item}!address@{address}}
+\index{address@{address}!Item@{Item}}
+\subsubsection{\texorpdfstring{address}{address}}
+{\footnotesize\ttfamily address = models.\+Char\+Field(max\+\_\+length=200, default=\textquotesingle{}\textquotesingle{})\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_a088a878065d2b8209b1c4a23f482b70a}\label{classdynamicfilterapp_1_1models_1_1_item_a088a878065d2b8209b1c4a23f482b70a}} 
+\index{Item@{Item}!almostFalse@{almostFalse}}
+\index{almostFalse@{almostFalse}!Item@{Item}}
+\subsubsection{\texorpdfstring{almostFalse}{almostFalse}}
+{\footnotesize\ttfamily almost\+False = models.\+Boolean\+Field(default=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_a5fa9cf9c305aeeef558cdf041085ccf1}\label{classdynamicfilterapp_1_1models_1_1_item_a5fa9cf9c305aeeef558cdf041085ccf1}} 
+\index{Item@{Item}!hasFailed@{hasFailed}}
+\index{hasFailed@{hasFailed}!Item@{Item}}
+\subsubsection{\texorpdfstring{hasFailed}{hasFailed}}
+{\footnotesize\ttfamily has\+Failed = models.\+Boolean\+Field(db\+\_\+index=True, default=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_af5ba33bf8fddcc8f610ee2d0091ded53}\label{classdynamicfilterapp_1_1models_1_1_item_af5ba33bf8fddcc8f610ee2d0091ded53}} 
+\index{Item@{Item}!inQueue@{inQueue}}
+\index{inQueue@{inQueue}!Item@{Item}}
+\subsubsection{\texorpdfstring{inQueue}{inQueue}}
+{\footnotesize\ttfamily in\+Queue = models.\+Boolean\+Field(default=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_a4dfad4da8b9c480e78a3ad161ce723f1}\label{classdynamicfilterapp_1_1models_1_1_item_a4dfad4da8b9c480e78a3ad161ce723f1}} 
+\index{Item@{Item}!isStarted@{isStarted}}
+\index{isStarted@{isStarted}!Item@{Item}}
+\subsubsection{\texorpdfstring{isStarted}{isStarted}}
+{\footnotesize\ttfamily is\+Started = models.\+Boolean\+Field(default=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_a32565a7f740a6d8f36b5e5d781463e15}\label{classdynamicfilterapp_1_1models_1_1_item_a32565a7f740a6d8f36b5e5d781463e15}} 
+\index{Item@{Item}!item\_ID@{item\_ID}}
+\index{item\_ID@{item\_ID}!Item@{Item}}
+\subsubsection{\texorpdfstring{item\_ID}{item\_ID}}
+{\footnotesize\ttfamily item\+\_\+\+ID = models.\+Integer\+Field(default=None)\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_a2679318a14061852e50df3c6e4e42f62}\label{classdynamicfilterapp_1_1models_1_1_item_a2679318a14061852e50df3c6e4e42f62}} 
+\index{Item@{Item}!item\_type@{item\_type}}
+\index{item\_type@{item\_type}!Item@{Item}}
+\subsubsection{\texorpdfstring{item\_type}{item\_type}}
+{\footnotesize\ttfamily item\+\_\+type = models.\+Char\+Field(max\+\_\+length=50)\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_ab74e6bf80237ddc4109968cedc58c151}\label{classdynamicfilterapp_1_1models_1_1_item_ab74e6bf80237ddc4109968cedc58c151}} 
+\index{Item@{Item}!name@{name}}
+\index{name@{name}!Item@{Item}}
+\subsubsection{\texorpdfstring{name}{name}}
+{\footnotesize\ttfamily name = models.\+Char\+Field(max\+\_\+length=100)\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_a9290ec0d1f62bda2041497209d4f9895}\label{classdynamicfilterapp_1_1models_1_1_item_a9290ec0d1f62bda2041497209d4f9895}} 
+\index{Item@{Item}!pairs\_out@{pairs\_out}}
+\index{pairs\_out@{pairs\_out}!Item@{Item}}
+\subsubsection{\texorpdfstring{pairs\_out}{pairs\_out}}
+{\footnotesize\ttfamily pairs\+\_\+out = models.\+Integer\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+\mbox{\Hypertarget{classdynamicfilterapp_1_1models_1_1_item_a1abc5225054f7c37dcefe2ca69594650}\label{classdynamicfilterapp_1_1models_1_1_item_a1abc5225054f7c37dcefe2ca69594650}} 
+\index{Item@{Item}!shouldPass@{shouldPass}}
+\index{shouldPass@{shouldPass}!Item@{Item}}
+\subsubsection{\texorpdfstring{shouldPass}{shouldPass}}
+{\footnotesize\ttfamily should\+Pass = models.\+Boolean\+Field(db\+\_\+index = True, default=False)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+dynamicfilterapp/\mbox{\hyperlink{models_8py}{models.\+py}}\end{DoxyCompactItemize}
