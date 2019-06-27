@@ -1,0 +1,153 @@
+<HTMLQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2011-11-11/HTMLQuestion.xsd">
+<HTMLContent><![CDATA[
+<!-- YOUR HTML BEGINS -->
+<!DOCTYPE html>
+<html>
+<link href="https://s3.amazonaws.com/mturk-public/bs30/css/bootstrap.min.css" rel="stylesheet" />
+
+<script type="text/javascript">
+
+    var questionAnswered = false; // boolean to track whether or not question has been answered
+    var start_ms; // start time
+    var end_ms; // end time
+
+    // called when answer chosen is Yes or No
+    function clickedYesOrNo() {
+        questionAnswered = true; // user chooses Yes or No, question becomes answered
+    }
+
+    // establishes time of when user began to answer question
+    function startTime() {
+        start = new Date();
+        start_ms = start.getTime();
+    }
+    
+    function toggleSubmit() {
+      var x = document.getElementById("submitButton");
+      var y = document.getElementById("consentRequest");
+      if (x.style.display === "block") {
+        x.style.display = "none";
+        y.style.display = "block";
+      } else {
+        x.style.display = "block";
+        y.style.display = "none";
+      }
+    }
+
+    // establishes time of when user finished answering question
+    function endTime() {
+        end = new Date();
+        end_ms = end.getTime();
+        var elem = document.getElementById("elapsed_time");
+        elem.value = end_ms-start_ms; // total time taken to answer question
+    }
+
+</script>
+
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+<script type='text/javascript' src='https://s3.amazonaws.com/mturk-public/externalHIT_v1.js'></script>
+<style>
+    body.padding{
+        padding-left:0.5cm;
+    }
+    #submitButton {display: none;}
+</style>
+<style type="text/css">fieldset { padding: 10px; background:#fbfbfb; border-radius:5px; margin-bottom:5px; }
+</style>
+</head>
+
+<!-- once site loads, calls startTime() and getGoogleLink() -->
+<body class="padding" onload='startTime()'> 
+
+    <form name='mturk_form' method='post' id='mturk_form' action='https://www.mturk.com/mturk/externalSubmit'><input type='hidden' value='' name='assignmentId' id='assignmentId'/>
+
+        <section class="container" id="Other" style="padding: 0px 0px 0px 0px; font-family: Verdana, Geneva, sans-serif; color:#333333; font-size:0.9em;">&nbsp;</section>
+
+        <!-- sets up consent form and checkbox to give consent -->
+        <div class="row col-xs-12 col-md-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading"><strong>Consent Notification</strong></div>
+
+                <div class="panel-body">This task is part of a research project. The goal is to learn which questions 
+                    are easier in order to adjust the order in which questions 
+                    are asked. You must give consent in order to submit this HIT. If you do not want to participate, please return the HIT.<br>    
+                    
+                <input id="consent" name="consent" type="checkbox" onclick="toggleSubmit()"/>
+                <label for="consent">I agree to participate in this study</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="row col-xs-12 col-md-12">
+
+            <!-- Instructions -->
+            <div class="panel panel-primary">
+                <div class="panel-heading"><strong>Instructions</strong></div>
+
+                <div class="panel-body">
+                    <ol>
+                        <li>You will be provided with a hotel in St. Louis, MO.</li>
+                        <li>Use the internet or other resources to answer a question about the hotel.</li>
+                        <li>As long as you try to find the information, your answer will not affect your reward.</li>
+                        <li>You may provide feedback on the clarity of the instructions, the 
+                            presentation, the difficulty of the task, or anything else.</li>
+                    </ol>
+                </div>
+            </div>
+            <!-- End Instructions -->
+
+            <!-- Content Body -->
+            <section>
+
+                <p><label>Item: XXX(ITEM_NAME_HERE)XXX</label></p>
+
+                <table>
+                    <p><label>Question: Is this hotel (located in Saint Louis, MO) within 2.5 miles of a hospital that has 5 or more floors? </label></p>
+                    <input type="radio" name="workervote" id="r_true" value="1" required />
+                    <label for="r_true">Yes</label>
+                    <br/>
+                    <input type="radio" name="workervote" id="r_false" value="0"/>
+                    <label for="r_false">No</label>
+                    </br>
+                </table>
+
+                <br />
+                    <p> <label>If yes, which hospital satisfied this request and how many floors did it have? <br />
+                    If no, what sources did you use?</label> </p>
+                    <textarea name="supplementary" row="4" cols="50" required /></textarea>
+                <br />
+                <br />
+                    <label>Feedback  <br/>
+                    (optional): </label>
+                    <textarea name="feedback" row="4" cols="50"></textarea>
+                <br />
+                <br />
+            </section>
+            <!-- End Content Body -->
+            
+        </div>
+
+        <input type="hidden" id="elapsed_time" name = "elapsed_time" value="555">
+
+        <div style="text-align:center">
+            <!-- once user submits answer, calls endTime() -->
+            <input type="submit" id="submitButton" value="Submit" onclick='endTime()'>
+        </div>
+        <div style="display:block;color:blue" id="consentRequest">
+            <p> Please confirm your consent (using the checkbox at the top) before submitting this HIT.</p>
+        </div>
+
+    </form>
+
+    <script language='Javascript'>turkSetAssignmentID();</script>
+
+    
+
+</body>
+</html>
+<!-- YOUR HTML ENDS -->
+]]>
+</HTMLContent>
+<FrameHeight>600</FrameHeight>
+</HTMLQuestion>
