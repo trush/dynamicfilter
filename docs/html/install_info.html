@@ -1,12 +1,20 @@
+<<<<<<< HEAD
 <!-- HTML header for doxygen 1.8.13-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+=======
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.15"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<<<<<<< HEAD
 <title>Dynamic Filter: Installation Guide</title>
+=======
+<title>My Project: Installation Guide</title>
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -14,7 +22,10 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<<<<<<< HEAD
 <link href="customdoxygen.css" rel="stylesheet" type="text/css"/>
+=======
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -23,9 +34,14 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
+<<<<<<< HEAD
    <div id="projectname">Dynamic Filter
    </div>
    <div id="projectbrief">Adaptive Query Processing with the Crowd</div>
+=======
+   <div id="projectname">My Project
+   </div>
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
   </td>
  </tr>
  </tbody>
@@ -112,7 +128,11 @@ Installation and running</h3>
 </pre><p>Then tell Homebrew to start Postgres as a service: </p><pre class="fragment">$&gt; brew services start postgresql
 </pre><h3><a class="anchor" id="pgconfig"></a>
 Database configuration</h3>
+<<<<<<< HEAD
 <p>The Django project for Dynamic Filter needs its own login credentials to interact with Postgres. The username and password should be the same as what is specified in the <code>DATABASES</code> configuration in <code><a class="el" href="settings_8py.html">dynamicfiltersite/settings.py</a></code>. Here we'll assume a username of "webapp" with the password "dynamicfilter". To get started with the setup, use the command-line client program <code>psql</code> to open a session with Postgres: </p><pre class="fragment">$&gt; psql postgres
+=======
+<p>The Django project for Dynamic Filter needs its own login credentials to interact with Postgres. The username and password should be the same as what is specified in the <code>DATABASES</code> configuration in <code>dynamicfiltersite/settings.py</code>. Here we'll assume a username of "webapp" with the password "dynamicfilter". To get started with the setup, use the command-line client program <code>psql</code> to open a session with Postgres: </p><pre class="fragment">$&gt; psql postgres
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
 psql (10.3)
 Type "help" for help.
 
@@ -141,12 +161,21 @@ Environment Setup</h2>
 <p>You can use <code>pip</code> to install each of these packages inside your virtual environment, replacing "PACKAGE" with each of the package names: </p><pre class="fragment">(dfenv) $&gt; pip install PACKAGE
 </pre><h1><a class="anchor" id="running"></a>
 Running a Simulation</h1>
+<<<<<<< HEAD
 <p>Now that the project is installed, we can run a few simulations of Dynamic Filter to see it in action. The simulations run as part of the unit testing framework within Django. We'll be running commands from the Dynamic Filter directory that contains <code><a class="el" href="manage_8py.html">manage.py</a></code> (currently called <code>active</code>); <code>cd</code> into that directory if you aren't there already.</p>
 <h2><a class="anchor" id="simsetup"></a>
 Setup</h2>
 <p>Before we run simulations, you should check that Postgres has an up-to-date understanding of the Django models (described in in <code><a class="el" href="models_8py.html">models.py</a></code>). Django manages updates to its models with <em>migrations</em>, which are essentially a log of changes to the models that can be (re)played to update the models' representation in the Postgres database.</p>
 <p>First apply the initial migration to create the database tables: </p><pre class="fragment">(dfenv) $&gt; python manage.py migrate
 </pre><p>Now check if Django needs to make any new migration files to reflect changes in <code><a class="el" href="models_8py.html">models.py</a></code> that have been made since the initial one: </p><pre class="fragment">(dfenv) $&gt; python manage.py makemigrations dynamicfilterapp
+=======
+<p>Now that the project is installed, we can run a few simulations of Dynamic Filter to see it in action. The simulations run as part of the unit testing framework within Django. We'll be running commands from the Dynamic Filter directory that contains <code>manage.py</code> (currently called <code>active</code>); <code>cd</code> into that directory if you aren't there already.</p>
+<h2><a class="anchor" id="simsetup"></a>
+Setup</h2>
+<p>Before we run simulations, you should check that Postgres has an up-to-date understanding of the Django models (described in in <code>models.py</code>). Django manages updates to its models with <em>migrations</em>, which are essentially a log of changes to the models that can be (re)played to update the models' representation in the Postgres database.</p>
+<p>First apply the initial migration to create the database tables: </p><pre class="fragment">(dfenv) $&gt; python manage.py migrate
+</pre><p>Now check if Django needs to make any new migration files to reflect changes in <code>models.py</code> that have been made since the initial one: </p><pre class="fragment">(dfenv) $&gt; python manage.py makemigrations dynamicfilterapp
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
 </pre><p>Then apply those migrations: </p><pre class="fragment">(dfenv) $&gt; python manage.py migrate
 </pre><h2><a class="anchor" id="example"></a>
 Example: Hotels, two predicates</h2>
@@ -200,7 +229,10 @@ RuntimeError: Python is not installed as a framework. The Mac OS X backend will 
 </pre><p>Open the file with a text editor and find the <code>backend</code> parameter. Change its value to <code>TkAgg</code> and save the file. </p>
 </div></div><!-- PageDoc -->
 </div><!-- contents -->
+<<<<<<< HEAD
 <!-- HTML footer for doxygen 1.8.13-->
+=======
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

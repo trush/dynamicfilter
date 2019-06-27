@@ -15,18 +15,30 @@ To get the codebase set up, check out the \mbox{\hyperlink{install_info}{Install
 \end{DoxyItemize}\hypertarget{index_consensus}{}\section{Aggregating Worker Votes \& Evaluating Consensus}\label{index_consensus}
 Our consensus metric is complicated. For each IP pair chosen, we do the following\+:
 \begin{DoxyItemize}
+<<<<<<< HEAD
 \item We gather (\mbox{\hyperlink{namespacedynamicfilterapp_1_1toggles_a157bc167f366f75c9ba8d3e36e8d8540}{N\+U\+M\+\_\+\+C\+E\+R\+T\+A\+I\+N\+\_\+\+V\+O\+T\+ES}}) votes on the chosen IP pair
 \item To take \char`\"{}consensus\char`\"{} we generate a beta distribution from the number of (y/n) votes
 \item Then integrate over it from zero to (\mbox{\hyperlink{namespacedynamicfilterapp_1_1toggles_ac4442b6c569574253ef445d09952d3f0}{D\+E\+C\+I\+S\+I\+O\+N\+\_\+\+T\+H\+R\+E\+S\+H\+O\+LD}})
 \item If the probability area is less than (\mbox{\hyperlink{namespacedynamicfilterapp_1_1toggles_aaefdc27b85545eb4a910f5c65f7d8bbb}{U\+N\+C\+E\+R\+T\+A\+I\+N\+T\+Y\+\_\+\+T\+H\+R\+E\+S\+H\+O\+LD}}) then we have consensus
+=======
+\item We gather (\mbox{\hyperlink{}{N\+U\+M\+\_\+\+C\+E\+R\+T\+A\+I\+N\+\_\+\+V\+O\+T\+ES}}) votes on the chosen IP pair
+\item To take \char`\"{}consensus\char`\"{} we generate a beta distribution from the number of (y/n) votes
+\item Then integrate over it from zero to (\mbox{\hyperlink{}{D\+E\+C\+I\+S\+I\+O\+N\+\_\+\+T\+H\+R\+E\+S\+H\+O\+LD}})
+\item If the probability area is less than (\mbox{\hyperlink{}{U\+N\+C\+E\+R\+T\+A\+I\+N\+T\+Y\+\_\+\+T\+H\+R\+E\+S\+H\+O\+LD}}) then we have consensus
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
 \item Else we gather more votes
 \end{DoxyItemize}
 
 This is repeated until one of several conditions is met\+:
 \begin{DoxyEnumerate}
 \item We reach consensus (naturally)
+<<<<<<< HEAD
 \item The total number of gathered votes is equal to (\mbox{\hyperlink{namespacedynamicfilterapp_1_1toggles_a914791c176a78c026dc76a18bcd88d73}{C\+U\+T\+\_\+\+O\+FF}})
 \item The number of either (yes)s or (no)s on their own is equal to (\mbox{\hyperlink{namespacedynamicfilterapp_1_1toggles_afa8e106b735033b706b1412e12f6783b}{S\+I\+N\+G\+L\+E\+\_\+\+V\+O\+T\+E\+\_\+\+C\+U\+T\+O\+FF}})
+=======
+\item The total number of gathered votes is equal to (\mbox{\hyperlink{}{C\+U\+T\+\_\+\+O\+FF}})
+\item The number of either (yes)s or (no)s on their own is equal to (\mbox{\hyperlink{}{S\+I\+N\+G\+L\+E\+\_\+\+V\+O\+T\+E\+\_\+\+C\+U\+T\+O\+FF}})
+>>>>>>> 2df209205e4ef9b4b253d0a2b55bd7316fbbe513
 \end{DoxyEnumerate}
 
 If either condition 2 or 3 we take a simple majority vote.\hypertarget{index_current}{}\section{Current Work}\label{index_current}
