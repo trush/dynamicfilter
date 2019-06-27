@@ -1,0 +1,200 @@
+\hypertarget{toggles_input}{}\section{Input Settings}\label{toggles_input}
+\mbox{\hyperlink{}{R\+E\+A\+L\+\_\+\+D\+A\+TA }} -\/ Determines whether actual worker responses will be loaded in for the simulation (from input files) or whether synthetic data will be generated. ~\newline
+ \mbox{\hyperlink{}{T\+R\+U\+E\+\_\+\+T\+I\+M\+ES }} -\/ An array of times in seconds -- each comes from a worker task where the worker returned the answer \char`\"{}\+True\char`\"{} for an IP Pair. ~\newline
+ \mbox{\hyperlink{}{F\+A\+L\+S\+E\+\_\+\+T\+I\+M\+ES }} -\/ An array of times in seconds -- each comes from a worker task where the worker returned the answer \char`\"{}\+False\char`\"{} for an IP Pair.\hypertarget{toggles_realdata}{}\subsection{Real Data Settings}\label{toggles_realdata}
+\mbox{\hyperlink{}{I\+T\+E\+M\+\_\+\+T\+Y\+PE }} -\/ \char`\"{}\+Hotel\char`\"{}, \char`\"{}\+Restaurant\char`\"{} ~\newline
+ \mbox{\hyperlink{}{I\+N\+P\+U\+T\+\_\+\+P\+A\+TH }} -\/ A string pointing toward the file containing the list of items, predicates, correct answers, etc.~\newline
+ \mbox{\hyperlink{}{I\+P\+\_\+\+P\+A\+I\+R\+\_\+\+D\+A\+T\+A\+\_\+\+F\+I\+LE }} -\/ The filename of the file containing actual worker responses for the appropriate dataset. ~\newline
+ \mbox{\hyperlink{}{R\+E\+A\+L\+\_\+\+D\+I\+S\+T\+R\+I\+B\+U\+T\+I\+O\+N\+\_\+\+F\+I\+LE }} -\/ The filename of the file containing data about workers\textquotesingle{} task request frequency. ~\newline
+ \mbox{\hyperlink{}{C\+H\+O\+S\+E\+N\+\_\+\+P\+R\+E\+DS }} -\/ Gives the numbers of the predicates that will be applied to the set of IP Pairs. These will be read in from a csv file in the I\+N\+P\+U\+T\+\_\+\+P\+A\+TH folder. If
+
+\mbox{\hyperlink{}{E\+D\+D\+Y\+\_\+\+S\+YS }} = 3 (controlled system), the predicates will be applied to items in the order they appear in this array. ~\newline
+~\newline
+Hotel Predicate Guide\+:
+\begin{DoxyItemize}
+\item 0 -\/ not selective and not ambiguous
+\item 1 -\/ selective and not ambiguous
+\item 2 -\/ not selective and medium ambiguity
+\item 3 -\/ medium selectivity and ambiguous
+\item 4 -\/ not selective and not ambiguous
+\end{DoxyItemize}
+
+Restaurant Predicate Guide\+:
+\begin{DoxyItemize}
+\item 1,4,5 -\/ three most selective
+\item 4,5,8 -\/ least ambiguous questions
+\item 0,2,9 -\/ most ambiguous questions
+\item 2,3,8 -\/ least selective ~\newline
+ 
+\end{DoxyItemize}\hypertarget{toggles_syndata}{}\subsection{Synthetic Data Settings}\label{toggles_syndata}
+\mbox{\hyperlink{}{N\+U\+M\+\_\+\+Q\+U\+E\+S\+T\+I\+O\+NS }} -\/ The number of questions/predicates that will be asked of synthetic dataset. ~\newline
+ \mbox{\hyperlink{}{N\+U\+M\+\_\+\+I\+T\+E\+MS }} -\/ The number of items that will be filtered. ~\newline
+ \mbox{\hyperlink{}{switch\+\_\+list }} -\/ A list of tuples representing selectivity and cost of each predicate at different points in time/number of tasks. Selectivity and ambiguity should be between 0 and 1. The appropriate format of each tuple\+: (task number, (select,amb), (select,amb)) ~\newline
+ \hypertarget{toggles_alg}{}\section{Algorithm Settings}\label{toggles_alg}
+\mbox{\hyperlink{}{E\+D\+D\+Y\+\_\+\+S\+YS }} -\/ Selects which algorithm will be used to filter the IP Pairs. (See \char`\"{}\+Algorithm Design\char`\"{} for explanation of the workings of each algorithm.) ~\newline
+Algorithm Guide\+:
+\begin{DoxyItemize}
+\item 1 -\/ Pending Eddy (generation 1)
+\item 2 -\/ Random IP Pair selection
+\item 3 -\/ Controlled Run (for each item, evaluates first one predicate, then another)
+\item 4 -\/ T\+O\+DO\+: What is this?
+\item 5 -\/ Pending Eddy (generation 2)
+\item 6 -\/ Epsilon-\/\+Greedy M\+AB
+\item 7 -\/ Decreasing Epsilon-\/\+Greedy M\+AB
+\item 8 -\/ Full knowledge, proportional
+\item 9 -\/ Best Predicate pick\+: knows selectivities and assigns tasks to most selective
+\item 10 -\/ Worst Predicate pick\+: knows selectivities and assigns tasks to least selective
+\item 11 -\/ Best Pick\+: knows the true value of IP pairs and assign tasks to false IP pairs
+\item 12 -\/ Worst Pick\+: knows the true value of IP pairs and assign tasks to true IP pairs
+\end{DoxyItemize}
+
+~\newline
+\mbox{\hyperlink{}{I\+T\+E\+M\+\_\+\+S\+YS }} -\/ Selects what logic will be used to decide which {\itshape item} to send to a predicate next. ~\newline
+Item System Guide\+:
+\begin{DoxyItemize}
+\item 0 -\/ Randomly choose an item
+\item 1 -\/ Item-\/started system (Items that have already been started will be preferred when choosing an item.)
+\item 2 -\/ Item-\/almost-\/false system (Items that are close to being eliminated from the passing set will be preferred when choosing an item.)
+\item 3 -\/ Item-\/inactive system (Items that has the least number of tasks in the queue will be preferred when choosing an item.)
+\end{DoxyItemize}
+
+\mbox{\hyperlink{}{S\+L\+I\+D\+I\+N\+G\+\_\+\+W\+I\+N\+D\+OW }} -\/ Determines whether \char`\"{}windowing\char`\"{} will be turned on for a Pending Eddy algorithm. (See \char`\"{}\+Algorithm Design\char`\"{} for details on how this works and how it impacts the algorithm overall.) ~\newline
+ \mbox{\hyperlink{}{L\+I\+F\+E\+T\+I\+ME }}-\/ Determines the \char`\"{}size\char`\"{} of the sliding window, measured in completed tasks (if in a non-\/time simulation) or in time steps (for a timed simulation).~\newline
+\mbox{\hyperlink{}{P\+E\+N\+D\+I\+N\+G\+\_\+\+Q\+U\+E\+U\+E\+\_\+\+S\+I\+ZE }} -\/ An integer setting the length of the \char`\"{}queue\char`\"{} for a Pending Eddy system. (See \char`\"{}\+Algorithm Design\char`\"{} to learn about the meaning of this parameter for different algorithm setups.)~\newline
+ \mbox{\hyperlink{}{I\+P\+\_\+\+L\+I\+M\+I\+T\+\_\+\+S\+YS }} -\/ Selects which predicate limit setting will be applied to each item when assigned to each pair. ~\newline
+Predicate Limit Guide\+:
+\begin{DoxyItemize}
+\item 0 -\/ No limit\+: An IP pair can active in any number of predicates.
+\item 1 -\/ Adaptive limit\+: For items that are in queues for more selective predicates, the predicate limit is lower. For items that are in queues for less selective, the predicate limit is higher. The \char`\"{}selectivity\char`\"{} of a predicate is determined by the number of tickets.
+\item 2 -\/ Hard limit\+: The algorithm selects an IP pair, whose item did not reach the I\+T\+E\+M\+\_\+\+I\+P\+\_\+\+L\+I\+M\+IT.
+\item 3 -\/ Soft limit\+: The algorithm selects an IP pair, whose item did not reach the I\+T\+E\+M\+\_\+\+I\+P\+\_\+\+L\+I\+M\+IT. If there is no IP pair to assign, it selects an IP pair that has reached the I\+T\+E\+M\+\_\+\+I\+P\+\_\+\+L\+I\+M\+IT.
+\end{DoxyItemize}
+
+\mbox{\hyperlink{}{I\+T\+E\+M\+\_\+\+I\+P\+\_\+\+L\+I\+M\+IT }} -\/ Maximum number of predicates an item can be in (for hard limit or soft limit, which are I\+T\+E\+M\+\_\+) ~\newline
+ \mbox{\hyperlink{}{A\+D\+A\+P\+T\+I\+V\+E\+\_\+\+Q\+U\+E\+U\+E\+\_\+\+M\+O\+DE }} -\/ Decides the style of adaptive queue to use Adaptive Queue Mode Guide\+:
+\begin{DoxyItemize}
+\item 0 -\/ Increases queue length based on toggles.\+Q\+U\+E\+U\+E\+\_\+\+L\+E\+N\+G\+T\+H\+\_\+\+A\+R\+R\+AY.
+\item 1 -\/ Increases or decreases queue length based on toggles.\+Q\+U\+E\+U\+E\+\_\+\+L\+E\+N\+G\+T\+H\+\_\+\+A\+R\+R\+AY.
+\item 2 -\/ Gives a proportion of toggles.\+Q\+U\+E\+U\+E\+\_\+\+S\+UM to each predicate, based on its proportion of tickets.
+\item 4 -\/ No adaptive queues.
+\end{DoxyItemize}
+
+\mbox{\hyperlink{}{Q\+U\+E\+U\+E\+\_\+\+S\+UM }} -\/ Summed queue length over all predicates used in adaptive queue mode 2
+
+\mbox{\hyperlink{}{Q\+U\+E\+U\+E\+\_\+\+L\+E\+N\+G\+T\+H\+\_\+\+A\+R\+R\+AY }} -\/ A list of tuples of form (\# tickets, queue length); when A\+D\+A\+P\+T\+I\+V\+E\+\_\+\+Q\+U\+E\+U\+E\+\_\+\+M\+O\+DE is less than 4, the algorithm will check whether the number of tickets a predicate has exceeds the \# tickets element of the tuple, and adjust the queue length based on the adaptive queue mode. ~\newline
+ \mbox{\hyperlink{}{A\+C\+T\+I\+V\+E\+\_\+\+T\+A\+S\+K\+S\+\_\+\+A\+R\+R\+AY }} -\/ A list of tuples of form (\# of active pairs, refill limit, task limit); at each time loop, the algorithm will check the number of IP pairs that are still active, and will compare it with the \# of active pairs in each tuple, and set the maximum tasks equal to the the second number in the tuple with the largest \# of active pairs less than the current active pairs set to the second element of the tuple. At any point if active tasks fall below the refill limit, more tasks will be made available (refilled back to task limit). ~\newline
+ \mbox{\hyperlink{}{B\+A\+T\+C\+H\+\_\+\+A\+S\+S\+I\+G\+N\+M\+E\+NT }} -\/ Assigns jobs in batches, then waits for feedback before assigning more. Number of jobs in a batch will be equal to the current max number of active tasks.
+\begin{DoxyItemize}
+\item 0 -\/ Batching off
+\item 1 -\/ Batching based on a refill limit from A\+C\+T\+I\+V\+E\+\_\+\+T\+A\+S\+K\+S\+\_\+\+A\+R\+R\+AY
+\item 2 -\/ Refills batches after regular periods specified in R\+E\+F\+I\+L\+L\+\_\+\+P\+E\+R\+I\+OD
+\end{DoxyItemize}
+
+\mbox{\hyperlink{}{R\+E\+F\+I\+L\+L\+\_\+\+P\+E\+R\+I\+OD }} -\/ if B\+A\+T\+C\+H\+\_\+\+A\+S\+S\+I\+G\+N\+M\+E\+NT is set to 2, algorithm will assign tasks periodically (every time step specified in R\+E\+F\+I\+L\+L\+\_\+\+P\+E\+R\+I\+OD). The batch size is in A\+C\+T\+I\+V\+E\+\_\+\+T\+A\+S\+K\+S\+\_\+\+A\+R\+R\+AY ~\newline
+ \mbox{\hyperlink{}{T\+I\+C\+K\+E\+T\+I\+N\+G\+\_\+\+S\+YS }} -\/ Determines how the ticket is given ~\newline
+
+\begin{DoxyItemize}
+\item 0 -\/ Ticket is given out to IP pair when the task is assigned and returned when the task has returned true
+\item 1 -\/ Ticket is given out to the IP pair whose task has failed
+\end{DoxyItemize}
+
+\mbox{\hyperlink{}{E\+P\+S\+I\+L\+ON }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{R\+E\+W\+A\+RD }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \hypertarget{toggles_voteGetting}{}\section{Consensus Settings}\label{toggles_voteGetting}
+\mbox{\hyperlink{}{N\+U\+M\+\_\+\+C\+E\+R\+T\+A\+I\+N\+\_\+\+V\+O\+T\+ES }} -\/ The number of worker votes collected before votes are aggregated and an answer is recorded (or more votes are collected). ~\newline
+ \mbox{\hyperlink{}{C\+U\+T\+\_\+\+O\+FF }} -\/ The maximum number of worker votes collected before an answer is gathered from the votes by simple majority. ~\newline
+ \mbox{\hyperlink{}{S\+I\+N\+G\+L\+E\+\_\+\+V\+O\+T\+E\+\_\+\+C\+U\+T\+O\+FF }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{B\+A\+Y\+E\+S\+\_\+\+E\+N\+A\+B\+L\+ED }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{U\+N\+C\+E\+R\+T\+A\+I\+N\+T\+Y\+\_\+\+T\+H\+R\+E\+S\+H\+O\+LD }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{F\+A\+L\+S\+E\+\_\+\+T\+H\+R\+E\+S\+H\+O\+LD }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{A\+D\+A\+P\+T\+I\+V\+E\+\_\+\+C\+O\+N\+S\+E\+N\+S\+US }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{A\+D\+A\+P\+T\+I\+V\+E\+\_\+\+C\+O\+N\+S\+E\+N\+S\+U\+S\+\_\+\+M\+O\+DE }} -\/ Selects algorithm that the adaptive consensus uses. ~\newline
+ Consensus Algorithm Options\+: ~\newline
+
+\begin{DoxyItemize}
+\item 1 -\/ R\+E\+NO\+: \mbox{[}\href{https://en.wikipedia.org/wiki/TCP_congestion_control\#TCP_Tahoe_and_Reno}{\texttt{ https\+://en.\+wikipedia.\+org/wiki/\+T\+C\+P\+\_\+congestion\+\_\+control\#\+T\+C\+P\+\_\+\+Tahoe\+\_\+and\+\_\+\+Reno}}\mbox{]}
+\item 2 -\/ T\+A\+H\+OE\+: See reno
+\item 3 -\/ C\+U\+TE\+: \mbox{[}goo.\+gl/etdxtC\mbox{]}
+\item 4 -\/ C\+U\+B\+IC\+: \mbox{[}\href{https://en.wikipedia.org/wiki/CUBIC_TCP}{\texttt{ https\+://en.\+wikipedia.\+org/wiki/\+C\+U\+B\+I\+C\+\_\+\+T\+CP}}\mbox{]}
+\end{DoxyItemize}
+
+\mbox{\hyperlink{}{P\+R\+E\+D\+I\+C\+A\+T\+E\+\_\+\+S\+P\+E\+C\+I\+F\+IC }} -\/ If True, each predicate has its own adaptive Consensus metric. If False, same metric is used for all predicates. Recommended setting\+: True (useful when predicates\textquotesingle{} ambiguities differ from each other.) ~\newline
+ \mbox{\hyperlink{}{C\+O\+N\+S\+E\+N\+S\+U\+S\+\_\+\+S\+T\+A\+T\+U\+S\+\_\+\+L\+I\+M\+I\+TS }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{C\+O\+N\+S\+E\+N\+S\+U\+S\+\_\+\+S\+I\+Z\+E\+\_\+\+L\+I\+M\+I\+TS }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{R\+E\+N\+O\+\_\+\+B\+O\+N\+U\+S\+\_\+\+R\+A\+T\+IO }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{C\+O\+N\+S\+E\+N\+S\+U\+S\+\_\+\+S\+T\+A\+T\+US }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{K }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{W\+\_\+\+M\+AX }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{C\+U\+B\+I\+C\+\_\+C }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{C\+U\+B\+I\+C\+\_\+B }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \hypertarget{toggles_sim}{}\section{Simulation Settings}\label{toggles_sim}
+\mbox{\hyperlink{}{N\+U\+M\+\_\+\+W\+O\+R\+K\+E\+RS }} -\/ The number of unique workers that can be assigned tasks during a simulation. ~\newline
+ \mbox{\hyperlink{}{D\+I\+S\+T\+R\+I\+B\+U\+T\+I\+O\+N\+\_\+\+T\+Y\+PE }} -\/ Tells the function \mbox{\hyperlink{}{pick\+\_\+worker() }} how to choose workers. ~\newline
+Distribution Guide\+:
+\begin{DoxyItemize}
+\item 0 -\/ Uniform Distribution; (all worker equally likely)
+\item 1 -\/ Geometric Distribution; (synthetic graph which fits out data well)
+\item 2 -\/ Real Distribution (samples directly from the real data)
+\end{DoxyItemize}
+
+\mbox{\hyperlink{}{D\+U\+M\+M\+Y\+\_\+\+T\+A\+S\+KS }} -\/ When turned on, \char`\"{}placeholder\char`\"{} tasks will be handed to workers when no IP Pair is available for them to work on, according to the algorithm in use. When turned off, \char`\"{}\+Worker has no tasks to do\char`\"{} will be printed to the screen. ~\newline
+ \mbox{\hyperlink{}{D\+U\+M\+M\+Y\+\_\+\+T\+A\+S\+K\+\_\+\+O\+P\+T\+I\+ON }} -\/ Not currently fully implemented; now, the only option for placeholders is to distribute tasks that are associated with no IP Pair and give no information to the algorithm. ~\newline
+ \mbox{\hyperlink{}{R\+E\+S\+P\+O\+N\+S\+E\+\_\+\+S\+A\+M\+P\+L\+I\+N\+G\+\_\+\+R\+E\+P\+L\+A\+C\+E\+M\+E\+NT }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{N\+U\+M\+\_\+\+S\+IM }} -\/ The number of repetitions of a simulation that will be run with the default toggle settings. ~\newline
+ \mbox{\hyperlink{}{T\+I\+M\+E\+\_\+\+S\+I\+MS }} -\/ Turns on functionality that tracks the computer runtime for various functions within the algorithm run. Useful for identifying functions/processes that are computationally expensive. ~\newline
+ \mbox{\hyperlink{}{S\+I\+M\+U\+L\+A\+T\+E\+\_\+\+T\+I\+ME }} -\/ Turns on ability to simulate time during simulations. With this turned on, multiple tasks can be released at each time step, and tasks take time to complete beforethey are collected. ~\newline
+ \mbox{\hyperlink{}{A\+C\+T\+I\+V\+E\+\_\+\+T\+A\+S\+K\+S\+\_\+\+S\+I\+ZE }} -\/ The size of the array that keeps track of which tasks are in progress during a simulation with simulated time. The larger this number, the more \char`\"{}traffic\char`\"{} our task batch is experiencing. ~\newline
+ \mbox{\hyperlink{}{B\+U\+F\+F\+E\+R\+\_\+\+T\+I\+ME }} -\/ The number of time steps between when a task is added to the active array and when it \char`\"{}starts\char`\"{}. ~\newline
+ \mbox{\hyperlink{}{M\+A\+X\+\_\+\+T\+A\+S\+K\+S\+\_\+\+O\+UT }} -\/ The maximum number of tasks that an IP Pair is allowed to have in the active tasks array at any given point in time. ~\newline
+ \mbox{\hyperlink{}{M\+A\+X\+\_\+\+T\+A\+S\+K\+S\+\_\+\+C\+O\+L\+L\+E\+C\+T\+ED }} -\/ The maximum number of tasks that can be distributed for a given IP Pair in total. ~\newline
+ \mbox{\hyperlink{}{M\+U\+L\+T\+I\+\_\+\+S\+IM }} -\/ Determines whether to run multiple simulations for every configuration in M\+U\+L\+T\+I\+\_\+\+S\+I\+M\+\_\+\+A\+R\+R\+AY. This feature is helpful to run simulations with multiple settings, run multiple simulations for a single setting, and generate helpful graphs, statistics. If this is turned on, it is good to have N\+U\+M\+\_\+\+S\+IM as 0 to prevent from running simulations with default toggle settings and doing unnecessary work in test\+\_\+simulation. G\+E\+N\+\_\+\+G\+R\+A\+PH should be True.
+\begin{DoxyItemize}
+\item For each simulation, it prints active tasks, queue size, and ticket count graphs.
+\item For each setting, it prints multi\+Run\+Stats (that holds number of placeholder tasks, wasted tasks, real tasks (all tasks other than placeholder tasks), time steps, and their mean and standard deviation. It also prints overall tasks routed to each predicate (predicate\+\_\+routing), ticket count of each predicate (ticket\+\_\+count, ticket\+\_\+histogram) precise selectivities of the predicates (precise\+\_\+selectivities).
+\item Over multiple settings, it prints the number of tasks required to complete queries in different settings (task\+\_\+distribution, task\+\_\+histogram). ~\newline
+ \mbox{\hyperlink{}{M\+U\+L\+T\+I\+\_\+\+S\+I\+M\+\_\+\+A\+R\+R\+AY }} -\/ A list of tuples of form
+\item number of simulations for this configuration
+\item switch\+\_\+list
+\item E\+D\+D\+Y\+\_\+\+S\+YS
+\item B\+A\+T\+C\+H\+\_\+\+A\+S\+S\+I\+G\+N\+M\+E\+NT
+\item A\+C\+T\+I\+V\+E\+\_\+\+T\+A\+S\+K\+S\+\_\+\+A\+R\+R\+AY
+\item R\+E\+F\+I\+L\+L\+\_\+\+P\+E\+R\+I\+OD\+: only matters if B\+A\+T\+C\+H\+\_\+\+A\+S\+S\+I\+G\+N\+M\+E\+NT is 2 (periodic batch)
+\item T\+I\+C\+K\+E\+T\+I\+N\+G\+\_\+\+S\+YS
+\item A\+D\+A\+P\+T\+I\+V\+E\+\_\+\+Q\+U\+E\+U\+E\+\_\+\+M\+O\+DE
+\item Q\+U\+E\+U\+E\+\_\+\+L\+E\+N\+G\+T\+H\+\_\+\+A\+R\+R\+AY or P\+E\+N\+D\+I\+N\+G\+\_\+\+Q\+U\+E\+U\+E\+\_\+\+S\+I\+ZE\+: Q\+U\+E\+U\+E\+\_\+\+L\+E\+N\+G\+T\+H\+\_\+\+A\+R\+R\+AY only matters if A\+D\+A\+P\+T\+I\+V\+E\+\_\+\+Q\+U\+E\+U\+E\+\_\+\+M\+O\+DE is 0 or 1
+\item tuple of (I\+P\+\_\+\+L\+I\+M\+I\+T\+\_\+\+S\+YS, I\+T\+E\+M\+\_\+\+I\+P\+\_\+\+L\+I\+M\+IT)\+: I\+T\+E\+M\+\_\+\+I\+P\+\_\+\+L\+I\+M\+IT only matters if I\+P\+\_\+\+L\+I\+M\+I\+T\+\_\+\+S\+YS is 2 or 3 (hard or soft limit) If None is put as a value in the tuple, it will use the last defined value for that toggle.
+\end{DoxyItemize}\hypertarget{toggles_output}{}\section{Output Settings}\label{toggles_output}
+\hypertarget{toggles_file}{}\subsection{File Management}\label{toggles_file}
+\mbox{\hyperlink{}{O\+U\+T\+P\+U\+T\+\_\+\+P\+A\+TH }} -\/ A string pointing toward the desired destination for simulation output files.~\newline
+ \mbox{\hyperlink{}{G\+E\+N\+\_\+\+G\+R\+A\+P\+HS }} -\/ Turn on or off the generation of various graphs associated with collecting various types of data. ~\newline
+ \mbox{\hyperlink{}{P\+A\+C\+K\+I\+NG }} -\/ If turned on, will create a folder named R\+U\+N\+\_\+\+N\+A\+ME that will contain any and all output files, and a file containing all of the settings from toggles.\+py as they were during the simulated runs. ~\newline
+ \hypertarget{toggles_data}{}\subsection{Data Collection About Real Data}\label{toggles_data}
+\mbox{\hyperlink{}{R\+U\+N\+\_\+\+D\+A\+T\+A\+\_\+\+S\+T\+A\+TS }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{R\+U\+N\+\_\+\+A\+V\+E\+R\+A\+G\+E\+\_\+\+C\+O\+ST }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{C\+O\+S\+T\+\_\+\+S\+A\+M\+P\+L\+ES }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{R\+U\+N\+\_\+\+S\+I\+N\+G\+L\+E\+\_\+\+P\+A\+IR }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{S\+I\+N\+G\+L\+E\+\_\+\+P\+A\+I\+R\+\_\+\+R\+U\+NS }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{R\+U\+N\+\_\+\+I\+T\+E\+M\+\_\+\+R\+O\+U\+T\+I\+NG }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{R\+U\+N\+\_\+\+M\+U\+L\+T\+I\+\_\+\+R\+O\+U\+T\+I\+NG }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{R\+U\+N\+\_\+\+O\+P\+T\+I\+M\+A\+L\+\_\+\+S\+IM }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \hypertarget{toggles_data2}{}\subsection{Data Collection About Real/\+Synthetic Data}\label{toggles_data2}
+\mbox{\hyperlink{}{C\+O\+U\+N\+T\+\_\+\+T\+I\+C\+K\+E\+TS }} -\/ T\+O\+DO\+: What does this do?~\newline
+ \mbox{\hyperlink{}{T\+R\+A\+C\+K\+\_\+\+Q\+U\+E\+U\+ES }} -\/ T\+O\+DO\+: What does this do?~\newline
+\mbox{\hyperlink{}{R\+U\+N\+\_\+\+A\+B\+S\+T\+R\+A\+C\+T\+\_\+\+S\+IM }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{A\+B\+S\+T\+R\+A\+C\+T\+\_\+\+V\+A\+R\+I\+A\+B\+LE }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{A\+B\+S\+T\+R\+A\+C\+T\+\_\+\+V\+A\+L\+U\+ES }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{R\+U\+N\+\_\+\+T\+A\+S\+K\+S\+\_\+\+C\+O\+U\+NT }} -\/ Simulates the process of distributing tasks to workers -- actually calls \mbox{\hyperlink{}{run\+\_\+sim() }} ~\newline
+ \mbox{\hyperlink{}{T\+R\+A\+C\+K\+\_\+\+I\+P\+\_\+\+P\+A\+I\+R\+S\+\_\+\+D\+O\+NE }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{T\+R\+A\+C\+K\+\_\+\+A\+C\+T\+I\+V\+E\+\_\+\+T\+A\+S\+KS }} -\/ Keeps track of how many tasks there are for each predicate within the active tasks array. If G\+E\+N\+\_\+\+G\+R\+A\+P\+HS is turned on, this will produce a visual representation of the contents of the active tasks array over the course of a simulation. ~\newline
+ \mbox{\hyperlink{}{T\+R\+A\+C\+K\+\_\+\+P\+L\+A\+C\+E\+H\+O\+L\+D\+E\+RS }} -\/ Keeps a running count of how many placeholder tasks are released over the course of a simulation. ~\newline
+ \mbox{\hyperlink{}{T\+R\+A\+C\+K\+\_\+\+W\+A\+S\+TE }} -\/ Keeps a running count of wasted tasks -\/ number of active tasks that were in a queue when an item was completed ~\newline
+ \mbox{\hyperlink{}{T\+R\+A\+C\+K\+\_\+\+S\+E\+L\+E\+C\+T\+I\+V\+I\+T\+I\+ES }} -\/ Tracks the proportion of IP pairs for a certain predicates whose value is true to the total number of items, in simulated runs. ~\newline
+ \mbox{\hyperlink{}{T\+A\+S\+K\+\_\+\+R\+O\+U\+T\+I\+NG }} -\/ Tracks the number of tasks routed to each predicate over the course of a single simulation A\+ND multiple runs over a single setting ~\newline
+ \mbox{\hyperlink{}{A\+C\+C\+U\+R\+A\+C\+Y\+\_\+\+C\+O\+U\+NT }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{O\+U\+T\+P\+U\+T\+\_\+\+S\+E\+L\+E\+C\+T\+I\+V\+I\+T\+I\+ES }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{O\+U\+T\+P\+U\+T\+\_\+\+C\+O\+ST }} -\/ T\+O\+DO\+: What does this do? ~\newline
+ \mbox{\hyperlink{}{R\+U\+N\+\_\+\+C\+O\+N\+S\+E\+N\+S\+U\+S\+\_\+\+C\+O\+U\+NT }} -\/ Keeps track of the number of tasks needed before consensus for each IP Pair. ~\newline
+ \mbox{\hyperlink{}{C\+O\+N\+S\+E\+N\+S\+U\+S\+\_\+\+L\+O\+C\+A\+T\+I\+O\+N\+\_\+\+S\+T\+A\+TS }} What does this do? ~\newline
+ \mbox{\hyperlink{}{T\+R\+A\+C\+K\+\_\+\+S\+I\+ZE }} What does this do? ~\newline
+ \mbox{\hyperlink{}{V\+O\+T\+E\+\_\+\+G\+R\+ID }} Draws \char`\"{}\+Vote Grids\char`\"{} from many simulations. R\+U\+N\+\_\+\+C\+O\+N\+S\+E\+N\+S\+U\+S\+\_\+\+C\+O\+U\+NT must be on. Works with accuracy. T\+O\+DO\+: What does that mean? ~\newline
+ \mbox{\hyperlink{}{I\+D\+E\+A\+L\+\_\+\+G\+R\+ID }} What does this do? ~\newline
