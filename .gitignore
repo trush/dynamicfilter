@@ -8,6 +8,9 @@ dynamicfilterapp/migrations/*
 joinapp/migrations/*
 html/*
 html/search/*
+docs/html/*
+docs/html/search/*
+docs/latex/*
 latex/*
 AMT/keys.py
 
