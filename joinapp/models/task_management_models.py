@@ -203,7 +203,7 @@ class FindPairsTask(models.Model):
         self.total_time += time
 
         #get join pairs from this task
-        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
+        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self).filter(result = None)
 
         # Find join pair tasks that match each match we found, creating new ones if necessary
         for match in answer:
@@ -216,7 +216,7 @@ class FindPairsTask(models.Model):
                 JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks)
 
         #get join pairs from this task (again)
-        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
+        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self).filter(result = None)
 
         #add votes as necessary, update consensus for each join pair task
         for join_pair_task in join_pair_tasks:
@@ -399,14 +399,14 @@ class PJFTask(models.Model):
     def get_task(self, answer, time):
         # primary item task
         if self.primary_item is not None:
-            pair = ItemPJFPair.objects.filter(primary_item=self.primary_item,pjf=answer)
+            pair = ItemPJFPair.objects.filter(primary_item=self.primary_item).filter(pjf=answer)
             #create a new item pjf pair if it does not exist
             if not pair.exists():
                 ItemPJFPair.objects.create(primary_item=self.primary_item,pjf=answer,pjf_task = self,yes_votes=1,no_votes=self.num_tasks)
             item_pjf_pairs = ItemPJFPair.objects.filter(primary_item=self.primary_item)
         # secondary item task
         elif self.secondary_item is not None:
-            pair = ItemPJFPair.objects.filter(secondary_item=self.secondary_item,pjf=answer)
+            pair = ItemPJFPair.objects.filter(secondary_item=self.secondary_item).filter(pjf=answer)
             #create a new item pjf pair if it does not exist
             if not pair.exists():
                 ItemPJFPair.objects.create(secondary_item=self.secondary_item,pjf=answer,pjf_task = self,yes_votes=1,no_votes = self.num_tasks)

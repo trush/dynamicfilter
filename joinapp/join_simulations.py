@@ -441,6 +441,9 @@ class JoinSimulation():
         assignment_keys = {}
         key_counter = 0
 
+        # for printing stats at end
+        num_join_pairs_assignments = 0
+
         while(PrimaryItem.objects.filter(is_done=False).exists()):
             # pick worker
             worker_id = random.choice(self.worker_ids)
@@ -470,6 +473,7 @@ class JoinSimulation():
                 my_prim_item = task.primary_item.pk
                 my_sec_item = task.secondary_item.name
                 hit = self.JoinPairTasks_Dict[(my_prim_item, my_sec_item)]
+                num_join_pairs_assignments += 1
             elif type(task) is PJFTask:
                 task_type = 3
                 if task.primary_item is not None:
@@ -589,6 +593,8 @@ class JoinSimulation():
         join_selectivity = float(num_prim_pass)/float(PrimaryItem.objects.all().count())
         num_jf_tasks = JFTask.objects.all().count()
         num_find_pairs_tasks = FindPairsTask.objects.all().count()
+        # NOTE: this only works for a static algorithm
+        num_join_pairs_tasks = JoinPairTask.objects.filter(has_same_pjf=True)
         num_sec_pred_tasks = SecPredTask.objects.all().count()
 
         num_jf_assignments = 0
@@ -610,7 +616,9 @@ class JoinSimulation():
         print "* Total number of tasks processed:", self.num_tasks_completed
         print "* # of joinable-filter tasks:", num_jf_tasks, "# of joinable-filter assignments:", num_jf_assignments
         print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments
+        print "* # of join pairs tasks:", num_join_pairs_tasks, "# of join pairs assignments:", num_join_pairs_assignments
         print "* # of secondary predicate tasks:", num_sec_pred_tasks, "# secondary predicate assignments:", num_sec_pred_assignments
+        print "* # of secondary items found:", SecondaryItem.objects.all().count(), " out of ", toggles.NUM_SEC_ITEMS, " total secondary items"
         print ""
         if REAL_DATA is True:
             self.accuracy_real_data() #does its own printing
