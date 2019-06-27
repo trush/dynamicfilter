@@ -68,6 +68,7 @@ def choose_task_IW2(workerID, estimator):
 def choose_task_PJF(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
     if not estimator.has_2nd_list:
+        print "enumerating"
         prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
         return choose_task_find_pairs(prim_items_left, new_worker)
 
@@ -131,19 +132,20 @@ def choose_task_find_pairs(prim_items_list,worker):
     #TODO: Toggle for in_progress if-statement?
     #NOTE: IF WE DON"T WANT IN PROGRESS FOR FIND PAIRS, COMMENT OUT IF STATEMENT
     #      AND HAVE THE FUNCTION JUST BE WHAT"S INSIDE THE ELSE STATEMENT AND THE STUFF AFTER
-    if FindPairsTask.objects.filter(in_progress=True).exists():
-        #Possible bugs with concurrency (multiple tasks in progress)
-        find_pairs_task = FindPairsTask.objects.get(in_progress=True)
-    else:
-        prim_item = prim_items_list.order_by('?').first() # random primary item
-        find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
-        prims_left = PrimaryItem.objects.all()
 
-        # choose new primary item if the random one has reached consensus or if worker has worked on it
-        while find_pairs_task.consensus == True: # TODO: implement this: or worker in find_pairs_task.workers.all():
-            prims_left = prims_left.exclude(pk=prim_item.pk)
-            prim_item = prims_left.order_by('?').first()
-            find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
+    # if FindPairsTask.objects.filter(in_progress=True).exists():
+    #     #Possible bugs with concurrency (multiple tasks in progress)
+    #     find_pairs_task = FindPairsTask.objects.get(in_progress=True)
+    # else:
+    prim_item = prim_items_list.order_by('?').first() # random primary item
+    find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
+    prims_left = PrimaryItem.objects.all()
+
+    # choose new primary item if the random one has reached consensus or if worker has worked on it
+    while find_pairs_task.consensus == True: # TODO: implement this: or worker in find_pairs_task.workers.all():
+        prims_left = prims_left.exclude(pk=prim_item.pk)
+        prim_item = prims_left.order_by('?').first()
+        find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
     find_pairs_task.workers.add(worker)
     find_pairs_task.save()
     return find_pairs_task
