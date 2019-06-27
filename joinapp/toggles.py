@@ -20,12 +20,6 @@ NO_VOTES_THRESHOLD = 15
 YES_VOTES_FRACTION = 0.33
 NO_VOTES_FRACTION = 0.66
 
-# used in syn_load_find_pairs_tasks
-# to determine how many secondary items each primary item is going to be matched with 
-    #MEAN_SEC_PER_PRIM = 4 #dep
-    #D_SEC_PER_PRIM = 0 #dep
-    #PROB_NONE_SECONDARY = 0.25 #dep
-
 
 #________ For Real Data ________#
 INPUT_PATH = ''
@@ -39,7 +33,7 @@ REAL_DATA = False # real or synthetic data
 JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 10 # number of simulations to run
-PROB_CHOOSING_TRUE_SEC_ITEM = 1
+PROB_CHOOSING_TRUE_SEC_ITEM = 0.9
 SIMULATE_TIME = False
 TIME_STEP = 1
 

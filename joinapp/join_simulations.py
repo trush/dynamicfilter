@@ -264,8 +264,10 @@ class JoinSimulation():
 
         #___ Find Pairs Accuracy ___#
         if JOIN_TYPE is 1:
-            total_missed = 0
-            total_extra = 0
+            false_negatives = 0
+            true_positives = 0
+            false_positives = 0
+            true_negatives =0
             for prim in PrimaryItem.objects.all():
                 found_list = []
                 for sec in prim.secondary_items.all():
@@ -274,13 +276,17 @@ class JoinSimulation():
                 true_list = parse_pairs(self.FindPairsTasks_Dict[prim.pk][3])
                 for item in true_list:
                     if item not in found_list:
-                        total_missed += 1
+                        false_negatives += 1
+                    else:
+                        true_positives += 1
+
                 for item in found_list:
                     if item not in true_list:
-                        total_extra += 1
+                        false_positives += 1
+                true_negatives += (len(FAKE_SEC_ITEM_LIST) - false_positives)
             print ""
-            print "We missed " + str(total_missed) + " secondary items"
-            print "We had " + str(total_extra) + " extra items" 
+            print "We missed " + str(false_negatives) + " secondary items"
+            print "We had " + str(false_positives) + " extra items" 
 
         
         print "" #newline
@@ -294,7 +300,9 @@ class JoinSimulation():
             if prim.eval_result is ground_truth:
                 correct_prim_items += 1
         self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
-        
+        # AMBER ADDED FOR TESTIING 
+        prim_accuracy = float(correct_prim_items) / float(PrimaryItem.objects.all().count())
+        return prim_accuracy,false_negatives, true_positives, false_positives, true_negatives
 
 
 
@@ -369,36 +377,61 @@ class JoinSimulation():
 
     ## @brief runs run_sim with the same settings NUM_SIMS times
     def run_multi_sims(self): #TODO RESET THIS
-        results_list = []
-        join_selectivity_arr = []
-        num_jf_assignments_arr = []
-        num_find_pairs_assignments_arr = []
-        num_sec_pred_assignments_arr = []
-        time_arr = []
-        total_assignments_arr = []
-        num_prim_left_arr = []
+        # results_list = []
+        # join_selectivity_arr = []
+        # num_jf_assignments_arr = []
+        # num_find_pairs_assignments_arr = []
+        # num_sec_pred_assignments_arr = []
+        # time_arr = []
+        # total_assignments_arr = []
+        # num_prim_left_arr = []
+        prim_accuracy = []
+        false_negatives = []
+        true_positives = []
+        false_positives = []
+        true_negatives = []
+        task_num = []
 
         # results list is a list of tuples in the form (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
         for i in range(toggles.NUM_SIMS):
             results = self.run_sim()
             print "---------------------------------------------------------------------"
-            results_list.append(results)
-            join_selectivity_arr.append(results[0])
-            num_jf_assignments_arr.append(results[1])
-            num_find_pairs_assignments_arr.append(results[2])
-            num_sec_pred_assignments_arr.append(results[3])
-            time_arr.append(results[4])
-            total_assignments_arr.append(results[5])
-            num_prim_left_arr.append(self.num_prim_left)
+            prim_accuracy.append(results[0])
+            false_negatives.append(results[1])
+            true_positives.append(results[2])
+            false_positives.append(results[3])
+            true_negatives.append(results[4])
+            task_num.append(results[5])
+
+            # results_list.append(results)
+            # join_selectivity_arr.append(results[0])
+            # num_jf_assignments_arr.append(results[1])
+            # num_find_pairs_assignments_arr.append(results[2])
+            # num_sec_pred_assignments_arr.append(results[3])
+            # time_arr.append(results[4])
+            # total_assignments_arr.append(results[5])
+            # num_prim_left_arr.append(self.num_prim_left)
             
             self.reset_database()
             #more processing happens here
-        print "Times:", time_arr
-        print "Find Pairs Assignments:", num_find_pairs_assignments_arr
-        print "Sec Pred Assignments:", num_sec_pred_assignments_arr
+        print "prim_accuracy", np.mean(prim_accuracy)
+        print "false_negatives", np.mean(false_negatives)
+        print "true_positives", np.mean(true_positives)
+        print "false_positives", np.mean(false_positives)
+        print "true_negatives", np.mean(true_negatives)
+        print "find pairs", np.mean(task_num)
+
+        precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
+        recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
+        print ""
+        print "precision:", precision
+        print "recall:", recall
+        # print "Times:", time_arr
+        # print "Find Pairs Assignments:", num_find_pairs_assignments_arr
+        # print "Sec Pred Assignments:", num_sec_pred_assignments_arr
         #more stuff happens here
 
-        return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr, num_prim_left_arr)
+        #return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr, num_prim_left_arr)
 
     ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
     def run_sim(self):
@@ -580,7 +613,7 @@ class JoinSimulation():
         #             i -= 1
 
         #         print ""
-        #         print "Mean primary per secondary:", np.mean(overlap_list)
+        #         print "np.mean primary per secondary:", np.mean(overlap_list)
         #         print "Standard deviation primary per secondary:", np.std(overlap_list)
         #         print ""
 
@@ -615,6 +648,7 @@ class JoinSimulation():
         if REAL_DATA is True:
             self.accuracy_real_data() #does its own printing
         else:
-            self.accuracy_syn_data() #does its own printing
-        return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
-        
+            #self.accuracy_syn_data() #does its own printing
+            accuracy_info = self.accuracy_syn_data() #does its own printing
+        #return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
+        return accuracy_info[0],accuracy_info[1],accuracy_info[2], accuracy_info[3],accuracy_info[4],num_find_pairs_assignments

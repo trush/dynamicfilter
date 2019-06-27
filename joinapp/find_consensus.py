@@ -1,7 +1,7 @@
 import toggles
 
 from scipy.special import btdtr
-
+"""
 #_____FIND CONSENSUS_____#
 
 ## @brief determines if an task has reached consensus or not (and what that consensus is)
@@ -43,4 +43,32 @@ def find_consensus(item):
     else:
         # item.ambiguity = "No Consensus"
         return None    
+
+
+#_________________________ VOTE THRESHOLD FIND CONSENSUS _________________________#
+def find_consensus(item):
+    if item.yes_votes >= toggles.YES_VOTES_THRESHOLD:
+        consensus = True
+    elif item.no_votes >= toggles.NO_VOTES_THRESHOLD:
+        consensus = False
+    else:
+        consensus = None
+    return consensus
+
+
+"""
+#_________________________ VOTE FRACTION FIND CONSENSUS _________________________#
+def find_consensus(item):
+    if item.yes_votes + item.no_votes >= 15:
+        yes = float(item.yes_votes)/float(item.yes_votes + item.no_votes)
+        no = float(item.no_votes)/float(item.no_votes + item.yes_votes)
+        if yes >= toggles.YES_VOTES_FRACTION:
+            consensus = True
+        elif no >= toggles.NO_VOTES_FRACTION:
+            consensus = False
+        else:
+            consensus = None
+        return consensus
+    else:
+        return None
 
