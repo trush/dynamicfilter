@@ -264,10 +264,15 @@ class JoinSimulation():
 
         #___ Find Pairs Accuracy ___#
         if JOIN_TYPE is 1:
+<<<<<<< HEAD
             false_negatives = 0
             true_positives = 0
             false_positives = 0
             true_negatives =0
+=======
+            total_missed = 0
+            total_extra = 0
+>>>>>>> bea26d65574717578b31e4b731f9c39c9c26bbcc
             for prim in PrimaryItem.objects.all():
                 found_list = []
                 for sec in prim.secondary_items.all():
@@ -276,6 +281,7 @@ class JoinSimulation():
                 true_list = parse_pairs(self.FindPairsTasks_Dict[prim.pk][3])
                 for item in true_list:
                     if item not in found_list:
+<<<<<<< HEAD
                         false_negatives += 1
                     else:
                         true_positives += 1
@@ -287,6 +293,15 @@ class JoinSimulation():
             print ""
             print "We missed " + str(false_negatives) + " secondary items"
             print "We had " + str(false_positives) + " extra items" 
+=======
+                        total_missed += 1
+                for item in found_list:
+                    if item not in true_list:
+                        total_extra += 1
+            print ""
+            print "We missed " + str(total_missed) + " secondary items"
+            print "We had " + str(total_extra) + " extra items" 
+>>>>>>> bea26d65574717578b31e4b731f9c39c9c26bbcc
 
         
         print "" #newline
@@ -300,9 +315,13 @@ class JoinSimulation():
             if prim.eval_result is ground_truth:
                 correct_prim_items += 1
         self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
+<<<<<<< HEAD
         # AMBER ADDED FOR TESTIING 
         prim_accuracy = float(correct_prim_items) / float(PrimaryItem.objects.all().count())
         return prim_accuracy,false_negatives, true_positives, false_positives, true_negatives
+=======
+        
+>>>>>>> bea26d65574717578b31e4b731f9c39c9c26bbcc
 
 
 
@@ -474,6 +493,9 @@ class JoinSimulation():
         assignment_keys = {}
         key_counter = 0
 
+        # for printing stats at end
+        num_join_pairs_assignments = 0
+
         while(PrimaryItem.objects.filter(is_done=False).exists()):
             # pick worker
             worker_id = random.choice(self.worker_ids)
@@ -503,6 +525,7 @@ class JoinSimulation():
                 my_prim_item = task.primary_item.pk
                 my_sec_item = task.secondary_item.name
                 hit = self.JoinPairTasks_Dict[(my_prim_item, my_sec_item)]
+                num_join_pairs_assignments += 1
             elif type(task) is PJFTask:
                 task_type = 3
                 if task.primary_item is not None:
@@ -613,7 +636,7 @@ class JoinSimulation():
         #             i -= 1
 
         #         print ""
-        #         print "np.mean primary per secondary:", np.mean(overlap_list)
+        #         print "Mean primary per secondary:", np.mean(overlap_list)
         #         print "Standard deviation primary per secondary:", np.std(overlap_list)
         #         print ""
 
@@ -622,6 +645,8 @@ class JoinSimulation():
         join_selectivity = float(num_prim_pass)/float(PrimaryItem.objects.all().count())
         num_jf_tasks = JFTask.objects.all().count()
         num_find_pairs_tasks = FindPairsTask.objects.all().count()
+        # NOTE: this only works for a static algorithm
+        num_join_pairs_tasks = JoinPairTask.objects.filter(has_same_pjf=True)
         num_sec_pred_tasks = SecPredTask.objects.all().count()
 
         num_jf_assignments = 0
@@ -643,7 +668,9 @@ class JoinSimulation():
         print "* Total number of tasks processed:", self.num_tasks_completed
         print "* # of joinable-filter tasks:", num_jf_tasks, "# of joinable-filter assignments:", num_jf_assignments
         print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments
+        print "* # of join pairs tasks:", num_join_pairs_tasks, "# of join pairs assignments:", num_join_pairs_assignments
         print "* # of secondary predicate tasks:", num_sec_pred_tasks, "# secondary predicate assignments:", num_sec_pred_assignments
+        print "* # of secondary items found:", SecondaryItem.objects.all().count(), " out of ", toggles.NUM_SEC_ITEMS, " total secondary items"
         print ""
         if REAL_DATA is True:
             self.accuracy_real_data() #does its own printing
