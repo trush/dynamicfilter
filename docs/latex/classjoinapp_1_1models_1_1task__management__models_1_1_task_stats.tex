@@ -1,0 +1,163 @@
+\hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats}{}\section{Task\+Stats Class Reference}
+\label{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats}\index{TaskStats@{TaskStats}}
+
+
+Model representing types of tasks and the statistics we need to store for each type.  
+
+
+
+
+Inherits Model.
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a23e8041ce1015febe4fdace3225714f9}{\+\_\+\+\_\+str\+\_\+\+\_\+}} (self)
+\begin{DoxyCompactList}\small\item\em To-\/string method. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a1215690580b8f987fcd20c3ac313fdfd}{set\+\_\+type\+\_\+of\+\_\+task}} (self, type\+Of\+Task)
+\begin{DoxyCompactList}\small\item\em Sets task type. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a874fc59d510f25a4bea891ea44e76774}{update\+\_\+stats}} (self, \mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a6ce3360f2586a441b79b1053cfd2769c}{cost}}, answer)
+\begin{DoxyCompactList}\small\item\em Updates the selectivity and cost of a task. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_ab8d9e3d1f9fdf95a31d7b4ce32768eab}{task\+\_\+type}} = models.\+Integer\+Field(default=0)
+\begin{DoxyCompactList}\small\item\em 0 = joinable filter task ~\newline
+ 1 = find pairs task ~\newline
+ 2 = join pairs task ~\newline
+ 3 = pre-\/join filter task ~\newline
+ 4 = secondary predicate task \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a6ce3360f2586a441b79b1053cfd2769c}{cost}} = models.\+Float\+Field(default=0)
+\begin{DoxyCompactList}\small\item\em the amount of time it takes to complete a task \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a829ec2b8120035f51c97cc32f217e148}{ambiguity}} = models.\+Float\+Field(default=0)
+\begin{DoxyCompactList}\small\item\em when ambiguity is 0, workers answer correctly 100\% of time and randomly 0\% of time ~\newline
+ when ambiguity is 0.\+5, workers answer correctly 50\% of time and randomly 50\% of time \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_af0e245c39a758c26c7eadd206d81ae15}{selectivity}} = models.\+Float\+Field(default=0)
+\begin{DoxyCompactList}\small\item\em when selectivity is 0, no items pass ~\newline
+ when selectivity is 1, all items pass \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_abb284c412bd3c66808995bf072f99dbd}{avg\+\_\+num\+\_\+pairs}} = models.\+Integer\+Field(default=0)
+\begin{DoxyCompactList}\small\item\em for item-\/wise join -\/ average number of pairs per primary item \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a1886f706160a9658431d6e804129890a}{num\+\_\+processed}} = models.\+Integer\+Field(default=0)
+\begin{DoxyCompactList}\small\item\em number of assignments processed for a task \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Model representing types of tasks and the statistics we need to store for each type. 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a23e8041ce1015febe4fdace3225714f9}\label{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a23e8041ce1015febe4fdace3225714f9}} 
+\index{TaskStats@{TaskStats}!\_\_str\_\_@{\_\_str\_\_}}
+\index{\_\_str\_\_@{\_\_str\_\_}!TaskStats@{TaskStats}}
+\subsubsection{\texorpdfstring{\_\_str\_\_()}{\_\_str\_\_()}}
+{\footnotesize\ttfamily def \+\_\+\+\_\+str\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+To-\/string method. 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a1215690580b8f987fcd20c3ac313fdfd}\label{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a1215690580b8f987fcd20c3ac313fdfd}} 
+\index{TaskStats@{TaskStats}!set\_type\_of\_task@{set\_type\_of\_task}}
+\index{set\_type\_of\_task@{set\_type\_of\_task}!TaskStats@{TaskStats}}
+\subsubsection{\texorpdfstring{set\_type\_of\_task()}{set\_type\_of\_task()}}
+{\footnotesize\ttfamily def set\+\_\+type\+\_\+of\+\_\+task (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{type\+Of\+Task }\end{DoxyParamCaption})}
+
+
+
+Sets task type. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em type\+Of\+Task} & An integer representing the type of task this is \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a874fc59d510f25a4bea891ea44e76774}\label{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a874fc59d510f25a4bea891ea44e76774}} 
+\index{TaskStats@{TaskStats}!update\_stats@{update\_stats}}
+\index{update\_stats@{update\_stats}!TaskStats@{TaskStats}}
+\subsubsection{\texorpdfstring{update\_stats()}{update\_stats()}}
+{\footnotesize\ttfamily def update\+\_\+stats (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{cost,  }\item[{}]{answer }\end{DoxyParamCaption})}
+
+
+
+Updates the selectivity and cost of a task. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em cost} & The cost of the incoming response \\
+\hline
+{\em answer} & The answer of the incoming response (a 1 or 0 for tasks 0,3,and 4; a string for tasks 1 and 2) \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a829ec2b8120035f51c97cc32f217e148}\label{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a829ec2b8120035f51c97cc32f217e148}} 
+\index{TaskStats@{TaskStats}!ambiguity@{ambiguity}}
+\index{ambiguity@{ambiguity}!TaskStats@{TaskStats}}
+\subsubsection{\texorpdfstring{ambiguity}{ambiguity}}
+{\footnotesize\ttfamily ambiguity = models.\+Float\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+when ambiguity is 0, workers answer correctly 100\% of time and randomly 0\% of time ~\newline
+ when ambiguity is 0.\+5, workers answer correctly 50\% of time and randomly 50\% of time 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_abb284c412bd3c66808995bf072f99dbd}\label{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_abb284c412bd3c66808995bf072f99dbd}} 
+\index{TaskStats@{TaskStats}!avg\_num\_pairs@{avg\_num\_pairs}}
+\index{avg\_num\_pairs@{avg\_num\_pairs}!TaskStats@{TaskStats}}
+\subsubsection{\texorpdfstring{avg\_num\_pairs}{avg\_num\_pairs}}
+{\footnotesize\ttfamily avg\+\_\+num\+\_\+pairs = models.\+Integer\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+for item-\/wise join -\/ average number of pairs per primary item 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a6ce3360f2586a441b79b1053cfd2769c}\label{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a6ce3360f2586a441b79b1053cfd2769c}} 
+\index{TaskStats@{TaskStats}!cost@{cost}}
+\index{cost@{cost}!TaskStats@{TaskStats}}
+\subsubsection{\texorpdfstring{cost}{cost}}
+{\footnotesize\ttfamily cost = models.\+Float\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+the amount of time it takes to complete a task 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a1886f706160a9658431d6e804129890a}\label{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_a1886f706160a9658431d6e804129890a}} 
+\index{TaskStats@{TaskStats}!num\_processed@{num\_processed}}
+\index{num\_processed@{num\_processed}!TaskStats@{TaskStats}}
+\subsubsection{\texorpdfstring{num\_processed}{num\_processed}}
+{\footnotesize\ttfamily num\+\_\+processed = models.\+Integer\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+number of assignments processed for a task 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_af0e245c39a758c26c7eadd206d81ae15}\label{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_af0e245c39a758c26c7eadd206d81ae15}} 
+\index{TaskStats@{TaskStats}!selectivity@{selectivity}}
+\index{selectivity@{selectivity}!TaskStats@{TaskStats}}
+\subsubsection{\texorpdfstring{selectivity}{selectivity}}
+{\footnotesize\ttfamily selectivity = models.\+Float\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+when selectivity is 0, no items pass ~\newline
+ when selectivity is 1, all items pass 
+
+\mbox{\Hypertarget{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_ab8d9e3d1f9fdf95a31d7b4ce32768eab}\label{classjoinapp_1_1models_1_1task__management__models_1_1_task_stats_ab8d9e3d1f9fdf95a31d7b4ce32768eab}} 
+\index{TaskStats@{TaskStats}!task\_type@{task\_type}}
+\index{task\_type@{task\_type}!TaskStats@{TaskStats}}
+\subsubsection{\texorpdfstring{task\_type}{task\_type}}
+{\footnotesize\ttfamily task\+\_\+type = models.\+Integer\+Field(default=0)\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+0 = joinable filter task ~\newline
+ 1 = find pairs task ~\newline
+ 2 = join pairs task ~\newline
+ 3 = pre-\/join filter task ~\newline
+ 4 = secondary predicate task 
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+joinapp/models/\mbox{\hyperlink{task__management__models_8py}{task\+\_\+management\+\_\+models.\+py}}\end{DoxyCompactItemize}

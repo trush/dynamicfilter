@@ -1,0 +1,164 @@
+\hypertarget{namespacejoinapp_1_1synthetic__data}{}\section{joinapp.\+synthetic\+\_\+data Namespace Reference}
+\label{namespacejoinapp_1_1synthetic__data}\index{joinapp.synthetic\_data@{joinapp.synthetic\_data}}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1synthetic__data_a0d5f2eaec09d1edc8531ab9f8c85f7f0}{syn\+\_\+load\+\_\+list}} ()
+\begin{DoxyCompactList}\small\item\em Load/create instances of the primary list. \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1synthetic__data_a14be15b18ecf80f61e02b26f86262041}{syn\+\_\+load\+\_\+find\+\_\+pairs\+\_\+tasks}} (Find\+Pairs\+Tasks\+\_\+\+Dict)
+\begin{DoxyCompactList}\small\item\em Populates the Find\+Pairs\+Tasks\+\_\+\+Dict with find pair tasks (one for each primary item) keys\+: primary item pk values\+: (primary item pk, \char`\"{}\+N\+A\char`\"{}, task time, ground truth) \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1synthetic__data_abc7c245396b8cec18cd7217cfc3d9be7}{syn\+\_\+load\+\_\+joinable\+\_\+filter\+\_\+tasks}} (J\+F\+Tasks\+\_\+\+Dict)
+\begin{DoxyCompactList}\small\item\em Populates the J\+F\+Tasks\+\_\+\+Dict with joinable filter tasks (one for each primary item) keys\+: primary item pk values\+: (primary item pk, \char`\"{}\+N\+A\char`\"{}, task time, ground truth) \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1synthetic__data_ad810e597b5840cec557a1878d90c6589}{syn\+\_\+load\+\_\+sec\+\_\+pred\+\_\+tasks}} (Sec\+Pred\+Tasks\+\_\+\+Dict)
+\begin{DoxyCompactList}\small\item\em Populates the Sec\+Pred\+Tasks\+\_\+\+Dict with secondary predicate tasks (one for each secondary item) keys\+: secondary item number values\+: (\char`\"{}\+N\+A\char`\"{}, secondary item name, task time, ground truth) \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1synthetic__data_a18d0c22966d3c7e8bd7d8d79f95f8a02}{syn\+\_\+load\+\_\+join\+\_\+pair\+\_\+tasks}} (Join\+Pair\+Tasks\+\_\+\+Dict)
+\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1synthetic__data_acca01c05ef215c902a6bef7f8a2cf461}{syn\+\_\+answer\+\_\+find\+\_\+pairs\+\_\+task}} (answer, time, hit)
+\begin{DoxyCompactList}\small\item\em gives a worker response to a find pairs task based on a Find\+Pairs\+Tasks\+\_\+\+Dict hit \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1synthetic__data_ac76596b09f4f089a86c41525ae9fc069}{syn\+\_\+answer\+\_\+joinable\+\_\+filter\+\_\+task}} (answer, time, hit)
+\begin{DoxyCompactList}\small\item\em gives a worker response to a joinable filter task based on a J\+F\+Tasks\+\_\+\+Dict hit \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1synthetic__data_a0dab322f06917c77e4a5061b9e70474a}{syn\+\_\+answer\+\_\+sec\+\_\+pred\+\_\+task}} (answer, time, hit)
+\begin{DoxyCompactList}\small\item\em gives a worker response to a secondary predicate task based on a Sec\+Pred\+Tasks\+\_\+\+Dict hit \end{DoxyCompactList}\item 
+def \mbox{\hyperlink{namespacejoinapp_1_1synthetic__data_a5085597abd3e5d1c9a0487ffeef2d142}{syn\+\_\+answer\+\_\+join\+\_\+pair\+\_\+task}} (answer, time, hit)
+\begin{DoxyCompactList}\small\item\em gives a worker response to a join pair task based on a Join\+Pair\+Tasks\+\_\+\+Dict hit \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{namespacejoinapp_1_1synthetic__data_acca01c05ef215c902a6bef7f8a2cf461}\label{namespacejoinapp_1_1synthetic__data_acca01c05ef215c902a6bef7f8a2cf461}} 
+\index{joinapp.synthetic\_data@{joinapp.synthetic\_data}!syn\_answer\_find\_pairs\_task@{syn\_answer\_find\_pairs\_task}}
+\index{syn\_answer\_find\_pairs\_task@{syn\_answer\_find\_pairs\_task}!joinapp.synthetic\_data@{joinapp.synthetic\_data}}
+\subsubsection{\texorpdfstring{syn\_answer\_find\_pairs\_task()}{syn\_answer\_find\_pairs\_task()}}
+{\footnotesize\ttfamily def joinapp.\+synthetic\+\_\+data.\+syn\+\_\+answer\+\_\+find\+\_\+pairs\+\_\+task (\begin{DoxyParamCaption}\item[{}]{answer,  }\item[{}]{time,  }\item[{}]{hit }\end{DoxyParamCaption})}
+
+
+
+gives a worker response to a find pairs task based on a Find\+Pairs\+Tasks\+\_\+\+Dict hit 
+
+
+\begin{DoxyParams}{Parameters}
+{\em answer} & placeholder answer to be filled out by this function \\
+\hline
+{\em time} & placeholder time to be filled out by this function \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacejoinapp_1_1synthetic__data_a5085597abd3e5d1c9a0487ffeef2d142}\label{namespacejoinapp_1_1synthetic__data_a5085597abd3e5d1c9a0487ffeef2d142}} 
+\index{joinapp.synthetic\_data@{joinapp.synthetic\_data}!syn\_answer\_join\_pair\_task@{syn\_answer\_join\_pair\_task}}
+\index{syn\_answer\_join\_pair\_task@{syn\_answer\_join\_pair\_task}!joinapp.synthetic\_data@{joinapp.synthetic\_data}}
+\subsubsection{\texorpdfstring{syn\_answer\_join\_pair\_task()}{syn\_answer\_join\_pair\_task()}}
+{\footnotesize\ttfamily def joinapp.\+synthetic\+\_\+data.\+syn\+\_\+answer\+\_\+join\+\_\+pair\+\_\+task (\begin{DoxyParamCaption}\item[{}]{answer,  }\item[{}]{time,  }\item[{}]{hit }\end{DoxyParamCaption})}
+
+
+
+gives a worker response to a join pair task based on a Join\+Pair\+Tasks\+\_\+\+Dict hit 
+
+\begin{DoxyRemark}{Remarks}
+Not used in current implementation 
+\end{DoxyRemark}
+
+\begin{DoxyParams}{Parameters}
+{\em answer} & placeholder answer to be filled out by this function \\
+\hline
+{\em time} & placeholder time to be filled out by this function \begin{DoxyVerb}gives a worker answer to a join pair task based on a JoinPairTasks_Dict hit
+\end{DoxyVerb}
+ \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacejoinapp_1_1synthetic__data_ac76596b09f4f089a86c41525ae9fc069}\label{namespacejoinapp_1_1synthetic__data_ac76596b09f4f089a86c41525ae9fc069}} 
+\index{joinapp.synthetic\_data@{joinapp.synthetic\_data}!syn\_answer\_joinable\_filter\_task@{syn\_answer\_joinable\_filter\_task}}
+\index{syn\_answer\_joinable\_filter\_task@{syn\_answer\_joinable\_filter\_task}!joinapp.synthetic\_data@{joinapp.synthetic\_data}}
+\subsubsection{\texorpdfstring{syn\_answer\_joinable\_filter\_task()}{syn\_answer\_joinable\_filter\_task()}}
+{\footnotesize\ttfamily def joinapp.\+synthetic\+\_\+data.\+syn\+\_\+answer\+\_\+joinable\+\_\+filter\+\_\+task (\begin{DoxyParamCaption}\item[{}]{answer,  }\item[{}]{time,  }\item[{}]{hit }\end{DoxyParamCaption})}
+
+
+
+gives a worker response to a joinable filter task based on a J\+F\+Tasks\+\_\+\+Dict hit 
+
+
+\begin{DoxyParams}{Parameters}
+{\em answer} & placeholder answer to be filled out by this function \\
+\hline
+{\em time} & placeholder time to be filled out by this function \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacejoinapp_1_1synthetic__data_a0dab322f06917c77e4a5061b9e70474a}\label{namespacejoinapp_1_1synthetic__data_a0dab322f06917c77e4a5061b9e70474a}} 
+\index{joinapp.synthetic\_data@{joinapp.synthetic\_data}!syn\_answer\_sec\_pred\_task@{syn\_answer\_sec\_pred\_task}}
+\index{syn\_answer\_sec\_pred\_task@{syn\_answer\_sec\_pred\_task}!joinapp.synthetic\_data@{joinapp.synthetic\_data}}
+\subsubsection{\texorpdfstring{syn\_answer\_sec\_pred\_task()}{syn\_answer\_sec\_pred\_task()}}
+{\footnotesize\ttfamily def joinapp.\+synthetic\+\_\+data.\+syn\+\_\+answer\+\_\+sec\+\_\+pred\+\_\+task (\begin{DoxyParamCaption}\item[{}]{answer,  }\item[{}]{time,  }\item[{}]{hit }\end{DoxyParamCaption})}
+
+
+
+gives a worker response to a secondary predicate task based on a Sec\+Pred\+Tasks\+\_\+\+Dict hit 
+
+
+\begin{DoxyParams}{Parameters}
+{\em answer} & placeholder answer to be filled out by this function \\
+\hline
+{\em time} & placeholder time to be filled out by this function \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacejoinapp_1_1synthetic__data_a14be15b18ecf80f61e02b26f86262041}\label{namespacejoinapp_1_1synthetic__data_a14be15b18ecf80f61e02b26f86262041}} 
+\index{joinapp.synthetic\_data@{joinapp.synthetic\_data}!syn\_load\_find\_pairs\_tasks@{syn\_load\_find\_pairs\_tasks}}
+\index{syn\_load\_find\_pairs\_tasks@{syn\_load\_find\_pairs\_tasks}!joinapp.synthetic\_data@{joinapp.synthetic\_data}}
+\subsubsection{\texorpdfstring{syn\_load\_find\_pairs\_tasks()}{syn\_load\_find\_pairs\_tasks()}}
+{\footnotesize\ttfamily def joinapp.\+synthetic\+\_\+data.\+syn\+\_\+load\+\_\+find\+\_\+pairs\+\_\+tasks (\begin{DoxyParamCaption}\item[{}]{Find\+Pairs\+Tasks\+\_\+\+Dict }\end{DoxyParamCaption})}
+
+
+
+Populates the Find\+Pairs\+Tasks\+\_\+\+Dict with find pair tasks (one for each primary item) keys\+: primary item pk values\+: (primary item pk, \char`\"{}\+N\+A\char`\"{}, task time, ground truth) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Find\+Pairs\+Tasks\+\_\+\+Dict} & simulation dictionary for find-\/pairs tasks \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacejoinapp_1_1synthetic__data_a18d0c22966d3c7e8bd7d8d79f95f8a02}\label{namespacejoinapp_1_1synthetic__data_a18d0c22966d3c7e8bd7d8d79f95f8a02}} 
+\index{joinapp.synthetic\_data@{joinapp.synthetic\_data}!syn\_load\_join\_pair\_tasks@{syn\_load\_join\_pair\_tasks}}
+\index{syn\_load\_join\_pair\_tasks@{syn\_load\_join\_pair\_tasks}!joinapp.synthetic\_data@{joinapp.synthetic\_data}}
+\subsubsection{\texorpdfstring{syn\_load\_join\_pair\_tasks()}{syn\_load\_join\_pair\_tasks()}}
+{\footnotesize\ttfamily def joinapp.\+synthetic\+\_\+data.\+syn\+\_\+load\+\_\+join\+\_\+pair\+\_\+tasks (\begin{DoxyParamCaption}\item[{}]{Join\+Pair\+Tasks\+\_\+\+Dict }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Populates the JoinPairTasks_Dict with join condition tasks (one for each secondary/primary item pair)
+keys: (primary.secondary, 0)
+values: (primary item id, secondary item id, task time, ground truth)
+\end{DoxyVerb}
+ \mbox{\Hypertarget{namespacejoinapp_1_1synthetic__data_abc7c245396b8cec18cd7217cfc3d9be7}\label{namespacejoinapp_1_1synthetic__data_abc7c245396b8cec18cd7217cfc3d9be7}} 
+\index{joinapp.synthetic\_data@{joinapp.synthetic\_data}!syn\_load\_joinable\_filter\_tasks@{syn\_load\_joinable\_filter\_tasks}}
+\index{syn\_load\_joinable\_filter\_tasks@{syn\_load\_joinable\_filter\_tasks}!joinapp.synthetic\_data@{joinapp.synthetic\_data}}
+\subsubsection{\texorpdfstring{syn\_load\_joinable\_filter\_tasks()}{syn\_load\_joinable\_filter\_tasks()}}
+{\footnotesize\ttfamily def joinapp.\+synthetic\+\_\+data.\+syn\+\_\+load\+\_\+joinable\+\_\+filter\+\_\+tasks (\begin{DoxyParamCaption}\item[{}]{J\+F\+Tasks\+\_\+\+Dict }\end{DoxyParamCaption})}
+
+
+
+Populates the J\+F\+Tasks\+\_\+\+Dict with joinable filter tasks (one for each primary item) keys\+: primary item pk values\+: (primary item pk, \char`\"{}\+N\+A\char`\"{}, task time, ground truth) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em J\+F\+Tasks\+\_\+\+Dict} & simulation dictionary for joinable filter tasks \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{namespacejoinapp_1_1synthetic__data_a0d5f2eaec09d1edc8531ab9f8c85f7f0}\label{namespacejoinapp_1_1synthetic__data_a0d5f2eaec09d1edc8531ab9f8c85f7f0}} 
+\index{joinapp.synthetic\_data@{joinapp.synthetic\_data}!syn\_load\_list@{syn\_load\_list}}
+\index{syn\_load\_list@{syn\_load\_list}!joinapp.synthetic\_data@{joinapp.synthetic\_data}}
+\subsubsection{\texorpdfstring{syn\_load\_list()}{syn\_load\_list()}}
+{\footnotesize\ttfamily def joinapp.\+synthetic\+\_\+data.\+syn\+\_\+load\+\_\+list (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Load/create instances of the primary list. 
+
+\mbox{\Hypertarget{namespacejoinapp_1_1synthetic__data_ad810e597b5840cec557a1878d90c6589}\label{namespacejoinapp_1_1synthetic__data_ad810e597b5840cec557a1878d90c6589}} 
+\index{joinapp.synthetic\_data@{joinapp.synthetic\_data}!syn\_load\_sec\_pred\_tasks@{syn\_load\_sec\_pred\_tasks}}
+\index{syn\_load\_sec\_pred\_tasks@{syn\_load\_sec\_pred\_tasks}!joinapp.synthetic\_data@{joinapp.synthetic\_data}}
+\subsubsection{\texorpdfstring{syn\_load\_sec\_pred\_tasks()}{syn\_load\_sec\_pred\_tasks()}}
+{\footnotesize\ttfamily def joinapp.\+synthetic\+\_\+data.\+syn\+\_\+load\+\_\+sec\+\_\+pred\+\_\+tasks (\begin{DoxyParamCaption}\item[{}]{Sec\+Pred\+Tasks\+\_\+\+Dict }\end{DoxyParamCaption})}
+
+
+
+Populates the Sec\+Pred\+Tasks\+\_\+\+Dict with secondary predicate tasks (one for each secondary item) keys\+: secondary item number values\+: (\char`\"{}\+N\+A\char`\"{}, secondary item name, task time, ground truth) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Sec\+Pred\+Tasks\+\_\+\+Dict} & simulation dictionary for secondary predicate tasks \\
+\hline
+\end{DoxyParams}

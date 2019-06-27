@@ -1,0 +1,66 @@
+\hypertarget{classdynamicfilterapp_1_1forms_1_1_worker_form}{}\section{Worker\+Form Class Reference}
+\label{classdynamicfilterapp_1_1forms_1_1_worker_form}\index{WorkerForm@{WorkerForm}}
+
+
+Inherits Form.
+
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+tuple \mbox{\hyperlink{classdynamicfilterapp_1_1forms_1_1_worker_form_a82a7fc5c5e889c4eb0460d3f1638425b}{W\+O\+R\+K\+E\+R\+\_\+\+A\+N\+S\+W\+E\+R\+\_\+\+C\+H\+O\+I\+C\+ES}}
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1forms_1_1_worker_form_a8c4d9ee8d4f82d724070b97e70b9c4e5}{answer}}
+\item 
+\mbox{\hyperlink{classdynamicfilterapp_1_1forms_1_1_worker_form_aecc50b4643d1ea45de7afe20e729c160}{feedback}}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Form for a crowd worker to enter a vote on an item-predicate pair.
+\end{DoxyVerb}
+ 
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{classdynamicfilterapp_1_1forms_1_1_worker_form_a8c4d9ee8d4f82d724070b97e70b9c4e5}\label{classdynamicfilterapp_1_1forms_1_1_worker_form_a8c4d9ee8d4f82d724070b97e70b9c4e5}} 
+\index{WorkerForm@{WorkerForm}!answer@{answer}}
+\index{answer@{answer}!WorkerForm@{WorkerForm}}
+\subsubsection{\texorpdfstring{answer}{answer}}
+{\footnotesize\ttfamily answer\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=  forms.ChoiceField(choices=WORKER\_ANSWER\_CHOICES, }
+\DoxyCodeLine{        widget=forms.Select(), label=\textcolor{stringliteral}{"Answer Choices:"})}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{classdynamicfilterapp_1_1forms_1_1_worker_form_aecc50b4643d1ea45de7afe20e729c160}\label{classdynamicfilterapp_1_1forms_1_1_worker_form_aecc50b4643d1ea45de7afe20e729c160}} 
+\index{WorkerForm@{WorkerForm}!feedback@{feedback}}
+\index{feedback@{feedback}!WorkerForm@{WorkerForm}}
+\subsubsection{\texorpdfstring{feedback}{feedback}}
+{\footnotesize\ttfamily feedback\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=  forms.CharField(widget=forms.Textarea, }
+\DoxyCodeLine{        label=\textcolor{stringliteral}{'Comments/Concerns/Feedback:'}, required=\textcolor{keyword}{False})}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{classdynamicfilterapp_1_1forms_1_1_worker_form_a82a7fc5c5e889c4eb0460d3f1638425b}\label{classdynamicfilterapp_1_1forms_1_1_worker_form_a82a7fc5c5e889c4eb0460d3f1638425b}} 
+\index{WorkerForm@{WorkerForm}!WORKER\_ANSWER\_CHOICES@{WORKER\_ANSWER\_CHOICES}}
+\index{WORKER\_ANSWER\_CHOICES@{WORKER\_ANSWER\_CHOICES}!WorkerForm@{WorkerForm}}
+\subsubsection{\texorpdfstring{WORKER\_ANSWER\_CHOICES}{WORKER\_ANSWER\_CHOICES}}
+{\footnotesize\ttfamily tuple W\+O\+R\+K\+E\+R\+\_\+\+A\+N\+S\+W\+E\+R\+\_\+\+C\+H\+O\+I\+C\+ES\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=  (}
+\DoxyCodeLine{        (\textcolor{keyword}{True}, \textcolor{stringliteral}{"Yes"}),}
+\DoxyCodeLine{        (\textcolor{keyword}{False}, \textcolor{stringliteral}{"No"}),}
+\DoxyCodeLine{    )}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+dynamicfilterapp/\mbox{\hyperlink{forms_8py}{forms.\+py}}\end{DoxyCompactItemize}
