@@ -121,7 +121,7 @@ def syn_answer_find_pairs_task(hit):
     random.seed()
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
-    num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
+    #num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
     #if len(real_secondaries) is 0:
     #    num_sec = 0
     # elif random.random() < CHANCE_FEWER_THAN_HALF:
@@ -129,12 +129,20 @@ def syn_answer_find_pairs_task(hit):
     #else:
     #    num_sec = random.choice(range(len(real_secondaries)))
 
+    min_responses = int(len(real_secondaries) * FLOOR_AMBIGUITY_FIND_PAIRS)
+    max_responses = int(len(real_secondaries))
+    if max_responses - min_responses is 0:
+        num_sec = max_responses
+    else:
+        num_sec = np.random.randint(low = min_responses, high = max_responses)
+
+    #num_sec = max_responses
 
     if num_sec is not 0:
         this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
         answer = ""
         for i in range(num_sec):
-            answer += this_secondaries[i] + "{{NEWENTRY}}""
+            answer += this_secondaries[i] + "{{NEWENTRY}}"
     else:
         answer = "None"
     time = np.random.normal(FIND_PAIRS_TASK_TIME_MEAN, FIND_PAIRS_TASK_TIME_SD, 1)
