@@ -1,8 +1,5 @@
 import csv
 import string
-import matplotlib.pyplot as plt
-import numpy
-from scipy import stats
 
 hit_csv = csv.reader(open('HIT_RESULTS.csv', 'r'), delimiter = ',') 
 
