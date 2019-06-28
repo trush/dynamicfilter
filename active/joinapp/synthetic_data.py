@@ -238,6 +238,7 @@ def syn_load_join_pairs_and_find_pairs(SecPJFTasks_Dict,PrimPJFTasks_Dict,FindPa
         for secondary in SecPJFTasks_Dict:
             secPJF = SecPJFTasks_Dict[secondary][3]
             if primPJF is secPJF:
+                pjf = primPJF
                 if random.random() < JP_SELECTIVITY_W_PJF:
                     answer = 1
                     #add pair to find pairs

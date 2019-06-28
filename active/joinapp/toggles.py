@@ -62,9 +62,9 @@ JF_SELECTIVITY = 0.1
 SEC_PRED_SELECTIVITY = 0.5
 SEC_PRED_AMBIGUITY = 0
 JOIN_COND_AMBIGUITY = 0
-JOIN_COND_SELECTIVITY = 0.3 # given that these pairs were created by the crowd
-PJF_AMBIGUITY = 0.5
-JP_SELECTIVITY_W_PJF = 0.3 #likelyhood of being a pair given that they are in the same PJF
+JOIN_COND_SELECTIVITY = 0.5 # given that these pairs were created by the crowd
+PJF_AMBIGUITY = 0
+JP_SELECTIVITY_W_PJF = 0.5 #likelyhood of being a pair given that they are in the same PJF
 
 #__________________ Time Settings _____________________#
 JF_TASK_TIME_MEAN = 100
