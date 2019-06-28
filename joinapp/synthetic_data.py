@@ -18,43 +18,6 @@ def syn_load_second_list():
         SecondaryItem.objects.create(name = str(i))
 
 
-<<<<<<< HEAD
-=======
-## @brief Populates the FindPairsTasks_Dict with find pair tasks (one for each primary item)
-#  keys: primary item pk
-#  values: (primary item pk, "NA", task time, ground truth)
-#  @param FindPairsTasks_Dict simulation dictionary for find-pairs tasks
-def syn_load_find_pairs_tasks(FindPairsTasks_Dict):
-    random.seed()
-    for primary in PrimaryItem.objects.all():
-        if random.random() > PROB_NONE_SECONDARY: #if worker response is not "None"
-            num_sec = int(max(0,min(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM, size = None), NUM_SEC_ITEMS))) #for this primary item, choose how many secondary
-            sec_pk_list = random.sample(range(NUM_SEC_ITEMS), num_sec) #randomly select the pks of the secondary items to associate with this primary item
-            worker_response = ""
-            for sec_pk in sec_pk_list: #build the worker response
-                sec_item = "Secondary Item " + str(sec_pk) + "; " + str(sec_pk) + " Address {{NEWENTRY}}"
-                worker_response += sec_item
-        else: #if worker response is "None"
-            worker_response = "None"
-        time = FIND_PAIRS_TASK_TIME_MEAN
-        value = (primary.pk, "None", time, worker_response)
-        FindPairsTasks_Dict[primary.pk] = value
-
-## @brief  Populates the JFTasks_Dict with joinable filter tasks (one for each primary item)
-#   keys: primary item pk
-#   values: (primary item pk, "NA", task time, ground truth)
-#   @param JFTasks_Dict simulation dictionary for joinable filter tasks
-def syn_load_joinable_filter_tasks(JFTasks_Dict):
-    for primary in PrimaryItem.objects.all():
-        if random.random() < JF_SELECTIVITY:
-            ground_truth = True
-        else:
-            ground_truth = False
-        time = JF_TASK_TIME_MEAN
-        value = (primary.pk, "None", time, ground_truth)
-        JFTasks_Dict[primary.pk] = value
-
->>>>>>> bea26d65574717578b31e4b731f9c39c9c26bbcc
 ## @brief Populates the SecPredTasks_Dict with secondary predicate tasks (one for each secondary item)
 #   keys: secondary item number
 #   values: ("NA", secondary item name, task time, ground truth)
@@ -157,15 +120,20 @@ def syn_answer_find_pairs_task(hit):
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
 
-    min_responses = int(len(real_secondaries) * 0.75)
+    min_responses = int(len(real_secondaries) * FLOOR_AMBIGUITY_FIND_PAIRS)
     max_responses = int(len(real_secondaries))
-    num_sec = np.random.randint(low = min_responses, high = max_responses)
+    if max_responses - min_responses is 0:
+        num_sec = max_responses
+    else:
+        num_sec = np.random.randint(low = min_responses, high = max_responses)
+
+    #num_sec = max_responses
 
     if num_sec is not 0:
         this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
         answer = ""
         for i in range(num_sec):
-            answer += this_secondaries[i] + "{{NEWENTRY}}""
+            answer += this_secondaries[i] + "{{NEWENTRY}}"
     else:
         answer = "None"
     time = np.random.normal(FIND_PAIRS_TASK_TIME_MEAN, FIND_PAIRS_TASK_TIME_SD, 1)

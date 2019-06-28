@@ -173,11 +173,7 @@ def choose_task_join_pairs(worker):
             return join_pair_task
         sec_items = SecondaryItem.objects.filter(pjf=prim_item.pjf) # associated secondary items
     sec_item = sec_items.order_by('?').first()
-<<<<<<< HEAD
-    join_pair_task = JoinPairTask.objects.filter(primary_item=prim_item,secondary_item=sec_item)
-=======
     join_pair_task = JoinPairTask.objects.filter(primary_item=prim_item).filter(secondary_item=sec_item)
->>>>>>> bea26d65574717578b31e4b731f9c39c9c26bbcc
     # set has_same_pjf to true in case join pairs task was created in find pairs
     if join_pair_task.exists():
         join_pair_task = JoinPairTask.objects.get(primary_item=prim_item,secondary_item=sec_item)
@@ -190,11 +186,7 @@ def choose_task_join_pairs(worker):
     while join_pair_task.result is not None:
         sec_item = sec_items.order_by('?').first()
         sec_items = sec_items.exclude(name=sec_item.name)
-<<<<<<< HEAD
-        join_pair_task = JoinPairTask.objects.filter(primary_item=prim_item,secondary_item=sec_item)
-=======
         join_pair_task = JoinPairTask.objects.filter(primary_item=prim_item).filter(secondary_item=sec_item)
->>>>>>> bea26d65574717578b31e4b731f9c39c9c26bbcc
         # set has_same_pjf to true in case join pairs task was created in find pairs
         if join_pair_task.exists():
             join_pair_task = JoinPairTask.objects.get(primary_item=prim_item,secondary_item=sec_item)
@@ -382,18 +374,11 @@ def collect_join_pair(answer, cost, item1_id, item2_id):
     secondary_item = SecondaryItem.objects.get(pk = item2_id)
 
     #use primary item to find the relevant task
-<<<<<<< HEAD
-    our_tasks = JoinPairTask.objects.filter(primary_item = primary_item, secondary_item = secondary_item)
-    #if we have a join pair task with these items, it is our task.
-    #otherwise, we must create a new task
-    if not our_tasks.exists():
-=======
     our_tasks = JoinPairTask.objects.filter(primary_item = primary_item).filter(secondary_item = secondary_item)
     #if we have a join pair task with these items, it is our task.
     #otherwise, we must create a new task
     if not our_tasks.exists():
         print "creating here --- this shouldn't happen"
->>>>>>> bea26d65574717578b31e4b731f9c39c9c26bbcc
         this_task = JoinPairTask.objects.create(primary_item = primary_item, secondary_item = secondary_item)
     else:
         this_task = JoinPairTask.objects.get(primary_item = primary_item, secondary_item = secondary_item)

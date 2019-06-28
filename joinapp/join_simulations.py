@@ -264,15 +264,10 @@ class JoinSimulation():
 
         #___ Find Pairs Accuracy ___#
         if JOIN_TYPE is 1:
-<<<<<<< HEAD
             false_negatives = 0
             true_positives = 0
             false_positives = 0
             true_negatives =0
-=======
-            total_missed = 0
-            total_extra = 0
->>>>>>> bea26d65574717578b31e4b731f9c39c9c26bbcc
             for prim in PrimaryItem.objects.all():
                 found_list = []
                 for sec in prim.secondary_items.all():
@@ -281,7 +276,6 @@ class JoinSimulation():
                 true_list = parse_pairs(self.FindPairsTasks_Dict[prim.pk][3])
                 for item in true_list:
                     if item not in found_list:
-<<<<<<< HEAD
                         false_negatives += 1
                     else:
                         true_positives += 1
@@ -293,15 +287,6 @@ class JoinSimulation():
             print ""
             print "We missed " + str(false_negatives) + " secondary items"
             print "We had " + str(false_positives) + " extra items" 
-=======
-                        total_missed += 1
-                for item in found_list:
-                    if item not in true_list:
-                        total_extra += 1
-            print ""
-            print "We missed " + str(total_missed) + " secondary items"
-            print "We had " + str(total_extra) + " extra items" 
->>>>>>> bea26d65574717578b31e4b731f9c39c9c26bbcc
 
         
         print "" #newline
@@ -315,13 +300,9 @@ class JoinSimulation():
             if prim.eval_result is ground_truth:
                 correct_prim_items += 1
         self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
-<<<<<<< HEAD
         # AMBER ADDED FOR TESTIING 
         prim_accuracy = float(correct_prim_items) / float(PrimaryItem.objects.all().count())
         return prim_accuracy,false_negatives, true_positives, false_positives, true_negatives
-=======
-        
->>>>>>> bea26d65574717578b31e4b731f9c39c9c26bbcc
 
 
 
