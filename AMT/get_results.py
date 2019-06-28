@@ -14,7 +14,7 @@ mturk = boto3.client('mturk',
   aws_access_key_id = pubkey,
   aws_secret_access_key = privkey,
   region_name='us-east-1'
-  #endpoint_url = MTURK_SANDBOX
+#   endpoint_url = MTURK_SANDBOX
 )
 print "I have $" + mturk.get_account_balance()['AvailableBalance'] + " in my account"
 #csv that holds recorded hits

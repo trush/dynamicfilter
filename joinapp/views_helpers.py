@@ -53,11 +53,11 @@ def choose_task_IW1(workerID, estimator):
 ## Then chooses another primary item (that has not yet passed the query) then repeats
 def choose_task_IW2(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
-    prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
+    prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False, is_done = False)
     if prim_items_left.exists():
         return choose_task_find_pairs(prim_items_left, new_worker, 1)
     else:
-        prim_item = PrimaryItem.objects.filter(is_done=False).order_by('?')
+        prim_item = PrimaryItem.objects.filter(is_done=False).order_by('?').first()
         return choose_task_sec_pred_by_prim(new_worker,prim_item)
 
 ## Itemwise join on secondary list - all find pairs then secondary preds
@@ -279,7 +279,7 @@ def choose_task_sec_pred(worker):
 
 def choose_task_sec_pred_by_prim(worker, prim_item):
     if SecPredTask.objects.filter(in_progress=True).exists():
-        sec_pred_task = SecPredTask.objects.filter(in_progress=True).first()
+        sec_pred_task = SecPredTask.objects.filter(in_progress=True).order_by('-num_tasks').first()
     else:
         for sec in prim_item.secondary_items.all():
             sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec)[0]
