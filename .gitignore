@@ -14,6 +14,7 @@ docs/latex/*
 latex/*
 AMT/keys.py
 
+!active/*
 !dynamicfilterapp/migrations/0001_initial.py
 !dynamicfilterapp/migrations/__init__.py
 !joinapp/migrations/0001_initial.py
