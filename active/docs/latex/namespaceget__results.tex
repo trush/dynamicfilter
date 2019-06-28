@@ -1,0 +1,80 @@
+\hypertarget{namespaceget__results}{}\section{get\+\_\+results Namespace Reference}
+\label{namespaceget__results}\index{get\+\_\+results@{get\+\_\+results}}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+string \hyperlink{namespaceget__results_ae62b2c698fe34f48fcc67433b6495a00}{M\+T\+U\+R\+K\+\_\+\+S\+A\+N\+D\+B\+OX} = \textquotesingle{}https\+://\hyperlink{namespaceget__results_a5d236ec2d0fb7be80dec953c4f7564d7}{mturk}-\/requester-\/sandbox.\+us-\/east-\/1.amazonaws.\+com\textquotesingle{}
+\item 
+\hyperlink{namespaceget__results_a5d236ec2d0fb7be80dec953c4f7564d7}{mturk}
+\item 
+\hyperlink{namespaceget__results_a8c4ebdc20b35d7f4ede09b2cc3b26db0}{csv} = open(\textquotesingle{}H\+I\+T\+\_\+\+I\+Ds.\+csv\textquotesingle{}, \char`\"{}r\char`\"{})
+\item 
+\hyperlink{namespaceget__results_a339bb5524b06e496a6aaa0a97a4a8d21}{results} = open(\textquotesingle{}H\+I\+T\+\_\+\+R\+E\+S\+U\+L\+T\+S.\+csv\textquotesingle{}, \char`\"{}w\char`\"{})
+\item 
+bool \hyperlink{namespaceget__results_a8b3ab54ed3e81c69863d65e4e6c424a0}{flag} = False
+\item 
+\hyperlink{namespaceget__results_adecf8258a14164dab061b9f9f19f7eea}{worker\+\_\+results} = mturk.\+list\+\_\+assignments\+\_\+for\+\_\+hit(H\+I\+T\+Id=hit\+\_\+id)
+\item 
+string \hyperlink{namespaceget__results_a7aa3be069dfb467ab7266a010a7ed8af}{new\+Row} = str((assignment\mbox{[}\char`\"{}Submit\+Time\char`\"{}\mbox{]} -\/ assignment\mbox{[}\char`\"{}Accept\+Time\char`\"{}\mbox{]}).total\+\_\+seconds()) + \char`\"{}, \char`\"{} + assignment\mbox{[}\char`\"{}Assignment\+Status\char`\"{}\mbox{]} + \char`\"{}, \char`\"{} + assignment\mbox{[}\char`\"{}Worker\+Id\char`\"{}\mbox{]} + \char`\"{},\char`\"{} + assignment\mbox{[}\char`\"{}H\+I\+T\+Id\char`\"{}\mbox{]} + \char`\"{} (\char`\"{} + hotel + \char`\"{})\char`\"{}
+\item 
+\hyperlink{namespaceget__results_af12d72131e6cb1449b28b0005d278315}{xml\+\_\+doc} = xmltodict.\+parse(assignment\mbox{[}\textquotesingle{}Answer\textquotesingle{}\mbox{]})
+\end{DoxyCompactItemize}
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespaceget__results_a8c4ebdc20b35d7f4ede09b2cc3b26db0}\label{namespaceget__results_a8c4ebdc20b35d7f4ede09b2cc3b26db0}} 
+\index{get\+\_\+results@{get\+\_\+results}!csv@{csv}}
+\index{csv@{csv}!get\+\_\+results@{get\+\_\+results}}
+\subsubsection{\texorpdfstring{csv}{csv}}
+{\footnotesize\ttfamily csv = open(\textquotesingle{}H\+I\+T\+\_\+\+I\+Ds.\+csv\textquotesingle{}, \char`\"{}r\char`\"{})}
+
+\mbox{\Hypertarget{namespaceget__results_a8b3ab54ed3e81c69863d65e4e6c424a0}\label{namespaceget__results_a8b3ab54ed3e81c69863d65e4e6c424a0}} 
+\index{get\+\_\+results@{get\+\_\+results}!flag@{flag}}
+\index{flag@{flag}!get\+\_\+results@{get\+\_\+results}}
+\subsubsection{\texorpdfstring{flag}{flag}}
+{\footnotesize\ttfamily bool flag = False}
+
+\mbox{\Hypertarget{namespaceget__results_a5d236ec2d0fb7be80dec953c4f7564d7}\label{namespaceget__results_a5d236ec2d0fb7be80dec953c4f7564d7}} 
+\index{get\+\_\+results@{get\+\_\+results}!mturk@{mturk}}
+\index{mturk@{mturk}!get\+\_\+results@{get\+\_\+results}}
+\subsubsection{\texorpdfstring{mturk}{mturk}}
+{\footnotesize\ttfamily mturk}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}
+1 =  boto3.client(\textcolor{stringliteral}{'mturk'},
+2   aws\_access\_key\_id = pubkey,
+3   aws\_secret\_access\_key = privkey,
+4   region\_name=\textcolor{stringliteral}{'us-east-1'}
+5 )
+\end{DoxyCode}
+\mbox{\Hypertarget{namespaceget__results_ae62b2c698fe34f48fcc67433b6495a00}\label{namespaceget__results_ae62b2c698fe34f48fcc67433b6495a00}} 
+\index{get\+\_\+results@{get\+\_\+results}!M\+T\+U\+R\+K\+\_\+\+S\+A\+N\+D\+B\+OX@{M\+T\+U\+R\+K\+\_\+\+S\+A\+N\+D\+B\+OX}}
+\index{M\+T\+U\+R\+K\+\_\+\+S\+A\+N\+D\+B\+OX@{M\+T\+U\+R\+K\+\_\+\+S\+A\+N\+D\+B\+OX}!get\+\_\+results@{get\+\_\+results}}
+\subsubsection{\texorpdfstring{M\+T\+U\+R\+K\+\_\+\+S\+A\+N\+D\+B\+OX}{MTURK\_SANDBOX}}
+{\footnotesize\ttfamily string M\+T\+U\+R\+K\+\_\+\+S\+A\+N\+D\+B\+OX = \textquotesingle{}https\+://\hyperlink{namespaceget__results_a5d236ec2d0fb7be80dec953c4f7564d7}{mturk}-\/requester-\/sandbox.\+us-\/east-\/1.amazonaws.\+com\textquotesingle{}}
+
+\mbox{\Hypertarget{namespaceget__results_a7aa3be069dfb467ab7266a010a7ed8af}\label{namespaceget__results_a7aa3be069dfb467ab7266a010a7ed8af}} 
+\index{get\+\_\+results@{get\+\_\+results}!new\+Row@{new\+Row}}
+\index{new\+Row@{new\+Row}!get\+\_\+results@{get\+\_\+results}}
+\subsubsection{\texorpdfstring{new\+Row}{newRow}}
+{\footnotesize\ttfamily string new\+Row = str((assignment\mbox{[}\char`\"{}Submit\+Time\char`\"{}\mbox{]} -\/ assignment\mbox{[}\char`\"{}Accept\+Time\char`\"{}\mbox{]}).total\+\_\+seconds()) + \char`\"{}, \char`\"{} + assignment\mbox{[}\char`\"{}Assignment\+Status\char`\"{}\mbox{]} + \char`\"{}, \char`\"{} + assignment\mbox{[}\char`\"{}Worker\+Id\char`\"{}\mbox{]} + \char`\"{},\char`\"{} + assignment\mbox{[}\char`\"{}H\+I\+T\+Id\char`\"{}\mbox{]} + \char`\"{} (\char`\"{} + hotel + \char`\"{})\char`\"{}}
+
+\mbox{\Hypertarget{namespaceget__results_a339bb5524b06e496a6aaa0a97a4a8d21}\label{namespaceget__results_a339bb5524b06e496a6aaa0a97a4a8d21}} 
+\index{get\+\_\+results@{get\+\_\+results}!results@{results}}
+\index{results@{results}!get\+\_\+results@{get\+\_\+results}}
+\subsubsection{\texorpdfstring{results}{results}}
+{\footnotesize\ttfamily results = open(\textquotesingle{}H\+I\+T\+\_\+\+R\+E\+S\+U\+L\+T\+S.\+csv\textquotesingle{}, \char`\"{}w\char`\"{})}
+
+\mbox{\Hypertarget{namespaceget__results_adecf8258a14164dab061b9f9f19f7eea}\label{namespaceget__results_adecf8258a14164dab061b9f9f19f7eea}} 
+\index{get\+\_\+results@{get\+\_\+results}!worker\+\_\+results@{worker\+\_\+results}}
+\index{worker\+\_\+results@{worker\+\_\+results}!get\+\_\+results@{get\+\_\+results}}
+\subsubsection{\texorpdfstring{worker\+\_\+results}{worker\_results}}
+{\footnotesize\ttfamily worker\+\_\+results = mturk.\+list\+\_\+assignments\+\_\+for\+\_\+hit(H\+I\+T\+Id=hit\+\_\+id)}
+
+\mbox{\Hypertarget{namespaceget__results_af12d72131e6cb1449b28b0005d278315}\label{namespaceget__results_af12d72131e6cb1449b28b0005d278315}} 
+\index{get\+\_\+results@{get\+\_\+results}!xml\+\_\+doc@{xml\+\_\+doc}}
+\index{xml\+\_\+doc@{xml\+\_\+doc}!get\+\_\+results@{get\+\_\+results}}
+\subsubsection{\texorpdfstring{xml\+\_\+doc}{xml\_doc}}
+{\footnotesize\ttfamily xml\+\_\+doc = xmltodict.\+parse(assignment\mbox{[}\textquotesingle{}Answer\textquotesingle{}\mbox{]})}
+

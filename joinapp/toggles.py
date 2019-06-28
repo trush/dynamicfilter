@@ -9,7 +9,7 @@ NUM_PRIM_ITEMS = 20
 NUM_SEC_ITEMS = 20
 HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
 FAKE_SEC_ITEM_LIST = [str(NUM_SEC_ITEMS+1), str(NUM_SEC_ITEMS+2), str(NUM_SEC_ITEMS+3), str(NUM_SEC_ITEMS+4), str(NUM_SEC_ITEMS+5), str(NUM_SEC_ITEMS+6), str(NUM_SEC_ITEMS+7), str(NUM_SEC_ITEMS+8), str(NUM_SEC_ITEMS+9), str(NUM_SEC_ITEMS+10)] #fake secondary items to choose from
-PJF_LIST = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+PJF_LIST = ["0", "1", "2", "3"]
 
 #__________________________ For Consensus Exploration__________________#
 CHANCE_FEWER_THAN_HALF = 0.5 #< NOT IN USE CURRENTLY
@@ -19,12 +19,6 @@ YES_VOTES_THRESHOLD = 5
 NO_VOTES_THRESHOLD = 15
 YES_VOTES_FRACTION = 0.33
 NO_VOTES_FRACTION = 0.66
-
-# used in syn_load_find_pairs_tasks
-# to determine how many secondary items each primary item is going to be matched with 
-MEAN_SEC_PER_PRIM = 4
-SD_SEC_PER_PRIM = 0
-PROB_NONE_SECONDARY = 0.25
 
 
 #________ For Real Data ________#
@@ -36,10 +30,11 @@ REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
-JOIN_TYPE = 2
-NUM_WORKERS = 1000 # number of distinct workers
-NUM_SIMS = 15 # number of simulations to run
-PROB_CHOOSING_TRUE_SEC_ITEM = 1
+# 3 = item-wise join on secondary items
+JOIN_TYPE = 3
+NUM_WORKERS = 200 # number of distinct workers
+NUM_SIMS = 10 # number of simulations to run
+PROB_CHOOSING_TRUE_SEC_ITEM = 1.0
 SIMULATE_TIME = False
 TIME_STEP = 1
 
@@ -56,12 +51,12 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 
 
 #_______ Selectivity and Ambiguity Settings _________#
-JF_AMBIGUITY = 0.5
+JF_AMBIGUITY = 0
 JF_SELECTIVITY = 0.1
 SEC_PRED_SELECTIVITY = 0.5
 SEC_PRED_AMBIGUITY = 0
 JOIN_COND_AMBIGUITY = 0
-JOIN_COND_SELECTIVITY = 0.5 # given that these pairs were created by the crowd
+JOIN_COND_SELECTIVITY = 0.3 # given that these pairs were created by the crowd
 PJF_AMBIGUITY = 0
 JP_SELECTIVITY_W_PJF = 0.5 #likelyhood of being a pair given that they are in the same PJF
 

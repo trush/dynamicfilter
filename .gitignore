@@ -8,10 +8,10 @@ dynamicfilterapp/migrations/*
 joinapp/migrations/*
 html/*
 html/search/*
-latex/*
 docs/html/*
 docs/html/search/*
 docs/latex/*
+latex/*
 AMT/keys.py
 
 !dynamicfilterapp/migrations/0001_initial.py
