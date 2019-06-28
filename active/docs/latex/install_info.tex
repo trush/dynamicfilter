@@ -1,0 +1,201 @@
+\hypertarget{install_info_install}{}\section{Installation}\label{install_info_install}
+This part of the guide will walk you through installing the necessary software for the Dynamic Filter. which is a Django project. It will use \href{https://virtualenv.pypa.io/en/stable/}{\tt {\ttfamily virtualenv}} for many of the Python packages to create an isolated environment. Using {\ttfamily virtualenv} is not required, but recommended.
+
+This guide is catered for Mac OS X, but the process should be similar on other systems.\hypertarget{install_info_prereqs}{}\subsection{Prerequisites (\+Python 2.\+7, pip)}\label{install_info_prereqs}
+This project currently supports only Python 2.\+7. You likely have Python already installed if you have Mac OS 10.\+13, but you can check which version using this command on the command line, assuming {\ttfamily \$$>$} is the prompt\+: \begin{DoxyVerb}$> python --version
+\end{DoxyVerb}
+
+
+If you see a Python 3.\+x version printed (or get a \char`\"{}command not found\char`\"{} error), you\textquotesingle{}ll want to install Python 2.\+7. A helpful installation tool for Mac OS X is \href{https://brew.sh/}{\tt Homebrew}. See their installation guide. You can then use {\ttfamily brew info} to check if you have Python 2.\+7 installed\+: \begin{DoxyVerb}$> brew info python@2 
+\end{DoxyVerb}
+
+
+And to install it if not\+: \begin{DoxyVerb}$> brew install python@2
+\end{DoxyVerb}
+
+
+You will also want the python package installer called {\ttfamily pip}. If you installed a recent version of Python 2.\+7, you likely already have {\ttfamily pip}. You can confirm by checking its version\+: \begin{DoxyVerb}$> pip --version
+pip 10.0.1 from /Library/Python/2.7/site-packages/pip-10.0.1-py2.7.egg (python 2.7)    
+\end{DoxyVerb}
+
+
+It\textquotesingle{}s usually a good idea to make sure you\textquotesingle{}re using the latest version of {\ttfamily pip}. To update it\+: \begin{DoxyVerb}$> pip install -U pip
+\end{DoxyVerb}
+
+
+If you don\textquotesingle{}t have {\ttfamily pip}, check out the \href{https://packaging.python.org/tutorials/installing-packages/}{\tt Python packages installation guide}.\hypertarget{install_info_pg}{}\subsection{Postgre\+S\+Q\+L Install and Setup}\label{install_info_pg}
+This project uses \href{https://www.postgresql.org/}{\tt Postgres\+QL} as its database backend for Django. This section will first guide you through installing Postgre\+S\+QL and starting/stopping it as \href{https://www.postgresql.org/docs/current/static/tutorial-arch.html}{\tt a server process} that accepts requests from client programs, such as the Dynamic Filter Django project. The second part of this section gets a Postgres database set up to use with Dynamic Filter.\hypertarget{install_info_pginstall}{}\subsubsection{Installation and running}\label{install_info_pginstall}
+We recommend using Homebrew to install Postgres. This may take some time if there are dependencies that need to be installed at the same time\+: \begin{DoxyVerb}$> brew install postgres
+\end{DoxyVerb}
+
+
+At the end of the installation, Homebrew shows you the commands to start Postgres (if you missed it, you can see it again with the command {\ttfamily brew info postgres}). As mentioned there, one option is to start the Postgres server using the {\ttfamily pg\+\_\+ctl} program, which would look something like this\+: \begin{DoxyVerb}$> pg_ctl -D /usr/local/var/postgres start
+\end{DoxyVerb}
+
+
+To stop, simply replace the \char`\"{}start\char`\"{} with \char`\"{}stop\char`\"{}.
+
+If you want Postgres to start automatically every time you turn on your computer, you can ask Homebrew to run it as a service. You can first get Homebrew\textquotesingle{}s services if you don\textquotesingle{}t have it already\+: \begin{DoxyVerb}$> brew tap homebrew/services
+\end{DoxyVerb}
+
+
+Then tell Homebrew to start Postgres as a service\+: \begin{DoxyVerb}$> brew services start postgresql
+\end{DoxyVerb}
+\hypertarget{install_info_pgconfig}{}\subsubsection{Database configuration}\label{install_info_pgconfig}
+The Django project for Dynamic Filter needs its own login credentials to interact with Postgres. The username and password should be the same as what is specified in the {\ttfamily D\+A\+T\+A\+B\+A\+S\+ES} configuration in {\ttfamily \hyperlink{settings_8py}{dynamicfiltersite/settings.\+py}}. Here we\textquotesingle{}ll assume a username of \char`\"{}webapp\char`\"{} with the password \char`\"{}dynamicfilter\char`\"{}. To get started with the setup, use the command-\/line client program {\ttfamily psql} to open a session with Postgres\+: \begin{DoxyVerb}$> psql postgres
+psql (10.3)
+Type "help" for help.
+
+postgres=# 
+\end{DoxyVerb}
+
+
+Now you are logged in to a database called {\ttfamily postgres}, with a username that likely matches your computer\textquotesingle{}s username. At the prompt, enter {\ttfamily \textbackslash{}du} to see a list of users. You can also view a list of databases using the command {\ttfamily \textbackslash{}list}.
+
+Next we\textquotesingle{}ll create a user and a database to be used with the Django project. At the Postgres prompt, create the user with password\+: \begin{DoxyVerb}postgres=# CREATE ROLE webapp WITH LOGIN PASSWORD 'dynamicfilter';
+\end{DoxyVerb}
+
+
+Enter {\ttfamily \textbackslash{}du} to make sure that you actually created a new user. Note that {\ttfamily webapp} has no permissions yet. Now we\textquotesingle{}ll fix that. Enter\+: \begin{DoxyVerb}postgres=# ALTER ROLE webapp CREATEDB;
+\end{DoxyVerb}
+
+
+Enter {\ttfamily \textbackslash{}du} again to make sure {\ttfamily webapp} actually has the ability to create databases. Then use {\ttfamily \textbackslash{}q} to leave the {\ttfamily psql} command-\/line.
+
+Next we\textquotesingle{}ll login to {\ttfamily psql}, this time as the newly created {\ttfamily webapp} user\+: \begin{DoxyVerb}$> psql postgres -U webapp
+\end{DoxyVerb}
+
+
+Finally, we need to create a database for use with the Dynamic Filter project\+: \begin{DoxyVerb}postgres=# CREATE DATABASE dynamicfilter4;
+\end{DoxyVerb}
+
+
+You can use {\ttfamily \textbackslash{}list} to ensure the database shows up in the list of databases. Then use {\ttfamily \textbackslash{}q} to exit {\ttfamily psql}.\hypertarget{install_info_virtualenv}{}\subsection{Virtualenv Install and Activation}\label{install_info_virtualenv}
+A \char`\"{}virtual environment\char`\"{} is a helpful tool for keeping the dependencies required by a project isolated on your computer. For example, you can prevent the dependencies needed for a Python 2.\+7 project from interfering with a Python 3 project. While not required, we recommend using it.
+
+You can install {\ttfamily virtualenv} using {\ttfamily pip}\+: \begin{DoxyVerb}$> pip install virtualenv
+\end{DoxyVerb}
+
+
+With {\ttfamily virtualenv} installed, we can now create the environment to run Dynamic Filter. We\textquotesingle{}ll first create a virtual environment called {\ttfamily dfenv} (you can name it whatever you want) and install the dependencies needed for the project within that environment.
+
+Creating a virtual environment using {\ttfamily virtualenv} will make a new directory with the same name as the environment, as well as create several subdirectories. To help prevent any confusion with the directories associated with the Dynamic Filter project, we recommend running the following command in the {\itshape {\bfseries parent}} directory of where you cloned this Github project. For example, if you cloned into {\ttfamily /grandparent/parent/dynamicfilter}, we recomend running the command in {\ttfamily /grandparent/parent}.
+
+First we\textquotesingle{}ll create the environment and explicitly state which python will be used. You should replace the path in the following command with what is right for you\+: \begin{DoxyVerb}$> virtualenv -p /usr/bin/python dfenv
+\end{DoxyVerb}
+
+
+To \char`\"{}jump into\char`\"{} the environment, enter\+: \begin{DoxyVerb}$> source dfenv/bin/activate
+\end{DoxyVerb}
+
+
+You should see the environment name prepended to your command prompt. Note\+: when you want to \char`\"{}jump out\char`\"{}, you can enter\+: \begin{DoxyVerb}(dfenv) $> deactivate
+\end{DoxyVerb}
+\hypertarget{install_info_envsetup}{}\subsection{Environment Setup}\label{install_info_envsetup}
+Whether or not you use {\ttfamily virtualenv}, you will need to install Django and the python dependencies needed for this project.
+
+The latest version of Django that supports Python 2.\+7 is \href{https://docs.djangoproject.com/en/1.11/}{\tt Django 1.\+11}, so we\textquotesingle{}ll install that using {\ttfamily pip}\+: \begin{DoxyVerb}(dfenv) $> pip install Django==1.11
+\end{DoxyVerb}
+
+
+Next we will install the python packages {\ttfamily psycopg2}, {\ttfamily numpy}, {\ttfamily scipy}, {\ttfamily seaborn}, and {\ttfamily matplotlib}. The first package helps Python talk to Postgres. We need {\ttfamily numpy} and {\ttfamily scipy} for certain numerical tools and the rest for creating plots.
+
+You can use {\ttfamily pip} to install each of these packages inside your virtual environment, replacing \char`\"{}\+P\+A\+C\+K\+A\+G\+E\char`\"{} with each of the package names\+: \begin{DoxyVerb}(dfenv) $> pip install PACKAGE
+\end{DoxyVerb}
+\hypertarget{install_info_running}{}\section{Running a Simulation}\label{install_info_running}
+Now that the project is installed, we can run a few simulations of Dynamic Filter to see it in action. The simulations run as part of the unit testing framework within Django. We\textquotesingle{}ll be running commands from the Dynamic Filter directory that contains {\ttfamily \hyperlink{manage_8py}{manage.\+py}} (currently called {\ttfamily active}); {\ttfamily cd} into that directory if you aren\textquotesingle{}t there already.\hypertarget{install_info_simsetup}{}\subsection{Setup}\label{install_info_simsetup}
+Before we run simulations, you should check that Postgres has an up-\/to-\/date understanding of the Django models (described in in {\ttfamily \hyperlink{models_8py}{models.\+py}}). Django manages updates to its models with {\itshape migrations}, which are essentially a log of changes to the models that can be (re)played to update the models\textquotesingle{} representation in the Postgres database.
+
+First apply the initial migration to create the database tables\+: \begin{DoxyVerb}(dfenv) $> python manage.py migrate
+\end{DoxyVerb}
+
+
+Now check if Django needs to make any new migration files to reflect changes in {\ttfamily \hyperlink{models_8py}{models.\+py}} that have been made since the initial one\+: \begin{DoxyVerb}(dfenv) $> python manage.py makemigrations dynamicfilterapp
+\end{DoxyVerb}
+
+
+Then apply those migrations\+: \begin{DoxyVerb}(dfenv) $> python manage.py migrate
+\end{DoxyVerb}
+\hypertarget{install_info_example}{}\subsection{Example\+: Hotels, two predicates}\label{install_info_example}
+On to simulations! The testing framework can run a variety of configurations. These settings live in the {\ttfamily \hyperlink{toggles_8py}{toggles.\+py}} file. Open {\ttfamily \hyperlink{toggles_8py}{toggles.\+py}} in a text editor so that you can make changes. We will be using the \char`\"{}\+Hotel\char`\"{} data set and simulating Dynamic Filter with two predicates\+: {\itshape Has a gym?} and {\itshape Costs under \$80/night?}. As a note, more documentation on the settings in this file can be found on the \hyperlink{toggles}{Toggles Info } page.
+
+Once you have opened {\ttfamily \hyperlink{toggles_8py}{toggles.\+py}}, you can decide how you want to set the {\ttfamily D\+E\+B\+U\+G\+\_\+\+F\+L\+AG}; setting it to {\ttfamily True} will cause debugging information to print to the console.
+
+Next, move onto the Input Settings section and be sure you have these values\+: \begin{DoxyVerb}REAL_DATA = True
+
+INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
+ITEM_TYPE = "Hotel"
+IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
+REAL_DISTRIBUTION_FILE = 'workerDist.csv'
+\end{DoxyVerb}
+
+
+To select the two predicates we want to use, set the chosen predicates (the one for use with {\ttfamily R\+E\+A\+L\+\_\+\+D\+A\+TA})\+: \begin{DoxyVerb}CHOSEN_PREDS = [0,1]
+\end{DoxyVerb}
+
+
+In the Algorithm Settings section, denote that we\textquotesingle{}ll be using the \char`\"{}nu\char`\"{} pending eddy algorithm with this queue size\+: \begin{DoxyVerb}EDDY_SYS = 5
+PENDING_QUEUE_SIZE = 1
+\end{DoxyVerb}
+
+
+In the Consensus Settings, be sure you have\+: \begin{DoxyVerb}BAYES_ENABLED = True
+\end{DoxyVerb}
+
+
+For the simulation settings, we\textquotesingle{}ll do two simulations runs\+: \begin{DoxyVerb}NUM_SIM = 2
+\end{DoxyVerb}
+
+
+Finally, for the Output Settings, we\textquotesingle{}ll ask for graphs to be made, particularly the graph that shows the distribution of task counts for the simulations (note that the graphs will appear in a subdirectory denoted by {\ttfamily O\+U\+T\+P\+U\+T\+\_\+\+P\+A\+T\+H/\+R\+U\+N\+\_\+\+N\+A\+ME})\+: \begin{DoxyVerb}GEN_GRAPHS = True
+PACKING = True
+RUN_TASKS_COUNT = True
+\end{DoxyVerb}
+
+
+All other true/false settings should be {\ttfamily False} and other numerical settings can remain as their default values.
+
+Save and close {\ttfamily \hyperlink{toggles_8py}{toggles.\+py}} and run the simulation\+: \begin{DoxyVerb}(dfenv) $> python manage.py test dynamicfilterapp.test_simulations
+\end{DoxyVerb}
+
+
+You will be prompted to confirm that you {\itshape really} do want graphs produced, to which you can say yes. Hopefully the run succeeded and you can view the task count graph! For this configuration you should expect an average task count around 600.\hypertarget{install_info_stats}{}\subsection{More simulation configurations}\label{install_info_stats}
+Here are a few other settings you can experiment with\+:
+
+
+\begin{DoxyItemize}
+\item You can get more plots that describe what happened during the simulations by setting these two flags\+: \begin{DoxyVerb}RUN_MULTI_ROUTING = True
+COUNT_TICKETS = True
+\end{DoxyVerb}
+
+
+Turning on {\ttfamily R\+U\+N\+\_\+\+M\+U\+L\+T\+I\+\_\+\+R\+O\+U\+T\+I\+NG} will yield a bar plot at the end of all simulation runs that shows for each predicate how many items were routed to that predicate {\itshape first}; these figures represent an average all simulation runs. Turning on {\ttfamily C\+O\+U\+N\+T\+\_\+\+T\+I\+C\+K\+E\+TS} will yield one plot {\bfseries per simulation run} that depicts how many tickets each predicate had over time during the run.
+\item The value of {\ttfamily E\+D\+D\+Y\+\_\+\+S\+YS} determines which routing algorithm to use. So far we\textquotesingle{}ve been using the Dynamic Filter (aka the pending eddy) algorithm. You can also try using a random routing algorithm by setting {\ttfamily E\+D\+D\+Y\+\_\+\+S\+YS = 2}. Or you could try an algorithm that always first routes items to the first predicate in the C\+H\+O\+S\+E\+N\+\_\+\+P\+R\+E\+DS array (use {\ttfamily E\+D\+D\+Y\+\_\+\+S\+YS = 3}). See the \hyperlink{toggles}{Toggles Info } page for more information.
+
+Note\+: since these comparison algorithms don\textquotesingle{}t use lottery scheduling with tickets, you can set {\ttfamily C\+O\+U\+N\+T\+\_\+\+T\+I\+C\+K\+E\+TS = False} to avoid having pointless plots generated (no pun intended).
+\item Instead of using the \char`\"{}\+Hotel\char`\"{} data set, which consists of real worker responses from Amazon\textquotesingle{}s Mechanical Turk, you can use synthetic data. You should turn off {\ttfamily R\+E\+A\+L\+\_\+\+D\+A\+TA} and choose how many predicates (questions) and items, e.\+g., \begin{DoxyVerb}REAL_DATA = False
+
+NUM_QUESTIONS = 2
+NUM_ITEMS = 5
+\end{DoxyVerb}
+
+
+You\textquotesingle{}ll also need to choose the selectivity and ambiguity for each predicate and enter it into {\ttfamily switch\+\_\+list}. The tuples are of the form {\ttfamily (task number, (select,amb), (select,amb))}. To keep the same selectivity and ambiguity throughout the simulation you\textquotesingle{}ll just need one tuple that starts at task {\ttfamily 0}. For example\+: \begin{DoxyVerb}switch_list = [ (0, (0.9, 0.75), (0.2, 0.75))]
+\end{DoxyVerb}
+
+\end{DoxyItemize}\hypertarget{install_info_MULTI_SIM}{}\subsection{M\+U\+L\+T\+I\+\_\+\+S\+IM}\label{install_info_MULTI_SIM}
+N\+U\+M\+\_\+\+S\+IM controls the number of simulations that will run with the general toggle settings. However, besides manually setting up and running test settings one at a time, there are two variables in toggles, M\+U\+L\+T\+I\+\_\+\+S\+IM and M\+U\+L\+T\+I\+\_\+\+S\+I\+M\+\_\+\+A\+R\+R\+AY which let you specify many different sets of toggle settings, \# of simulations for those settings, etc, and will print most of the important graphs that you need, if those toggles are on. M\+U\+L\+T\+I\+\_\+\+S\+I\+M\+\_\+\+A\+R\+R\+AY is a list of tuples, each of which defines settings for a test. The format for these tuples is as follows\+: (number of simulations, switch\+\_\+list, E\+D\+D\+Y\+\_\+\+S\+YS, B\+A\+T\+C\+H\+\_\+\+A\+S\+S\+I\+G\+N\+M\+E\+NT, A\+C\+T\+I\+V\+E\+\_\+\+T\+A\+S\+K\+S\+\_\+\+A\+R\+R\+AY, R\+E\+F\+I\+L\+L\+\_\+\+P\+E\+R\+I\+OD, T\+I\+C\+K\+E\+T\+I\+N\+G\+\_\+\+S\+YS, A\+D\+A\+P\+T\+I\+V\+E\+\_\+\+Q\+U\+E\+U\+E\+\_\+\+M\+O\+DE, Q\+U\+E\+U\+E\+\_\+\+L\+E\+N\+G\+T\+H\+\_\+\+A\+R\+R\+AY or P\+E\+N\+D\+I\+N\+G\+\_\+\+Q\+U\+E\+U\+E\+\_\+\+S\+I\+ZE, (I\+P\+\_\+\+L\+I\+M\+I\+T\+\_\+\+S\+YS, I\+T\+E\+M\+\_\+\+I\+P\+\_\+\+L\+I\+M\+IT)).
+
+An example of an array which will run a single test, with what we generally consider our \char`\"{}default\char`\"{} settings is \mbox{[}(1,\mbox{[}(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))\mbox{]},5,1,\mbox{[}(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)\mbox{]}, 100, 1, 4, 100, (0, 1))\mbox{]}. Notably, if you don\textquotesingle{}t want to change a setting between two runs, just put None where it would appear in the tuple. For instance, if I wanted to run the default test, followed by a single test with a different ticketing system, I would enter \mbox{[}(1,\mbox{[}(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))\mbox{]},5,1,\mbox{[}(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)\mbox{]}, 100, 1, 4, 100, (0, 1)),(None,None,None,None,None,None,0,None,None,None)\mbox{]}. Although writing out the Nones can be a pain, we\textquotesingle{}ve generally found it makes it easier to look back at a series of tests you ran and see what was different between them.
+
+Note, although technically having your very first tuple as all None should hypothetically use the settings defined elsewhere in toggles, we haven\textquotesingle{}t really tested to make sure that happens, so it\textquotesingle{}s best practice to at least fully set up the first tuple completely.\hypertarget{install_info_trouble}{}\section{Troubleshooting}\label{install_info_trouble}
+If you get an error like this when trying to run a simulation\+: \begin{DoxyVerb}    from matplotlib.backends import _macosx
+RuntimeError: Python is not installed as a framework. The Mac OS X backend will not be able to function correctly...
+\end{DoxyVerb}
+
+
+Find the file {\ttfamily matplotlibrc} that is inside the {\ttfamily matplotlib} package inside your virtual environment directory. E.\+g., if your environment is called {\ttfamily dfenv}, you may find it here\+: \begin{DoxyVerb}dfenv/lib/python2.7/site-packages/matplotlib/mpl-data/matplotlibrc
+\end{DoxyVerb}
+
+
+Open the file with a text editor and find the {\ttfamily backend} parameter. Change its value to {\ttfamily Tk\+Agg} and save the file. 
