@@ -1,0 +1,181 @@
+\hypertarget{namespaceoldjoin}{}\section{oldjoin Namespace Reference}
+\label{namespaceoldjoin}\index{oldjoin@{oldjoin}}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{namespaceoldjoin_a8636d8a4fb507de47bd554ef95397533}{join} (H, M, join\+\_\+settings)
+\item 
+def \hyperlink{namespaceoldjoin_ab07f8db55282bc2c19e5c6ddbdfb820a}{generate\+\_\+\+P\+JF} (P\+J\+F\+\_\+\+S\+E\+L\+E\+C\+T\+I\+V\+I\+TY)
+\item 
+def \hyperlink{namespaceoldjoin_a8b76cd232f566a0726e27b9e31cdd045}{evaluate} (P\+J\+F\+\_\+\+S\+E\+L\+E\+C\+T\+I\+V\+I\+TY, prejoin, item)
+\item 
+def \hyperlink{namespaceoldjoin_ad2ce1a61d9eb32b5e5caedc2b9783a17}{make\+C\+SV} (data, trial\+\_\+number)
+\item 
+def \hyperlink{namespaceoldjoin_a57cd17251a242e4b70c053b463abc920}{make\+C\+S\+V\+\_\+for\+Trial\+Info} (data)
+\item 
+def \hyperlink{namespaceoldjoin_af8c01b7cf6d0ed355ba3bd5ce60b92fe}{make\+C\+S\+V\+\_\+deep\+\_\+dive} (data)
+\item 
+def \hyperlink{namespaceoldjoin_acd67830af4aecf91efa9c32ba4ad060a}{make\+Join\+Cost\+Plot} (data, trial\+\_\+number, adaptive\+\_\+better)
+\item 
+def \hyperlink{namespaceoldjoin_a3c1f060ef4b4343cdc4231fbccfeadb9}{mass\+\_\+trial\+\_\+csv} (data, P\+J\+F\+\_\+avg\+\_\+cost, P\+W\+\_\+avg\+\_\+cost, ad\+\_\+avg\+\_\+cost)
+\item 
+def \hyperlink{namespaceoldjoin_a7df1afa3b1e7e79e86d2db42e625ec70}{summary\+\_\+csv} (data)
+\item 
+def \hyperlink{namespaceoldjoin_ad1782de5b29177d53cd9ddf8972eee3c}{heatmap} (data, trial\+\_\+info)
+\item 
+def \hyperlink{namespaceoldjoin_ac193a15973e01b8bb951196afc933711}{testing\+\_\+join\+\_\+settings} ()
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+bool \hyperlink{namespaceoldjoin_a117352cc494cc62c6b2f1882786a332c}{D\+E\+B\+UG} = False
+\item 
+bool \hyperlink{namespaceoldjoin_ab5b4f2bc5eb9b59855ac5b3251d83665}{G\+R\+A\+P\+HS} = False
+\item 
+dictionary \hyperlink{namespaceoldjoin_a92c0c194b6eaa00d63e4140804ffd6bf}{evaluated\+\_\+with\+\_\+\+P\+J\+F\+\_\+private} = \{\}
+\item 
+list \hyperlink{namespaceoldjoin_a5d84f12721d822ed265b6dee7a9e48a4}{join\+\_\+selectivities\+\_\+to\+\_\+test} = \mbox{[}0.\+3,0.\+6,0.\+9\mbox{]}
+\item 
+list \hyperlink{namespaceoldjoin_a1eeb4af9ab535277cade5d3f16902166}{P\+J\+F\+\_\+selectivities\+\_\+to\+\_\+test} = \mbox{[}$\,$\mbox{]}
+\item 
+list \hyperlink{namespaceoldjoin_ad1a622991eb6c5dfe180fa4ec1aa1c49}{pairwise\+\_\+time\+\_\+to\+\_\+test} = \mbox{[}10.\+0\mbox{]}
+\item 
+list \hyperlink{namespaceoldjoin_a5072c2af4042665dbe9d3ee2f3620596}{time\+\_\+to\+\_\+eval\+\_\+\+P\+J\+F\+\_\+test} = \mbox{[}$\,$\mbox{]}
+\item 
+list \hyperlink{namespaceoldjoin_a633a4b5ea8e51c8a8122d22a96a6e5c9}{size\+\_\+l1\+\_\+to\+\_\+test} = \mbox{[}$\,$\mbox{]}
+\item 
+list \hyperlink{namespaceoldjoin_a4e7b91dbb88e6f12875dcd0d1fbe731d}{size\+\_\+l2\+\_\+to\+\_\+test} = \mbox{[}10\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{namespaceoldjoin_a8b76cd232f566a0726e27b9e31cdd045}\label{namespaceoldjoin_a8b76cd232f566a0726e27b9e31cdd045}} 
+\index{oldjoin@{oldjoin}!evaluate@{evaluate}}
+\index{evaluate@{evaluate}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{evaluate()}{evaluate()}}
+{\footnotesize\ttfamily def oldjoin.\+evaluate (\begin{DoxyParamCaption}\item[{}]{P\+J\+F\+\_\+\+S\+E\+L\+E\+C\+T\+I\+V\+I\+TY,  }\item[{}]{prejoin,  }\item[{}]{item }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{namespaceoldjoin_ab07f8db55282bc2c19e5c6ddbdfb820a}\label{namespaceoldjoin_ab07f8db55282bc2c19e5c6ddbdfb820a}} 
+\index{oldjoin@{oldjoin}!generate\+\_\+\+P\+JF@{generate\+\_\+\+P\+JF}}
+\index{generate\+\_\+\+P\+JF@{generate\+\_\+\+P\+JF}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{generate\+\_\+\+P\+J\+F()}{generate\_PJF()}}
+{\footnotesize\ttfamily def oldjoin.\+generate\+\_\+\+P\+JF (\begin{DoxyParamCaption}\item[{}]{P\+J\+F\+\_\+\+S\+E\+L\+E\+C\+T\+I\+V\+I\+TY }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{namespaceoldjoin_ad1782de5b29177d53cd9ddf8972eee3c}\label{namespaceoldjoin_ad1782de5b29177d53cd9ddf8972eee3c}} 
+\index{oldjoin@{oldjoin}!heatmap@{heatmap}}
+\index{heatmap@{heatmap}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{heatmap()}{heatmap()}}
+{\footnotesize\ttfamily def oldjoin.\+heatmap (\begin{DoxyParamCaption}\item[{}]{data,  }\item[{}]{trial\+\_\+info }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{namespaceoldjoin_a8636d8a4fb507de47bd554ef95397533}\label{namespaceoldjoin_a8636d8a4fb507de47bd554ef95397533}} 
+\index{oldjoin@{oldjoin}!join@{join}}
+\index{join@{join}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{join()}{join()}}
+{\footnotesize\ttfamily def oldjoin.\+join (\begin{DoxyParamCaption}\item[{}]{H,  }\item[{}]{M,  }\item[{}]{join\+\_\+settings }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Assuming that we have two complete lists that need to b joined, mimicks human join
+with predetermined average cost per HIT \end{DoxyVerb}
+ \mbox{\Hypertarget{namespaceoldjoin_ad2ce1a61d9eb32b5e5caedc2b9783a17}\label{namespaceoldjoin_ad2ce1a61d9eb32b5e5caedc2b9783a17}} 
+\index{oldjoin@{oldjoin}!make\+C\+SV@{make\+C\+SV}}
+\index{make\+C\+SV@{make\+C\+SV}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{make\+C\+S\+V()}{makeCSV()}}
+{\footnotesize\ttfamily def oldjoin.\+make\+C\+SV (\begin{DoxyParamCaption}\item[{}]{data,  }\item[{}]{trial\+\_\+number }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Writes a 4 by n 2D list to a CSV file called join_data.csv \end{DoxyVerb}
+ \mbox{\Hypertarget{namespaceoldjoin_af8c01b7cf6d0ed355ba3bd5ce60b92fe}\label{namespaceoldjoin_af8c01b7cf6d0ed355ba3bd5ce60b92fe}} 
+\index{oldjoin@{oldjoin}!make\+C\+S\+V\+\_\+deep\+\_\+dive@{make\+C\+S\+V\+\_\+deep\+\_\+dive}}
+\index{make\+C\+S\+V\+\_\+deep\+\_\+dive@{make\+C\+S\+V\+\_\+deep\+\_\+dive}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{make\+C\+S\+V\+\_\+deep\+\_\+dive()}{makeCSV\_deep\_dive()}}
+{\footnotesize\ttfamily def oldjoin.\+make\+C\+S\+V\+\_\+deep\+\_\+dive (\begin{DoxyParamCaption}\item[{}]{data }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Writes a 7 by n 2D list to a CSV file called join_data.csv \end{DoxyVerb}
+ \mbox{\Hypertarget{namespaceoldjoin_a57cd17251a242e4b70c053b463abc920}\label{namespaceoldjoin_a57cd17251a242e4b70c053b463abc920}} 
+\index{oldjoin@{oldjoin}!make\+C\+S\+V\+\_\+for\+Trial\+Info@{make\+C\+S\+V\+\_\+for\+Trial\+Info}}
+\index{make\+C\+S\+V\+\_\+for\+Trial\+Info@{make\+C\+S\+V\+\_\+for\+Trial\+Info}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{make\+C\+S\+V\+\_\+for\+Trial\+Info()}{makeCSV\_forTrialInfo()}}
+{\footnotesize\ttfamily def oldjoin.\+make\+C\+S\+V\+\_\+for\+Trial\+Info (\begin{DoxyParamCaption}\item[{}]{data }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Writes a 7 by n 2D list to a CSV file called join_data.csv \end{DoxyVerb}
+ \mbox{\Hypertarget{namespaceoldjoin_acd67830af4aecf91efa9c32ba4ad060a}\label{namespaceoldjoin_acd67830af4aecf91efa9c32ba4ad060a}} 
+\index{oldjoin@{oldjoin}!make\+Join\+Cost\+Plot@{make\+Join\+Cost\+Plot}}
+\index{make\+Join\+Cost\+Plot@{make\+Join\+Cost\+Plot}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{make\+Join\+Cost\+Plot()}{makeJoinCostPlot()}}
+{\footnotesize\ttfamily def oldjoin.\+make\+Join\+Cost\+Plot (\begin{DoxyParamCaption}\item[{}]{data,  }\item[{}]{trial\+\_\+number,  }\item[{}]{adaptive\+\_\+better }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Make a plot of 3 lines given a 4 by n 2D list. Used to plot graphs of join costs \end{DoxyVerb}
+ \mbox{\Hypertarget{namespaceoldjoin_a3c1f060ef4b4343cdc4231fbccfeadb9}\label{namespaceoldjoin_a3c1f060ef4b4343cdc4231fbccfeadb9}} 
+\index{oldjoin@{oldjoin}!mass\+\_\+trial\+\_\+csv@{mass\+\_\+trial\+\_\+csv}}
+\index{mass\+\_\+trial\+\_\+csv@{mass\+\_\+trial\+\_\+csv}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{mass\+\_\+trial\+\_\+csv()}{mass\_trial\_csv()}}
+{\footnotesize\ttfamily def oldjoin.\+mass\+\_\+trial\+\_\+csv (\begin{DoxyParamCaption}\item[{}]{data,  }\item[{}]{P\+J\+F\+\_\+avg\+\_\+cost,  }\item[{}]{P\+W\+\_\+avg\+\_\+cost,  }\item[{}]{ad\+\_\+avg\+\_\+cost }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Writes a 11 by n 2D list to a CSV file called join_data.csv \end{DoxyVerb}
+ \mbox{\Hypertarget{namespaceoldjoin_a7df1afa3b1e7e79e86d2db42e625ec70}\label{namespaceoldjoin_a7df1afa3b1e7e79e86d2db42e625ec70}} 
+\index{oldjoin@{oldjoin}!summary\+\_\+csv@{summary\+\_\+csv}}
+\index{summary\+\_\+csv@{summary\+\_\+csv}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{summary\+\_\+csv()}{summary\_csv()}}
+{\footnotesize\ttfamily def oldjoin.\+summary\+\_\+csv (\begin{DoxyParamCaption}\item[{}]{data }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{namespaceoldjoin_ac193a15973e01b8bb951196afc933711}\label{namespaceoldjoin_ac193a15973e01b8bb951196afc933711}} 
+\index{oldjoin@{oldjoin}!testing\+\_\+join\+\_\+settings@{testing\+\_\+join\+\_\+settings}}
+\index{testing\+\_\+join\+\_\+settings@{testing\+\_\+join\+\_\+settings}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{testing\+\_\+join\+\_\+settings()}{testing\_join\_settings()}}
+{\footnotesize\ttfamily def oldjoin.\+testing\+\_\+join\+\_\+settings (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespaceoldjoin_a117352cc494cc62c6b2f1882786a332c}\label{namespaceoldjoin_a117352cc494cc62c6b2f1882786a332c}} 
+\index{oldjoin@{oldjoin}!D\+E\+B\+UG@{D\+E\+B\+UG}}
+\index{D\+E\+B\+UG@{D\+E\+B\+UG}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{D\+E\+B\+UG}{DEBUG}}
+{\footnotesize\ttfamily bool D\+E\+B\+UG = False}
+
+\mbox{\Hypertarget{namespaceoldjoin_a92c0c194b6eaa00d63e4140804ffd6bf}\label{namespaceoldjoin_a92c0c194b6eaa00d63e4140804ffd6bf}} 
+\index{oldjoin@{oldjoin}!evaluated\+\_\+with\+\_\+\+P\+J\+F\+\_\+private@{evaluated\+\_\+with\+\_\+\+P\+J\+F\+\_\+private}}
+\index{evaluated\+\_\+with\+\_\+\+P\+J\+F\+\_\+private@{evaluated\+\_\+with\+\_\+\+P\+J\+F\+\_\+private}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{evaluated\+\_\+with\+\_\+\+P\+J\+F\+\_\+private}{evaluated\_with\_PJF\_private}}
+{\footnotesize\ttfamily dictionary evaluated\+\_\+with\+\_\+\+P\+J\+F\+\_\+private = \{\}}
+
+\mbox{\Hypertarget{namespaceoldjoin_ab5b4f2bc5eb9b59855ac5b3251d83665}\label{namespaceoldjoin_ab5b4f2bc5eb9b59855ac5b3251d83665}} 
+\index{oldjoin@{oldjoin}!G\+R\+A\+P\+HS@{G\+R\+A\+P\+HS}}
+\index{G\+R\+A\+P\+HS@{G\+R\+A\+P\+HS}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{G\+R\+A\+P\+HS}{GRAPHS}}
+{\footnotesize\ttfamily bool G\+R\+A\+P\+HS = False}
+
+\mbox{\Hypertarget{namespaceoldjoin_a5d84f12721d822ed265b6dee7a9e48a4}\label{namespaceoldjoin_a5d84f12721d822ed265b6dee7a9e48a4}} 
+\index{oldjoin@{oldjoin}!join\+\_\+selectivities\+\_\+to\+\_\+test@{join\+\_\+selectivities\+\_\+to\+\_\+test}}
+\index{join\+\_\+selectivities\+\_\+to\+\_\+test@{join\+\_\+selectivities\+\_\+to\+\_\+test}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{join\+\_\+selectivities\+\_\+to\+\_\+test}{join\_selectivities\_to\_test}}
+{\footnotesize\ttfamily list join\+\_\+selectivities\+\_\+to\+\_\+test = \mbox{[}0.\+3,0.\+6,0.\+9\mbox{]}}
+
+\mbox{\Hypertarget{namespaceoldjoin_ad1a622991eb6c5dfe180fa4ec1aa1c49}\label{namespaceoldjoin_ad1a622991eb6c5dfe180fa4ec1aa1c49}} 
+\index{oldjoin@{oldjoin}!pairwise\+\_\+time\+\_\+to\+\_\+test@{pairwise\+\_\+time\+\_\+to\+\_\+test}}
+\index{pairwise\+\_\+time\+\_\+to\+\_\+test@{pairwise\+\_\+time\+\_\+to\+\_\+test}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{pairwise\+\_\+time\+\_\+to\+\_\+test}{pairwise\_time\_to\_test}}
+{\footnotesize\ttfamily list pairwise\+\_\+time\+\_\+to\+\_\+test = \mbox{[}10.\+0\mbox{]}}
+
+\mbox{\Hypertarget{namespaceoldjoin_a1eeb4af9ab535277cade5d3f16902166}\label{namespaceoldjoin_a1eeb4af9ab535277cade5d3f16902166}} 
+\index{oldjoin@{oldjoin}!P\+J\+F\+\_\+selectivities\+\_\+to\+\_\+test@{P\+J\+F\+\_\+selectivities\+\_\+to\+\_\+test}}
+\index{P\+J\+F\+\_\+selectivities\+\_\+to\+\_\+test@{P\+J\+F\+\_\+selectivities\+\_\+to\+\_\+test}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{P\+J\+F\+\_\+selectivities\+\_\+to\+\_\+test}{PJF\_selectivities\_to\_test}}
+{\footnotesize\ttfamily list P\+J\+F\+\_\+selectivities\+\_\+to\+\_\+test = \mbox{[}$\,$\mbox{]}}
+
+\mbox{\Hypertarget{namespaceoldjoin_a633a4b5ea8e51c8a8122d22a96a6e5c9}\label{namespaceoldjoin_a633a4b5ea8e51c8a8122d22a96a6e5c9}} 
+\index{oldjoin@{oldjoin}!size\+\_\+l1\+\_\+to\+\_\+test@{size\+\_\+l1\+\_\+to\+\_\+test}}
+\index{size\+\_\+l1\+\_\+to\+\_\+test@{size\+\_\+l1\+\_\+to\+\_\+test}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{size\+\_\+l1\+\_\+to\+\_\+test}{size\_l1\_to\_test}}
+{\footnotesize\ttfamily list size\+\_\+l1\+\_\+to\+\_\+test = \mbox{[}$\,$\mbox{]}}
+
+\mbox{\Hypertarget{namespaceoldjoin_a4e7b91dbb88e6f12875dcd0d1fbe731d}\label{namespaceoldjoin_a4e7b91dbb88e6f12875dcd0d1fbe731d}} 
+\index{oldjoin@{oldjoin}!size\+\_\+l2\+\_\+to\+\_\+test@{size\+\_\+l2\+\_\+to\+\_\+test}}
+\index{size\+\_\+l2\+\_\+to\+\_\+test@{size\+\_\+l2\+\_\+to\+\_\+test}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{size\+\_\+l2\+\_\+to\+\_\+test}{size\_l2\_to\_test}}
+{\footnotesize\ttfamily list size\+\_\+l2\+\_\+to\+\_\+test = \mbox{[}10\mbox{]}}
+
+\mbox{\Hypertarget{namespaceoldjoin_a5072c2af4042665dbe9d3ee2f3620596}\label{namespaceoldjoin_a5072c2af4042665dbe9d3ee2f3620596}} 
+\index{oldjoin@{oldjoin}!time\+\_\+to\+\_\+eval\+\_\+\+P\+J\+F\+\_\+test@{time\+\_\+to\+\_\+eval\+\_\+\+P\+J\+F\+\_\+test}}
+\index{time\+\_\+to\+\_\+eval\+\_\+\+P\+J\+F\+\_\+test@{time\+\_\+to\+\_\+eval\+\_\+\+P\+J\+F\+\_\+test}!oldjoin@{oldjoin}}
+\subsubsection{\texorpdfstring{time\+\_\+to\+\_\+eval\+\_\+\+P\+J\+F\+\_\+test}{time\_to\_eval\_PJF\_test}}
+{\footnotesize\ttfamily list time\+\_\+to\+\_\+eval\+\_\+\+P\+J\+F\+\_\+test = \mbox{[}$\,$\mbox{]}}
+

@@ -30,10 +30,11 @@ REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
-JOIN_TYPE = 1
+# 3 = item-wise join on secondary items
+JOIN_TYPE = 3
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 10 # number of simulations to run
-PROB_CHOOSING_TRUE_SEC_ITEM = 0.9
+PROB_CHOOSING_TRUE_SEC_ITEM = 1.0
 SIMULATE_TIME = False
 TIME_STEP = 1
 
