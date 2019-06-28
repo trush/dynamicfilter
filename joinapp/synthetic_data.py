@@ -156,31 +156,19 @@ def syn_answer_find_pairs_task(hit):
     random.seed()
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
-    #NOTE: returns all sec items on average, impacts influential's benefit
-    #num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
-    num_sec = int(random.choice(CROWD_RESPONSES)*len(real_secondaries))
+
+    min_responses = int(len(real_secondaries) * 0.75)
+    max_responses = int(len(real_secondaries))
+    num_sec = np.random.randint(low = min_responses, high = max_responses)
+
     if num_sec is not 0:
         this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
-    answer = ""
-    fake_items = FAKE_SEC_ITEM_LIST
-    #pick all items except one
-    if num_sec > 1:
-        for i in range(num_sec - 1) :
-            if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
-                answer += this_secondaries[i] + "{{NEWENTRY}}"
-            else:
-                answer += np.random.choice(fake_items, size = None, replace = False) + "{{NEWENTRY}}"
-    # pick last secondary item
-    if num_sec > 0:
-        if random.random() < PROB_CHOOSING_TRUE_SEC_ITEM:
-            answer += this_secondaries[num_sec -1] + "{{NEWENTRY}}"
-        else:
-            answer += np.random.choice(fake_items, size = None, replace = False) + "{{NEWENTRY}}"
+        answer = ""
+        for i in range(num_sec):
+            answer += this_secondaries[i] + "{{NEWENTRY}}""
     else:
         answer = "None"
     time = np.random.normal(FIND_PAIRS_TASK_TIME_MEAN, FIND_PAIRS_TASK_TIME_SD, 1)
-    # print "primary:", primary
-    # print "answer:", answer
     return (answer, time)
 
 ## @brief gives a worker response to a joinable filter task based on a JFTasks_Dict hit
