@@ -22,6 +22,7 @@ class TaskStats(models.Model):
     # 2 = join pairs task <br>
     # 3 = pre-join filter task <br>
     # 4 = secondary predicate task
+    # 5 = find pairs on secondary items
     task_type = models.IntegerField(default=0)
     
 
@@ -65,7 +66,7 @@ class TaskStats(models.Model):
                 self.selectivity = (self.selectivity*self.num_processed)/(self.num_processed + 1)
             self.ambiguity = (1-self.selectivity)*2
         # IW task
-        elif self.task_type is 1:
+        elif self.task_type is 1 or 5:
             self.avg_num_pairs = ((self.avg_num_pairs*self.num_processed) + len(answer))/(self.num_processed + 1)
         # TODO: prejoin filter stats
         self.num_processed += 1
@@ -170,7 +171,10 @@ class FindPairsTask(models.Model):
 
     ## @brief ToString method
     def __str__(self):
-        return "Find Pairs for item " + str(self.primary_item)   
+        if self.primary_item is not None:
+            return "Find Pairs for item " + str(self.primary_item)
+        else:
+            return "Find Pairs for item" + str(self.secondary_item)
 
     ## @brief Updates whether or not consensus has been reached
     def update_consensus(self):
@@ -214,7 +218,9 @@ class FindPairsTask(models.Model):
                 if self.num_tasks >= toggles.NUM_CERTAIN_VOTES:
                     self.consensus = True
                     self.in_progress = False
+                    self.secondary_item.refresh_from_db()
                     self.secondary_item.found_all_pairs = True
+                    self.secondary_item.save()
                     self.save()
                 else:
                     self.consensus = False
@@ -228,6 +234,7 @@ class FindPairsTask(models.Model):
                     self.in_progress = False
                     self.secondary_item.refresh_from_db()
                     self.secondary_item.found_all_pairs = True
+                    self.secondary_item.save()
                     self.save()
                 else:
                     self.consensus = False
@@ -370,7 +377,6 @@ class JoinPairTask(models.Model):
             self.save()
             if not self.primary_item.secondary_items.filter(name=self.secondary_item.name).exists():
                 self.primary_item.add_secondary_item(self.secondary_item)
-
                 if self.secondary_item.second_pred_result is None:
                     self.primary_item.refresh_from_db()
                     self.secondary_item.refresh_from_db()

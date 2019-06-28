@@ -80,7 +80,7 @@ class PrimaryItem(models.Model):
 
     ## @brief ToString method
     def __str__(self):
-        return str(self.pk)   
+        return str(self.name)   
 
     ## @brief Adds a secondary item to the many-to-many relationship
     # @param sec_item_to_add Secondary item to be associated with this primary item

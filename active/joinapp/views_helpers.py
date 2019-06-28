@@ -63,10 +63,11 @@ def choose_task_IW2(workerID, estimator):
 ## Itemwise join on secondary list - all find pairs then secondary preds
 def choose_task_IWS1(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
-
     sec_items_left = SecondaryItem.objects.filter(found_all_pairs=False)
+
     if sec_items_left.exists():
         return choose_task_find_pairs(sec_items_left, new_worker, 2)
+
     else:
         return choose_task_sec_pred(new_worker)
 
@@ -76,7 +77,7 @@ def choose_task_IWS2(workerID, estimator):
 
     sec_left = SecondaryItem.objects.filter(second_pred_result=None)
     if sec_left.exists():
-        return choose_task_sec_pred(new_worker)
+        return choose_task_sec_pred_before_pairs(new_worker)
     else:
         true_secs = SecondaryItem.objects.filter(second_pred_result=True)
         return choose_task_find_pairs(true_secs, new_worker, 2)
@@ -87,9 +88,8 @@ def choose_task_IWS3(workerID, estimator):
     true_secs_to_do = SecondaryItem.objects.filter(second_pred_result=True, found_all_pairs=False)
     if true_secs_to_do.exists():
         return choose_task_find_pairs(true_secs_to_do, new_worker, 2)
-
     else:
-        return choose_task_sec_pred(new_worker)
+        return choose_task_sec_pred_before_pairs(new_worker)
 
 
 
@@ -161,11 +161,10 @@ def choose_task_joinable_filter_helper(worker):
 ## @brief chooses a find pairs task based on a worker
 # @param prim_items_list the current primary list objects available
 # @param worker workerID of the worker this task is going to
-def choose_task_find_pairs_prim(items_list,worker, find_pairs_type):
+def choose_task_find_pairs(items_list,worker, find_pairs_type):
     #TODO: Toggle for in_progress if-statement?
     #NOTE: IF WE DON"T WANT IN PROGRESS FOR FIND PAIRS, COMMENT OUT IF STATEMENT
-    #      AND HAVE THE FUNCTION JUST BE WHAT"S INSIDE THE ELSE STATEMENT AND THE STUFF AFTER
-
+    #      AND HAVE THE FUNCTION JUST BE WHAT"S INSIDE THE ELSE STATEMENT AND THE STUFF AFTER6
     if FindPairsTask.objects.filter(in_progress=True).exists():
         #Possible bugs with concurrency (multiple tasks in progress)
         find_pairs_task = FindPairsTask.objects.get(in_progress=True)
@@ -182,7 +181,7 @@ def choose_task_find_pairs_prim(items_list,worker, find_pairs_type):
                 find_pairs_task = FindPairsTask.objects.get_or_create(primary_item=prim_item)[0]
         elif find_pairs_type is 2:
             sec_item = items_list.order_by('?').first()
-            find_pairs_task = FindPairsTask.object.get_or_create(secondary_item=sec_item)[0]
+            find_pairs_task = FindPairsTask.objects.get_or_create(secondary_item=sec_item)[0]
 
             secs_left = items_list
             while find_pairs_task.consensus == True: # TODO: implement this: or worker in find_pairs_task.workers.all():
@@ -230,6 +229,7 @@ def choose_task_sec_pred(worker):
     else:
         # only secondary items that haven't reached consensus but match at least one primary item
         sec_items_left = SecondaryItem.objects.filter(second_pred_result=None).exclude(matches_some = False)
+     
         if toggles.SEC_INFLUENTIAL is True:
             sec_item = sec_items_left.order_by('-num_prims_left').first() # item related to the most primary items
             sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]
@@ -265,6 +265,21 @@ def choose_task_sec_pred_by_prim(worker, prim_item):
             sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec)[0]
     return sec_pred_task
 
+def choose_task_sec_pred_before_pairs(worker):
+    if SecPredTask.objects.filter(in_progress=True).exists():
+        sec_pred_task = SecPredTask.objects.filter(in_progress=True).first()
+    else:
+        sec_items_left = SecondaryItem.objects.filter(second_pred_result=None)
+        sec = sec_items_left.order_by('?').first()
+        sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec)[0]
+        while worker in sec_pred_task.workers.all():
+            sec_items_left = sec_items_left.exclude(pk=sec_item.pk)
+            if sec_items_left.count() is 0: #if worker has done all remaining task, give them a useless task
+                sec_items_left = SecondaryItem.objects.exclude(second_pred_result = None)
+                print "useless task issued"
+            sec_item = sec_items_left.order_by('?').first()
+            sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec_item)[0]        
+    return sec_pred_task
 
 #_____GATHER TASKS_____#
 
@@ -275,13 +290,12 @@ def choose_task_sec_pred_by_prim(worker, prim_item):
 def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
     if item1_id is None and item2_id is None:
         raise Exception("no item given")
-
     #call correct helper for the given task_type and collect the result (if we reach consensus)
     if task_type == 0:
         finished = collect_joinable_filter(answer, cost, item1_id)
     elif task_type == 1:
         answer = parse_pairs(answer)
-        finished = collect_find_pairs(answer, cost, item1_id)
+        finished = collect_find_pairs(answer, cost, item1_id, 1) 
     elif task_type == 2:
         finished = collect_join_pair(answer, cost, item1_id, item2_id)
         primary_item = PrimaryItem.objects.get(pk=item1_id)
@@ -290,8 +304,23 @@ def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
             primary_item.save()
     elif task_type == 3:
         finished = collect_prejoin_filter(answer, cost, item1_id, item2_id)
-    else: #if task_type == 4:
+    elif task_type == 4:
         finished = collect_secondary_predicate(answer, cost, item2_id)
+    elif task_type == 5:
+        answer = parse_pairs(answer)
+        finished = collect_find_pairs(answer, cost, item2_id, 2)
+        if not SecondaryItem.objects.filter(found_all_pairs=False).exists():
+            for prim in PrimaryItem.objects.all():
+                prim.refresh_from_db()
+                prim.found_all_pairs = True
+                prim.save()
+        if not SecondaryItem.objects.filter(second_pred_result=None).exists():
+            if not SecondaryItem.objects.filter(second_pred_result=True).filter(found_all_pairs=False).exists():
+                for prim in PrimaryItem.objects.all():
+                    prim.refresh_from_db()
+                    prim.found_all_pairs = True
+                    prim.update_state()
+                    prim.save()
 
     #depending on whether we want to update on consensus, we may need to update TaskStats for the relevant type
     if toggles.UPDATE_ON_CONSENSUS and finished is not None:
@@ -381,7 +410,7 @@ def collect_find_pairs(answer, cost, item_id, find_pairs_type):
             if disamb_match == "":
                 continue
 
-            #find or create a secondary item that matches this name
+            #find or create a primary item that matches this name
             this_prim_item = PrimaryItem.objects.get(name=disamb_match)
             prim_items_list.append(this_prim_item.id)
 

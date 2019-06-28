@@ -58,6 +58,10 @@ class JoinSimulation():
     FindPairsTasks_Dict = dict() 
 
     ## Key: secondary item name <br>
+    ## Value: ("None", secondary item name, time taken list, worker response list/ground truth)
+    FindPairsSecTasks_Dict = dict() 
+
+    ## Key: secondary item name <br>
     ## Value: ("NA", secondary item name, time taken list, worker response list/ground truth)
     SecPredTasks_Dict = dict() 
 
@@ -391,7 +395,7 @@ class JoinSimulation():
     # optimal for comparison that runs all the true influential restaurants before the false ones ## <<< only useful in real data simulations
 
     ## @brief runs run_sim with the same settings NUM_SIMS times
-    def run_multi_sims(self):
+    def run_multi_sims(self): #TODO RESET THIS
         results_list = []
         join_selectivity_arr = []
         num_jf_assignments_arr = []
@@ -434,27 +438,35 @@ class JoinSimulation():
         join_pairs_task_stats = TaskStats.objects.create(task_type=2)
         prejoin_task_stats = TaskStats.objects.create(task_type=3)
         sec_pred_task_stats = TaskStats.objects.create(task_type=4)
+        find_pairs_sec_task_stats = TaskStats.objects.create(task_type=5)
 
         if toggles.REAL_DATA is True:
             self.load_primary_real() #load primary list
             self.load_real_data() #load worker responses into dictionaries
         else:
-            syn_load_list() #load primary list
-            if JOIN_TYPE == 0: # joinable filter join
-                syn_load_joinable_filter_tasks(self.JFTasks_Dict)
-            elif JOIN_TYPE == 1: # item-wise join
-                syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
-                syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
-                syn_load_fake_sec_pred_tasks(self.FakeSecPredTasks_Dict)
-            elif JOIN_TYPE == 2: # pre-join filtered join
-                if HAVE_SEC_LIST is True:
-                    syn_load_second_list()
-                    estimator.has_2nd_list = True
-                    estimator.save()
-                syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
-                syn_load_pjfs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict)
-                syn_load_join_pairs(self.JoinPairTasks_Dict,self.PrimPJFTasks_Dict,self.SecPJFTasks_Dict)
-                syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
+            syn_load_list()
+
+            #Added to test IW on secondaries, assuming we already have 2ndary list
+            syn_load_second_list()
+
+            syn_load_everything(self)
+
+            # syn_load_list() #load primary list
+            # if JOIN_TYPE == 0: # joinable filter join
+            #     syn_load_joinable_filter_tasks(self.JFTasks_Dict)
+            # elif JOIN_TYPE == 1: # item-wise join
+            #     syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
+            #     syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
+            #     syn_load_fake_sec_pred_tasks(self.FakeSecPredTasks_Dict)
+            # elif JOIN_TYPE == 2: # pre-join filtered join
+            #     if HAVE_SEC_LIST is True:
+            #         syn_load_second_list()
+            #         estimator.has_2nd_list = True
+            #         estimator.save()
+            #     syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
+            #     syn_load_pjfs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict)
+            #     syn_load_join_pairs(self.JoinPairTasks_Dict,self.PrimPJFTasks_Dict,self.SecPJFTasks_Dict)
+            #     syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
 
         self.generate_worker_ids()
 
@@ -478,6 +490,8 @@ class JoinSimulation():
                 task = choose_task_IW(worker_id, estimator)
             elif JOIN_TYPE is 2:
                 task = choose_task_PJF(worker_id, estimator)
+            elif JOIN_TYPE is 3:
+                task = choose_task_IWS3(worker_id, estimator)
 
     
             if type(task) is JFTask:
@@ -485,9 +499,14 @@ class JoinSimulation():
                 my_item = task.primary_item.pk
                 hit = self.JFTasks_Dict[my_item]
             elif type(task) is FindPairsTask:
-                task_type = 1
-                my_item = task.primary_item.pk
-                hit = self.FindPairsTasks_Dict[my_item]
+                if task.primary_item is not None:
+                    task_type = 1
+                    my_item = task.primary_item.pk
+                    hit = self.FindPairsTasks_Dict[my_item]
+                elif task.secondary_item is not None:
+                    task_type = 5
+                    my_item = task.secondary_item.name
+                    hit = self.FindPairsSecTasks_Dict[my_item]
             elif type(task) is JoinPairTask:
                 task_type = 2
                 my_prim_item = task.primary_item.pk
@@ -531,7 +550,7 @@ class JoinSimulation():
                     task_answer,task_time = syn_answer_pjf_task(hit)
                 elif task_type is 2:
                     task_answer,task_time = syn_answer_join_pair_task(hit)
-                elif task_type is 1:
+                elif task_type is 1 or 5:
                     task_answer,task_time = syn_answer_find_pairs_task(hit)
                 elif task_type is 0:
                     task_answer,task_time = syn_answer_joinable_filter_task(hit)
@@ -560,6 +579,7 @@ class JoinSimulation():
                     self.sim_time += task_time
             else:
                 gather_task(task_type,task_answer,task_time,prim,sec)
+                
                 self.sim_time += task_time
                 self.num_tasks_completed += 1
 
@@ -588,24 +608,24 @@ class JoinSimulation():
         for item in PrimaryItem.objects.all():
             item.refresh_from_db()
         
-        if JOIN_TYPE is 1:
-            overlap_list = []
-            for item in SecondaryItem.objects.all():
-                item.refresh_from_db()
-                overlap_list += [item.num_prim_items]
-            if overlap_list is []:
-                print "NO SECONDARY ITEMS"
-            else:
-                i = max(overlap_list)
-                while i >= 0:
-                    num_i_prims = SecondaryItem.objects.filter(num_prim_items = i).count()
-                    print "*", num_i_prims, "secondary item(s) were associated with", i, "primary items"
-                    i -= 1
+        # if JOIN_TYPE is 1:
+        #     overlap_list = []
+        #     for item in SecondaryItem.objects.all():
+        #         item.refresh_from_db()
+        #         overlap_list += [item.num_prim_items]
+        #     if overlap_list is []:
+        #         print "NO SECONDARY ITEMS"
+        #     else:
+        #         i = max(overlap_list)
+        #         while i >= 0:
+        #             num_i_prims = SecondaryItem.objects.filter(num_prim_items = i).count()
+        #             print "*", num_i_prims, "secondary item(s) were associated with", i, "primary items"
+        #             i -= 1
 
-                print ""
-                print "Mean primary per secondary:", np.mean(overlap_list)
-                print "Standard deviation primary per secondary:", np.std(overlap_list)
-                print ""
+        #         print ""
+        #         print "Mean primary per secondary:", np.mean(overlap_list)
+        #         print "Standard deviation primary per secondary:", np.std(overlap_list)
+        #         print ""
 
         num_prim_pass = PrimaryItem.objects.filter(eval_result = True).count()
         num_prim_fail = PrimaryItem.objects.filter(eval_result = False).count()
@@ -639,5 +659,5 @@ class JoinSimulation():
             self.accuracy_real_data() #does its own printing
         else:
             self.accuracy_syn_data() #does its own printing
-
         return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
+        
