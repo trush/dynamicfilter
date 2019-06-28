@@ -9,8 +9,10 @@ from views_helpers import parse_pairs
 
 ## @brief Load/create instances of the primary list
 def syn_load_list():
-    for i in range(toggles.NUM_PRIM_ITEMS):
-        PrimaryItem.objects.create(name = "primary item" + str(i))
+    ## NOTE: weird range bc we use pks throughout the code for primary items
+    ## and pks start from 1. 
+    for i in range(1, toggles.NUM_PRIM_ITEMS + 1):
+        PrimaryItem.objects.create(name = str(i))
 
 ## @brief load/create instance of secondary list (when toggle is set so that secondary list exists)
 def syn_load_second_list():
@@ -119,6 +121,13 @@ def syn_answer_find_pairs_task(hit):
     random.seed()
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
+    #num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
+    #if len(real_secondaries) is 0:
+    #    num_sec = 0
+    # elif random.random() < CHANCE_FEWER_THAN_HALF:
+    #     num_sec = random.choice(range(len(real_secondaries)/2))
+    #else:
+    #    num_sec = random.choice(range(len(real_secondaries)))
 
     min_responses = int(len(real_secondaries) * FLOOR_AMBIGUITY_FIND_PAIRS)
     max_responses = int(len(real_secondaries))

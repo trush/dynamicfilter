@@ -444,13 +444,20 @@ class JoinSimulation():
         join_pairs_task_stats = TaskStats.objects.create(task_type=2)
         prejoin_task_stats = TaskStats.objects.create(task_type=3)
         sec_pred_task_stats = TaskStats.objects.create(task_type=4)
+        find_pairs_sec_task_stats = TaskStats.objects.create(task_type=5)
 
         if toggles.REAL_DATA is True:
             self.load_primary_real() #load primary list
             self.load_real_data() #load worker responses into dictionaries
         else:
-            syn_load_list() #load primary list
+            syn_load_list()
+
+            #NOTE: Added to test IW on secondaries, assuming we already have 2ndary list
+            syn_load_second_list()
+
             syn_load_everything(self)
+
+            # syn_load_list() #load primary list
             # if JOIN_TYPE == 0: # joinable filter join
             #     syn_load_joinable_filter_tasks(self.JFTasks_Dict)
             # elif JOIN_TYPE == 1: # item-wise join
@@ -462,8 +469,9 @@ class JoinSimulation():
             #         syn_load_second_list()
             #         estimator.has_2nd_list = True
             #         estimator.save()
+            #     syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
             #     syn_load_pjfs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict)
-            #     syn_load_join_pairs_and_find_pairs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict,self.FindPairsTasks_Dict,self.JoinPairTasks_Dict)
+            #     syn_load_join_pairs(self.JoinPairTasks_Dict,self.PrimPJFTasks_Dict,self.SecPJFTasks_Dict)
             #     syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
 
         self.generate_worker_ids()
@@ -488,9 +496,11 @@ class JoinSimulation():
             if JOIN_TYPE is 0: # joinable filter
                 task = choose_task_JF(worker_id)
             elif JOIN_TYPE is 1: # item-wise join
-                task = choose_task_IW(worker_id, estimator)
+                task = choose_task_IW2(worker_id, estimator)
             elif JOIN_TYPE is 2:
                 task = choose_task_PJF(worker_id, estimator)
+            elif JOIN_TYPE is 3:
+                task = choose_task_IWS3(worker_id, estimator)
 
     
             if type(task) is JFTask:
@@ -498,9 +508,14 @@ class JoinSimulation():
                 my_item = task.primary_item.pk
                 hit = self.JFTasks_Dict[my_item]
             elif type(task) is FindPairsTask:
-                task_type = 1
-                my_item = task.primary_item.pk
-                hit = self.FindPairsTasks_Dict[my_item]
+                if task.primary_item is not None:
+                    task_type = 1
+                    my_item = task.primary_item.pk
+                    hit = self.FindPairsTasks_Dict[my_item]
+                elif task.secondary_item is not None:
+                    task_type = 5
+                    my_item = task.secondary_item.name
+                    hit = self.FindPairsSecTasks_Dict[my_item]
             elif type(task) is JoinPairTask:
                 task_type = 2
                 my_prim_item = task.primary_item.pk
@@ -545,7 +560,7 @@ class JoinSimulation():
                     task_answer,task_time = syn_answer_pjf_task(hit)
                 elif task_type is 2:
                     task_answer,task_time = syn_answer_join_pair_task(hit)
-                elif task_type is 1:
+                elif task_type is 1 or 5:
                     task_answer,task_time = syn_answer_find_pairs_task(hit)
                 elif task_type is 0:
                     task_answer,task_time = syn_answer_joinable_filter_task(hit)
@@ -574,6 +589,7 @@ class JoinSimulation():
                     self.sim_time += task_time
             else:
                 gather_task(task_type,task_answer,task_time,prim,sec)
+                
                 self.sim_time += task_time
                 self.num_tasks_completed += 1
 
