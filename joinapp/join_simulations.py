@@ -505,7 +505,7 @@ class JoinSimulation():
             if JOIN_TYPE is 0: # joinable filter
                 task = choose_task_JF(worker_id)
             elif JOIN_TYPE is 1: # item-wise join
-                task = choose_task_IW2(worker_id, estimator)
+                task = choose_task_IW(worker_id, estimator)
             elif JOIN_TYPE is 2:
                 task = choose_task_PJF(worker_id, estimator)
             elif JOIN_TYPE is 3:
@@ -662,7 +662,7 @@ class JoinSimulation():
         num_jf_tasks = JFTask.objects.all().count()
         num_find_pairs_tasks = FindPairsTask.objects.all().count()
         # NOTE: this only works for a static algorithm
-        num_join_pairs_tasks = JoinPairTask.objects.filter(has_same_pjf=True)
+        num_join_pairs_tasks = JoinPairTask.objects.filter(has_same_pjf=True).count()
         num_sec_pred_tasks = SecPredTask.objects.all().count()
 
         num_jf_assignments = 0
@@ -686,6 +686,7 @@ class JoinSimulation():
         print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments
         print "* # of join pairs tasks:", num_join_pairs_tasks, "# of join pairs assignments:", num_join_pairs_assignments
         print "* # of secondary predicate tasks:", num_sec_pred_tasks, "# secondary predicate assignments:", num_sec_pred_assignments
+        print "* # of finished secondary predicate tasks:", SecPredTask.objects.exclude(result = None).count()
         print "* # of secondary items found:", SecondaryItem.objects.all().count(), " out of ", toggles.NUM_SEC_ITEMS, " total secondary items"
         print ""
         if REAL_DATA is True:
