@@ -1,8 +1,9 @@
 import math
 
 #________ Path Info __________#
-PRIMARY_LIST = ''#TODO hotel list
-REAL_DATA_CSV = '/simulation_files/CLEANED_ROUND1.csv'#TODO MTURK data CSV
+PRIMARY_LIST = './simulation_files/Hotel_items.csv'
+REAL_DATA_JF = './simulation_files/JOINABLE_FILTER_RESULTS.csv'#TODO MTURK data CSV
+REAL_DATA_SEC_PRED = './simulation_files/SECOND_PRED_RESULTS.csv'
 
 #_____________________________ For Synthetic Data _____________________________#
 NUM_PRIM_ITEMS = 20
@@ -12,14 +13,7 @@ HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no
 PJF_LIST = [("0",0.25), ("1",0.25), ("2",0.25), ("3",0.25)]
 
 #__________________________ For Consensus Exploration__________________#
-# CHANCE_FEWER_THAN_HALF = 0.5 #< NOT IN USE CURRENTLY
-# CHANCE_MORE_THAN_7 = 0.3
-# CROWD_RESPONSES = [0,0,0.25,0,0.25,0.75,1,0.25,0,0.6,0.2,1,1,0.8,0,0,1,0.6,0.7,0,0.3,1,0.5,0.3,0,0.1,0.6,0,0,0.25,0,0.25,1,0,0.75,0.25,0.25,0,0,0.5,1,0.25,0,0.25,0]
-# YES_VOTES_THRESHOLD = 5
-# NO_VOTES_THRESHOLD = 10
-# YES_VOTES_FRACTION = 0.25
-# NO_VOTES_FRACTION = 0.75
-FLOOR_AMBIGUITY_FIND_PAIRS = 0.75
+FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
 
 
 #________ For Real Data ________#
@@ -31,10 +25,9 @@ REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
-JOIN_TYPE = 1
+JOIN_TYPE = 0
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 10 # number of simulations to run
-PROB_CHOOSING_TRUE_SEC_ITEM = 0.9
 SIMULATE_TIME = False
 TIME_STEP = 1
 
@@ -51,14 +44,14 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 
 
 #_______ Selectivity and Ambiguity Settings _________#
-JF_AMBIGUITY = 0
-JF_SELECTIVITY = 0.1
 SEC_PRED_SELECTIVITY = 0.3
+JOIN_COND_SELECTIVITY = 0.5 #likelyhood of being a pair given that they are in the same PJF
+
+JF_AMBIGUITY = 0
 SEC_PRED_AMBIGUITY = 0
 JOIN_COND_AMBIGUITY = 0
-JOIN_COND_SELECTIVITY = 0.3 # given that these pairs were created by the crowd
 PJF_AMBIGUITY = 0
-JP_SELECTIVITY_W_PJF = 0.5 #likelyhood of being a pair given that they are in the same PJF
+
 
 #__________________ Time Settings _____________________#
 JF_TASK_TIME_MEAN = 100

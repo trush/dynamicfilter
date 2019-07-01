@@ -11,6 +11,7 @@ from django.test import *
 import random
 from synthetic_data import *
 import matplotlib.pyplot as graph
+from os import path
 
 ## @brief Functionality for testing the join algorithm on non-live data
 class JoinSimulation():
@@ -91,7 +92,8 @@ class JoinSimulation():
     
     ## @brief Loads primary list into database
     def load_primary_real(self):
-        f = open( PRIMARY_LIST, 'r')
+        fn = path.join(path.dirname(__file__), PRIMARY_LIST)
+        f = open( fn, 'r')
         for line in f:
             try:
                 line = line.rstrip ('\n')
@@ -100,74 +102,124 @@ class JoinSimulation():
                 print "Error reading item "
         f.close()
 
-    ## @brief Loads the MTurk data from a csvfile and populates the answer dictionaries
     def load_real_data(self):
-        with open(REAL_DATA_CSV, mode = 'r') as csv_file:
-            csv_reader = csv.reader(csv_file, delimeter = ',')
-            line_count = 0
-            for row in csv_reader:
-                #csv rows are organized like this: "Hit Id, Hotel, Restaurant, Assignment Id, Assignment Status, Time Taken, workervote, feedback"
-                primary_item = row[1]
-                secondary_item = row[2]
-                time_taken = row[5]
-                worker_vote = row[6]
-                try:
-                    if task_type is "eval_joinable_filter":
-                        primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk 
-                        if primary_item_pk in self.JFTasks_Dict:
-                            value = self.JFTasks_Dict[primary_item_pk]
-                        else:
-                            value = (primary_item_pk,"NA",[],[]) 
-                        value[2] += [time_taken] #add assignment time to hit
-                        value[3] += [worker_vote] #add worker answer to hit
-                        self.JFTasks_Dict[primary_item_pk] = value
+        if JOIN_TYPE is 0:
+            fn = path.join(path.dirname(__file__), REAL_DATA_JF)
+            with open(fn, mode = 'r') as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter = ',')
+                line_count = 0
+                for row in csv_reader:
+                    primary_item = str(row[1][2:-1]) # to remove parentheses
+                    print primary_item
+                    time_taken = row[3]
+                    worker_vote = row[4]
+                    #try:
+                    primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk
+                    if primary_item_pk in self.JFTasks_Dict:
+                        value = self.JFTasks_Dict[primary_item_pk]
+                    else:
+                        value = (primary_item_pk,"NA",[],[]) 
+                    print value[2], ", ", value[3]
+                    print time_taken, worker_vote
+                    value[2] += [time_taken] #add assignment time to hit
+                    value[3] += [worker_vote] #add worker answer to hit
+                    self.JFTasks_Dict[primary_item_pk] = value
 
-                    elif task_type is "list_secondary":
-                        primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk 
-                        if primary_item_pk in self.FindPairsTasks_Dict:
-                            value = self.FindPairsTasks_Dict[primary_item.pk] 
-                        else:
-                            value = (primary_item_pk,"NA",[],[])
-                        value[2] += [time_taken] #add assignment time to hit
-                        value[3] += [worker_vote] #add worker answer to hit
-                        self.FindPairsTasks_Dict[primary_item_pk] = value
-
-                    elif task_type is "eval_sec_pred":
+                    # except:
+                    #     print "Error reading in row ", line_count
+                    # line_count += 1
+        else:
+            fn = path.join(path.dirname(__file__), REAL_DATA_SEC_PRED)
+            with open(REAL_DATA_SEC_PRED, mode = 'r') as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter = ',')
+                line_count = 0
+                for row in csv_reader:
+                    secondary_item = row[1][2:-1] # to remove parentheses
+                    time_taken = row[3]
+                    worker_vote = row[4]
+                    try:
                         if secondary_item in self.SecPredTasks_Dict:
                             value = self.SecPredTasks_Dict[secondary_item]   
                         else:
                             value = ("NA", secondary_item,[],[])
+
                         value[2] += [time_taken] #add assignment time to hit
                         value[3] += [worker_vote] #add worker answer to hit
+                        self.SecPredTasks_Dict[secondary_item] = value
 
-                    elif task_type is "eval_pjf":
-                        if primary_item is not "None": #primary item pjf
-                            primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk
-                            if primary_item_pk in self.PrimPJFTasks_Dict:
-                                value = self.PrimPJFTasks_Dict[primary_item_pk]
-                            else:
-                                value = (primary_item_pk, "NA", [], [])
-                            value[2] += [time_taken]
-                            value[3] += [worker_vote]
-                        else: #secondary item pjf
-                            if secondary_item in self.SecPJFTasks_Dict:
-                                value = self.SecPJFTasks_Dict[secondary_item]
-                            else:
-                                value = ("NA", secondary_item, [],[])
-                            value[2] += [time_taken]
-                            value[3] += [worker_vote]
-                    elif task_type is "eval_join_cond": #for pre-join filtered join
-                        primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk
-                        key = (primary_item_pk,secondary_item)
-                        if key in self.JoinPairTasks_Dict:
-                            value = self.JoinPairTasks_Dict[key]
-                        else:
-                            value = ("PJF", [],[]) #TODO pjf.....
-                        value[1] += [time_taken]
-                        value[2] += [worker_vote]
-                except:
-                    print "Error reading in row ", line_count
-                line_count += 1
+                    except:
+                        print "Error reading in row ", line_count
+                    line_count += 1
+        print self.JFTasks_Dict
+
+    # ## @brief Loads the MTurk data from a csvfile and populates the answer dictionaries
+    # def load_real_data(self):
+    #     with open(REAL_DATA_CSV, mode = 'r') as csv_file:
+    #         csv_reader = csv.reader(csv_file, delimeter = ',')
+    #         line_count = 0
+    #         for row in csv_reader:
+    #             #csv rows are organized like this: "Hit Id, Hotel, Restaurant, Assignment Id, Assignment Status, Time Taken, workervote, feedback"
+    #             primary_item = row[1]
+    #             secondary_item = row[2]
+    #             time_taken = row[5]
+    #             worker_vote = row[6]
+    #             try:
+    #                 if task_type is "eval_joinable_filter":
+    #                     primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk 
+    #                     if primary_item_pk in self.JFTasks_Dict:
+    #                         value = self.JFTasks_Dict[primary_item_pk]
+    #                     else:
+    #                         value = (primary_item_pk,"NA",[],[]) 
+    #                     value[2] += [time_taken] #add assignment time to hit
+    #                     value[3] += [worker_vote] #add worker answer to hit
+    #                     self.JFTasks_Dict[primary_item_pk] = value
+
+    #                 elif task_type is "list_secondary":
+    #                     primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk 
+    #                     if primary_item_pk in self.FindPairsTasks_Dict:
+    #                         value = self.FindPairsTasks_Dict[primary_item.pk] 
+    #                     else:
+    #                         value = (primary_item_pk,"NA",[],[])
+    #                     value[2] += [time_taken] #add assignment time to hit
+    #                     value[3] += [worker_vote] #add worker answer to hit
+    #                     self.FindPairsTasks_Dict[primary_item_pk] = value
+
+    #                 elif task_type is "eval_sec_pred":
+    #                     if secondary_item in self.SecPredTasks_Dict:
+    #                         value = self.SecPredTasks_Dict[secondary_item]   
+    #                     else:
+    #                         value = ("NA", secondary_item,[],[])
+    #                     value[2] += [time_taken] #add assignment time to hit
+    #                     value[3] += [worker_vote] #add worker answer to hit
+
+    #                 elif task_type is "eval_pjf":
+    #                     if primary_item is not "None": #primary item pjf
+    #                         primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk
+    #                         if primary_item_pk in self.PrimPJFTasks_Dict:
+    #                             value = self.PrimPJFTasks_Dict[primary_item_pk]
+    #                         else:
+    #                             value = (primary_item_pk, "NA", [], [])
+    #                         value[2] += [time_taken]
+    #                         value[3] += [worker_vote]
+    #                     else: #secondary item pjf
+    #                         if secondary_item in self.SecPJFTasks_Dict:
+    #                             value = self.SecPJFTasks_Dict[secondary_item]
+    #                         else:
+    #                             value = ("NA", secondary_item, [],[])
+    #                         value[2] += [time_taken]
+    #                         value[3] += [worker_vote]
+    #                 elif task_type is "eval_join_cond": #for pre-join filtered join
+    #                     primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk
+    #                     key = (primary_item_pk,secondary_item)
+    #                     if key in self.JoinPairTasks_Dict:
+    #                         value = self.JoinPairTasks_Dict[key]
+    #                     else:
+    #                         value = ("PJF", [],[]) #TODO pjf.....
+    #                     value[1] += [time_taken]
+    #                     value[2] += [worker_vote]
+    #             except:
+    #                 print "Error reading in row ", line_count
+    #             line_count += 1
 
 
     #___________________ Accuracy ______________________#
@@ -290,7 +342,7 @@ class JoinSimulation():
                 for item in found_list:
                     if item not in true_list:
                         false_positives += 1
-                # true_negatives += (len(FAKE_SEC_ITEM_LIST) - false_positives)
+                #true_negatives += (len(FAKE_SEC_ITEM_LIST) - false_positives)
             print ""
             print "We missed " + str(false_negatives) + " secondary items"
             print "We had " + str(false_positives) + " extra items" 
@@ -369,6 +421,9 @@ class JoinSimulation():
         self.sim_time = 0
         self.num_tasks_completed = 0
         self.num_prim_left = []
+        
+        self.num_tasks_breakdown = [0,0,0,0,0,0]
+        self.sim_time_breakdown = [0,0,0,0,0,0]
 
 
 
@@ -421,36 +476,41 @@ class JoinSimulation():
             
             self.reset_database()
             #more processing happens here
-        # print "Average Total Time:", mean(sim_time_arr)
+        print "Average Total Time:", np.mean(self.sim_time_arr)
 
-        # print "Average Time on Joinable Filter Tasks:", mean(sim_time_breakdown_arr[0])
-        # print "Average Time on Find Pairs Tasks (Primary):", mean(sim_time_breakdown_arr[1])
-        # print "Average Time on Join Pair Tasks:", mean(sim_time_breakdown_arr[2])
-        # print "Average Time on PJF Tasks:", mean(sim_time_breakdown_arr[3])
-        # print "Average Time on Secondary Predicate Tasks:", mean(sim_time_breakdown_arr[4])
-        # print "Average Time on Find Pairs Tasks (Secondary):", mean(sim_time_breakdown_arr[5])
+        
+        print "Average Time on Joinable Filter Tasks:", np.mean(self.sim_time_breakdown_arr[0])
+        print self.sim_time_breakdown_arr[1]
+        print "Average Time on Find Pairs Tasks (Primary):", np.mean(self.sim_time_breakdown_arr[1])
+        print "Average Time on Join Pair Tasks:", np.mean(self.sim_time_breakdown_arr[2])
+        print "Average Time on PJF Tasks:", np.mean(self.sim_time_breakdown_arr[3])
+        print self.sim_time_breakdown_arr[4]
+        print "Average Time on Secondary Predicate Tasks:", np.mean(self.sim_time_breakdown_arr[4])
+        print "Average Time on Find Pairs Tasks (Secondary):", np.mean(self.sim_time_breakdown_arr[5])
 
-        # print "Average Number of Tasks:", mean(num_tasks_completed_arr)
+        print "Average Number of Tasks:", np.mean(self.num_tasks_completed_arr)
 
-        # print "Average Number of Joinable Filter Tasks:", mean(num_tasks_breakdown_arr[0])
-        # print "Average Number of Find Pairs Tasks (Primary):", mean(num_tasks_breakdown_arr[1])
-        # print "Average Number of Join Pair Tasks:", mean(num_tasks_breakdown_arr[2])
-        # print "Average Number of PJF Tasks:", mean(num_tasks_breakdown_arr[3])
-        # print "Average Number of Secondary Predicate Tasks:", mean(num_tasks_breakdown_arr[4])
-        # print "Average Number of Find Pairs Tasks (Secondary):", mean(num_tasks_breakdown_arr[5])
+        print "Average Number of Joinable Filter Tasks:", np.mean(self.num_tasks_breakdown_arr[0])
+        print self.num_tasks_breakdown_arr[1]
+        print "Average Number of Find Pairs Tasks (Primary):", np.mean(self.num_tasks_breakdown_arr[1])
+        print "Average Number of Join Pair Tasks:", np.mean(self.num_tasks_breakdown_arr[2])
+        print "Average Number of PJF Tasks:", np.mean(self.num_tasks_breakdown_arr[3])
+        print self.num_tasks_breakdown_arr[4]
+        print "Average Number of Secondary Predicate Tasks:", np.mean(self.num_tasks_breakdown_arr[4])
+        print "Average Number of Find Pairs Tasks (Secondary):", np.mean(self.num_tasks_breakdown_arr[5])
 
-        print "prim_accuracy", np.mean(prim_accuracy)
-        print "false_negatives", np.mean(false_negatives)
-        print "true_positives", np.mean(true_positives)
-        print "false_positives", np.mean(false_positives)
-        print "true_negatives", np.mean(true_negatives)
-        print "find pairs", np.mean(task_num)
+        # print "prim_accuracy", np.mean(prim_accuracy)
+        # print "false_negatives", np.mean(false_negatives)
+        # print "true_positives", np.mean(true_positives)
+        # print "false_positives", np.mean(false_positives)
+        # print "true_negatives", np.mean(true_negatives)
+        # print "find pairs", np.mean(task_num)
 
-        precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
-        recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
-        print ""
-        print "precision:", precision
-        print "recall:", recall
+        # precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
+        # recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
+        # print ""
+        # print "precision:", precision
+        # print "recall:", recall
         # print "Times:", time_arr
         # print "Find Pairs Assignments:", num_find_pairs_assignments_arr
         # print "Sec Pred Assignments:", num_sec_pred_assignments_arr
@@ -513,6 +573,7 @@ class JoinSimulation():
 
     
             if type(task) is JFTask:
+                print "we are here"
                 task_type = 0
                 my_item = task.primary_item.pk
                 hit = self.JFTasks_Dict[my_item]
@@ -548,6 +609,7 @@ class JoinSimulation():
                     hit = self.FakeSecPredTasks_Dict[my_item]
                 else:
                     hit = self.SecPredTasks_Dict[my_item]
+            print task_type
 
             #__________________________  ISSUE TASK __________________________#
             #choose a (matching) time and response for the task
@@ -569,7 +631,8 @@ class JoinSimulation():
                     task_answer,task_time = syn_answer_pjf_task(hit)
                 elif task_type is 2:
                     task_answer,task_time = syn_answer_join_pair_task(hit)
-                elif task_type is 1 or 5:
+                elif task_type is 1 or task_type is 5:
+                    print "we are here"
                     task_answer,task_time = syn_answer_find_pairs_task(hit)
                 elif task_type is 0:
                     task_answer,task_time = syn_answer_joinable_filter_task(hit)
@@ -597,13 +660,13 @@ class JoinSimulation():
                     self.num_tasks_completed += 1
                     self.num_tasks_breakdown[task_type] += 1
                     self.sim_time += task_time
-                    self.sim_time_breakdown[task_type] += task_time
+                    self.sim_time_breakdown[task_type] += float(task_time)
                     
             else:
                 gather_task(task_type,task_answer,task_time,prim,sec)
                 
                 self.sim_time += task_time
-                self.sim_time_breakdown[task_type] += task_time
+                self.sim_time_breakdown[task_type] += float(task_time)
                 self.num_tasks_completed += 1
                 self.num_tasks_breakdown[task_type] += 1
 
@@ -626,9 +689,11 @@ class JoinSimulation():
         self.sim_time_arr += [self.sim_time]
         self.num_tasks_completed_arr += [self.num_tasks_completed]
 
-        for i in range(6):                
-            self.sim_time_breakdown_arr[i] += [self.sim_time_breakdown[i]]
-            self.num_tasks_breakdown_arr[i] += [self.num_tasks_breakdown[i]]
+        for i in range(6):               
+            self.sim_time_breakdown_arr[i].append(self.sim_time_breakdown[i])
+            self.num_tasks_breakdown_arr[i].append(self.num_tasks_breakdown[i])
+            print self.sim_time_breakdown_arr
+            print self.num_tasks_breakdown_arr
 
 
         #__________________________ RESULTS __________________________#
