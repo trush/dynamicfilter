@@ -57,7 +57,7 @@ class TaskStats(models.Model):
     # @param answer The answer of the incoming response (a 1 or 0 for tasks 0,3,and 4; a string for tasks 1 and 2)
     def update_stats(self, cost, answer):
         # update num_processed, cost, selectivity
-        self.cost = ((self.cost*self.num_processed) + cost)/(self.num_processed + 1)
+        self.cost = ((self.cost*self.num_processed) + float(cost))/(self.num_processed + 1)
         # filter-type tasks
         if self.task_type is 0 or self.task_type is 3 or self.task_type is 4:
             if answer:
@@ -131,9 +131,9 @@ class JFTask(models.Model):
             self.no_votes += 1
 
         #update average time
-        self.average_time = (self.average_time * self.num_tasks + time) / (self.num_tasks + 1)
+        self.average_time = (self.average_time * self.num_tasks + time) / (self.num_tasks + 1.0)
         #update total tiime
-        self.total_time += time
+        self.total_time += float(time)
 
         #update number of tasks so far
         self.num_tasks += 1

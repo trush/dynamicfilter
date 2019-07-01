@@ -9,10 +9,9 @@ REAL_DATA_SEC_PRED = './simulation_files/SECOND_PRED_RESULTS.csv'
 NUM_PRIM_ITEMS = 20
 NUM_SEC_ITEMS = 20
 HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
-#FAKE_SEC_ITEM_LIST = [str(NUM_SEC_ITEMS+1), str(NUM_SEC_ITEMS+2), str(NUM_SEC_ITEMS+3), str(NUM_SEC_ITEMS+4), str(NUM_SEC_ITEMS+5), str(NUM_SEC_ITEMS+6), str(NUM_SEC_ITEMS+7), str(NUM_SEC_ITEMS+8), str(NUM_SEC_ITEMS+9), str(NUM_SEC_ITEMS+10)] #fake secondary items to choose from
-PJF_LIST = [("0",0.25), ("1",0.25), ("2",0.25), ("3",0.25)]
+PJF_LIST = [("0",0.20), ("1",0.20), ("2",0.20), ("3",0.20),("4",0.20)]
 
-#__________________________ For Consensus Exploration__________________#
+#_________________ For The Crowd _________________#
 FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
 
 
@@ -21,7 +20,7 @@ INPUT_PATH = ''
 PRIMARY_ITEM_TYPE = "Hotel"  # "Hotel" or "Restaurant"
 
 #________ Simulation Settings ________#
-REAL_DATA = False # real or synthetic data
+REAL_DATA = True # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
