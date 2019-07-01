@@ -732,7 +732,7 @@ class JoinSimulation():
         print "*", num_prim_pass, "items passed the query"
         print "*", num_prim_fail, "items failed the query"
         print "* Query selectivity:", join_selectivity
-        print "* Worker time spent:", self.sim_time[0]
+        print "* Worker time spent:", self.sim_time
         print "* Total number of tasks processed:", self.num_tasks_completed
         print "* # of joinable-filter tasks:", num_jf_tasks, "# of joinable-filter assignments:", num_jf_assignments
         print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments

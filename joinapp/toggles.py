@@ -6,8 +6,8 @@ REAL_DATA_JF = './simulation_files/JOINABLE_FILTER_RESULTS.csv'#TODO MTURK data 
 REAL_DATA_SEC_PRED = './simulation_files/SECOND_PRED_RESULTS.csv'
 
 #_____________________________ For Synthetic Data _____________________________#
-NUM_PRIM_ITEMS = 20
-NUM_SEC_ITEMS = 20
+NUM_PRIM_ITEMS = 100
+NUM_SEC_ITEMS = 50
 HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
 PJF_LIST = [("0",0.20), ("1",0.20), ("2",0.20), ("3",0.20),("4",0.20)]
 
@@ -20,7 +20,7 @@ INPUT_PATH = ''
 PRIMARY_ITEM_TYPE = "Hotel"  # "Hotel" or "Restaurant"
 
 #________ Simulation Settings ________#
-REAL_DATA = True # real or synthetic data
+REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
@@ -43,7 +43,7 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 
 
 #_______ Selectivity and Ambiguity Settings _________#
-SEC_PRED_SELECTIVITY = 0.3
+SEC_PRED_SELECTIVITY = 1
 JOIN_COND_SELECTIVITY = 0.5 #likelyhood of being a pair given that they are in the same PJF
 
 JF_AMBIGUITY = 0
@@ -53,16 +53,20 @@ PJF_AMBIGUITY = 0
 
 
 #__________________ Time Settings _____________________#
-JF_TASK_TIME_MEAN = 100
-JF_TASK_TIME_SD = 5
-FIND_PAIRS_TASK_TIME_MEAN = 20
-FIND_PAIRS_TASK_TIME_SD = 3
-SEC_PRED_TASK_TIME_MEAN = 20
-SEC_PRED_TASK_TIME_SD = 3
-PJF_TIME_MEAN = 20
-PJF_TIME_SD = 3
-JOIN_PAIRS_TIME_MEAN = 20
-JOIN_PAIRS_TIME_SD = 3
+JF_TASK_TIME_MEAN = 200
+JF_TASK_TIME_SD = 0
+
+FIND_PAIRS_TASK_TIME_MEAN = 160
+FIND_PAIRS_TASK_TIME_SD = 0
+
+SEC_PRED_TASK_TIME_MEAN = 100
+SEC_PRED_TASK_TIME_SD = 0
+
+PJF_TIME_MEAN = 80
+PJF_TIME_SD = 0
+
+JOIN_PAIRS_TIME_MEAN = 80
+JOIN_PAIRS_TIME_SD = 0
 
 
 #______ Miscellany ___________#
