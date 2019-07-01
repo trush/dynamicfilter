@@ -283,7 +283,7 @@ class JoinSimulation():
                 for item in found_list:
                     if item not in true_list:
                         false_positives += 1
-                true_negatives += (len(FAKE_SEC_ITEM_LIST) - false_positives)
+                #true_negatives += (len(FAKE_SEC_ITEM_LIST) - false_positives)
             print ""
             print "We missed " + str(false_negatives) + " secondary items"
             print "We had " + str(false_positives) + " extra items" 
@@ -421,7 +421,7 @@ class JoinSimulation():
         print "true_negatives", np.mean(true_negatives)
         print "find pairs", np.mean(task_num)
 
-        precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
+        #precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
         recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
         print ""
         print "precision:", precision
