@@ -558,7 +558,7 @@ class JoinSimulation():
             if JOIN_TYPE is 0: # joinable filter
                 task = choose_task_JF(worker_id)
             elif JOIN_TYPE is 1: # item-wise join
-                task = choose_task_IW2(worker_id, estimator)
+                task = choose_task_IW(worker_id, estimator)
             elif JOIN_TYPE is 2:
                 task = choose_task_PJF(worker_id, estimator)
             elif JOIN_TYPE is 3:
@@ -566,6 +566,7 @@ class JoinSimulation():
 
     
             if type(task) is JFTask:
+                print "we are here"
                 task_type = 0
                 my_item = task.primary_item.pk
                 hit = self.JFTasks_Dict[my_item]
@@ -601,6 +602,7 @@ class JoinSimulation():
                     hit = self.FakeSecPredTasks_Dict[my_item]
                 else:
                     hit = self.SecPredTasks_Dict[my_item]
+            print task_type
 
             #__________________________  ISSUE TASK __________________________#
             #choose a (matching) time and response for the task
@@ -738,6 +740,7 @@ class JoinSimulation():
         print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments
         print "* # of join pairs tasks:", num_join_pairs_tasks, "# of join pairs assignments:", num_join_pairs_assignments
         print "* # of secondary predicate tasks:", num_sec_pred_tasks, "# secondary predicate assignments:", num_sec_pred_assignments
+        print "* # of finished secondary predicate tasks:", SecPredTask.objects.exclude(result = None).count()
         print "* # of secondary items found:", SecondaryItem.objects.all().count(), " out of ", toggles.NUM_SEC_ITEMS, " total secondary items"
         print ""
         if REAL_DATA is True:
