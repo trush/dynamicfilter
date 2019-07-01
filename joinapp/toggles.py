@@ -5,21 +5,14 @@ PRIMARY_LIST = ''#TODO hotel list
 REAL_DATA_CSV = '/simulation_files/CLEANED_ROUND1.csv'#TODO MTURK data CSV
 
 #_____________________________ For Synthetic Data _____________________________#
-NUM_PRIM_ITEMS = 40
-NUM_SEC_ITEMS = 40
+NUM_PRIM_ITEMS = 20
+NUM_SEC_ITEMS = 20
 HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
-FAKE_SEC_ITEM_LIST = [str(NUM_SEC_ITEMS+1), str(NUM_SEC_ITEMS+2), str(NUM_SEC_ITEMS+3), str(NUM_SEC_ITEMS+4), str(NUM_SEC_ITEMS+5), str(NUM_SEC_ITEMS+6), str(NUM_SEC_ITEMS+7), str(NUM_SEC_ITEMS+8), str(NUM_SEC_ITEMS+9), str(NUM_SEC_ITEMS+10)] #fake secondary items to choose from
-PJF_LIST = ["0", "1", "2", "3"]
+#FAKE_SEC_ITEM_LIST = [str(NUM_SEC_ITEMS+1), str(NUM_SEC_ITEMS+2), str(NUM_SEC_ITEMS+3), str(NUM_SEC_ITEMS+4), str(NUM_SEC_ITEMS+5), str(NUM_SEC_ITEMS+6), str(NUM_SEC_ITEMS+7), str(NUM_SEC_ITEMS+8), str(NUM_SEC_ITEMS+9), str(NUM_SEC_ITEMS+10)] #fake secondary items to choose from
+PJF_LIST = [("0",0.25), ("1",0.25), ("2",0.25), ("3",0.25)]
 
 #__________________________ For Consensus Exploration__________________#
-# CHANCE_FEWER_THAN_HALF = 0.5 #< NOT IN USE CURRENTLY
-# CHANCE_MORE_THAN_7 = 0.3
-# CROWD_RESPONSES = [0,0,0.25,0,0.25,0.75,1,0.25,0,0.6,0.2,1,1,0.8,0,0,1,0.6,0.7,0,0.3,1,0.5,0.3,0,0.1,0.6,0,0,0.25,0,0.25,1,0,0.75,0.25,0.25,0,0,0.5,1,0.25,0,0.25,0]
-# YES_VOTES_THRESHOLD = 5
-# NO_VOTES_THRESHOLD = 10
-# YES_VOTES_FRACTION = 0.25
-# NO_VOTES_FRACTION = 0.75
-FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
+FLOOR_AMBIGUITY_FIND_PAIRS = 0.1
 
 
 #________ For Real Data ________#
@@ -34,7 +27,6 @@ REAL_DATA = False # real or synthetic data
 JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 5 # number of simulations to run
-PROB_CHOOSING_TRUE_SEC_ITEM = 0.9
 SIMULATE_TIME = False
 TIME_STEP = 1
 
