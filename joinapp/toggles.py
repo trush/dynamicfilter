@@ -12,13 +12,6 @@ HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no
 PJF_LIST = ["0", "1", "2", "3"]
 
 #__________________________ For Consensus Exploration__________________#
-# CHANCE_FEWER_THAN_HALF = 0.5 #< NOT IN USE CURRENTLY
-# CHANCE_MORE_THAN_7 = 0.3
-# CROWD_RESPONSES = [0,0,0.25,0,0.25,0.75,1,0.25,0,0.6,0.2,1,1,0.8,0,0,1,0.6,0.7,0,0.3,1,0.5,0.3,0,0.1,0.6,0,0,0.25,0,0.25,1,0,0.75,0.25,0.25,0,0,0.5,1,0.25,0,0.25,0]
-# YES_VOTES_THRESHOLD = 5
-# NO_VOTES_THRESHOLD = 10
-# YES_VOTES_FRACTION = 0.25
-# NO_VOTES_FRACTION = 0.75
 FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
 
 
@@ -34,7 +27,6 @@ REAL_DATA = False # real or synthetic data
 JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 10 # number of simulations to run
-PROB_CHOOSING_TRUE_SEC_ITEM = 0.9
 SIMULATE_TIME = False
 TIME_STEP = 1
 

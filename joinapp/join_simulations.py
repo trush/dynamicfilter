@@ -20,9 +20,15 @@ class JoinSimulation():
 
     ## Total number of tasks issued/completed in one simulation
     num_tasks_completed = 0
+    # [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
+    # Index is task type
+    num_tasks_breakdown = [0,0,0,0,0,0]
 
     ## Amount of worker-time spent during the simulation
     sim_time = 0
+    # [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
+    # Index is task type
+    sim_time_breakdown = [0,0,0,0,0,0]
 
     ## For graphing # of primary items left vs. number of tasks completed
     # number of primary items left
@@ -32,9 +38,10 @@ class JoinSimulation():
 
     ## Total number of tasks issued/completed in each of multiple simulations
     num_tasks_completed_arr = []
-
+    num_tasks_breakdown_arr = [[],[],[],[],[],[]]
     ## Amount of worker-time spent during each of multiple simulations
     sim_time_arr = []
+    sim_time_breakdown_arr = [[],[],[],[],[],[]]
 
     ## Number of unnecessary tasks issued:
     num_wasted_tasks = 0 #TODO
@@ -414,18 +421,36 @@ class JoinSimulation():
             
             self.reset_database()
             #more processing happens here
-        print "prim_accuracy", np.mean(prim_accuracy)
-        print "false_negatives", np.mean(false_negatives)
-        print "true_positives", np.mean(true_positives)
-        print "false_positives", np.mean(false_positives)
-        print "true_negatives", np.mean(true_negatives)
-        print "find pairs", np.mean(task_num)
+        print "Average Total Time:", mean(sim_time_arr)
 
-        #precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
-        recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
-        print ""
-        print "precision:", precision
-        print "recall:", recall
+        print "Average Time on Joinable Filter Tasks:", mean(sim_time_breakdown_arr[0])
+        print "Average Time on Find Pairs Tasks (Primary):", mean(sim_time_breakdown_arr[1])
+        print "Average Time on Join Pair Tasks:", mean(sim_time_breakdown_arr[2])
+        print "Average Time on PJF Tasks:", mean(sim_time_breakdown_arr[3])
+        print "Average Time on Secondary Predicate Tasks:", mean(sim_time_breakdown_arr[4])
+        print "Average Time on Find Pairs Tasks (Secondary):", mean(sim_time_breakdown_arr[5])
+
+        print "Average Number of Tasks:", mean(num_tasks_completed_arr)
+
+        print "Average Number of Joinable Filter Tasks:", mean(num_tasks_breakdown_arr[0])
+        print "Average Number of Find Pairs Tasks (Primary):", mean(num_tasks_breakdown_arr[1])
+        print "Average Number of Join Pair Tasks:", mean(num_tasks_breakdown_arr[2])
+        print "Average Number of PJF Tasks:", mean(num_tasks_breakdown_arr[3])
+        print "Average Number of Secondary Predicate Tasks:", mean(num_tasks_breakdown_arr[4])
+        print "Average Number of Find Pairs Tasks (Secondary):", mean(num_tasks_breakdown_arr[5])
+
+        # print "prim_accuracy", np.mean(prim_accuracy)
+        # print "false_negatives", np.mean(false_negatives)
+        # print "true_positives", np.mean(true_positives)
+        # print "false_positives", np.mean(false_positives)
+        # print "true_negatives", np.mean(true_negatives)
+        # print "find pairs", np.mean(task_num)
+
+        # precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
+        # recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
+        # print ""
+        # print "precision:", precision
+        # print "recall:", recall
         # print "Times:", time_arr
         # print "Find Pairs Assignments:", num_find_pairs_assignments_arr
         # print "Sec Pred Assignments:", num_sec_pred_assignments_arr
@@ -570,12 +595,18 @@ class JoinSimulation():
                     gather_task(assignment[0],assignment[1],assignment[2],assignment[3],assignment[4])
                     active_assignments.pop(key)
                     self.num_tasks_completed += 1
+                    self.num_tasks_breakdown[task_type] += 1
                     self.sim_time += task_time
+                    self.sim_time_breakdown[task_type] += task_time
+                    
             else:
                 gather_task(task_type,task_answer,task_time,prim,sec)
                 
                 self.sim_time += task_time
+                self.sim_time_breakdown[task_type] += task_time
                 self.num_tasks_completed += 1
+                self.num_tasks_breakdown[task_type] += 1
+
 
             #update chao estimator
             estimator.refresh_from_db()
@@ -594,6 +625,10 @@ class JoinSimulation():
         
         self.sim_time_arr += [self.sim_time]
         self.num_tasks_completed_arr += [self.num_tasks_completed]
+
+        for i in range(6):                
+            self.sim_time_breakdown_arr[i] += [self.sim_time_breakdown[i]]
+            self.num_tasks_breakdown_arr[i] += [self.num_tasks_breakdown[i]]
 
 
         #__________________________ RESULTS __________________________#
