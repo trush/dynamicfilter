@@ -612,7 +612,7 @@ class JoinSimulation():
                 sec = my_sec_item
             
             if toggles.REAL_DATA:
-                ind = random.randint(0, len(time)-1)
+                ind = random.randint(0, len(time)-1) # for some reason this is inclusive
                 task_time = time[ind]
                 task_answer = answer[ind]
             else:
@@ -660,7 +660,6 @@ class JoinSimulation():
                 self.num_tasks_completed += 1
                 self.num_tasks_breakdown[task_type] += 1
 
-            print "primary item: ", PrimaryItem.objects.get(pk=prim), "is done: ", PrimaryItem.objects.get(pk=prim).is_done
             #update chao estimator
             estimator.refresh_from_db()
             estimator.chao_estimator()
