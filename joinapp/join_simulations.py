@@ -451,9 +451,9 @@ class JoinSimulation():
         print ""
         print "precision:", precision
         print "recall:", recall
-        print "Times:", time_arr
-        print "Find Pairs Assignments:", num_find_pairs_assignments_arr
-        print "Sec Pred Assignments:", num_sec_pred_assignments_arr
+        # print "Times:", time_arr
+        # print "Find Pairs Assignments:", num_find_pairs_assignments_arr
+        # print "Sec Pred Assignments:", num_sec_pred_assignments_arr
         #more stuff happens here
 
         #return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr, num_prim_left_arr)
