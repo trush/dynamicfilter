@@ -96,7 +96,7 @@ def syn_load_everything(sim):
             secPJF = sim.SecPJFTasks_Dict[secondary][3]
             if primPJF is secPJF:
                 pjf = primPJF
-                if random.random() < JP_SELECTIVITY_W_PJF:
+                if random.random() < JOIN_COND_SELECTIVITY:
                     answer = 1
                     #add pair to primary find pairs
                     primary_item,none,time,current_find_pairs = sim.FindPairsTasks_Dict[primary]
@@ -146,16 +146,9 @@ def syn_answer_find_pairs_task(hit):
     random.seed()
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
-    #num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
-    #if len(real_secondaries) is 0:
-    #    num_sec = 0
-    # elif random.random() < CHANCE_FEWER_THAN_HALF:
-    #     num_sec = random.choice(range(len(real_secondaries)/2))
-    #else:
-    #    num_sec = random.choice(range(len(real_secondaries)))
 
     min_responses = int(len(real_secondaries) * FLOOR_AMBIGUITY_FIND_PAIRS)
-    max_responses = int(len(real_secondaries)+1)
+    max_responses = int(len(real_secondaries))+1
     if max_responses - min_responses is 0:
         num_sec = max_responses
     else:
