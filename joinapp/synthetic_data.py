@@ -98,7 +98,7 @@ def syn_load_everything(sim):
 
     #______________ FILL SECONDARY PREDICATE AND FAKE SECONDARY PREDICATE TASKS ______________#
     syn_load_sec_pred_tasks(sim.SecPredTasks_Dict)
-    syn_load_fake_sec_pred_tasks(sim.FakeSecPredTasks_Dict)
+    #syn_load_fake_sec_pred_tasks(sim.FakeSecPredTasks_Dict)
 
     #______________ FILL JOINABLE FILTER DICTIONARIES ____________#
     for primary in sim.FindPairsTasks_Dict:
@@ -121,7 +121,7 @@ def syn_answer_find_pairs_task(hit):
     random.seed()
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
-    num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
+    #num_sec = max(0,min(int(np.random.normal(MEAN_SEC_PER_PRIM, SD_SEC_PER_PRIM,1)),len(real_secondaries)))
     #if len(real_secondaries) is 0:
     #    num_sec = 0
     # elif random.random() < CHANCE_FEWER_THAN_HALF:
@@ -129,6 +129,14 @@ def syn_answer_find_pairs_task(hit):
     #else:
     #    num_sec = random.choice(range(len(real_secondaries)))
 
+    min_responses = int(len(real_secondaries) * FLOOR_AMBIGUITY_FIND_PAIRS)
+    max_responses = int(len(real_secondaries))
+    if max_responses - min_responses is 0:
+        num_sec = max_responses
+    else:
+        num_sec = np.random.randint(low = min_responses, high = max_responses)
+
+    #num_sec = max_responses
 
     if num_sec is not 0:
         this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
@@ -185,7 +193,7 @@ def syn_answer_join_pair_task(hit):
         answer = truth
     else:
         answer = random.choice([0,1])
-    time = task_time
+    time = np.random.normal(JOIN_PAIRS_TIME_MEAN, JOIN_PAIRS_TIME_SD, 1)
     return (answer,time)
 
 ## @brief gives a worker response to a pjf task based on a PJF Dictionary hit
