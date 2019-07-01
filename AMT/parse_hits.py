@@ -44,9 +44,9 @@ def disambiguate_str(sec_item_str):
             all_seconds[addr] = sec_item_str
     return addr
 
-hit_csv = csv.reader(open('FP_RESULTS.csv', 'r'), delimiter = ',') 
+hit_csv = csv.reader(open('HIT_RESULTS_FIND_PAIRS.csv', 'r'), delimiter = ',') 
 # # results csv
-cleaned_hits = csv.writer(open('CLEANED_ROUND2.csv', 'w'), delimiter = ',')
+cleaned_hits = csv.writer(open('FIND_PAIRS_RESULTS.csv', 'w'), delimiter = ',')
 
 header = next(hit_csv)
 print header
