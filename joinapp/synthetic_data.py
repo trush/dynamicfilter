@@ -134,7 +134,7 @@ def syn_answer_find_pairs_task(hit):
         this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
         answer = ""
         for i in range(num_sec):
-            answer += this_secondaries[i] + "{{NEWENTRY}}""
+            answer += this_secondaries[i] + "{{NEWENTRY}}"
     else:
         answer = "None"
     time = np.random.normal(FIND_PAIRS_TASK_TIME_MEAN, FIND_PAIRS_TASK_TIME_SD, 1)
