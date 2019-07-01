@@ -5,11 +5,11 @@ PRIMARY_LIST = ''#TODO hotel list
 REAL_DATA_CSV = '/simulation_files/CLEANED_ROUND1.csv'#TODO MTURK data CSV
 
 #_____________________________ For Synthetic Data _____________________________#
-NUM_PRIM_ITEMS = 40
-NUM_SEC_ITEMS = 40
+NUM_PRIM_ITEMS = 20
+NUM_SEC_ITEMS = 20
 HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
 #FAKE_SEC_ITEM_LIST = [str(NUM_SEC_ITEMS+1), str(NUM_SEC_ITEMS+2), str(NUM_SEC_ITEMS+3), str(NUM_SEC_ITEMS+4), str(NUM_SEC_ITEMS+5), str(NUM_SEC_ITEMS+6), str(NUM_SEC_ITEMS+7), str(NUM_SEC_ITEMS+8), str(NUM_SEC_ITEMS+9), str(NUM_SEC_ITEMS+10)] #fake secondary items to choose from
-PJF_LIST = ["0", "1", "2", "3"]
+PJF_LIST = [("0",0.25), ("1",0.25), ("2",0.25), ("3",0.25)]
 
 #__________________________ For Consensus Exploration__________________#
 # CHANCE_FEWER_THAN_HALF = 0.5 #< NOT IN USE CURRENTLY
@@ -19,7 +19,7 @@ PJF_LIST = ["0", "1", "2", "3"]
 # NO_VOTES_THRESHOLD = 10
 # YES_VOTES_FRACTION = 0.25
 # NO_VOTES_FRACTION = 0.75
-FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
+FLOOR_AMBIGUITY_FIND_PAIRS = 0.1
 
 
 #________ For Real Data ________#

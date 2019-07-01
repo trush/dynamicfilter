@@ -283,7 +283,7 @@ class JoinSimulation():
                 for item in found_list:
                     if item not in true_list:
                         false_positives += 1
-                true_negatives += (len(FAKE_SEC_ITEM_LIST) - false_positives)
+                # true_negatives += (len(FAKE_SEC_ITEM_LIST) - false_positives)
             print ""
             print "We missed " + str(false_negatives) + " secondary items"
             print "We had " + str(false_positives) + " extra items" 
@@ -414,18 +414,18 @@ class JoinSimulation():
             
             self.reset_database()
             #more processing happens here
+
+            precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
+            recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
+            print ""
+            print "precision:", precision
+            print "recall:", recall
         print "prim_accuracy", np.mean(prim_accuracy)
         print "false_negatives", np.mean(false_negatives)
         print "true_positives", np.mean(true_positives)
         print "false_positives", np.mean(false_positives)
         print "true_negatives", np.mean(true_negatives)
         print "find pairs", np.mean(task_num)
-
-        precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
-        recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
-        print ""
-        print "precision:", precision
-        print "recall:", recall
         # print "Times:", time_arr
         # print "Find Pairs Assignments:", num_find_pairs_assignments_arr
         # print "Sec Pred Assignments:", num_sec_pred_assignments_arr
