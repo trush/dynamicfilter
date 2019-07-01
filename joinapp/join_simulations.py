@@ -110,24 +110,21 @@ class JoinSimulation():
                 line_count = 0
                 for row in csv_reader:
                     primary_item = str(row[1][2:-1]) # to remove parentheses
-                    print primary_item
                     time_taken = row[3]
                     worker_vote = row[4]
-                    #try:
-                    primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk
-                    if primary_item_pk in self.JFTasks_Dict:
-                        value = self.JFTasks_Dict[primary_item_pk]
-                    else:
-                        value = (primary_item_pk,"NA",[],[]) 
-                    print value[2], ", ", value[3]
-                    print time_taken, worker_vote
-                    value[2] += [time_taken] #add assignment time to hit
-                    value[3] += [worker_vote] #add worker answer to hit
-                    self.JFTasks_Dict[primary_item_pk] = value
+                    try:
+                        primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk
+                        if primary_item_pk in self.JFTasks_Dict:
+                            value = self.JFTasks_Dict[primary_item_pk]
+                        else:
+                            value = (primary_item_pk,"None",[],[]) 
+                        value[2].append(float(time_taken)) #add assignment time to hit
+                        value[3].append(int(worker_vote)) #add worker answer to hit
+                        self.JFTasks_Dict[primary_item_pk] = value
 
-                    # except:
-                    #     print "Error reading in row ", line_count
-                    # line_count += 1
+                    except:
+                        print "Error reading in row ", line_count
+                    line_count += 1
         else:
             fn = path.join(path.dirname(__file__), REAL_DATA_SEC_PRED)
             with open(REAL_DATA_SEC_PRED, mode = 'r') as csv_file:
@@ -141,16 +138,15 @@ class JoinSimulation():
                         if secondary_item in self.SecPredTasks_Dict:
                             value = self.SecPredTasks_Dict[secondary_item]   
                         else:
-                            value = ("NA", secondary_item,[],[])
+                            value = ("None", secondary_item,[],[])
 
-                        value[2] += [time_taken] #add assignment time to hit
-                        value[3] += [worker_vote] #add worker answer to hit
+                        value[2].append(float(time_taken)) #add assignment time to hit
+                        value[3].append(int(worker_vote)) #add worker answer to hit
                         self.SecPredTasks_Dict[secondary_item] = value
 
                     except:
                         print "Error reading in row ", line_count
                     line_count += 1
-        print self.JFTasks_Dict
 
     # ## @brief Loads the MTurk data from a csvfile and populates the answer dictionaries
     # def load_real_data(self):
@@ -617,11 +613,11 @@ class JoinSimulation():
                 (pjf,time,answer) = hit
                 prim = my_prim_item
                 sec = my_sec_item
-
+            
             if toggles.REAL_DATA:
-                ind = random.randint(0, len(times))
-                task_time = times[ind]
-                task_answer = responses[ind]
+                ind = random.randint(0, len(time)-1)
+                task_time = time[ind]
+                task_answer = answer[ind]
             else:
                 if task_type is 4:
                     task_answer,task_time = syn_answer_sec_pred_task(hit)
@@ -662,12 +658,12 @@ class JoinSimulation():
             else:
                 gather_task(task_type,task_answer,task_time,prim,sec)
                 
-                self.sim_time += task_time
+                self.sim_time += float(task_time)
                 self.sim_time_breakdown[task_type] += float(task_time)
                 self.num_tasks_completed += 1
                 self.num_tasks_breakdown[task_type] += 1
 
-
+            print "primary item: ", PrimaryItem.objects.get(pk=prim), "is done: ", PrimaryItem.objects.get(pk=prim).is_done
             #update chao estimator
             estimator.refresh_from_db()
             estimator.chao_estimator()
