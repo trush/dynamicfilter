@@ -98,7 +98,7 @@ def syn_load_everything(sim):
 
     #______________ FILL SECONDARY PREDICATE AND FAKE SECONDARY PREDICATE TASKS ______________#
     syn_load_sec_pred_tasks(sim.SecPredTasks_Dict)
-    syn_load_fake_sec_pred_tasks(sim.FakeSecPredTasks_Dict)
+    #syn_load_fake_sec_pred_tasks(sim.FakeSecPredTasks_Dict)
 
     #______________ FILL JOINABLE FILTER DICTIONARIES ____________#
     for primary in sim.FindPairsTasks_Dict:
@@ -193,7 +193,7 @@ def syn_answer_join_pair_task(hit):
         answer = truth
     else:
         answer = random.choice([0,1])
-    time = task_time
+    time = np.random.normal(JOIN_PAIRS_TIME_MEAN, JOIN_PAIRS_TIME_SD, 1)
     return (answer,time)
 
 ## @brief gives a worker response to a pjf task based on a PJF Dictionary hit

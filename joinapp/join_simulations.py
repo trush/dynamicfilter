@@ -453,26 +453,10 @@ class JoinSimulation():
             syn_load_list()
 
             #NOTE: Added to test IW on secondaries, assuming we already have 2ndary list
-            syn_load_second_list()
+            if HAVE_SEC_LIST is True:
+                syn_load_second_list()
 
             syn_load_everything(self)
-
-            # syn_load_list() #load primary list
-            # if JOIN_TYPE == 0: # joinable filter join
-            #     syn_load_joinable_filter_tasks(self.JFTasks_Dict)
-            # elif JOIN_TYPE == 1: # item-wise join
-            #     syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
-            #     syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
-            #     syn_load_fake_sec_pred_tasks(self.FakeSecPredTasks_Dict)
-            # elif JOIN_TYPE == 2: # pre-join filtered join
-            #     if HAVE_SEC_LIST is True:
-            #         syn_load_second_list()
-            #         estimator.has_2nd_list = True
-            #         estimator.save()
-            #     syn_load_find_pairs_tasks(self.FindPairsTasks_Dict)
-            #     syn_load_pjfs(self.SecPJFTasks_Dict,self.PrimPJFTasks_Dict)
-            #     syn_load_join_pairs(self.JoinPairTasks_Dict,self.PrimPJFTasks_Dict,self.SecPJFTasks_Dict)
-            #     syn_load_sec_pred_tasks(self.SecPredTasks_Dict)
 
         self.generate_worker_ids()
 
