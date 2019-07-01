@@ -322,11 +322,11 @@ class JoinSimulation():
         self.print_accuracy(len(total_tasks),correct_tasks,"secondary predicate")
 
         #___ Find Pairs Accuracy ___#
+        false_negatives = 0
+        true_positives = 0
+        false_positives = 0
+        true_negatives =0
         if JOIN_TYPE is 1:
-            false_negatives = 0
-            true_positives = 0
-            false_positives = 0
-            true_negatives =0
             for prim in PrimaryItem.objects.all():
                 found_list = []
                 for sec in prim.secondary_items.all():
@@ -629,7 +629,7 @@ class JoinSimulation():
                     task_answer,task_time = syn_answer_pjf_task(hit)
                 elif task_type is 2:
                     task_answer,task_time = syn_answer_join_pair_task(hit)
-                elif task_type is 1 or 5:
+                elif task_type is 1 or task_type is 5:
                     task_answer,task_time = syn_answer_find_pairs_task(hit)
                 elif task_type is 0:
                     task_answer,task_time = syn_answer_joinable_filter_task(hit)

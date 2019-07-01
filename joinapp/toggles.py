@@ -21,7 +21,7 @@ INPUT_PATH = ''
 PRIMARY_ITEM_TYPE = "Hotel"  # "Hotel" or "Restaurant"
 
 #________ Simulation Settings ________#
-REAL_DATA = True # real or synthetic data
+REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
