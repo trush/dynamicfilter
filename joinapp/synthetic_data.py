@@ -50,11 +50,36 @@ def syn_load_everything(sim):
     random.seed()
     #___________________ FILL PJF DICTIONARIES __________________#
     for primary in PrimaryItem.objects.all():
-        pjf = random.choice(PJF_LIST)
+        choice = random.random()
+        sofar = 0
+        pjf = False
+        for prejoin in PJF_LIST:
+            if choice < prejoin[1] + sofar:
+                pjf = prejoin[0]
+                break
+            else:
+                sofar += prejoin[1]
+                if sofar > 1:
+                    raise Exception("probabilities of prejoin filters exceeds 1")
+        if not pjf:
+            raise Exception("probabilities of prejoin filters sum to less than 1")
         value = (primary.pk, "None", PJF_TIME_MEAN, pjf)
         sim.PrimPJFTasks_Dict[primary.pk] = value
+
     for secondary in range(NUM_SEC_ITEMS):
-        pjf = random.choice(PJF_LIST)
+        choice = random.random()
+        sofar = 0
+        pjf = False
+        for prejoin in PJF_LIST:
+            if choice < prejoin[1] + sofar:
+                pjf = prejoin[0]
+                break
+            else:
+                sofar += prejoin[1]
+                if sofar > 1:
+                    raise Exception("probabilities of prejoin filters exceeds 1")
+        if not pjf:
+            raise Exception("probabilities of prejoin filters sum to less than 1")
         value = ("None", str(secondary), PJF_TIME_MEAN, pjf)
         sim.SecPJFTasks_Dict[str(secondary)] = value
 
@@ -98,7 +123,7 @@ def syn_load_everything(sim):
 
     #______________ FILL SECONDARY PREDICATE AND FAKE SECONDARY PREDICATE TASKS ______________#
     syn_load_sec_pred_tasks(sim.SecPredTasks_Dict)
-    syn_load_fake_sec_pred_tasks(sim.FakeSecPredTasks_Dict)
+    #syn_load_fake_sec_pred_tasks(sim.FakeSecPredTasks_Dict)
 
     #______________ FILL JOINABLE FILTER DICTIONARIES ____________#
     for primary in sim.FindPairsTasks_Dict:
@@ -130,7 +155,7 @@ def syn_answer_find_pairs_task(hit):
     #    num_sec = random.choice(range(len(real_secondaries)))
 
     min_responses = int(len(real_secondaries) * FLOOR_AMBIGUITY_FIND_PAIRS)
-    max_responses = int(len(real_secondaries))
+    max_responses = int(len(real_secondaries)+1)
     if max_responses - min_responses is 0:
         num_sec = max_responses
     else:
@@ -193,7 +218,7 @@ def syn_answer_join_pair_task(hit):
         answer = truth
     else:
         answer = random.choice([0,1])
-    time = task_time
+    time = np.random.normal(JOIN_PAIRS_TIME_MEAN, JOIN_PAIRS_TIME_SD, 1)
     return (answer,time)
 
 ## @brief gives a worker response to a pjf task based on a PJF Dictionary hit
@@ -207,6 +232,7 @@ def syn_answer_pjf_task(hit):
         answer = truth
     else:
         answer = random.choice(PJF_LIST)
+    print answer
     time = np.random.normal(PJF_TIME_MEAN, PJF_TIME_SD, 1)
     return (answer,time)
 
