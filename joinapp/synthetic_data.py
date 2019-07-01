@@ -50,11 +50,36 @@ def syn_load_everything(sim):
     random.seed()
     #___________________ FILL PJF DICTIONARIES __________________#
     for primary in PrimaryItem.objects.all():
-        pjf = random.choice(PJF_LIST)
+        choice = random.random()
+        sofar = 0
+        pjf = False
+        for prejoin in PJF_LIST:
+            if choice < prejoin[1] + sofar:
+                pjf = prejoin[0]
+                break
+            else:
+                sofar += prejoin[1]
+                if sofar > 1:
+                    raise Exception("probabilities of prejoin filters exceeds 1")
+        if not pjf:
+            raise Exception("probabilities of prejoin filters sum to less than 1")
         value = (primary.pk, "None", PJF_TIME_MEAN, pjf)
         sim.PrimPJFTasks_Dict[primary.pk] = value
+
     for secondary in range(NUM_SEC_ITEMS):
-        pjf = random.choice(PJF_LIST)
+        choice = random.random()
+        sofar = 0
+        pjf = False
+        for prejoin in PJF_LIST:
+            if choice < prejoin[1] + sofar:
+                pjf = prejoin[0]
+                break
+            else:
+                sofar += prejoin[1]
+                if sofar > 1:
+                    raise Exception("probabilities of prejoin filters exceeds 1")
+        if not pjf:
+            raise Exception("probabilities of prejoin filters sum to less than 1")
         value = ("None", str(secondary), PJF_TIME_MEAN, pjf)
         sim.SecPJFTasks_Dict[str(secondary)] = value
 
@@ -71,7 +96,7 @@ def syn_load_everything(sim):
             secPJF = sim.SecPJFTasks_Dict[secondary][3]
             if primPJF is secPJF:
                 pjf = primPJF
-                if random.random() < JP_SELECTIVITY_W_PJF:
+                if random.random() < JOIN_COND_SELECTIVITY:
                     answer = 1
                     #add pair to primary find pairs
                     primary_item,none,time,current_find_pairs = sim.FindPairsTasks_Dict[primary]
@@ -200,6 +225,7 @@ def syn_answer_pjf_task(hit):
         answer = truth
     else:
         answer = random.choice(PJF_LIST)
+    print answer
     time = np.random.normal(PJF_TIME_MEAN, PJF_TIME_SD, 1)
     return (answer,time)
 

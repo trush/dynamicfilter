@@ -42,9 +42,6 @@ class SecondaryItem(models.Model):
 
     ## prejoin filter
     pjf = models.CharField(max_length=10, default = "false") #TODO default is a placeholder
-
-    ## number of expected find pairs tasks (for the coupon collector find pairs consensus)
-    expected_find_tasks = models.IntegerField(default = 0)
     
     ## @brief ToString method
     def __str__(self):
@@ -83,8 +80,6 @@ class PrimaryItem(models.Model):
     ## prejoin filter
     pjf = models.CharField(max_length=10, default = "false") #TODO default is a placeholder
 
-    ## number of expected find pairs tasks (for the coupon collector find pairs consensus)
-    expected_find_tasks = models.IntegerField(default = 0)
 
     ## @brief ToString method
     def __str__(self):

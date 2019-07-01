@@ -421,36 +421,36 @@ class JoinSimulation():
             
             self.reset_database()
             #more processing happens here
-        print "Average Total Time:", mean(sim_time_arr)
+        # print "Average Total Time:", mean(sim_time_arr)
 
-        print "Average Time on Joinable Filter Tasks:", mean(sim_time_breakdown_arr[0])
-        print "Average Time on Find Pairs Tasks (Primary):", mean(sim_time_breakdown_arr[1])
-        print "Average Time on Join Pair Tasks:", mean(sim_time_breakdown_arr[2])
-        print "Average Time on PJF Tasks:", mean(sim_time_breakdown_arr[3])
-        print "Average Time on Secondary Predicate Tasks:", mean(sim_time_breakdown_arr[4])
-        print "Average Time on Find Pairs Tasks (Secondary):", mean(sim_time_breakdown_arr[5])
+        # print "Average Time on Joinable Filter Tasks:", mean(sim_time_breakdown_arr[0])
+        # print "Average Time on Find Pairs Tasks (Primary):", mean(sim_time_breakdown_arr[1])
+        # print "Average Time on Join Pair Tasks:", mean(sim_time_breakdown_arr[2])
+        # print "Average Time on PJF Tasks:", mean(sim_time_breakdown_arr[3])
+        # print "Average Time on Secondary Predicate Tasks:", mean(sim_time_breakdown_arr[4])
+        # print "Average Time on Find Pairs Tasks (Secondary):", mean(sim_time_breakdown_arr[5])
 
-        print "Average Number of Tasks:", mean(num_tasks_completed_arr)
+        # print "Average Number of Tasks:", mean(num_tasks_completed_arr)
 
-        print "Average Number of Joinable Filter Tasks:", mean(num_tasks_breakdown_arr[0])
-        print "Average Number of Find Pairs Tasks (Primary):", mean(num_tasks_breakdown_arr[1])
-        print "Average Number of Join Pair Tasks:", mean(num_tasks_breakdown_arr[2])
-        print "Average Number of PJF Tasks:", mean(num_tasks_breakdown_arr[3])
-        print "Average Number of Secondary Predicate Tasks:", mean(num_tasks_breakdown_arr[4])
-        print "Average Number of Find Pairs Tasks (Secondary):", mean(num_tasks_breakdown_arr[5])
+        # print "Average Number of Joinable Filter Tasks:", mean(num_tasks_breakdown_arr[0])
+        # print "Average Number of Find Pairs Tasks (Primary):", mean(num_tasks_breakdown_arr[1])
+        # print "Average Number of Join Pair Tasks:", mean(num_tasks_breakdown_arr[2])
+        # print "Average Number of PJF Tasks:", mean(num_tasks_breakdown_arr[3])
+        # print "Average Number of Secondary Predicate Tasks:", mean(num_tasks_breakdown_arr[4])
+        # print "Average Number of Find Pairs Tasks (Secondary):", mean(num_tasks_breakdown_arr[5])
 
-        # print "prim_accuracy", np.mean(prim_accuracy)
-        # print "false_negatives", np.mean(false_negatives)
-        # print "true_positives", np.mean(true_positives)
-        # print "false_positives", np.mean(false_positives)
-        # print "true_negatives", np.mean(true_negatives)
-        # print "find pairs", np.mean(task_num)
+        print "prim_accuracy", np.mean(prim_accuracy)
+        print "false_negatives", np.mean(false_negatives)
+        print "true_positives", np.mean(true_positives)
+        print "false_positives", np.mean(false_positives)
+        print "true_negatives", np.mean(true_negatives)
+        print "find pairs", np.mean(task_num)
 
-        # precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
-        # recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
-        # print ""
-        # print "precision:", precision
-        # print "recall:", recall
+        precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
+        recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
+        print ""
+        print "precision:", precision
+        print "recall:", recall
         # print "Times:", time_arr
         # print "Find Pairs Assignments:", num_find_pairs_assignments_arr
         # print "Sec Pred Assignments:", num_sec_pred_assignments_arr
