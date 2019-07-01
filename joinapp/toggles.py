@@ -8,7 +8,7 @@ REAL_DATA_CSV = '/simulation_files/CLEANED_ROUND1.csv'#TODO MTURK data CSV
 NUM_PRIM_ITEMS = 40
 NUM_SEC_ITEMS = 40
 HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
-#FAKE_SEC_ITEM_LIST = [str(NUM_SEC_ITEMS+1), str(NUM_SEC_ITEMS+2), str(NUM_SEC_ITEMS+3), str(NUM_SEC_ITEMS+4), str(NUM_SEC_ITEMS+5), str(NUM_SEC_ITEMS+6), str(NUM_SEC_ITEMS+7), str(NUM_SEC_ITEMS+8), str(NUM_SEC_ITEMS+9), str(NUM_SEC_ITEMS+10)] #fake secondary items to choose from
+FAKE_SEC_ITEM_LIST = [str(NUM_SEC_ITEMS+1), str(NUM_SEC_ITEMS+2), str(NUM_SEC_ITEMS+3), str(NUM_SEC_ITEMS+4), str(NUM_SEC_ITEMS+5), str(NUM_SEC_ITEMS+6), str(NUM_SEC_ITEMS+7), str(NUM_SEC_ITEMS+8), str(NUM_SEC_ITEMS+9), str(NUM_SEC_ITEMS+10)] #fake secondary items to choose from
 PJF_LIST = ["0", "1", "2", "3"]
 
 #__________________________ For Consensus Exploration__________________#
@@ -33,7 +33,7 @@ REAL_DATA = False # real or synthetic data
 # 2 = pre-join filtered join
 JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 10 # number of simulations to run
+NUM_SIMS = 5 # number of simulations to run
 PROB_CHOOSING_TRUE_SEC_ITEM = 0.9
 SIMULATE_TIME = False
 TIME_STEP = 1

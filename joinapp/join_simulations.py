@@ -369,6 +369,9 @@ class JoinSimulation():
         self.sim_time = 0
         self.num_tasks_completed = 0
         self.num_prim_left = []
+        
+        self.num_tasks_breakdown = [0,0,0,0,0,0]
+        self.sim_time_breakdown = [0,0,0,0,0,0]
 
 
 
@@ -421,23 +424,28 @@ class JoinSimulation():
             
             self.reset_database()
             #more processing happens here
-        print "Average Total Time:", mean(sim_time_arr)
+        print "Average Total Time:", np.mean(self.sim_time_arr)
 
-        print "Average Time on Joinable Filter Tasks:", mean(sim_time_breakdown_arr[0])
-        print "Average Time on Find Pairs Tasks (Primary):", mean(sim_time_breakdown_arr[1])
-        print "Average Time on Join Pair Tasks:", mean(sim_time_breakdown_arr[2])
-        print "Average Time on PJF Tasks:", mean(sim_time_breakdown_arr[3])
-        print "Average Time on Secondary Predicate Tasks:", mean(sim_time_breakdown_arr[4])
-        print "Average Time on Find Pairs Tasks (Secondary):", mean(sim_time_breakdown_arr[5])
+        
+        print "Average Time on Joinable Filter Tasks:", np.mean(self.sim_time_breakdown_arr[0])
+        print self.sim_time_breakdown_arr[1]
+        print "Average Time on Find Pairs Tasks (Primary):", np.mean(self.sim_time_breakdown_arr[1])
+        print "Average Time on Join Pair Tasks:", np.mean(self.sim_time_breakdown_arr[2])
+        print "Average Time on PJF Tasks:", np.mean(self.sim_time_breakdown_arr[3])
+        print self.sim_time_breakdown_arr[4]
+        print "Average Time on Secondary Predicate Tasks:", np.mean(self.sim_time_breakdown_arr[4])
+        print "Average Time on Find Pairs Tasks (Secondary):", np.mean(self.sim_time_breakdown_arr[5])
 
-        print "Average Number of Tasks:", mean(num_tasks_completed_arr)
+        print "Average Number of Tasks:", np.mean(self.num_tasks_completed_arr)
 
-        print "Average Number of Joinable Filter Tasks:", mean(num_tasks_breakdown_arr[0])
-        print "Average Number of Find Pairs Tasks (Primary):", mean(num_tasks_breakdown_arr[1])
-        print "Average Number of Join Pair Tasks:", mean(num_tasks_breakdown_arr[2])
-        print "Average Number of PJF Tasks:", mean(num_tasks_breakdown_arr[3])
-        print "Average Number of Secondary Predicate Tasks:", mean(num_tasks_breakdown_arr[4])
-        print "Average Number of Find Pairs Tasks (Secondary):", mean(num_tasks_breakdown_arr[5])
+        print "Average Number of Joinable Filter Tasks:", np.mean(self.num_tasks_breakdown_arr[0])
+        print self.num_tasks_breakdown_arr[1]
+        print "Average Number of Find Pairs Tasks (Primary):", np.mean(self.num_tasks_breakdown_arr[1])
+        print "Average Number of Join Pair Tasks:", np.mean(self.num_tasks_breakdown_arr[2])
+        print "Average Number of PJF Tasks:", np.mean(self.num_tasks_breakdown_arr[3])
+        print self.num_tasks_breakdown_arr[4]
+        print "Average Number of Secondary Predicate Tasks:", np.mean(self.num_tasks_breakdown_arr[4])
+        print "Average Number of Find Pairs Tasks (Secondary):", np.mean(self.num_tasks_breakdown_arr[5])
 
         # print "prim_accuracy", np.mean(prim_accuracy)
         # print "false_negatives", np.mean(false_negatives)
@@ -597,13 +605,13 @@ class JoinSimulation():
                     self.num_tasks_completed += 1
                     self.num_tasks_breakdown[task_type] += 1
                     self.sim_time += task_time
-                    self.sim_time_breakdown[task_type] += task_time
+                    self.sim_time_breakdown[task_type] += float(task_time)
                     
             else:
                 gather_task(task_type,task_answer,task_time,prim,sec)
                 
                 self.sim_time += task_time
-                self.sim_time_breakdown[task_type] += task_time
+                self.sim_time_breakdown[task_type] += float(task_time)
                 self.num_tasks_completed += 1
                 self.num_tasks_breakdown[task_type] += 1
 
@@ -626,9 +634,11 @@ class JoinSimulation():
         self.sim_time_arr += [self.sim_time]
         self.num_tasks_completed_arr += [self.num_tasks_completed]
 
-        for i in range(6):                
-            self.sim_time_breakdown_arr[i] += [self.sim_time_breakdown[i]]
-            self.num_tasks_breakdown_arr[i] += [self.num_tasks_breakdown[i]]
+        for i in range(6):               
+            self.sim_time_breakdown_arr[i].append(self.sim_time_breakdown[i])
+            self.num_tasks_breakdown_arr[i].append(self.num_tasks_breakdown[i])
+            print self.sim_time_breakdown_arr
+            print self.num_tasks_breakdown_arr
 
 
         #__________________________ RESULTS __________________________#
@@ -662,7 +672,7 @@ class JoinSimulation():
         num_jf_tasks = JFTask.objects.all().count()
         num_find_pairs_tasks = FindPairsTask.objects.all().count()
         # NOTE: this only works for a static algorithm
-        num_join_pairs_tasks = JoinPairTask.objects.filter(has_same_pjf=True)
+        num_join_pairs_tasks = JoinPairTask.objects.filter(has_same_pjf=True).count()
         num_sec_pred_tasks = SecPredTask.objects.all().count()
 
         num_jf_assignments = 0
