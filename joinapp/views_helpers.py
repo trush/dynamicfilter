@@ -323,9 +323,7 @@ def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
     elif task_type == 4:
         finished = collect_secondary_predicate(answer, cost, item2_id)
     elif task_type == 5:
-        print "before parse", answer
         answer = parse_pairs(answer)
-        print "after parse", answer
         finished = collect_find_pairs(answer, cost, item2_id, 2)
         if not SecondaryItem.objects.filter(found_all_pairs=False).exists():
             for prim in PrimaryItem.objects.all():
