@@ -11,7 +11,7 @@ from views_helpers import parse_pairs
 def syn_load_list():
     ## NOTE: weird range bc we use pks throughout the code for primary items
     ## and pks start from 1. 
-    for i in range(1, toggles.NUM_PRIM_ITEMS + 1):
+    for i in range(toggles.NUM_PRIM_ITEMS):
         PrimaryItem.objects.create(name = str(i))
 
 ## @brief load/create instance of secondary list (when toggle is set so that secondary list exists)
