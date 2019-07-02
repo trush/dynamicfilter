@@ -225,7 +225,6 @@ def syn_answer_pjf_task(hit):
         answer = truth
     else:
         answer = random.choice(PJF_LIST)
-    print answer
     time = np.random.normal(PJF_TIME_MEAN, PJF_TIME_SD, 1)
     return (answer,time)
 
