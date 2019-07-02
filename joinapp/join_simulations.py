@@ -229,7 +229,7 @@ class JoinSimulation():
             if task.result is not None:
                 total_tasks += [task]
         for task in total_tasks:
-            ground_truth = self.determine_ground_truth(self.JFTasks_Dict[task.primary_item.pk][3])
+            ground_truth = self.determine_ground_truth(self.JFTasks_Dict[task.primary_item.name][3])
             if task.result is ground_truth:
                 correct_tasks += 1
         #Print Accuracy
@@ -255,7 +255,7 @@ class JoinSimulation():
             if primary_item.is_done is True:
                 total_items += [primary_item]
         for primary_item in total_items:
-            ground_truth = self.determine_ground_truth(self.JFTasks_Dict[task.primary_item.pk][3])
+            ground_truth = self.determine_ground_truth(self.JFTasks_Dict[task.primary_item.name][3])
             if primary_item.eval_result is ground_truth:
                 correct_items += 1
         #Print Accuracy
@@ -271,7 +271,7 @@ class JoinSimulation():
                 if task.result is not None:
                     total_tasks += [task]
             for task in total_tasks:
-                ground_truth = self.JFTasks_Dict[task.primary_item.pk][3]
+                ground_truth = self.JFTasks_Dict[task.primary_item.name][3]
                 if task.result is True and ground_truth is 1:
                     correct_tasks += 1
                 elif task.result is False and ground_truth is 0:
@@ -290,7 +290,7 @@ class JoinSimulation():
                     total_tasks += [task]
             for task in total_tasks:
                 if task.primary_item is not None:
-                    ground_truth = self.PrimPJFTasks_Dict[task.primary_item.pk][3]
+                    ground_truth = self.PrimPJFTasks_Dict[task.primary_item.name][3]
                     if task.primary_item.pjf == ground_truth:
                         correct_tasks += 1
                 elif task.secondary_item is not None:
@@ -328,7 +328,7 @@ class JoinSimulation():
                 for sec in prim.secondary_items.all():
                     sec_name = 'secondary item '+ sec.name + '; ' + sec.name + ' address'
                     found_list += [sec_name]
-                true_list = parse_pairs(self.FindPairsTasks_Dict[prim.pk][3])
+                true_list = parse_pairs(self.FindPairsTasks_Dict[prim.name][3])
                 for item in true_list:
                     if item not in found_list:
                         false_negatives += 1
@@ -350,7 +350,7 @@ class JoinSimulation():
         correct_prim_items = 0
         for prim in PrimaryItem.objects.all():
             ground_truth = False #assume every primary fails the join
-            if self.JFTasks_Dict[prim.pk][3] is 1:
+            if self.JFTasks_Dict[prim.name][3] is 1:
                 ground_truth = True
             if prim.eval_result is ground_truth:
                 correct_prim_items += 1
@@ -560,21 +560,21 @@ class JoinSimulation():
             if JOIN_TYPE is 0: # joinable filter
                 task = choose_task_JF(worker_id)
             elif JOIN_TYPE is 1: # item-wise join
-                task = choose_task_IW1(worker_id, estimator)
+                task = choose_task_IWS1(worker_id, estimator)
             elif JOIN_TYPE is 2:
                 task = choose_task_PJF(worker_id, estimator)
             elif JOIN_TYPE is 3:
-                task = choose_task_IWS3(worker_id, estimator)
+                task = choose_task_IWS1(worker_id, estimator)
 
     
             if type(task) is JFTask:
                 task_type = 0
-                my_item = task.primary_item.pk
+                my_item = task.primary_item.name
                 hit = self.JFTasks_Dict[my_item]
             elif type(task) is FindPairsTask:
                 if task.primary_item is not None:
                     task_type = 1
-                    my_item = task.primary_item.pk
+                    my_item = task.primary_item.name
                     hit = self.FindPairsTasks_Dict[my_item]
                 elif task.secondary_item is not None:
                     task_type = 5
@@ -582,14 +582,14 @@ class JoinSimulation():
                     hit = self.FindPairsSecTasks_Dict[my_item]
             elif type(task) is JoinPairTask:
                 task_type = 2
-                my_prim_item = task.primary_item.pk
+                my_prim_item = task.primary_item.name
                 my_sec_item = task.secondary_item.name
                 hit = self.JoinPairTasks_Dict[(my_prim_item, my_sec_item)]
                 num_join_pairs_assignments += 1
             elif type(task) is PJFTask:
                 task_type = 3
                 if task.primary_item is not None:
-                    my_item = task.primary_item.pk
+                    my_item = task.primary_item.name
                     hit = self.PrimPJFTasks_Dict[my_item]
                 else:
                     my_item = task.secondary_item.name
