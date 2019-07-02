@@ -427,9 +427,9 @@ def collect_find_pairs(answer, cost, item_id, find_pairs_type):
                 continue
 
             #find or create a primary item that matches this name
+            print disamb_match
             this_prim_item = PrimaryItem.objects.get(name=disamb_match)
             prim_items_list.append(this_prim_item.id)
-
         #call the model's function to update its state
         this_task.get_task(prim_items_list, cost)
 

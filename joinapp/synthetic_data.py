@@ -63,8 +63,8 @@ def syn_load_everything(sim):
                     raise Exception("probabilities of prejoin filters exceeds 1")
         if not pjf:
             raise Exception("probabilities of prejoin filters sum to less than 1")
-        value = (primary.pk, "None", PJF_TIME_MEAN, pjf)
-        sim.PrimPJFTasks_Dict[primary.pk] = value
+        value = (primary.name, "None", PJF_TIME_MEAN, pjf)
+        sim.PrimPJFTasks_Dict[primary.name] = value
 
     for secondary in range(NUM_SEC_ITEMS):
         choice = random.random()
