@@ -43,7 +43,7 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 
 
 #_______ Selectivity and Ambiguity Settings _________#
-SEC_PRED_SELECTIVITY = 0.3
+SEC_PRED_SELECTIVITY = 0.5
 JOIN_COND_SELECTIVITY = 0.5 #likelyhood of being a pair given that they are in the same PJF
 
 JF_AMBIGUITY = 0

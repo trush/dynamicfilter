@@ -102,7 +102,7 @@ def choose_task_PJF(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
     if not estimator.has_2nd_list:
         prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
-        return choose_task_find_pairs(prim_items_left, new_worker, 1)
+        return choose_task_find_pairs(prim_items_left, new_worker,1)
 
     elif PrimaryItem.objects.filter(pjf='false').exists() or SecondaryItem.objects.filter(pjf='false').exists():
         return choose_task_pjf_helper(new_worker)
@@ -352,7 +352,7 @@ def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
 ## Collect joinable filter task
 def collect_joinable_filter(answer, cost, item1_id):
     #load primary item from db
-    primary_item = PrimaryItem.objects.get(pk = item1_id)
+    primary_item = PrimaryItem.objects.get(name = item1_id)
 
     #use primary item to find the relevant task
     our_tasks = JFTask.objects.filter(primary_item = primary_item)
@@ -375,7 +375,7 @@ def collect_joinable_filter(answer, cost, item1_id):
 def collect_find_pairs(answer, cost, item_id, find_pairs_type):
     #load primary item from db
     if find_pairs_type is 1:
-        primary_item = PrimaryItem.objects.get(pk = item_id)
+        primary_item = PrimaryItem.objects.get(name = item_id)
 
         #use primary item to find the relevant task
         our_tasks = FindPairsTask.objects.filter(primary_item = primary_item)
@@ -407,7 +407,7 @@ def collect_find_pairs(answer, cost, item_id, find_pairs_type):
 
         this_task.refresh_from_db()
     elif find_pairs_type is 2:
-        sec_item = SecondaryItem.objects.get(pk = item_id)
+        sec_item = SecondaryItem.objects.get(name = item_id)
 
         #use primary item to find the relevant task
         our_tasks = FindPairsTask.objects.filter(secondary_item = sec_item)
@@ -470,9 +470,9 @@ def disambiguate_str(sec_item_str):
 ## Collect Join Pair task
 def collect_join_pair(answer, cost, item1_id, item2_id):
     #load primary item from db
-    primary_item = PrimaryItem.objects.get(pk = item1_id)
+    primary_item = PrimaryItem.objects.get(name = item1_id)
     #load secondary item from db
-    secondary_item = SecondaryItem.objects.get(pk = item2_id)
+    secondary_item = SecondaryItem.objects.get(name = item2_id)
 
     #use primary item to find the relevant task
     our_tasks = JoinPairTask.objects.filter(primary_item = primary_item).filter(secondary_item = secondary_item)
@@ -496,7 +496,7 @@ def collect_prejoin_filter(answer, cost, item1_id="None", item2_id="None"):
     # primary item task
     if item1_id is not "None":
         #load primary item from db
-        primary_item = PrimaryItem.objects.get(pk = item1_id)
+        primary_item = PrimaryItem.objects.get(name = item1_id)
         #use primary item to find the relevant task
         our_tasks = PJFTask.objects.filter(primary_item = primary_item)
         #if we have a prejoin filter task with these items, it is our task.
@@ -508,7 +508,7 @@ def collect_prejoin_filter(answer, cost, item1_id="None", item2_id="None"):
     # secondary item task
     else:
         #load secondary item from db
-        secondary_item = SecondaryItem.objects.get(pk = item2_id)
+        secondary_item = SecondaryItem.objects.get(name = item2_id)
         #use secondary item to find the relevant task
         our_tasks = PJFTask.objects.filter(secondary_item = secondary_item)
         #if we have a prejoin filter task with these items, it is our task.
@@ -528,7 +528,7 @@ def collect_prejoin_filter(answer, cost, item1_id="None", item2_id="None"):
 ## Collect secondary predicate task
 def collect_secondary_predicate(answer, cost, item2_id):
     #load secondary item from db
-    secondary_item = SecondaryItem.objects.get(pk = item2_id)
+    secondary_item = SecondaryItem.objects.get(name = item2_id)
 
     #use secondary item to find the relevant task
     our_tasks = SecPredTask.objects.filter(secondary_item = secondary_item)
