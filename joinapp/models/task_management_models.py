@@ -622,6 +622,14 @@ class SecPredTask(models.Model):
             prim_item.refresh_from_db()
             prim_item.update_state()
             prim_item.save()
+        # TODO: bandaid fix for itemwise joins on secondary items
+        if toggles.JOIN_TYPE is 3:
+            if not items.SecondaryItem.objects.all.filter(second_pred_result=None).exists():
+                for prim in PrimaryItem.objects.filter(is_done=False):
+                    prim.refresh_from_db()
+                    prim.is_done = True
+                    prim.eval_result = False
+                    prim.save()
 
     ## @brief Updates state based on an incoming worker answer
     # @param answer worker answer (0 or 1)

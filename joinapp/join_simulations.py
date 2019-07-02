@@ -569,7 +569,7 @@ class JoinSimulation():
             elif JOIN_TYPE is 2:
                 task = choose_task_PJF(worker_id, estimator)
             elif JOIN_TYPE is 3:
-                task = choose_task_IWS1(worker_id, estimator)
+                task = choose_task_IWS3(worker_id, estimator)
 
     
             if type(task) is JFTask:
