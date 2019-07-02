@@ -290,7 +290,6 @@ def choose_task_sec_pred_before_pairs(worker):
         sec_pred_task = SecPredTask.objects.filter(in_progress=True).first()
     else:
         sec_items_left = SecondaryItem.objects.filter(second_pred_result=None)
-        print "sec_items_left", sec_items_left
         sec = sec_items_left.order_by('?').first()
         sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec)[0]
         while worker in sec_pred_task.workers.all():
@@ -324,21 +323,16 @@ def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
     elif task_type == 4:
         finished = collect_secondary_predicate(answer, cost, item2_id)
     elif task_type == 5:
-        print "in here"
         answer = parse_pairs(answer)
         finished = collect_find_pairs(answer, cost, item2_id, 2)
-        print "no results", SecondaryItem.objects.filter(second_pred_result=None)
         if not SecondaryItem.objects.filter(found_all_pairs=False).exists():
             for prim in PrimaryItem.objects.all():
-                print "in here 1"
                 prim.refresh_from_db()
                 prim.found_all_pairs = True
                 prim.save()
         if not SecondaryItem.objects.filter(second_pred_result=None).exists():
-            print "in here 3"
             if not SecondaryItem.objects.filter(second_pred_result=True).filter(found_all_pairs=False).exists():
                 for prim in PrimaryItem.objects.all():
-                    print "in here 2"
                     prim.refresh_from_db()
                     prim.found_all_pairs = True
                     prim.update_state()
@@ -514,7 +508,6 @@ def collect_prejoin_filter(answer, cost, item1_id="None", item2_id="None"):
     # secondary item task
     else:
         #load secondary item from db
-        print item2_id
         secondary_item = SecondaryItem.objects.get(name = item2_id)
         #use secondary item to find the relevant task
         our_tasks = PJFTask.objects.filter(secondary_item = secondary_item)
