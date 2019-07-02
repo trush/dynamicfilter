@@ -102,7 +102,7 @@ def choose_task_PJF(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
     if not estimator.has_2nd_list:
         prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
-        return choose_task_find_pairs(prim_items_left, new_worker)
+        return choose_task_find_pairs(prim_items_left, new_worker, 1)
 
     elif PrimaryItem.objects.filter(pjf='false').exists() or SecondaryItem.objects.filter(pjf='false').exists():
         return choose_task_pjf_helper(new_worker)
@@ -323,7 +323,9 @@ def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
     elif task_type == 4:
         finished = collect_secondary_predicate(answer, cost, item2_id)
     elif task_type == 5:
+        print "before parse", answer
         answer = parse_pairs(answer)
+        print "after parse", answer
         finished = collect_find_pairs(answer, cost, item2_id, 2)
         if not SecondaryItem.objects.filter(found_all_pairs=False).exists():
             for prim in PrimaryItem.objects.all():

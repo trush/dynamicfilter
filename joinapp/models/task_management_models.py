@@ -59,15 +59,16 @@ class TaskStats(models.Model):
         # update num_processed, cost, selectivity
         self.cost = ((self.cost*self.num_processed) + float(cost))/(self.num_processed + 1)
         # filter-type tasks
-        if self.task_type is 0 or self.task_type is 3 or self.task_type is 4:
+        if self.task_type is 0 or self.task_type is 3 or self.task_type is 4 or self.task_type is 2:
             if answer:
                 self.selectivity = ((self.selectivity*self.num_processed) + 1)/(self.num_processed + 1)
             else:
                 self.selectivity = (self.selectivity*self.num_processed)/(self.num_processed + 1)
             self.ambiguity = (1-self.selectivity)*2
         # IW task
-        elif self.task_type is 1 or 5:
+        elif self.task_type is 1 or self.task_type is 5:
             self.avg_num_pairs = ((self.avg_num_pairs*self.num_processed) + len(answer))/(self.num_processed + 1)
+
         # TODO: prejoin filter stats
         self.num_processed += 1
         self.save()

@@ -566,7 +566,6 @@ class JoinSimulation():
 
     
             if type(task) is JFTask:
-                print "we are here"
                 task_type = 0
                 my_item = task.primary_item.pk
                 hit = self.JFTasks_Dict[my_item]
@@ -602,7 +601,6 @@ class JoinSimulation():
                     hit = self.FakeSecPredTasks_Dict[my_item]
                 else:
                     hit = self.SecPredTasks_Dict[my_item]
-            print task_type
 
             #__________________________  ISSUE TASK __________________________#
             #choose a (matching) time and response for the task
