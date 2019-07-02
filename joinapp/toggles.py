@@ -8,7 +8,7 @@ REAL_DATA_SEC_PRED = './simulation_files/SECOND_PRED_RESULTS.csv'
 #_____________________________ For Synthetic Data _____________________________#
 NUM_PRIM_ITEMS = 100
 NUM_SEC_ITEMS = 50
-HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
+HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no 
 PJF_LIST = [("0",0.20), ("1",0.20), ("2",0.20), ("3",0.20),("4",0.20)]
 
 #_________________ For The Crowd _________________#
