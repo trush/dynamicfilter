@@ -49,6 +49,7 @@ def choose_task_IW1(workerID, estimator):
     prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
     if prim_items_left.exists():
         return choose_task_find_pairs(prim_items_left, new_worker, 1)
+        
 ## Finds all pairs, then chooses a primary item then evaluates all secondary predicates related to that item
 ## Then chooses another primary item (that has not yet passed the query) then repeats
 def choose_task_IW2(workerID, estimator):
@@ -102,7 +103,7 @@ def choose_task_PJF(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
     if not estimator.has_2nd_list:
         prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
-        return choose_task_find_pairs(prim_items_left, new_worker)
+        return choose_task_find_pairs(prim_items_left, new_worker, 1)
 
     elif PrimaryItem.objects.filter(pjf='false').exists() or SecondaryItem.objects.filter(pjf='false').exists():
         return choose_task_pjf_helper(new_worker)
