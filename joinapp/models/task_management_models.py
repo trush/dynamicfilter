@@ -259,7 +259,7 @@ class FindPairsTask(models.Model):
         if self.primary_item is not None:
             # Find join pair tasks that match each match we found, creating new ones if necessary
             for match in answer:
-                sec_item = items.SecondaryItem.objects.get(pk = match)
+                sec_item = items.SecondaryItem.objects.get(name = match)
                 matching_join_pairs = join_pair_tasks.filter(secondary_item = sec_item, primary_item = self.primary_item)
                 
                 #create a new join pair task if it does not exist in our list of join pair tasks
@@ -277,7 +277,7 @@ class FindPairsTask(models.Model):
             #add votes as necessary, update consensus for each join pair task
             for join_pair_task in join_pair_tasks:
                 #update votes
-                if join_pair_task.secondary_item.id in answer:
+                if join_pair_task.secondary_item.name in answer:
                     join_pair_task.yes_votes += 1
                 else:
                     join_pair_task.no_votes += 1
@@ -294,7 +294,7 @@ class FindPairsTask(models.Model):
         elif self.secondary_item is not None:
             # Find join pair tasks that match each match we found, creating new ones if necessary
             for match in answer:
-                prim_item = items.PrimaryItem.objects.get(pk = match)
+                prim_item = items.PrimaryItem.objects.get(name = match)
                 matching_join_pairs = join_pair_tasks.filter(secondary_item = self.secondary_item, primary_item = prim_item)
             
                 #create a new join pair task if it does not exist in our list of join pair tasks
@@ -312,7 +312,7 @@ class FindPairsTask(models.Model):
             #add votes as necessary, update consensus for each join pair task
             for join_pair_task in join_pair_tasks:
                 #update votes
-                if join_pair_task.primary_item.id in answer:
+                if join_pair_task.primary_item.name in answer:
                     join_pair_task.yes_votes += 1
                 else:
                     join_pair_task.no_votes += 1

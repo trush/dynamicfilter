@@ -400,7 +400,7 @@ def collect_find_pairs(answer, cost, item_id, find_pairs_type):
                 this_sec_item = SecondaryItem.objects.get(name = disamb_match)
             else:
                 this_sec_item = SecondaryItem.objects.create(name = disamb_match)
-            sec_items_list.append(this_sec_item.id)
+            sec_items_list.append(this_sec_item.name)
 
         #call the model's function to update its state
         this_task.get_task(sec_items_list, cost)
@@ -428,7 +428,7 @@ def collect_find_pairs(answer, cost, item_id, find_pairs_type):
 
             #find or create a primary item that matches this name
             this_prim_item = PrimaryItem.objects.get(name=disamb_match)
-            prim_items_list.append(this_prim_item.id)
+            prim_items_list.append(this_prim_item.name)
         #call the model's function to update its state
         this_task.get_task(prim_items_list, cost)
 
@@ -508,6 +508,7 @@ def collect_prejoin_filter(answer, cost, item1_id="None", item2_id="None"):
     # secondary item task
     else:
         #load secondary item from db
+        print item2_id
         secondary_item = SecondaryItem.objects.get(name = item2_id)
         #use secondary item to find the relevant task
         our_tasks = PJFTask.objects.filter(secondary_item = secondary_item)
