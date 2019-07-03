@@ -1,9 +1,10 @@
 import math
 
-#________ Path Info __________#
+#________ Path Info For Real Data__________#
 PRIMARY_LIST = './simulation_files/Hotel_items.csv'
 REAL_DATA_JF = './simulation_files/JOINABLE_FILTER_RESULTS.csv'#TODO MTURK data CSV
 REAL_DATA_SEC_PRED = './simulation_files/SECOND_PRED_RESULTS.csv'
+REAL_DATA_FP = './simulation_files/FIND_PAIRS_RESULTS.csv'
 
 #_____________________________ For Synthetic Data _____________________________#
 NUM_PRIM_ITEMS = 100
@@ -13,11 +14,6 @@ PJF_LIST = [("0",0.20), ("1",0.20), ("2",0.20), ("3",0.20),("4",0.20)]
 
 #_________________ For The Crowd _________________#
 FLOOR_AMBIGUITY_FIND_PAIRS = 0.80
-
-
-#________ For Real Data ________#
-INPUT_PATH = ''
-PRIMARY_ITEM_TYPE = "Hotel"  # "Hotel" or "Restaurant"
 
 #________ Simulation Settings ________#
 REAL_DATA = False # real or synthetic data
@@ -45,7 +41,7 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 
 #_______ Selectivity and Ambiguity Settings _________#
 SEC_PRED_SELECTIVITY = 0.3
-JOIN_COND_SELECTIVITY = 0.5 #likelyhood of being a pair given that they are in the same PJF
+JOIN_COND_SELECTIVITY = 0.9 #likelyhood of being a pair given that they are in the same PJF
 
 JF_AMBIGUITY = 0
 SEC_PRED_AMBIGUITY = 0

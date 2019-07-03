@@ -126,8 +126,31 @@ class JoinSimulation():
                         print "Error reading in row ", line_count
                     line_count += 1
         else:
+            if JOIN_TYPE is 1 or JOIN_TYPE is 2:
+                fn = path.join(path.dirname(__file__), REAL_DATA_FP)
+                with open(fn, mode = 'r') as csv_file:
+                    csv_reader = csv.reader(csv_file, delimiter = ',')
+                    line_count = 0
+                    for row in csv_reader:
+                        primary_item = str(row[1][2:-1]) # to remove parentheses
+                        time_taken = row[3]
+                        worker_vote = parse_pairs(row[4])
+                    try:
+                        primary_item_pk = PrimaryItem.objects.get(name = primary_item).pk
+                        if primary_item_pk in self.FindPairsTasks_Dict:
+                            value = self.FindPairsTasks_Dict[primary_item_pk]
+                        else:
+                            value = (primary_item_pk,"None",[],[])
+                        value[2].append(float(time_taken)) #add assignment time to hit
+                        value[3].append(worker_vote) # add worker answer to hit
+                        self.FindPairsTasks_Dict[primary_item_pk] = value
+
+                    except:
+                        print "Error reading in row ", line_count
+                    line_count += 1
+
             fn = path.join(path.dirname(__file__), REAL_DATA_SEC_PRED)
-            with open(REAL_DATA_SEC_PRED, mode = 'r') as csv_file:
+            with open(fn, mode = 'r') as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter = ',')
                 line_count = 0
                 for row in csv_reader:
