@@ -369,7 +369,7 @@ class JoinSimulation():
             for sec in SecondaryItem.objects.all():
                 found_list = []
                 for prim in sec.primary_items.all():
-                    prim_name = "primary item " + prim.name + "; " prim.name + " address"
+                    prim_name = "primary item " + prim.name + "; " + prim.name + " address"
                     found_list += [prim_name]
                 true_list = parse_pairs(self.FindPairsSecTasks_Dict[sec.name][3])
                 for item in true_list:
@@ -544,7 +544,7 @@ class JoinSimulation():
         # print "false_positives", np.mean(false_positives)
         # print "true_negatives", np.mean(true_negatives)
         # print "find pairs", np.mean(task_num)
-        if JOIN_TYPE is 1:
+        if JOIN_TYPE is 1 or JOIN_TYPE is 3:
             precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
             recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
             print ""
@@ -607,7 +607,7 @@ class JoinSimulation():
             if JOIN_TYPE is 0: # joinable filter
                 task = choose_task_JF(worker_id)
             elif JOIN_TYPE is 1: # item-wise join
-                task = choose_task_IW(worker_id, estimator)
+                task = choose_task_IW1(worker_id, estimator)
             elif JOIN_TYPE is 2:
                 task = choose_task_PJF(worker_id, estimator)
             elif JOIN_TYPE is 3:
