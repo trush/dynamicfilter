@@ -365,7 +365,24 @@ class JoinSimulation():
             print ""
             print "We missed " + str(false_negatives) + " secondary items"
             print "We had " + str(false_positives) + " extra items" 
-
+        elif JOIN_TYPE is 3:
+            for sec in SecondaryItem.objects.all():
+                found_list = []
+                for prim in sec.primary_items.all():
+                    prim_name = "primary item " + prim.name + "; " prim.name + " address"
+                    found_list += [prim_name]
+                true_list = parse_pairs(self.FindPairsSecTasks_Dict[sec.name][3])
+                for item in true_list:
+                    if item not in found_list:
+                        false_negatives += 1
+                    else:
+                        true_positives += 1
+                for item in found_list:
+                    if item not in true_list:
+                        false_positives += 1
+            print ""
+            print "We missed " + str(false_negatives) + " primary items"
+            print "We had " + str(false_positives) + " extra items"
         
         print "" #newline
 
@@ -477,6 +494,8 @@ class JoinSimulation():
         for i in range(toggles.NUM_SIMS):
             results = self.run_sim()
             print "---------------------------------------------------------------------"
+            j = i+1
+            print "Running simulation",j,"out of",toggles.NUM_SIMS
             prim_accuracy.append(results[0])
             false_negatives.append(results[1])
             true_positives.append(results[2])
@@ -588,7 +607,7 @@ class JoinSimulation():
             if JOIN_TYPE is 0: # joinable filter
                 task = choose_task_JF(worker_id)
             elif JOIN_TYPE is 1: # item-wise join
-                task = choose_task_IW1(worker_id, estimator)
+                task = choose_task_IW(worker_id, estimator)
             elif JOIN_TYPE is 2:
                 task = choose_task_PJF(worker_id, estimator)
             elif JOIN_TYPE is 3:
