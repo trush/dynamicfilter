@@ -9,7 +9,7 @@ REAL_DATA_FP = './simulation_files/FIND_PAIRS_RESULTS.csv'
 #_____________________________ For Synthetic Data _____________________________#
 NUM_PRIM_ITEMS = 100
 NUM_SEC_ITEMS = 50
-HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
+HAVE_SEC_LIST = True #Do we start with the secondary list populated yes/no 
 PJF_LIST = [("0",0.20), ("1",0.20), ("2",0.20), ("3",0.20),("4",0.20)]
 
 #_________________ For The Crowd _________________#
@@ -48,7 +48,7 @@ SEC_PRED_SELECTIVITY = 0.3
 JOIN_COND_SELECTIVITY = 0.05 #likelyhood of being a pair given that they are in the same PJF
 
 JF_AMBIGUITY = 0
-SEC_PRED_AMBIGUITY = 0
+SEC_PRED_AMBIGUITY = 0.2
 JOIN_COND_AMBIGUITY = 0
 PJF_AMBIGUITY = 0
 

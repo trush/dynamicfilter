@@ -492,10 +492,10 @@ class JoinSimulation():
 
         # results list is a list of tuples in the form (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
         for i in range(toggles.NUM_SIMS):
-            results = self.run_sim()
             print "---------------------------------------------------------------------"
             j = i+1
             print "Running simulation",j,"out of",toggles.NUM_SIMS
+            results = self.run_sim()
             prim_accuracy.append(results[0])
             false_negatives.append(results[1])
             true_positives.append(results[2])
@@ -612,11 +612,11 @@ class JoinSimulation():
                 task = choose_task_IW1(worker_id, estimator)
             elif JOIN_TYPE is 2:
                 task = choose_task_PJF(worker_id, estimator)
-            elif JOIN_TYPE is 3:
+            elif JOIN_TYPE is 3.1:
                 task = choose_task_IWS2(worker_id, estimator)
-            elif JOIN_TYPE is 3:
+            elif JOIN_TYPE is 3.2:
                 task = choose_task_IWS1(worker_id, estimator)
-            elif JOIN_TYPE is 3:
+            elif JOIN_TYPE is 3.3:
                 task = choose_task_IWS3(worker_id, estimator)
 
     
