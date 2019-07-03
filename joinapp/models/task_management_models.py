@@ -252,7 +252,7 @@ class FindPairsTask(models.Model):
         self.total_time += time
 
         #get join pairs from this task
-        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self).filter(result = None)
+        join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self)
 
         # If we are finding pairs for a primary item
         if self.primary_item is not None:
@@ -271,7 +271,7 @@ class FindPairsTask(models.Model):
                         same_pjf = False
                     JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks, has_same_pjf = same_pjf)
             #get join pairs from this task (again)
-            join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self).filter(result = None)
+            join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self)
 
             #add votes as necessary, update consensus for each join pair task
             for join_pair_task in join_pair_tasks:
