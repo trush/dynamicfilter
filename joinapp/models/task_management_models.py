@@ -240,7 +240,6 @@ class FindPairsTask(models.Model):
                 else:
                     self.consensus = False
                     self.save()
-
     ## @brief Updates state after an assignment for this task is completed
     # @param answer A list of secondary items
     # @param time How long it took to execute the incoming assignment
@@ -286,6 +285,7 @@ class FindPairsTask(models.Model):
 
                 #check consensus
                 join_pair_task.update_result()
+                self.primary_item.refresh_from_db()
 
                 estimator = Estimator.objects.all().first()
                 #update estimator
@@ -325,6 +325,10 @@ class FindPairsTask(models.Model):
         # Update fields and check if we have reached consensus
         self.num_tasks += 1
         self.update_consensus()
+        self.refresh_from_db()
+        #Update the findpairs for this item so that it is no longer in progress
+        if self.primary_item.is_done is True:
+            self.in_progress = False
         self.save()
 
 ## @brief Model representing a join condition task for a primary-secondary item pair
@@ -369,7 +373,7 @@ class JoinPairTask(models.Model):
         #have we reached consensus?
         self.result = find_consensus.find_consensus(self)
         self.save()
-
+        self.primary_item.refresh_from_db()
         #if we have reached consensus and the result is a match, add our secondary item to the 
         # primary item's list of matches <br>
         #Running this multiple times is fine, the relationship is not duplicated
@@ -623,7 +627,7 @@ class SecPredTask(models.Model):
             prim_item.update_state()
             prim_item.save()
         # TODO: bandaid fix for itemwise joins on secondary items
-        if toggles.JOIN_TYPE is 3:
+        if toggles.JOIN_TYPE is 3.3:
             if not items.SecondaryItem.objects.filter(second_pred_result=None).exists():
                 for prim in items.PrimaryItem.objects.filter(is_done=False):
                     prim.refresh_from_db()

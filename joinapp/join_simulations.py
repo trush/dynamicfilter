@@ -126,7 +126,7 @@ class JoinSimulation():
                         print "Error reading in row ", line_count
                     line_count += 1
         else:
-            if JOIN_TYPE is 1 or JOIN_TYPE is 2:
+            if JOIN_TYPE >= 1 and JOIN_TYPE < 3:
                 fn = path.join(path.dirname(__file__), REAL_DATA_FP)
                 with open(fn, mode = 'r') as csv_file:
                     csv_reader = csv.reader(csv_file, delimiter = ',')
@@ -345,7 +345,7 @@ class JoinSimulation():
         true_positives = 0
         false_positives = 0
         true_negatives =0
-        if JOIN_TYPE is 1:
+        if JOIN_TYPE is 1 or JOIN_TYPE is 1.5:
             for prim in PrimaryItem.objects.all():
                 found_list = []
                 for sec in prim.secondary_items.all():
@@ -365,7 +365,7 @@ class JoinSimulation():
             print ""
             print "We missed " + str(false_negatives) + " secondary items"
             print "We had " + str(false_positives) + " extra items" 
-        elif JOIN_TYPE is 3:
+        elif JOIN_TYPE >= 3:
             for sec in SecondaryItem.objects.all():
                 found_list = []
                 for prim in sec.primary_items.all():
@@ -544,7 +544,7 @@ class JoinSimulation():
         # print "false_positives", np.mean(false_positives)
         # print "true_negatives", np.mean(true_negatives)
         # print "find pairs", np.mean(task_num)
-        if JOIN_TYPE is 1 or JOIN_TYPE is 3:
+        if JOIN_TYPE is 1 or JOIN_TYPE is 1.5 or JOIN_TYPE >= 3:
             precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
             recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
             print ""
@@ -607,11 +607,17 @@ class JoinSimulation():
             if JOIN_TYPE is 0: # joinable filter
                 task = choose_task_JF(worker_id)
             elif JOIN_TYPE is 1: # item-wise join
-                task = choose_task_IWS2(worker_id, estimator)
+                task = choose_task_IW(worker_id, estimator)
+            elif JOIN_TYPE is 1.5: # item-wise join
+                task = choose_task_IW1(worker_id, estimator)
             elif JOIN_TYPE is 2:
                 task = choose_task_PJF(worker_id, estimator)
-            elif JOIN_TYPE is 3:
+            elif JOIN_TYPE is 3.1:
+                task = choose_task_IWS2(worker_id, estimator)
+            elif JOIN_TYPE is 3.2:
                 task = choose_task_IWS1(worker_id, estimator)
+            elif JOIN_TYPE is 3.3:
+                task = choose_task_IWS3(worker_id, estimator)
 
     
             if type(task) is JFTask:
