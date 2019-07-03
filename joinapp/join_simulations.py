@@ -369,7 +369,7 @@ class JoinSimulation():
             for sec in SecondaryItem.objects.all():
                 found_list = []
                 for prim in sec.primary_items.all():
-                    prim_name = "primary item " + prim.name + "; " prim.name + " address"
+                    prim_name = "primary item " + prim.name + "; " + prim.name + " address"
                     found_list += [prim_name]
                 true_list = parse_pairs(self.FindPairsSecTasks_Dict[sec.name][3])
                 for item in true_list:
