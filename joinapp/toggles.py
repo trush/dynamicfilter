@@ -13,17 +13,17 @@ HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no
 PJF_LIST = [("0",0.20), ("1",0.20), ("2",0.20), ("3",0.20),("4",0.20)]
 
 #_________________ For The Crowd _________________#
-FLOOR_AMBIGUITY_FIND_PAIRS = 0.80
+FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
 
 #________ Simulation Settings ________#
 REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
-JOIN_TYPE = 3
+JOIN_TYPE = 1
 PATH_NUM = 1
 NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 5 # number of simulations to run
+NUM_SIMS = 2 # number of simulations to run
 SIMULATE_TIME = False
 TIME_STEP = 1
 

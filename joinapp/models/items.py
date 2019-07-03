@@ -101,7 +101,7 @@ class PrimaryItem(models.Model):
 
     ## @brief updates is_done and eval_result
     def update_state(self):
-        from task_management_models import JoinPairTask
+        from task_management_models import JoinPairTask, FindPairsTask
         # Do not update state if we're already done, to prevent repeat incrementations
         # since we call this multiple times
         if self.is_done is False:

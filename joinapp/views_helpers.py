@@ -39,7 +39,7 @@ def choose_task_IW1(workerID, estimator):
     if prim_has_sec.exists():        
         return choose_task_sec_pred(new_worker)
         # finds pairs for one primary item
-    prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
+    prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False).exclude(is_done=True)
     if prim_items_left.exists():
         return choose_task_find_pairs(prim_items_left, new_worker, 1)
         
@@ -178,9 +178,9 @@ def choose_task_find_pairs(items_list,worker, find_pairs_type):
 
             secs_left = items_list
             while find_pairs_task.consensus == True: # TODO: implement this: or worker in find_pairs_task.workers.all():
-                    secs_left = secs_left.exclude(pk=sec_item.pk)
-                    sec_item = secs_left.order_by('?').first()
-                    find_pairs_task = FindPairsTask.objects.get_or_create(secondary_item=sec_item)[0]
+                secs_left = secs_left.exclude(pk=sec_item.pk)
+                sec_item = secs_left.order_by('?').first()
+                find_pairs_task = FindPairsTask.objects.get_or_create(secondary_item=sec_item)[0]
         find_pairs_task.workers.add(worker)
         find_pairs_task.save()
     return find_pairs_task
@@ -379,6 +379,7 @@ def collect_find_pairs(answer, cost, item_id, find_pairs_type):
             this_task = FindPairsTask.objects.create(primary_item = primary_item)
         else:
             this_task = FindPairsTask.objects.get(primary_item = primary_item)
+            this_task.refresh_from_db()
 
         #holds the list of secondary item (ids) we get from this task
         sec_items_list = []
