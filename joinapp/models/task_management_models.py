@@ -627,7 +627,7 @@ class SecPredTask(models.Model):
             prim_item.update_state()
             prim_item.save()
         # TODO: bandaid fix for itemwise joins on secondary items
-        if toggles.JOIN_TYPE is 3:
+        if toggles.JOIN_TYPE is 3.3:
             if not items.SecondaryItem.objects.filter(second_pred_result=None).exists():
                 for prim in items.PrimaryItem.objects.filter(is_done=False):
                     prim.refresh_from_db()

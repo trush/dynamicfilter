@@ -18,15 +18,18 @@ FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
 #________ Simulation Settings ________#
 REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
-# 1 = item-wise join
+# 1 = item-wise join (all-items then sec preds)
+# 1.5 = item-wise join (item-by-item)
 # 2 = pre-join filtered join
-# 3 = item-wise join on second list
+# 3.1 = item-wise join on second list (all sec preds then find pairs)
+# 3.2 = item-wise join on second list (all find pairs then sec preds)
+# 3.3 = item-wise join on second list (item-by-item, sec preds first)
 JOIN_TYPE = 2
-PATH_NUM = 1
 NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 2 # number of simulations to run
+NUM_SIMS = 10 # number of simulations to run
 SIMULATE_TIME = False
 TIME_STEP = 1
+USE_IN_PROGRESS = False
 
 # ________ Consensus Settings _________#
 # Values used in the find_consensus for an item/task function
