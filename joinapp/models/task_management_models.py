@@ -260,7 +260,7 @@ class FindPairsTask(models.Model):
             # Find join pair tasks that match each match we found, creating new ones if necessary
             for match in answer:
                 sec_item = items.SecondaryItem.objects.get(name = match)
-                matching_join_pairs = join_pair_tasks.filter(secondary_item = sec_item, primary_item = self.primary_item)
+                matching_join_pairs = join_pair_tasks.filter(secondary_item = sec_item).filter(primary_item = self.primary_item)
                 
                 #create a new join pair task if it does not exist in our list of join pair tasks
                 #NOTE: We may at some point need to address adding join pair tasks that exist to our list
@@ -272,7 +272,7 @@ class FindPairsTask(models.Model):
                         same_pjf = False
                     JoinPairTask.objects.create(primary_item = self.primary_item, secondary_item = sec_item, find_pairs_task = self, no_votes = self.num_tasks, has_same_pjf = same_pjf)
             #get join pairs from this task (again)
-            join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
+            join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self).filter(result = None)
 
             #add votes as necessary, update consensus for each join pair task
             for join_pair_task in join_pair_tasks:
@@ -295,7 +295,7 @@ class FindPairsTask(models.Model):
             # Find join pair tasks that match each match we found, creating new ones if necessary
             for match in answer:
                 prim_item = items.PrimaryItem.objects.get(name = match)
-                matching_join_pairs = join_pair_tasks.filter(secondary_item = self.secondary_item, primary_item = prim_item)
+                matching_join_pairs = join_pair_tasks.filter(secondary_item = self.secondary_item).filter(primary_item = prim_item)
             
                 #create a new join pair task if it does not exist in our list of join pair tasks
                 #NOTE: We may at some point need to address adding join pair tasks that exist to our list
@@ -307,7 +307,7 @@ class FindPairsTask(models.Model):
                         same_pjf = False
                     JoinPairTask.objects.create(primary_item = prim_item, secondary_item = self.secondary_item, find_pairs_task = self, no_votes = self.num_tasks, has_same_pjf = same_pjf)
             #get join pairs from this task (again)
-            join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self, result = None)
+            join_pair_tasks = JoinPairTask.objects.filter(find_pairs_task = self).filter(result = None)
 
             #add votes as necessary, update consensus for each join pair task
             for join_pair_task in join_pair_tasks:

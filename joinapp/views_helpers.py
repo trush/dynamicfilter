@@ -19,16 +19,13 @@ def choose_task_JF(workerID):
 # @param workerID workerID of the worker this task is going to
 # @param estimator the estimator used to determine when the second list is complete
 def choose_task_IW(workerID, estimator):
-    # only implemented for IW join
     # returns task that was chosen and updated
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
-    ### algorithm determining what type of task/join to use ###
-    # elif toggles.JOIN_TYPE is 1 or 2:
-    # find pairs for all primary items
+    # find all pairs for all primary items
     prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
     if prim_items_left.exists():
         return choose_task_find_pairs(prim_items_left, new_worker, 1)
-    # this is used once we enumerate the entire second list 
+    # then evaluate second predicate for found secondary items
     else:
         return choose_task_sec_pred(new_worker)
 
@@ -37,15 +34,11 @@ def choose_task_IW(workerID, estimator):
 # @param workerID workerID of the worker this task is going to
 # @param estimator the estimator used to determine when the second list is complete
 def choose_task_IW1(workerID, estimator):
-    # only implemented for IW join
-    # returns task that was chosen and updated
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
-    # if task_type = JF:
-        # return choose_task_joinable_filter(new_worker)
-    # find pairs for all primary items
     prim_has_sec = PrimaryItem.objects.exclude(is_done=True).filter(found_all_pairs=True)
     if prim_has_sec.exists():        
         return choose_task_sec_pred(new_worker)
+        # finds pairs for one primary item
     prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
     if prim_items_left.exists():
         return choose_task_find_pairs(prim_items_left, new_worker, 1)
@@ -54,7 +47,7 @@ def choose_task_IW1(workerID, estimator):
 ## Then chooses another primary item (that has not yet passed the query) then repeats
 def choose_task_IW2(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
-    prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False, is_done = False)
+    prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False).filter(is_done = False)
     if prim_items_left.exists():
         return choose_task_find_pairs(prim_items_left, new_worker, 1)
     else:
@@ -86,7 +79,7 @@ def choose_task_IWS2(workerID, estimator):
 def choose_task_IWS3(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
 
-    true_secs_to_do = SecondaryItem.objects.filter(second_pred_result=True, found_all_pairs=False)
+    true_secs_to_do = SecondaryItem.objects.filter(second_pred_result=True).filter(found_all_pairs=False)
     if true_secs_to_do.exists():
         return choose_task_find_pairs(true_secs_to_do, new_worker, 2)
     else:

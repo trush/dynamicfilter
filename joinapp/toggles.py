@@ -20,7 +20,7 @@ REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join
 # 2 = pre-join filtered join
-JOIN_TYPE = 3
+JOIN_TYPE = 2
 PATH_NUM = 1
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 10 # number of simulations to run
@@ -41,7 +41,7 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 
 #_______ Selectivity and Ambiguity Settings _________#
 SEC_PRED_SELECTIVITY = 0.3
-JOIN_COND_SELECTIVITY = 0.9 #likelyhood of being a pair given that they are in the same PJF
+JOIN_COND_SELECTIVITY = 0.1 #likelyhood of being a pair given that they are in the same PJF
 
 JF_AMBIGUITY = 0
 SEC_PRED_AMBIGUITY = 0
