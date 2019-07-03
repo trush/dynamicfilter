@@ -342,7 +342,24 @@ class JoinSimulation():
             print ""
             print "We missed " + str(false_negatives) + " secondary items"
             print "We had " + str(false_positives) + " extra items" 
-
+        elif JOIN_TYPE is 3:
+            for sec in SecondaryItem.objects.all():
+                found_list = []
+                for prim in sec.primary_items.all():
+                    prim_name = "primary item " + prim.name + "; " prim.name + " address"
+                    found_list += [prim_name]
+                true_list = parse_pairs(self.FindPairsSecTasks_Dict[sec.name][3])
+                for item in true_list:
+                    if item not in found_list:
+                        false_negatives += 1
+                    else:
+                        true_positives += 1
+                for item in found_list:
+                    if item not in true_list:
+                        false_positives += 1
+            print ""
+            print "We missed " + str(false_negatives) + " primary items"
+            print "We had " + str(false_positives) + " extra items"
         
         print "" #newline
 
@@ -454,6 +471,8 @@ class JoinSimulation():
         for i in range(toggles.NUM_SIMS):
             results = self.run_sim()
             print "---------------------------------------------------------------------"
+            j = i+1
+            print "Running simulation",j,"out of",toggles.NUM_SIMS
             prim_accuracy.append(results[0])
             false_negatives.append(results[1])
             true_positives.append(results[2])
@@ -475,22 +494,25 @@ class JoinSimulation():
         print "Average Total Time:", np.mean(self.sim_time_arr)
 
         print ""
-        print "Average Time on PJF Tasks:", np.mean(self.sim_time_breakdown_arr[3])
-        print "Average Time on Find Pairs Tasks (Secondary):", np.mean(self.sim_time_breakdown_arr[5])
-        print "Average Time on Find Pairs Tasks (Primary):", np.mean(self.sim_time_breakdown_arr[1])
-        print "Average Time on Secondary Predicate Tasks:", np.mean(self.sim_time_breakdown_arr[4])
-        print "Average Time on Join Pair Tasks:", np.mean(self.sim_time_breakdown_arr[2])
         print "Average Time on Joinable Filter Tasks:", np.mean(self.sim_time_breakdown_arr[0])
+        print "Average Time on Find Pairs Tasks (Primary):", np.mean(self.sim_time_breakdown_arr[1])
+        print "Average Time on Join Pair Tasks:", np.mean(self.sim_time_breakdown_arr[2])
+        print "Average Time on PJF Tasks:", np.mean(self.sim_time_breakdown_arr[3])
+        print "Average Time on Secondary Predicate Tasks:", np.mean(self.sim_time_breakdown_arr[4])
+        print "Average Time on Find Pairs Tasks (Secondary):", np.mean(self.sim_time_breakdown_arr[5])
         
         print ""
         print "Average Number of Tasks:", np.mean(self.num_tasks_completed_arr)
         print ""
-        print "Average Number of PJF Tasks:", np.mean(self.num_tasks_breakdown_arr[3])
-        print "Average Number of Find Pairs Tasks (Primary):", np.mean(self.num_tasks_breakdown_arr[1])
-        print "Average Number of Find Pairs Tasks (Secondary):", np.mean(self.num_tasks_breakdown_arr[5])
-        print "Average Number of Secondary Predicate Tasks:", np.mean(self.num_tasks_breakdown_arr[4])
-        print "Average Number of Join Pair Tasks:", np.mean(self.num_tasks_breakdown_arr[2])
         print "Average Number of Joinable Filter Tasks:", np.mean(self.num_tasks_breakdown_arr[0])
+        print "Average Number of Find Pairs Tasks (Primary):", np.mean(self.num_tasks_breakdown_arr[1])
+        print "Average Number of Join Pair Tasks:", np.mean(self.num_tasks_breakdown_arr[2])
+        print "Average Number of PJF Tasks:", np.mean(self.num_tasks_breakdown_arr[3])
+        print "Average Number of Secondary Predicate Tasks:", np.mean(self.num_tasks_breakdown_arr[4])
+        print "Average Number of Find Pairs Tasks (Secondary):", np.mean(self.num_tasks_breakdown_arr[5])
+
+
+        
         
 
         print "Average Query Accuracy:", np.mean(prim_accuracy)
@@ -535,6 +557,8 @@ class JoinSimulation():
             #NOTE: Added to test IW on secondaries, assuming we already have 2ndary list
             if HAVE_SEC_LIST is True:
                 syn_load_second_list()
+                estimator.has_2nd_list = True
+                estimator.save()
 
             syn_load_everything(self)
 
@@ -564,7 +588,7 @@ class JoinSimulation():
             elif JOIN_TYPE is 2:
                 task = choose_task_PJF(worker_id, estimator)
             elif JOIN_TYPE is 3:
-                task = choose_task_IWS1(worker_id, estimator)
+                task = choose_task_IWS3(worker_id, estimator)
 
     
             if type(task) is JFTask:
@@ -589,6 +613,7 @@ class JoinSimulation():
             elif type(task) is PJFTask:
                 task_type = 3
                 if task.primary_item is not None:
+                    #TODO unstr
                     my_item = task.primary_item.name
                     hit = self.PrimPJFTasks_Dict[my_item]
                 else:
@@ -630,7 +655,7 @@ class JoinSimulation():
                     task_answer,task_time = syn_answer_joinable_filter_task(hit)
 
             if sec is not "None":
-                sec = SecondaryItem.objects.get(name=sec).pk
+                sec = SecondaryItem.objects.get(name=sec).name
             else:
                 sec = None
 
