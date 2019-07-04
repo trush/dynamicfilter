@@ -68,10 +68,10 @@ def choose_task_IWS1(workerID, estimator):
 ## Itemwise join on secondary list - all find pairs then secondary preds
 def choose_task_IWS2(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
-    sec_items_left = SecondaryItem.objects.filter(found_all_pairs=False)
+    sec_items_need_pairs = SecondaryItem.objects.filter(found_all_pairs=False)
 
-    if sec_items_left.exists():
-        return choose_task_find_pairs(sec_items_left, new_worker, 2)
+    if sec_items_need_pairs.exists():
+        return choose_task_find_pairs(sec_items_need_pairs, new_worker, 2)
 
     elif PrimaryItem.objects.filter(found_all_pairs=False).exists():
         for prim in PrimaryItem.objects.all():
@@ -104,10 +104,12 @@ def choose_task_IWS3(workerID, estimator):
 def choose_task_PJF(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
     if not estimator.has_2nd_list:
+        print "we're back"
         prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
         return choose_task_find_pairs(prim_items_left, new_worker, 1)
 
     elif PrimaryItem.objects.filter(pjf='false').exists() or SecondaryItem.objects.filter(pjf='false').exists():
+        print "we are here"
         return choose_task_pjf_helper(new_worker)
 
     elif PrimaryItem.objects.filter(found_all_pairs=False).exists():
@@ -329,6 +331,14 @@ def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
         finished = collect_prejoin_filter(answer, cost, item1_id, item2_id)
     elif task_type == 4:
         finished = collect_secondary_predicate(answer, cost, item2_id)
+        if toggles.JOIN_TYPE is 3:
+            # for IWS1
+            sec_items_left = SecondaryItem.objects.filter(second_pred_result=None).exists()
+            if sec_items_left is False:
+                for prim in PrimaryItem.objects.all():
+                    prim.found_all_pairs = True
+                    prim.save()
+                    prim.update_state()
     elif task_type == 5:
         answer = parse_pairs(answer)
         finished = collect_find_pairs(answer, cost, item2_id, 2)
