@@ -331,14 +331,6 @@ def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
         finished = collect_prejoin_filter(answer, cost, item1_id, item2_id)
     elif task_type == 4:
         finished = collect_secondary_predicate(answer, cost, item2_id)
-        if toggles.JOIN_TYPE is 3:
-            # for IWS1
-            sec_items_left = SecondaryItem.objects.filter(second_pred_result=None).exists()
-            if sec_items_left is False:
-                for prim in PrimaryItem.objects.all():
-                    prim.found_all_pairs = True
-                    prim.save()
-                    prim.update_state()
     elif task_type == 5:
         answer = parse_pairs(answer)
         finished = collect_find_pairs(answer, cost, item2_id, 2)
