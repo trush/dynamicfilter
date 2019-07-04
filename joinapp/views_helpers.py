@@ -54,19 +54,8 @@ def choose_task_IW2(workerID, estimator):
         prim_item = PrimaryItem.objects.filter(is_done=False).order_by('?').first()
         return choose_task_sec_pred_by_prim(new_worker,prim_item)
 
-## Itemwise join on secondary list - all find pairs then secondary preds
-def choose_task_IWS1(workerID, estimator):
-    new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
-    sec_items_left = SecondaryItem.objects.filter(found_all_pairs=False)
-
-    if sec_items_left.exists():
-        return choose_task_find_pairs(sec_items_left, new_worker, 2)
-
-    else:
-        return choose_task_sec_pred(new_worker)
-
 ## Itemwise join on secondary list - all sec preds then find pairs on trues
-def choose_task_IWS2(workerID, estimator):
+def choose_task_IWS1(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
 
     sec_left = SecondaryItem.objects.filter(second_pred_result=None)
@@ -75,6 +64,26 @@ def choose_task_IWS2(workerID, estimator):
     else:
         true_secs = SecondaryItem.objects.filter(second_pred_result=True)
         return choose_task_find_pairs(true_secs, new_worker, 2)
+
+## Itemwise join on secondary list - all find pairs then secondary preds
+def choose_task_IWS2(workerID, estimator):
+    new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
+    sec_items_left = SecondaryItem.objects.filter(found_all_pairs=False)
+
+    if sec_items_left.exists():
+        return choose_task_find_pairs(sec_items_left, new_worker, 2)
+
+    elif PrimaryItem.objects.filter(found_all_pairs=False).exists():
+        for prim in PrimaryItem.objects.all():
+            prim.refresh_from_db()
+            prim.found_all_pairs = True
+            prim.update_state()
+            prim.save()
+        return choose_task_sec_pred(new_worker)
+    else:
+        return choose_task_sec_pred(new_worker)
+
+
 ## Itemwise join on secondary list - sec pred by sec pred
 def choose_task_IWS3(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
@@ -323,19 +332,6 @@ def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
     elif task_type == 5:
         answer = parse_pairs(answer)
         finished = collect_find_pairs(answer, cost, item2_id, 2)
-        if not SecondaryItem.objects.filter(found_all_pairs=False).exists():
-            for prim in PrimaryItem.objects.all():
-                prim.refresh_from_db()
-                prim.found_all_pairs = True
-                prim.save()
-        if not SecondaryItem.objects.filter(second_pred_result=None).exists():
-            if not SecondaryItem.objects.filter(second_pred_result=True).filter(found_all_pairs=False).exists():
-                for prim in PrimaryItem.objects.all():
-                    prim.refresh_from_db()
-                    prim.found_all_pairs = True
-                    prim.update_state()
-                    prim.save()
-
     #depending on whether we want to update on consensus, we may need to update TaskStats for the relevant type
     if toggles.UPDATE_ON_CONSENSUS and finished is not None:
         task_stats = TaskStats.objects.get(task_type = task_type)

@@ -28,6 +28,10 @@ class SecondaryItem(models.Model):
     ## Consensus - None if not reached, True if item fulfills predicate, False if not
     second_pred_result = models.NullBooleanField(db_index=True, default=None)
 
+    ## Is this item done being processed or not
+    ## True if second_pred_result is False, or second_pred_result and found_all_pairs is true
+    is_done = models.BooleanField(db_index=True, default=False)
+
     ## Number of primary items related to this item
     num_prim_items = models.IntegerField(default=0)
 
@@ -47,6 +51,18 @@ class SecondaryItem(models.Model):
     def __str__(self):
         return str(self.name)          
 
+    def update_state(self):
+        if self.found_all_pairs is True:
+            if self.second_pred_result is True:
+                self.is_done = True
+            for prim in self.primary_items.all():
+                prim.refresh_from_db()
+                prim.update_state()
+        elif self.second_pred_result is False:
+            self.is_done = True
+        elif self.found_all_pairs is True and self.matches_some is False:
+            self.is_done = True
+        self.save()
 ## @brief Model representing an item in the primary list
 # In our example, primary items are hotels
 @python_2_unicode_compatible

@@ -221,7 +221,7 @@ class FindPairsTask(models.Model):
                     self.in_progress = False
                     self.secondary_item.refresh_from_db()
                     self.secondary_item.found_all_pairs = True
-                    self.secondary_item.save()
+                    self.secondary_item.update_state()
                     self.save()
                 else:
                     self.consensus = False
@@ -235,6 +235,7 @@ class FindPairsTask(models.Model):
                     self.in_progress = False
                     self.secondary_item.refresh_from_db()
                     self.secondary_item.found_all_pairs = True
+                    self.secondary_item.update_state()
                     self.secondary_item.save()
                     self.save()
                 else:
@@ -290,6 +291,14 @@ class FindPairsTask(models.Model):
                 estimator = Estimator.objects.all().first()
                 #update estimator
                 estimator.update_chao_estimator_variables(join_pair_task)
+                    # Update fields and check if we have reached consensus
+            self.num_tasks += 1
+            self.update_consensus()
+            self.refresh_from_db()
+            #Update the findpairs for this item so that it is no longer in progress
+            if self.primary_item.is_done is True:
+                self.in_progress = False
+
         # If we are finding pairs for a secondary item
         elif self.secondary_item is not None:
             # Find join pair tasks that match each match we found, creating new ones if necessary
@@ -322,13 +331,13 @@ class FindPairsTask(models.Model):
                 #check consensus
                 join_pair_task.update_result()
 
-        # Update fields and check if we have reached consensus
-        self.num_tasks += 1
-        self.update_consensus()
-        self.refresh_from_db()
-        #Update the findpairs for this item so that it is no longer in progress
-        if self.primary_item.is_done is True:
-            self.in_progress = False
+            # Update fields and check if we have reached consensus
+            self.num_tasks += 1
+            self.update_consensus()
+            self.refresh_from_db()
+            #Update the findpairs for this item so that it is no longer in progress
+            if self.secondary_item.is_done is True:
+                self.in_progress = False
         self.save()
 
 ## @brief Model representing a join condition task for a primary-secondary item pair
@@ -618,22 +627,17 @@ class SecPredTask(models.Model):
     def update_result(self):
         self.result = find_consensus.find_consensus(self)
         self.secondary_item.second_pred_result = self.result
+        self.secondary_item.save()
         if self.result is not None:
             self.in_progress = False
-        self.secondary_item.save()
+        self.secondary_item.refresh_from_db()
+        self.secondary_item.update_state()
         self.save()
         for prim_item in self.secondary_item.primary_items.all().filter(is_done=False):
-            prim_item.refresh_from_db()
+            prim_item.refresh_from_db
             prim_item.update_state()
             prim_item.save()
-        # TODO: bandaid fix for itemwise joins on secondary items
-        if toggles.JOIN_TYPE is 3.3:
-            if not items.SecondaryItem.objects.filter(second_pred_result=None).exists():
-                for prim in items.PrimaryItem.objects.filter(is_done=False):
-                    prim.refresh_from_db()
-                    prim.is_done = True
-                    prim.eval_result = False
-                    prim.save()
+
 
     ## @brief Updates state based on an incoming worker answer
     # @param answer worker answer (0 or 1)

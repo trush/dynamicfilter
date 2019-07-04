@@ -103,7 +103,7 @@ class JoinSimulation():
         f.close()
 
     def load_real_data(self):
-        if JOIN_TYPE is 0:
+        if JOIN_TYPE == 0:
             fn = path.join(path.dirname(__file__), REAL_DATA_JF)
             with open(fn, mode = 'r') as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter = ',')
@@ -287,7 +287,7 @@ class JoinSimulation():
     ## @brief Print accuracy for synthetic data
     def accuracy_syn_data(self):
         #___ JF Task Accuracy ___#
-        if JOIN_TYPE is 0:
+        if JOIN_TYPE == 0:
             total_tasks = []
             correct_tasks = 0
             for task in JFTask.objects.all():
@@ -305,7 +305,7 @@ class JoinSimulation():
             print "" #newline
 
         #_____ Pre-Join Filter Task Accuracy _____#
-        if JOIN_TYPE is 2:
+        if JOIN_TYPE == 2:
             total_tasks = []
             correct_tasks = 0
             for task in PJFTask.objects.all():
@@ -345,7 +345,7 @@ class JoinSimulation():
         true_positives = 0
         false_positives = 0
         true_negatives =0
-        if JOIN_TYPE is 1 or JOIN_TYPE is 1.5:
+        if JOIN_TYPE == 1 or JOIN_TYPE == 1.5:
             for prim in PrimaryItem.objects.all():
                 found_list = []
                 for sec in prim.secondary_items.all():
@@ -544,7 +544,7 @@ class JoinSimulation():
         # print "false_positives", np.mean(false_positives)
         # print "true_negatives", np.mean(true_negatives)
         # print "find pairs", np.mean(task_num)
-        if JOIN_TYPE is 1 or JOIN_TYPE is 1.5 or JOIN_TYPE >= 3:
+        if JOIN_TYPE == 1 or JOIN_TYPE == 1.5 or JOIN_TYPE >= 3:
             precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
             recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
             print ""
@@ -596,27 +596,26 @@ class JoinSimulation():
         # for printing stats at end
         num_join_pairs_assignments = 0
 
-        while(PrimaryItem.objects.filter(is_done=False).exists()):
+        while(PrimaryItem.objects.filter(is_done=False).exists()) and (SecondaryItem.objects.filter(is_done=False).exists()):
             # pick worker
             worker_id = random.choice(self.worker_ids)
 
             self.num_prim_left += [PrimaryItem.objects.filter(is_done=False).count()]
 
-
             #__________________________  CHOOSE TASK __________________________#
-            if JOIN_TYPE is 0: # joinable filter
+            if JOIN_TYPE == 0: # joinable filter
                 task = choose_task_JF(worker_id)
-            elif JOIN_TYPE is 1: # item-wise join
+            elif JOIN_TYPE == 1: # item-wise join
                 task = choose_task_IW(worker_id, estimator)
-            elif JOIN_TYPE is 1.5: # item-wise join
+            elif JOIN_TYPE == 1.5: # item-wise join
                 task = choose_task_IW1(worker_id, estimator)
-            elif JOIN_TYPE is 2:
+            elif JOIN_TYPE == 2:
                 task = choose_task_PJF(worker_id, estimator)
-            elif JOIN_TYPE is 3:
-                task = choose_task_IWS2(worker_id, estimator)
-            elif JOIN_TYPE is 3:
+            elif JOIN_TYPE == 3.1:
                 task = choose_task_IWS1(worker_id, estimator)
-            elif JOIN_TYPE is 3:
+            elif JOIN_TYPE == 3.2:
+                task = choose_task_IWS2(worker_id, estimator)
+            else: #JOIN_TYPE is 3.3:
                 task = choose_task_IWS3(worker_id, estimator)
 
     
@@ -719,6 +718,13 @@ class JoinSimulation():
             #update chao estimator
             estimator.refresh_from_db()
             estimator.chao_estimator()
+
+        if JOIN_TYPE > 3.0:
+            for prim in PrimaryItem.objects.all():
+                prim.refresh_from_db()
+                prim.found_all_pairs = True
+                prim.update_state()
+                prim.save()
 
         #simulate time cleanup loop, gets rid of ungathered tasks
         if toggles.SIMULATE_TIME:
