@@ -596,12 +596,11 @@ class JoinSimulation():
         # for printing stats at end
         num_join_pairs_assignments = 0
 
-        while(PrimaryItem.objects.filter(is_done=False).exists()) and (SecondaryItem.objects.filter(is_done=False).exists()):
+        while(PrimaryItem.objects.filter(is_done=False).exists()) and (not SecondaryItem.objects.all().exists() or  SecondaryItem.objects.filter(is_done=False).exists()):
             # pick worker
             worker_id = random.choice(self.worker_ids)
 
             self.num_prim_left += [PrimaryItem.objects.filter(is_done=False).count()]
-
             #__________________________  CHOOSE TASK __________________________#
             if JOIN_TYPE == 0: # joinable filter
                 task = choose_task_JF(worker_id)
