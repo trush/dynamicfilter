@@ -514,26 +514,29 @@ class JoinSimulation():
             
             self.reset_database()
             #more processing happens here
-        print "Average Total Time:", np.mean(self.sim_time_arr)
-
         print ""
-        print "Average Time on Joinable Filter Tasks:", np.mean(self.sim_time_breakdown_arr[0])
-        print "Average Time on Find Pairs Tasks (Primary):", np.mean(self.sim_time_breakdown_arr[1])
-        print "Average Time on Join Pair Tasks:", np.mean(self.sim_time_breakdown_arr[2])
+        print "RESULTS:"
+        print ""
+        print "Average Total Time:", np.mean(self.sim_time_arr)
+        print ""
+
         print "Average Time on PJF Tasks:", np.mean(self.sim_time_breakdown_arr[3])
-        print "Average Time on Secondary Predicate Tasks:", np.mean(self.sim_time_breakdown_arr[4])
+        print "Average Time on Find Pairs Tasks (Primary):", np.mean(self.sim_time_breakdown_arr[1])
         print "Average Time on Find Pairs Tasks (Secondary):", np.mean(self.sim_time_breakdown_arr[5])
+        print "Average Time on Secondary Predicate Tasks:", np.mean(self.sim_time_breakdown_arr[4])
+        print "Average Time on Join Pair Tasks:", np.mean(self.sim_time_breakdown_arr[2])
+        print "Average Time on Joinable Filter Tasks:", np.mean(self.sim_time_breakdown_arr[0])
         
         print ""
         print "Average Number of Tasks:", np.mean(self.num_tasks_completed_arr)
         print ""
-        print "Average Number of Joinable Filter Tasks:", np.mean(self.num_tasks_breakdown_arr[0])
-        print "Average Number of Find Pairs Tasks (Primary):", np.mean(self.num_tasks_breakdown_arr[1])
-        print "Average Number of Join Pair Tasks:", np.mean(self.num_tasks_breakdown_arr[2])
+
         print "Average Number of PJF Tasks:", np.mean(self.num_tasks_breakdown_arr[3])
+        print "Average Number of Find Pairs Tasks (Primary):", np.mean(self.num_tasks_breakdown_arr[1])
         print "Average Number of Secondary Predicate Tasks:", np.mean(self.num_tasks_breakdown_arr[4])
         print "Average Number of Find Pairs Tasks (Secondary):", np.mean(self.num_tasks_breakdown_arr[5])
-
+        print "Average Number of Join Pair Tasks:", np.mean(self.num_tasks_breakdown_arr[2])
+        print "Average Number of Joinable Filter Tasks:", np.mean(self.num_tasks_breakdown_arr[0])
 
         
         
@@ -596,12 +599,11 @@ class JoinSimulation():
         # for printing stats at end
         num_join_pairs_assignments = 0
 
-        while(PrimaryItem.objects.filter(is_done=False).exists()) and (SecondaryItem.objects.filter(is_done=False).exists()):
+        while(PrimaryItem.objects.filter(is_done=False).exists()) and (not SecondaryItem.objects.all().exists() or  SecondaryItem.objects.filter(is_done=False).exists()):
             # pick worker
             worker_id = random.choice(self.worker_ids)
 
             self.num_prim_left += [PrimaryItem.objects.filter(is_done=False).count()]
-
             #__________________________  CHOOSE TASK __________________________#
             if JOIN_TYPE == 0: # joinable filter
                 task = choose_task_JF(worker_id)
@@ -791,22 +793,22 @@ class JoinSimulation():
 
 
 
-        print "*", num_prim_pass, "items passed the query"
-        print "*", num_prim_fail, "items failed the query"
-        print "* Query selectivity:", join_selectivity
-        print "* Worker time spent:", self.sim_time
-        print "* Total number of tasks processed:", self.num_tasks_completed
-        print "* # of joinable-filter tasks:", num_jf_tasks, "# of joinable-filter assignments:", num_jf_assignments
-        print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments
-        print "* # of join pairs tasks:", num_join_pairs_tasks, "# of join pairs assignments:", num_join_pairs_assignments
-        print "* # of secondary predicate tasks:", num_sec_pred_tasks, "# secondary predicate assignments:", num_sec_pred_assignments
-        print "* # of finished secondary predicate tasks:", SecPredTask.objects.exclude(result = None).count()
-        print "* # of secondary items found:", SecondaryItem.objects.all().count(), " out of ", toggles.NUM_SEC_ITEMS, " total secondary items"
-        print ""
-        if REAL_DATA is True:
-            self.accuracy_real_data() #does its own printing
-        else:
-            #self.accuracy_syn_data() #does its own printing
-            accuracy_info = self.accuracy_syn_data() #does its own printing
+        # print "*", num_prim_pass, "items passed the query"
+        # print "*", num_prim_fail, "items failed the query"
+        # print "* Query selectivity:", join_selectivity
+        # print "* Worker time spent:", self.sim_time
+        # print "* Total number of tasks processed:", self.num_tasks_completed
+        # print "* # of joinable-filter tasks:", num_jf_tasks, "# of joinable-filter assignments:", num_jf_assignments
+        # print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments
+        # print "* # of join pairs tasks:", num_join_pairs_tasks, "# of join pairs assignments:", num_join_pairs_assignments
+        # print "* # of secondary predicate tasks:", num_sec_pred_tasks, "# secondary predicate assignments:", num_sec_pred_assignments
+        # print "* # of finished secondary predicate tasks:", SecPredTask.objects.exclude(result = None).count()
+        # print "* # of secondary items found:", SecondaryItem.objects.all().count(), " out of ", toggles.NUM_SEC_ITEMS, " total secondary items"
+        # print ""
+        # if REAL_DATA is True:
+        #     self.accuracy_real_data() #does its own printing
+        # else:
+        #     #self.accuracy_syn_data() #does its own printing
+        #     accuracy_info = self.accuracy_syn_data() #does its own printing
         #return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
         return accuracy_info[0],accuracy_info[1],accuracy_info[2], accuracy_info[3],accuracy_info[4],num_find_pairs_assignments

@@ -104,12 +104,10 @@ def choose_task_IWS3(workerID, estimator):
 def choose_task_PJF(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
     if not estimator.has_2nd_list:
-        print "we're back"
         prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
         return choose_task_find_pairs(prim_items_left, new_worker, 1)
 
     elif PrimaryItem.objects.filter(pjf='false').exists() or SecondaryItem.objects.filter(pjf='false').exists():
-        print "we are here"
         return choose_task_pjf_helper(new_worker)
 
     elif PrimaryItem.objects.filter(found_all_pairs=False).exists():
