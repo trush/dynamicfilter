@@ -21,6 +21,7 @@ REAL_DATA = False # real or synthetic data
 # 1 = item-wise join (all-items then sec preds)
 # 1.5 = item-wise join (item-by-item)
 # 2 = pre-join filtered join
+# 2.5 = pre-join filtered join starting with 2nd list
 # 3.1 = item-wise join on second list (all sec preds then find pairs)
 # 3.2 = item-wise join on second list (all find pairs then sec preds)
 # 3.3 = item-wise join on second list (item-by-item, sec preds first)
@@ -30,6 +31,13 @@ NUM_SIMS = 10 # number of simulations to run
 SIMULATE_TIME = False
 TIME_STEP = 1
 USE_IN_PROGRESS = False
+
+if JOIN_TYPE >= 3:
+    HAVE_SEC_LIST = True
+
+if JOIN_TYPE == 2.5:
+    JOIN_TYPE = 2
+    HAVE_SEC_LIST = True
 
 # ________ Consensus Settings _________#
 # Values used in the find_consensus for an item/task function
