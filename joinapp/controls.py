@@ -7,8 +7,8 @@ REAL_DATA_SEC_PRED = './simulation_files/SECOND_PRED_RESULTS.csv'
 REAL_DATA_FP = './simulation_files/FIND_PAIRS_RESULTS.csv'
 
 #_____________________________ For Synthetic Data _____________________________#
-NUM_PRIM_ITEMS = 50
-NUM_SEC_ITEMS = 100
+NUM_PRIM_ITEMS = 100
+NUM_SEC_ITEMS = 50
 HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
 PJF_LIST = [("0",0.20), ("1",0.20), ("2",0.20), ("3",0.20),("4",0.20)]
 
@@ -25,7 +25,7 @@ REAL_DATA = False # real or synthetic data
 # 3.1 = item-wise join on second list (all sec preds then find pairs)
 # 3.2 = item-wise join on second list (all find pairs then sec preds)
 # 3.3 = item-wise join on second list (item-by-item, sec preds first)
-JOIN_TYPE = 3.3
+JOIN_TYPE = 0
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 10 # number of simulations to run
 SIMULATE_TIME = False
