@@ -388,16 +388,27 @@ class JoinSimulation():
 
         #___ Primary Item Task Accuracy ___#
         correct_prim_items = 0
+        missed_true_secs = 0
+        found_false_secs = 0
         for prim in PrimaryItem.objects.all():
             ground_truth = False #assume every primary fails the join
             if self.JFTasks_Dict[prim.name][3] is 1:
                 ground_truth = True
-            if prim.eval_result is ground_truth:
+            if prim.eval_result is ground_truth: #count correct primary items
                 correct_prim_items += 1
+            else: #find out why the wrong ones were wrong
+                if prim.eval_result is False:
+                    missed_true_secs += 1
+                elif prim.eval_result is True:
+                    found_false_secs += 1
+        print ""
+        print "Primary items evaluated incorrectly by missing a true:", missed_true_secs
+        print "Primary items evaluated incorrectly by mis-evaluating a false:", found_false_secs
+        print ""
         self.print_accuracy(PrimaryItem.objects.all().count(),correct_prim_items, "PRIMARY ITEMS")
         # AMBER ADDED FOR TESTIING 
         prim_accuracy = float(correct_prim_items) / float(PrimaryItem.objects.all().count())
-        return prim_accuracy,false_negatives, true_positives, false_positives, true_negatives
+        return prim_accuracy,false_negatives, true_positives, false_positives, true_negatives, missed_true_secs, found_false_secs
 
 
 
@@ -489,6 +500,8 @@ class JoinSimulation():
         false_positives = []
         true_negatives = []
         task_num = []
+        missed_true_secs = []
+        found_false_secs = []
 
         # results list is a list of tuples in the form (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
         for i in range(toggles.NUM_SIMS):
@@ -502,6 +515,8 @@ class JoinSimulation():
             false_positives.append(results[3])
             true_negatives.append(results[4])
             task_num.append(results[5])
+            missed_true_secs.append(results[6])
+            found_false_secs.append(results[5])
 
             # results_list.append(results)
             # join_selectivity_arr.append(results[0])
@@ -542,6 +557,8 @@ class JoinSimulation():
         
 
         print "Average Query Accuracy:", np.mean(prim_accuracy)
+        print "Average Items Evaluated Incorrectly by Missing A True:", np.mean(missed_true_secs)
+        print "Average Items Evaluated Incorrectly by Mis-evaluating A False:", np.mean(found_false_secs)
         # print "false_negatives", np.mean(false_negatives)
         # print "true_positives", np.mean(true_positives)
         # print "false_positives", np.mean(false_positives)
@@ -793,22 +810,22 @@ class JoinSimulation():
 
 
 
-        # print "*", num_prim_pass, "items passed the query"
-        # print "*", num_prim_fail, "items failed the query"
-        # print "* Query selectivity:", join_selectivity
-        # print "* Worker time spent:", self.sim_time
-        # print "* Total number of tasks processed:", self.num_tasks_completed
-        # print "* # of joinable-filter tasks:", num_jf_tasks, "# of joinable-filter assignments:", num_jf_assignments
-        # print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments
-        # print "* # of join pairs tasks:", num_join_pairs_tasks, "# of join pairs assignments:", num_join_pairs_assignments
-        # print "* # of secondary predicate tasks:", num_sec_pred_tasks, "# secondary predicate assignments:", num_sec_pred_assignments
-        # print "* # of finished secondary predicate tasks:", SecPredTask.objects.exclude(result = None).count()
-        # print "* # of secondary items found:", SecondaryItem.objects.all().count(), " out of ", toggles.NUM_SEC_ITEMS, " total secondary items"
-        # print ""
-        # if REAL_DATA is True:
-        #     self.accuracy_real_data() #does its own printing
-        # else:
-        #     #self.accuracy_syn_data() #does its own printing
-        #     accuracy_info = self.accuracy_syn_data() #does its own printing
+        print "*", num_prim_pass, "items passed the query"
+        print "*", num_prim_fail, "items failed the query"
+        print "* Query selectivity:", join_selectivity
+        print "* Worker time spent:", self.sim_time
+        print "* Total number of tasks processed:", self.num_tasks_completed
+        print "* # of joinable-filter tasks:", num_jf_tasks, "# of joinable-filter assignments:", num_jf_assignments
+        print "* # of find pairs tasks:", num_find_pairs_tasks, "# of find pairs assignments:", num_find_pairs_assignments
+        print "* # of join pairs tasks:", num_join_pairs_tasks, "# of join pairs assignments:", num_join_pairs_assignments
+        print "* # of secondary predicate tasks:", num_sec_pred_tasks, "# secondary predicate assignments:", num_sec_pred_assignments
+        print "* # of finished secondary predicate tasks:", SecPredTask.objects.exclude(result = None).count()
+        print "* # of secondary items found:", SecondaryItem.objects.all().count(), " out of ", toggles.NUM_SEC_ITEMS, " total secondary items"
+        print ""
+        if REAL_DATA is True:
+            self.accuracy_real_data() #does its own printing
+        else:
+            #self.accuracy_syn_data() #does its own printing
+            accuracy_info = self.accuracy_syn_data() #does its own printing
         #return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
-        return accuracy_info[0],accuracy_info[1],accuracy_info[2], accuracy_info[3],accuracy_info[4],num_find_pairs_assignments
+        return accuracy_info[0],accuracy_info[1],accuracy_info[2], accuracy_info[3],accuracy_info[4],num_find_pairs_assignments, accuracy_info[5],accuracy_info[6]

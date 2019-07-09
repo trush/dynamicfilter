@@ -507,14 +507,14 @@ class PJFTask(models.Model):
             pair = ItemPJFPair.objects.filter(primary_item=self.primary_item).filter(pjf=answer)
             #create a new item pjf pair if it does not exist
             if not pair.exists():
-                ItemPJFPair.objects.create(primary_item=self.primary_item,pjf=answer,pjf_task = self,yes_votes=1,no_votes=self.num_tasks)
+                ItemPJFPair.objects.create(primary_item=self.primary_item,pjf=answer,pjf_task = self,yes_votes=0,no_votes=self.num_tasks)
             item_pjf_pairs = ItemPJFPair.objects.filter(primary_item=self.primary_item)
         # secondary item task
         elif self.secondary_item is not None:
             pair = ItemPJFPair.objects.filter(secondary_item=self.secondary_item).filter(pjf=answer)
             #create a new item pjf pair if it does not exist
             if not pair.exists():
-                ItemPJFPair.objects.create(secondary_item=self.secondary_item,pjf=answer,pjf_task = self,yes_votes=1,no_votes = self.num_tasks)
+                ItemPJFPair.objects.create(secondary_item=self.secondary_item,pjf=answer,pjf_task = self,yes_votes=0,no_votes = self.num_tasks)
             item_pjf_pairs = ItemPJFPair.objects.filter(secondary_item=self.secondary_item)
         # get_task for each item pjf pair associated with this 
         for item in item_pjf_pairs:
