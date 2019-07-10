@@ -94,6 +94,61 @@ def choose_task_IWS3(workerID, estimator):
     else:
         return choose_task_sec_pred_before_pairs(new_worker)
 
+## Itemwise join on secondary list - all sec preds then find pairs on trues WITHOUT SECOND LIST
+def choose_task_IWS5(workerID, estimator):
+    new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
+    
+    if not estimator.has_2nd_list:
+        prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
+        return choose_task_find_pairs(prim_items_left, new_worker, 1)
+
+    sec_left = SecondaryItem.objects.filter(second_pred_result=None)
+    if sec_left.exists():
+        return choose_task_sec_pred_before_pairs(new_worker)
+    else:
+        true_secs = SecondaryItem.objects.filter(second_pred_result=True)
+        return choose_task_find_pairs(true_secs, new_worker, 2)
+
+## Itemwise join on secondary list - all find pairs then secondary preds WITHOUT SECOND LIST
+def choose_task_IWS6(workerID, estimator):
+    new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
+
+    if not estimator.has_2nd_list:
+        prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
+        return choose_task_find_pairs(prim_items_left, new_worker, 1)
+
+    sec_items_need_pairs = SecondaryItem.objects.filter(found_all_pairs=False)
+
+    if sec_items_need_pairs.exists():
+        return choose_task_find_pairs(sec_items_need_pairs, new_worker, 2)
+
+    elif PrimaryItem.objects.filter(found_all_pairs=False).exists():
+        for prim in PrimaryItem.objects.all():
+            prim.refresh_from_db()
+            prim.found_all_pairs = True
+            prim.update_state()
+            prim.save()
+        return choose_task_sec_pred(new_worker)
+    else:
+        return choose_task_sec_pred(new_worker)
+
+
+## Itemwise join on secondary list - sec pred by sec pred WITHOUT SECOND LIST
+def choose_task_IWS7(workerID, estimator):
+    
+    new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
+
+    if not estimator.has_2nd_list:
+        prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False)
+        return choose_task_find_pairs(prim_items_left, new_worker, 1)
+        
+    true_secs_to_do = SecondaryItem.objects.filter(second_pred_result=True).filter(found_all_pairs=False)
+    if true_secs_to_do.exists():
+        return choose_task_find_pairs(true_secs_to_do, new_worker, 2)
+    else:
+        return choose_task_sec_pred_before_pairs(new_worker)
+
+
 
 
 
