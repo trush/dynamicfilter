@@ -19,9 +19,10 @@ FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
 REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join (all-items then sec preds)
-# 1.5 = item-wise join (item-by-item)
+# 1.1 = item-wise join (item-by-item)
 # 2 = pre-join filtered join
-# 2.5 = pre-join filtered join starting with 2nd list
+# 2.1 = pre-join filtered join starting with 2nd list
+# 2.2 = pre-join filtered join starting with 2nd list - secondary predicates first
 # 3.1 = item-wise join on second list (all sec preds then find pairs)
 # 3.2 = item-wise join on second list (all find pairs then sec preds)
 # 3.3 = item-wise join on second list (item-by-item, sec preds first)
@@ -35,8 +36,7 @@ USE_IN_PROGRESS = False
 if JOIN_TYPE >= 3:
     HAVE_SEC_LIST = True
 
-if JOIN_TYPE == 2.5:
-    JOIN_TYPE = 2
+if JOIN_TYPE == 2.1 or JOIN_TYPE == 2.2:
     HAVE_SEC_LIST = True
 
 # ________ Consensus Settings _________#
@@ -56,7 +56,7 @@ SEC_PRED_SELECTIVITY = 0.3
 JOIN_COND_SELECTIVITY = 0.5 #likelyhood of being a pair given that they are in the same PJF
 
 JF_AMBIGUITY = 0
-SEC_PRED_AMBIGUITY = 0.4
+SEC_PRED_AMBIGUITY = 0
 JOIN_COND_AMBIGUITY = 0
 PJF_AMBIGUITY = 0
 

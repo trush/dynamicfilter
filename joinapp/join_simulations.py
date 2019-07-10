@@ -345,7 +345,7 @@ class JoinSimulation():
         true_positives = 0
         false_positives = 0
         true_negatives =0
-        if JOIN_TYPE == 1 or JOIN_TYPE == 1.5:
+        if JOIN_TYPE == 1 or JOIN_TYPE == 1.1: #changed
             for prim in PrimaryItem.objects.all():
                 found_list = []
                 for sec in prim.secondary_items.all():
@@ -564,7 +564,7 @@ class JoinSimulation():
         # print "false_positives", np.mean(false_positives)
         # print "true_negatives", np.mean(true_negatives)
         # print "find pairs", np.mean(task_num)
-        if JOIN_TYPE == 1 or JOIN_TYPE == 1.5 or JOIN_TYPE >= 3:
+        if JOIN_TYPE == 1 or JOIN_TYPE == 1.1 or JOIN_TYPE >= 3: #changed
             precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
             recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
             print ""
@@ -626,10 +626,12 @@ class JoinSimulation():
                 task = choose_task_JF(worker_id)
             elif JOIN_TYPE == 1: # item-wise join
                 task = choose_task_IW(worker_id, estimator)
-            elif JOIN_TYPE == 1.5: # item-wise join
+            elif JOIN_TYPE == 1.1: # item-wise join #changed
                 task = choose_task_IW1(worker_id, estimator)
-            elif JOIN_TYPE == 2:
+            elif JOIN_TYPE == 2 or JOIN_TYPE == 2.1:
                 task = choose_task_PJF(worker_id, estimator)
+            elif JOIN_TYPE == 2.2:
+                task = choose_task_PJF2(worker_id, estimator)
             elif JOIN_TYPE == 3.1:
                 task = choose_task_IWS1(worker_id, estimator)
             elif JOIN_TYPE == 3.2:

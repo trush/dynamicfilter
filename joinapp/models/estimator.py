@@ -82,7 +82,8 @@ class Estimator(models.Model):
         if self.has_2nd_list is True:
             return
         # prepping variables
-        if self.total_sample_size <= 0:
+        min_num = min(20,int(items.PrimaryItem.objects.count() * 0.10))
+        if self.total_sample_size <= min_num:
             return
         f_stat_1 = FStatistic.objects.get(times_seen=1)
         count = f_stat_1.num_of_items

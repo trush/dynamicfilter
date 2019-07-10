@@ -398,6 +398,15 @@ class JoinPairTask(models.Model):
                     self.secondary_item.refresh_from_db()
                     self.secondary_item.matches_some = True
                     self.secondary_item.save()
+                else: #TODO ADDED FOR 2.2
+                    self.primary_item.refresh_from_db()
+                    self.primary_item.update_state()
+                    self.primary_item.save() #update the primary item
+
+                    # prim_items = PrimaryItem.objects.filter(pjf = self.secondary_item.pjf) # possibly primary items
+                    # if prim_items.count() is #TODO
+
+                    
 
                 self.secondary_item.refresh_from_db()
                 self.secondary_item.save()

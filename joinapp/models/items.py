@@ -41,6 +41,10 @@ class SecondaryItem(models.Model):
     ## Have all the primary items been found
     found_all_pairs = models.BooleanField(db_index=True, default=False)
 
+    ## For updating is_done in a pre-join filter
+    ## True if all join pair tasks for this primary item with secondary items of the same pre-join filter exist
+    has_all_join_pairs = models.BooleanField(db_index=True, default=False)
+
     ## Used in the estimator model for determining when we have completed our search for secondary items
     fstatistic = models.ForeignKey(FStatistic, default=None, null=True, blank=True)
 
@@ -152,6 +156,16 @@ class PrimaryItem(models.Model):
                     self.is_done = True
                     self.eval_result = False
                     self.found_all_pairs = True
+            # if the primary item has made join pair tasks with all secondary items 
+            if SecondaryItem.objects.all().count() is SecondaryItem.objects.exclude(second_pred_result = None).count(): #if all sec preds have been evaluated
+                if JoinPairTask.objects.filter(primary_item = self).filter(has_same_pjf = True).count() is SecondaryItem.objects.filter(pjf = self.pjf).filter(second_pred_result = True).count():
+                    self.has_all_join_pairs = True
+                    # if primary item has no secondary items, then the primary item is False
+                    if not JoinPairTask.objects.filter(primary_item=self).filter(has_same_pjf=True).exclude(result=False).exists():
+                        self.is_done = True
+                        self.eval_result = False
+                        self.found_all_pairs = True
+
 
         self.save()
 
