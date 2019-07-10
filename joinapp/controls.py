@@ -7,8 +7,8 @@ REAL_DATA_SEC_PRED = './simulation_files/SECOND_PRED_RESULTS.csv'
 REAL_DATA_FP = './simulation_files/FIND_PAIRS_RESULTS.csv'
 
 #_____________________________ For Synthetic Data _____________________________#
-NUM_PRIM_ITEMS = 50
-NUM_SEC_ITEMS = 100
+NUM_PRIM_ITEMS = 100
+NUM_SEC_ITEMS = 50
 HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
 PJF_LIST = [("0",0.20), ("1",0.20), ("2",0.20), ("3",0.20),("4",0.20)]
 
@@ -19,14 +19,13 @@ FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
 REAL_DATA = False # real or synthetic data
 # 0 = joinable filter
 # 1 = item-wise join (all-items then sec preds)
-# 1.1 = item-wise join (item-by-item)
+# 1.5 = item-wise join (item-by-item)
 # 2 = pre-join filtered join
-# 2.1 = pre-join filtered join starting with 2nd list
-# 2.2 = pre-join filtered join starting with 2nd list - secondary predicates first
+# 2.5 = pre-join filtered join starting with 2nd list
 # 3.1 = item-wise join on second list (all sec preds then find pairs)
 # 3.2 = item-wise join on second list (all find pairs then sec preds)
 # 3.3 = item-wise join on second list (item-by-item, sec preds first)
-JOIN_TYPE = 3.3
+JOIN_TYPE = 0
 NUM_WORKERS = 200 # number of distinct workers
 NUM_SIMS = 10 # number of simulations to run
 SIMULATE_TIME = False
@@ -36,7 +35,8 @@ USE_IN_PROGRESS = False
 if JOIN_TYPE >= 3:
     HAVE_SEC_LIST = True
 
-if JOIN_TYPE == 2.1 or JOIN_TYPE == 2.2:
+if JOIN_TYPE == 2.5:
+    JOIN_TYPE = 2
     HAVE_SEC_LIST = True
 
 # ________ Consensus Settings _________#
