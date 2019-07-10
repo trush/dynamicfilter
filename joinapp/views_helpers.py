@@ -148,8 +148,8 @@ def choose_task_pjf_helper(worker):
         pjf_task = PJFTask.objects.get_or_create(primary_item=prim_item)[0]
     # secondary item pjf tasks
     else:
-        if toggles.JOIN_TYPE is 2.2:
-            sec_items_left = SecondaryItem.objects.filter(pjf='false').filter(sec_pred_result = True)
+        if toggles.JOIN_TYPE == 2.2:
+            sec_items_left = SecondaryItem.objects.filter(pjf='false').filter(second_pred_result = True)
         else:
             sec_items_left = SecondaryItem.objects.filter(pjf='false')
         sec_item = sec_items_left.order_by('?').first() # random secondary item
