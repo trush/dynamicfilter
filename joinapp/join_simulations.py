@@ -894,9 +894,9 @@ class JoinSimulation():
 
         # results list is a list of tuples in the form (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
         for i in range(toggles.NUM_SIMS):
-            print "---------------------------------------------------------------------"
+            #print "---------------------------------------------------------------------"
             j = i+1
-            print "Running simulation",j,"out of",toggles.NUM_SIMS
+            #print "Running simulation",j,"out of",toggles.NUM_SIMS
             results = self.run_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
             prim_accuracy.append(results[0])
             false_negatives.append(results[1])
@@ -1106,13 +1106,11 @@ class JoinSimulation():
                     
             else:
                 gather_task(task_type,task_answer,task_time,prim,sec)
-                print "task type:", task_type
                 
                 self.sim_time += float(task_time)
                 self.sim_time_breakdown[task_type] += float(task_time)
                 self.num_tasks_completed += 1
                 self.num_tasks_breakdown[task_type] += 1
-                print self.num_tasks_breakdown
 
             #update chao estimator
             estimator.refresh_from_db()

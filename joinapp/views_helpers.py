@@ -220,7 +220,6 @@ def choose_task_pjf_helper(worker):
 ## @brief chooses a joinable filter task based on a worker
 # @param worker workerID of the worker this task is going to
 def choose_task_joinable_filter_helper(worker):
-    print "choosing joinable filter"
     prim_items_left = PrimaryItem.objects.exclude(is_done = True).order_by('?')
     prim_items_left_count = prim_items_left.count()
     print_statement = " - WHY WAS THIS TASK ISSUED" #for determining if weird useless tasks are issued
@@ -247,7 +246,6 @@ def choose_task_joinable_filter_helper(worker):
 # @param prim_items_list the current primary list objects available
 # @param worker workerID of the worker this task is going to
 def choose_task_find_pairs(items_list,worker, find_pairs_type):
-    print "choosing find pairs"
     #TODO: Toggle for in_progress if-statement?
     #NOTE: IF WE DON"T WANT IN PROGRESS FOR FIND PAIRS, COMMENT OUT IF STATEMENT
     #      AND HAVE THE FUNCTION JUST BE WHAT"S INSIDE THE ELSE STATEMENT AND THE STUFF AFTER6
