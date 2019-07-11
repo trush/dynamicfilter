@@ -16,78 +16,80 @@ from os import path
 ## @brief Functionality for testing the join algorithm on non-live data
 class JoinSimulation():
 
-    ## list holding worker IDs for the simulation
-    worker_ids = []
+    def __init__(self):
+        ## list holding worker IDs for the simulation
+        self.worker_ids = []
 
-    ## Total number of tasks issued/completed in one simulation
-    num_tasks_completed = 0
-    # [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
-    # Index is task type
-    num_tasks_breakdown = [0,0,0,0,0,0]
+        ## Total number of tasks issued/completed in one simulation
+        self.num_tasks_completed = 0
+        # [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
+        # Index is task type
+        self.num_tasks_breakdown = [0,0,0,0,0,0]
 
-    ## Amount of worker-time spent during the simulation
-    sim_time = 0
-    # [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
-    # Index is task type
-    sim_time_breakdown = [0,0,0,0,0,0]
+        ## Amount of worker-time spent during the simulation
+        self.sim_time = 0
+        # [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
+        # Index is task type
+        self.sim_time_breakdown = [0,0,0,0,0,0]
 
-    ## For graphing # of primary items left vs. number of tasks completed
-    # number of primary items left
-    num_prim_left = []
+        ## For graphing # of primary items left vs. number of tasks completed
+        # number of primary items left
+        self.num_prim_left = []
 
-    #_____ For tests that run multiple simulations _____#
+        #_____ For tests that run multiple simulations _____#
 
-    ## Total number of tasks issued/completed in each of multiple simulations
-    num_tasks_completed_arr = []
-    num_tasks_breakdown_arr = [[],[],[],[],[],[]]
-    ## Amount of worker-time spent during each of multiple simulations
-    sim_time_arr = []
-    sim_time_breakdown_arr = [[],[],[],[],[],[]]
+        ## Total number of tasks issued/completed in each of multiple simulations
+        self.num_tasks_completed_arr = []
+        self.num_tasks_breakdown_arr = [[],[],[],[],[],[]]
+        ## Amount of worker-time spent during each of multiple simulations
+        self.sim_time_arr = []
+        self.sim_time_breakdown_arr = [[],[],[],[],[],[]]
 
-    ## Number of unnecessary tasks issued:
-    num_wasted_tasks = 0 #TODO
-    wasted_time = 0 #TODO
-    
-    
-    #_____ For real data simulations only _____#
+        ## Number of unnecessary tasks issued:
+        self.num_wasted_tasks = 0 
+        self.wasted_time = 0 
+        
+        
+        #_____ For real data simulations only _____#
 
-    ## Number of primary items that are correctly evaluated
-    num_item_correct_eval = 0
-    
+        ## Number of primary items that are correctly evaluated
+        self.num_item_correct_eval = 0
+        
 
-    #__________________________________  Dictionaries ________________________________#
+        #__________________________________  Dictionaries ________________________________#
 
-    ## Key: primary item pk <br>
-    ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
-    JFTasks_Dict = dict()
+        ## Key: primary item pk <br>
+        ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
+        self.JFTasks_Dict = dict()
 
-    ## Key: primary item pk <br>
-    ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
-    FindPairsTasks_Dict = dict() 
+        ## Key: primary item pk <br>
+        ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
+        self.FindPairsTasks_Dict = dict() 
 
-    ## Key: secondary item name <br>
-    ## Value: ("None", secondary item name, time taken list, worker response list/ground truth)
-    FindPairsSecTasks_Dict = dict() 
+        ## Key: secondary item name <br>
+        ## Value: ("None", secondary item name, time taken list, worker response list/ground truth)
+        self.FindPairsSecTasks_Dict = dict() 
 
-    ## Key: secondary item name <br>
-    ## Value: ("NA", secondary item name, time taken list, worker response list/ground truth)
-    SecPredTasks_Dict = dict() 
+        ## Key: secondary item name <br>
+        ## Value: ("NA", secondary item name, time taken list, worker response list/ground truth)
+        self.SecPredTasks_Dict = dict() 
 
-    ## Key: (primary item pk, secondary item name) <br>
-    ## Value: (pjf, time taken list, worker response list/ground truth )
-    JoinPairTasks_Dict = dict() 
+        ## Key: (primary item pk, secondary item name) <br>
+        ## Value: (pjf, time taken list, worker response list/ground truth )
+        self.JoinPairTasks_Dict = dict() 
 
-    ## Key: secondary item name <br>
-    ## Value: ("NA", secondary item name, time taken list, worker response list/ground truth)
-    SecPJFTasks_Dict = dict()
+        ## Key: secondary item name <br>
+        ## Value: ("NA", secondary item name, time taken list, worker response list/ground truth)
+        self.SecPJFTasks_Dict = dict()
 
-    ## Key: primary item pk <br>
-    ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
-    PrimPJFTasks_Dict = dict()
+        ## Key: primary item pk <br>
+        ## Value: (primary item pk, "NA", time taken list, worker response list/ground truth)
+        self.PrimPJFTasks_Dict = dict()
 
-    ## Key: fake secondary item name <br>
-    ## Value: ("NA", fake item name, time taken, ground truth)
-    FakeSecPredTasks_Dict = dict()
+        ## Key: fake secondary item name <br>
+        ## Value: ("NA", fake item name, time taken, ground truth)
+        self.FakeSecPredTasks_Dict = dict()
+
     #_____________________ Loading Data _____________________ #
     
     ## @brief Loads primary list into database
@@ -403,6 +405,7 @@ class JoinSimulation():
         self.num_tasks_breakdown = [0,0,0,0,0,0]
         self.sim_time_breakdown = [0,0,0,0,0,0]
 
+        worker_ids = []
 
 
 
@@ -416,7 +419,7 @@ class JoinSimulation():
     # optimal for comparison that runs all the true influential restaurants before the false ones ## <<< only useful in real data simulations
 
     ## @brief runs run_sim with the same settings NUM_SIMS times
-    def run_multi_sims(self): #TODO RESET THIS
+    def run_multi_sims(self): 
         # results_list = []
         # join_selectivity_arr = []
         # num_jf_assignments_arr = []
@@ -479,8 +482,8 @@ class JoinSimulation():
 
         print "Average Number of PJF Tasks:", np.mean(self.num_tasks_breakdown_arr[3])
         print "Average Number of Find Pairs Tasks (Primary):", np.mean(self.num_tasks_breakdown_arr[1])
-        print "Average Number of Secondary Predicate Tasks:", np.mean(self.num_tasks_breakdown_arr[4])
         print "Average Number of Find Pairs Tasks (Secondary):", np.mean(self.num_tasks_breakdown_arr[5])
+        print "Average Number of Secondary Predicate Tasks:", np.mean(self.num_tasks_breakdown_arr[4])
         print "Average Number of Join Pair Tasks:", np.mean(self.num_tasks_breakdown_arr[2])
         print "Average Number of Joinable Filter Tasks:", np.mean(self.num_tasks_breakdown_arr[0])
 
@@ -529,7 +532,7 @@ class JoinSimulation():
             syn_load_list()
 
             #NOTE: Added to test IW on secondaries, assuming we already have 2ndary list
-            if HAVE_SEC_LIST is True:
+            if HAVE_SEC_LIST is True: #TODO TOGGLES
                 syn_load_second_list()
                 estimator.has_2nd_list = True
                 estimator.save()
@@ -553,22 +556,28 @@ class JoinSimulation():
 
             self.num_prim_left += [PrimaryItem.objects.filter(is_done=False).count()]
             #__________________________  CHOOSE TASK __________________________#
-            if JOIN_TYPE == 0: # joinable filter
+            if JOIN_TYPE == 0: # joinable filter #TODO TOGGLES
                 task = choose_task_JF(worker_id)
-            elif JOIN_TYPE == 1: # item-wise join
+            elif JOIN_TYPE == 1: # item-wise join #TODO TOGGLES
                 task = choose_task_IW(worker_id, estimator)
-            elif JOIN_TYPE == 1.1: # item-wise join #changed
+            elif JOIN_TYPE == 1.1: # item-wise join #changed #TODO TOGGLES
                 task = choose_task_IW1(worker_id, estimator)
-            elif JOIN_TYPE == 2 or JOIN_TYPE == 2.1:
+            elif JOIN_TYPE == 2 or JOIN_TYPE == 2.1: #TODO TOGGLES
                 task = choose_task_PJF(worker_id, estimator)
-            elif JOIN_TYPE == 2.2:
+            elif JOIN_TYPE == 2.2 or JOIN_TYPE == 2.3: #TODO TOGGLES
                 task = choose_task_PJF2(worker_id, estimator)
-            elif JOIN_TYPE == 3.1:
+            elif JOIN_TYPE == 3.1: #TODO TOGGLES
                 task = choose_task_IWS1(worker_id, estimator)
-            elif JOIN_TYPE == 3.2:
+            elif JOIN_TYPE == 3.2:#TODO TOGGLES
                 task = choose_task_IWS2(worker_id, estimator)
-            else: #JOIN_TYPE is 3.3:
+            elif JOIN_TYPE == 3.3: #TODO TOGGLES
                 task = choose_task_IWS3(worker_id, estimator)
+            elif JOIN_TYPE == 3.5: #TODO TOGGLES
+                task = choose_task_IWS5(worker_id, estimator)
+            elif JOIN_TYPE == 3.6: #TODO TOGGLES
+                task = choose_task_IWS6(worker_id, estimator)
+            elif JOIN_TYPE == 3.7:#TODO TOGGLES 
+                task = choose_task_IWS7(worker_id, estimator)
 
     
             if type(task) is JFTask:
@@ -761,4 +770,393 @@ class JoinSimulation():
             #self.accuracy_syn_data() #does its own printing
             accuracy_info = self.accuracy_syn_data() #does its own printing
         #return (join_selectivity, num_jf_assignments, num_find_pairs_assignments, num_sec_pred_assignments, self.sim_time[0], self.num_tasks_completed)
+        return accuracy_info[0],accuracy_info[1],accuracy_info[2], accuracy_info[3],accuracy_info[4],num_find_pairs_assignments, accuracy_info[5],accuracy_info[6]
+
+    ########################################################################################################################################################################
+    ########################################################################################################################################################################
+    ########################################################################################################################################################################
+    ########################################################################################################################################################################
+    def accuracy_syn_data_overnight(self,join_type):
+        #___ JF Task Accuracy ___#
+        if join_type == 0:
+            total_tasks = []
+            correct_tasks = 0
+            for task in JFTask.objects.all():
+                if task.result is not None:
+                    total_tasks += [task]
+            for task in total_tasks:
+                ground_truth = self.JFTasks_Dict[task.primary_item.name][3]
+                if task.result is True and ground_truth is 1:
+                    correct_tasks += 1
+                elif task.result is False and ground_truth is 0:
+                    correct_tasks += 1
+
+        #_____ Pre-Join Filter Task Accuracy _____#
+        if join_type == 2:
+            total_tasks = []
+            correct_tasks = 0
+            for task in PJFTask.objects.all():
+                if task.consensus is True:
+                    total_tasks += [task]
+            for task in total_tasks:
+                if task.primary_item is not None:
+                    ground_truth = self.PrimPJFTasks_Dict[task.primary_item.name][3]
+                    if task.primary_item.pjf == ground_truth:
+                        correct_tasks += 1
+                elif task.secondary_item is not None:
+                    ground_truth = self.SecPJFTasks_Dict[task.secondary_item.name][3]
+                    if task.secondary_item.pjf == ground_truth:
+                        correct_tasks += 1
+
+        #___ Secondary Predicate Task Accuracy ___#
+        total_tasks = []
+        correct_tasks = 0
+        for task in SecPredTask.objects.all():
+            if task.result is not None:
+                total_tasks += [task]
+        for task in total_tasks:
+            if int(task.secondary_item.name) < NUM_SEC_ITEMS:
+                a,b,c,ground_truth = self.SecPredTasks_Dict[task.secondary_item.name]
+            else:
+                a,b,c,ground_truth = self.FakeSecPredTasks_Dict[task.secondary_item.name]
+            if task.result is ground_truth:
+                correct_tasks += 1
+
+        #___ Find Pairs Accuracy ___#
+        false_negatives = 0
+        true_positives = 0
+        false_positives = 0
+        true_negatives =0
+        if join_type == 1 or join_type == 1.1: #changed
+            for prim in PrimaryItem.objects.all():
+                found_list = []
+                for sec in prim.secondary_items.all():
+                    sec_name = 'secondary item '+ sec.name + '; ' + sec.name + ' address'
+                    found_list += [sec_name]
+                true_list = parse_pairs(self.FindPairsTasks_Dict[prim.name][3])
+                for item in true_list:
+                    if item not in found_list:
+                        false_negatives += 1
+                    else:
+                        true_positives += 1
+
+                for item in found_list:
+                    if item not in true_list:
+                        false_positives += 1
+    
+        elif join_type >= 3:
+            for sec in SecondaryItem.objects.all():
+                found_list = []
+                for prim in sec.primary_items.all():
+                    prim_name = "primary item " + prim.name + "; " + prim.name + " address"
+                    found_list += [prim_name]
+                true_list = parse_pairs(self.FindPairsSecTasks_Dict[sec.name][3])
+                for item in true_list:
+                    if item not in found_list:
+                        false_negatives += 1
+                    else:
+                        true_positives += 1
+                for item in found_list:
+                    if item not in true_list:
+                        false_positives += 1
+
+        #___ Primary Item Task Accuracy ___#
+        correct_prim_items = 0
+        missed_true_secs = 0
+        found_false_secs = 0
+        for prim in PrimaryItem.objects.all():
+            ground_truth = False #assume every primary fails the join
+            if self.JFTasks_Dict[prim.name][3] is 1:
+                ground_truth = True
+            if prim.eval_result is ground_truth: #count correct primary items
+                correct_prim_items += 1
+            else: #find out why the wrong ones were wrong
+                if prim.eval_result is False:
+                    missed_true_secs += 1
+                elif prim.eval_result is True:
+                    found_false_secs += 1
+ 
+        prim_accuracy = float(correct_prim_items) / float(PrimaryItem.objects.all().count())
+        return prim_accuracy,false_negatives, true_positives, false_positives, true_negatives, missed_true_secs, found_false_secs
+
+
+
+
+    def run_multi_overnight_sim(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb): 
+        prim_accuracy = []
+        false_negatives = []
+        true_positives = []
+        false_positives = []
+        true_negatives = []
+        task_num = []
+        missed_true_secs = []
+        found_false_secs = []
+
+        # results list is a list of tuples in the form (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
+        for i in range(toggles.NUM_SIMS):
+            print "---------------------------------------------------------------------"
+            j = i+1
+            print "Running simulation",j,"out of",toggles.NUM_SIMS
+            results = self.run_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+            prim_accuracy.append(results[0])
+            false_negatives.append(results[1])
+            true_positives.append(results[2])
+            false_positives.append(results[3])
+            true_negatives.append(results[4])
+            task_num.append(results[5])
+            missed_true_secs.append(results[6])
+            found_false_secs.append(results[5])
+            
+            self.reset_database()
+            #more processing happens here
+        print ""
+        print "RESULTS:"
+        print ""
+        print "Average Total Time:", np.mean(self.sim_time_arr)
+        print ""
+
+        print "Average Time on PJF Tasks:", np.mean(self.sim_time_breakdown_arr[3])
+        print "Average Time on Find Pairs Tasks (Primary):", np.mean(self.sim_time_breakdown_arr[1])
+        print "Average Time on Find Pairs Tasks (Secondary):", np.mean(self.sim_time_breakdown_arr[5])
+        print "Average Time on Secondary Predicate Tasks:", np.mean(self.sim_time_breakdown_arr[4])
+        print "Average Time on Join Pair Tasks:", np.mean(self.sim_time_breakdown_arr[2])
+        print "Average Time on Joinable Filter Tasks:", np.mean(self.sim_time_breakdown_arr[0])
+        
+        print ""
+        print "Average Number of Tasks:", np.mean(self.num_tasks_completed_arr)
+        print ""
+
+        print "Average Number of PJF Tasks:", np.mean(self.num_tasks_breakdown_arr[3])
+        print "Average Number of Find Pairs Tasks (Primary):", np.mean(self.num_tasks_breakdown_arr[1])
+        print "Average Number of Find Pairs Tasks (Secondary):", np.mean(self.num_tasks_breakdown_arr[5])
+        print "Average Number of Secondary Predicate Tasks:", np.mean(self.num_tasks_breakdown_arr[4])
+        print "Average Number of Join Pair Tasks:", np.mean(self.num_tasks_breakdown_arr[2])
+        print "Average Number of Joinable Filter Tasks:", np.mean(self.num_tasks_breakdown_arr[0])
+
+        
+        
+
+        print "Average Query Accuracy:", np.mean(prim_accuracy)
+        print "Average Items Evaluated Incorrectly by Missing A True:", np.mean(missed_true_secs)
+        print "Average Items Evaluated Incorrectly by Mis-evaluating A False:", np.mean(found_false_secs)
+        if join_type == 1 or join_type == 1.1 or join_type >= 3: #changed
+            precision = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_positives))
+            recall = np.mean(true_positives) / (np.mean(true_positives) + np.mean(false_negatives))
+            print ""
+            print "For Itemwise Only:"
+            print "Average Precision:", precision
+            print "Average Recall:", recall
+
+
+    ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
+    def run_overnight_sim(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb):
+        random.seed()
+
+        #__________________________ LOAD DATA __________________________ #
+        estimator = Estimator.objects.create()
+        jf_task_stats = TaskStats.objects.create(task_type=0)
+        find_pairs_task_stats = TaskStats.objects.create(task_type=1)
+        join_pairs_task_stats = TaskStats.objects.create(task_type=2)
+        prejoin_task_stats = TaskStats.objects.create(task_type=3)
+        sec_pred_task_stats = TaskStats.objects.create(task_type=4)
+        find_pairs_sec_task_stats = TaskStats.objects.create(task_type=5)
+
+        if toggles.REAL_DATA is True:
+            self.load_primary_real() #load primary list
+            self.load_real_data() #load worker responses into dictionaries
+        else:
+            syn_load_list_overnight(num_prim)
+
+            #NOTE: Added to test IW on secondaries, assuming we already have 2ndary list
+            if have_sec_list is True:
+                syn_load_second_list_overnight(num_sec)
+                estimator.has_2nd_list = True
+                estimator.save()
+
+            syn_load_everything_overnight(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+
+        self.generate_worker_ids()
+
+        # list of assignments in progress, to be used in timed simulations
+        active_assignments = {}
+        #holds the keys for the assignments
+        assignment_keys = {}
+        key_counter = 0
+
+        # for printing stats at end
+        num_join_pairs_assignments = 0
+
+        while(PrimaryItem.objects.filter(is_done=False).exists()) and (not SecondaryItem.objects.all().exists() or  SecondaryItem.objects.filter(is_done=False).exists()):
+            # pick worker
+            worker_id = random.choice(self.worker_ids)
+
+            self.num_prim_left += [PrimaryItem.objects.filter(is_done=False).count()]
+            #__________________________  CHOOSE TASK __________________________#
+            if join_type == 0: # joinable filter
+                task = choose_task_JF(worker_id)
+            elif join_type == 1: # item-wise join 
+                task = choose_task_IW(worker_id, estimator)
+            elif join_type == 1.1: # item-wise join  
+                task = choose_task_IW1(worker_id, estimator)
+            elif join_type == 2 or join_type == 2.1: 
+                task = choose_task_PJF_overnight(worker_id, estimator)
+            elif join_type == 2.2 or join_type == 2.3:
+                task = choose_task_PJF2_overnight(worker_id, estimator)
+            elif join_type == 3.1:
+                task = choose_task_IWS1(worker_id, estimator)
+            elif join_type == 3.2:
+                task = choose_task_IWS2(worker_id, estimator)
+            elif join_type == 3.3: 
+                task = choose_task_IWS3(worker_id, estimator)
+            elif join_type == 3.5: 
+                task = choose_task_IWS5(worker_id, estimator)
+            elif join_type == 3.6: 
+                task = choose_task_IWS6(worker_id, estimator)
+            elif join_type == 3.7:
+                task = choose_task_IWS7(worker_id, estimator)
+
+    
+            if type(task) is JFTask:
+                task_type = 0
+                my_item = task.primary_item.name
+                hit = self.JFTasks_Dict[my_item]
+            elif type(task) is FindPairsTask:
+                if task.primary_item is not None:
+                    task_type = 1
+                    my_item = task.primary_item.name
+                    hit = self.FindPairsTasks_Dict[my_item]
+                elif task.secondary_item is not None:
+                    task_type = 5
+                    my_item = task.secondary_item.name
+                    hit = self.FindPairsSecTasks_Dict[my_item]
+            elif type(task) is JoinPairTask:
+                task_type = 2
+                my_prim_item = task.primary_item.name
+                my_sec_item = task.secondary_item.name
+                hit = self.JoinPairTasks_Dict[(my_prim_item, my_sec_item)]
+                num_join_pairs_assignments += 1
+            elif type(task) is PJFTask:
+                task_type = 3
+                if task.primary_item is not None:
+                    #TODO unstr
+                    my_item = task.primary_item.name
+                    hit = self.PrimPJFTasks_Dict[my_item]
+                else:
+                    my_item = task.secondary_item.name
+                    hit = self.SecPJFTasks_Dict[my_item]
+            elif type(task) is SecPredTask:
+                task_type = 4
+                my_item = task.secondary_item.name
+                # Check for fake items
+                if REAL_DATA is False and int(my_item) >= NUM_SEC_ITEMS:
+                    print "-----------------------A FAKE ITEM REACHED CONSENSUS-----------------------"
+                    hit = self.FakeSecPredTasks_Dict[my_item]
+                else:
+                    hit = self.SecPredTasks_Dict[my_item]
+
+            #__________________________  ISSUE TASK __________________________#
+            #choose a (matching) time and response for the task
+            if task_type is not 2:
+                (prim,sec,time,answer) = hit
+            else:
+                (pjf,time,answer) = hit
+                prim = my_prim_item
+                sec = my_sec_item
+            
+            if toggles.REAL_DATA:
+                ind = random.randint(0, len(time)-1) # for some reason this is inclusive
+                task_time = time[ind]
+                task_answer = answer[ind]
+            else:
+                if task_type is 4:
+                    task_answer,task_time = syn_answer_sec_pred_task_overnight(hit,sec_pred_amb)
+                elif task_type is 3:
+                    task_answer,task_time = syn_answer_pjf_task_overnight(hit,pjf_amb,pjf_list)
+                elif task_type is 2:
+                    task_answer,task_time = syn_answer_join_pair_task_overnight(hit,join_cond_amb)
+                elif task_type is 1 or task_type is 5:
+                    task_answer,task_time = syn_answer_find_pairs_task_overnight(hit,floor_fp)
+                elif task_type is 0:
+                    task_answer,task_time = syn_answer_joinable_filter_task_overnight(hit,jf_amb)
+
+            if sec is not "None":
+                sec = SecondaryItem.objects.get(name=sec).name
+            else:
+                sec = None
+
+            
+            #__________________________ UPDATE STATE AFTER TASK __________________________ #
+            if toggles.SIMULATE_TIME:
+                fin_list = []
+                for key in active_assignments:
+                    active_assignments[key] -= toggles.TIME_STEP
+                    if active_assignments[key] < 0:
+                        fin_list.append(key)
+                assignment_keys[key_counter] = (task_type,task_answer,task_time,prim,sec)
+                active_assignments[key_counter] = task_time
+                key_counter += 1
+                for key in fin_list:
+                    assignment = assignment_keys[key]
+                    gather_task(assignment[0],assignment[1],assignment[2],assignment[3],assignment[4])
+                    active_assignments.pop(key)
+                    self.num_tasks_completed += 1
+                    self.num_tasks_breakdown[task_type] += 1
+                    self.sim_time += task_time
+                    self.sim_time_breakdown[task_type] += float(task_time)
+                    
+            else:
+                gather_task(task_type,task_answer,task_time,prim,sec)
+                print "task type:", task_type
+                
+                self.sim_time += float(task_time)
+                self.sim_time_breakdown[task_type] += float(task_time)
+                self.num_tasks_completed += 1
+                self.num_tasks_breakdown[task_type] += 1
+                print self.num_tasks_breakdown
+
+            #update chao estimator
+            estimator.refresh_from_db()
+            estimator.chao_estimator()
+
+        if join_type > 3.0:
+            for prim in PrimaryItem.objects.all():
+                prim.refresh_from_db()
+                prim.found_all_pairs = True
+                prim.update_state()
+                prim.save()
+
+        #simulate time cleanup loop, gets rid of ungathered tasks
+        if toggles.SIMULATE_TIME:
+            fin_list = []
+            print active_assignments
+            for key in active_assignments:
+                fin_list.append(key)
+            for key in fin_list:
+                active_assignments.pop(key)
+                self.num_tasks_completed += 1
+                self.sim_time += task_time
+        
+        self.sim_time_arr += [self.sim_time]
+        self.num_tasks_completed_arr += [self.num_tasks_completed]
+
+        for i in range(6):               
+            self.sim_time_breakdown_arr[i].append(self.sim_time_breakdown[i])
+            self.num_tasks_breakdown_arr[i].append(self.num_tasks_breakdown[i])
+
+
+        #__________________________ RESULTS __________________________#
+
+        for item in PrimaryItem.objects.all():
+            item.refresh_from_db()
+
+        num_find_pairs_assignments = 0
+        for fptask in FindPairsTask.objects.all():
+            num_find_pairs_assignments += fptask.num_tasks
+
+
+        if REAL_DATA is True:
+            self.accuracy_real_data() #does its own printing
+        else:
+            #self.accuracy_syn_data() #does its own printing
+            accuracy_info = self.accuracy_syn_data_overnight(join_type) #does its own printing
         return accuracy_info[0],accuracy_info[1],accuracy_info[2], accuracy_info[3],accuracy_info[4],num_find_pairs_assignments, accuracy_info[5],accuracy_info[6]

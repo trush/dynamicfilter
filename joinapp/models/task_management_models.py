@@ -403,9 +403,6 @@ class JoinPairTask(models.Model):
                     self.primary_item.update_state()
                     self.primary_item.save() #update the primary item
 
-                    # prim_items = PrimaryItem.objects.filter(pjf = self.secondary_item.pjf) # possibly primary items
-                    # if prim_items.count() is #TODO
-
                     
 
                 self.secondary_item.refresh_from_db()

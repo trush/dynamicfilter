@@ -6,17 +6,134 @@ from joinapp.toggles import *
 from plotting import *
 from .. import graph_gen
 
+def print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb):
+        print "****************************** JOIN TYPE:", join_type, "******************************"
+        if join_type in [2.1,2.2,3.1,3.2,3.3]:
+            if have_sec_list is False:
+                print "!!!!!!!!!!!!!!! INCORRECT SETTINGS, HAVE SEC LIST IS FALSE !!!!!!!!!!!!!!!"
+        else:
+            if have_sec_list is True:
+                print "!!!!!!!!!!!!!!! INCORRECT SETTINGS, HAVE SEC LIST IS TRUE !!!!!!!!!!!!!!!"
+        if num_prim != NUM_PRIM_ITEMS:
+            print "****************************** NUMBER PRIMARY ITEMS:", num_prim
+        if num_sec != NUM_SEC_ITEMS:
+            print "****************************** NUMBER SECONDARY ITEMS:", num_sec
+        if pjf_list != PJF_LIST:
+            print "****************************** PJF LIST:", pjf_list
+        if floor_fp != FLOOR_AMBIGUITY_FIND_PAIRS:
+            print "****************************** CROWD FLOOR:", floor_fp
+        if sec_pred_selectivity != SEC_PRED_SELECTIVITY:
+            print "****************************** SEC PRED SELECTIVITY:", sec_pred_selectivity
+        if join_cond_selectivity != JOIN_COND_SELECTIVITY:
+            print "****************************** JOIN COND SELECTIVITY:", join_cond_selectivity
+        if jf_amb != JF_AMBIGUITY:
+            print "****************************** JOINABLE FILTER AMBIGUITY:", jf_amb
+        if sec_pred_amb != SEC_PRED_AMBIGUITY:
+            print "****************************** SECONDARY PREDICATE AMBIGUITY:", sec_pred_amb
+        if join_cond_amb != JOIN_COND_AMBIGUITY:
+            print "****************************** JOIN COND AMBIGUITY:", join_cond_amb
+        if pjf_amb != PJF_AMBIGUITY:
+            print "****************************** PJF AMBIGUITY:", pjf_amb
+
 class Simulation_Tests(TestCase):
-    # def test_sim(self):
+    # def test_multi_sim(self):
     #     sim = JoinSimulation()
-    #     sim.run_sim()
-    def test_multi_sim(self):
+    #     results = sim.run_multi_sims()
+
+    def test_overnight_sim(self):
+        # _____________________ STARTING TOGGLES _________________#
+        num_prim = NUM_PRIM_ITEMS
+        num_sec = NUM_SEC_ITEMS
+        have_sec_list = HAVE_SEC_LIST
+        pjf_list = PJF_LIST
+        floor_fp = FLOOR_AMBIGUITY_FIND_PAIRS
+        join_type = JOIN_TYPE
+        ##########################
+        sec_pred_selectivity = SEC_PRED_SELECTIVITY
+        join_cond_selectivity = JOIN_COND_SELECTIVITY
+        ###########################
+        jf_amb = JF_AMBIGUITY
+        sec_pred_amb = SEC_PRED_AMBIGUITY
+        join_cond_amb = JOIN_COND_AMBIGUITY
+        pjf_amb = PJF_AMBIGUITY
+        print "this should just print the join type"
+        print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        print "just join type printed? All good"
+
+        # SIM 1
+        join_type = 1
+        num_prim = 20
+        num_sec = 20
+        have_sec_list = False
+        print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
         sim = JoinSimulation()
-        results = sim.run_multi_sims()
-    #     #graph_gen.graph_time(results, "joinapp/simulation_files/testpjf_secpred_ambiguous.png")
-    #     #sim.graph_multi_sim(results)
-    #     #hist_gen(results[4], "joinapp/simulation_files/test2.png", labels = ('time','frequency'), title='Testing Itemwise Join', xRange=(None,None), yRange=(None,None), smoothness=True)
-    #     #graph_gen.graph_prim_items_left(results, "joinapp/simulation_files/influential.png")
+        results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # SIM 1
+        join_type = 0
+        num_prim = 20
+        num_sec = 20
+        have_sec_list = False
+        print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        sim2 = JoinSimulation()
+        results = sim2.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # # SIM 2
+        # join_type = 1
+        # have_sec_list = False
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # # SIM 3
+        # join_type = 1.1
+        # have_sec_list = False
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # # SIM 4
+        # join_type = 3.1
+        # have_sec_list = True
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # # SIM 5
+        # join_type = 3.2
+        # have_sec_list = True
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # # SIM 5
+        # join_type = 3.3
+        # have_sec_list = True
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # # SIM 6
+        # join_type = 2.2
+        # have_sec_list = True
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # # SIM 7
+        # join_type = 2.3
+        # have_sec_list = False
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # # SIM 8
+        # join_type = 2
+        # have_sec_list = False
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # # SIM 9
+        # join_type = 2.1
+        # have_sec_list = True
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
 
 
-        
+
+
+
+   
+    

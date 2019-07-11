@@ -2,7 +2,7 @@ import math
 
 #________ Path Info For Real Data__________#
 PRIMARY_LIST = './simulation_files/Hotel_items.csv'
-REAL_DATA_JF = './simulation_files/JOINABLE_FILTER_RESULTS.csv'#TODO MTURK data CSV
+REAL_DATA_JF = './simulation_files/JOINABLE_FILTER_RESULTS.csv'
 REAL_DATA_SEC_PRED = './simulation_files/SECOND_PRED_RESULTS.csv'
 REAL_DATA_FP = './simulation_files/FIND_PAIRS_RESULTS.csv'
 
@@ -10,7 +10,7 @@ REAL_DATA_FP = './simulation_files/FIND_PAIRS_RESULTS.csv'
 NUM_PRIM_ITEMS = 100
 NUM_SEC_ITEMS = 50
 HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no 
-PJF_LIST = [("0",0.10), ("1",0.10), ("2",0.10), ("3",0.10),("4",0.10),("5",0.10), ("6",0.10), ("7",0.10), ("8",0.10),("9",0.10)]#,("10",0.05), ("11",0.05), ("12",0.05), ("13",0.05),("14",0.05),("15",0.05), ("16",0.05), ("17",0.05), ("18",0.05),("19",0.05)]
+PJF_LIST = [("0",0.20), ("1",0.20), ("2",0.20), ("3",0.20),("4",0.20)]
 
 #_________________ For The Crowd _________________#
 FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
@@ -23,17 +23,18 @@ REAL_DATA = False # real or synthetic data
 # 2 = pre-join filtered join
 # 2.1 = pre-join filtered join starting with 2nd list
 # 2.2 = pre-join filtered join starting with 2nd list - secondary predicates first
+# 2.3 = pre-join filtered join - secondary predicates first
 # 3.1 = item-wise join on second list (all sec preds then find pairs)
 # 3.2 = item-wise join on second list (all find pairs then sec preds)
 # 3.3 = item-wise join on second list (item-by-item, sec preds first)
-JOIN_TYPE = 2.2
+JOIN_TYPE = 3.1
 NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 10 # number of simulations to run
+NUM_SIMS = 1 # number of simulations to run
 SIMULATE_TIME = False
 TIME_STEP = 1
 USE_IN_PROGRESS = False
 
-if JOIN_TYPE >= 3:
+if JOIN_TYPE >= 3 and JOIN_TYPE < 3.5:
     HAVE_SEC_LIST = True
 
 if JOIN_TYPE == 2.1 or JOIN_TYPE == 2.2:
