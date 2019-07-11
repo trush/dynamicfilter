@@ -2,7 +2,7 @@ import math
 
 #________ Path Info For Real Data__________#
 PRIMARY_LIST = './simulation_files/Hotel_items.csv'
-REAL_DATA_JF = './simulation_files/JOINABLE_FILTER_RESULTS.csv'#TODO MTURK data CSV
+REAL_DATA_JF = './simulation_files/JOINABLE_FILTER_RESULTS.csv'
 REAL_DATA_SEC_PRED = './simulation_files/SECOND_PRED_RESULTS.csv'
 REAL_DATA_FP = './simulation_files/FIND_PAIRS_RESULTS.csv'
 
@@ -27,9 +27,9 @@ REAL_DATA = False # real or synthetic data
 # 3.1 = item-wise join on second list (all sec preds then find pairs)
 # 3.2 = item-wise join on second list (all find pairs then sec preds)
 # 3.3 = item-wise join on second list (item-by-item, sec preds first)
-JOIN_TYPE = 2.2
+JOIN_TYPE = 3.1
 NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 10 # number of simulations to run
+NUM_SIMS = 1 # number of simulations to run
 SIMULATE_TIME = False
 TIME_STEP = 1
 USE_IN_PROGRESS = False
