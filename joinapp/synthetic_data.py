@@ -47,6 +47,14 @@ def syn_load_fake_sec_pred_tasks(FakeSecPredTasks_Dict):
 
 
 def syn_load_everything(sim):
+
+
+    #################### UNEVEN DISTRIBUTION TRIALS
+    probmatch = 0.3
+    probinfluential = 0.2
+    influentials = []
+    #################### /UNEVEN DISTRIBUTION TRIALS
+
     random.seed()
     #___________________ FILL PJF DICTIONARIES __________________#
     for primary in PrimaryItem.objects.all():
@@ -83,12 +91,23 @@ def syn_load_everything(sim):
         value = ("None", str(secondary), PJF_TIME_MEAN, pjf)
         sim.SecPJFTasks_Dict[str(secondary)] = value
 
+
     #_________________ FILL JOIN PAIRS, FIND PAIRS PRIM AND FIND PAIRS SEC _________________#
     # populates find pairs dictionaries w/ empty entries
     for primary in sim.PrimPJFTasks_Dict:
         sim.FindPairsTasks_Dict[primary] = (primary,"None", FIND_PAIRS_TASK_TIME_MEAN, "")
     for secondary in sim.SecPJFTasks_Dict:
         sim.FindPairsSecTasks_Dict[secondary] = ("None", secondary, FIND_PAIRS_TASK_TIME_MEAN, "")
+        #################### UNEVEN DISTRIBUTION TRIALS
+        if random.random() < probinfluential:
+            influentials += [secondary]
+        #################### UNEVEN DISTRIBUTION TRIALS
+    
+    #################### UNEVEN DISTRIBUTION TRIALS
+    print influentials
+    #################### UNEVEN DISTRIBUTION TRIALS
+
+
     # matches primary items to secondary items
     for primary in sim.PrimPJFTasks_Dict:
         primPJF = sim.PrimPJFTasks_Dict[primary][3]
@@ -96,7 +115,10 @@ def syn_load_everything(sim):
             secPJF = sim.SecPJFTasks_Dict[secondary][3]
             if primPJF is secPJF:
                 pjf = primPJF
-                if random.random() < JOIN_COND_SELECTIVITY:
+
+                #################### UNEVEN DISTRIBUTION TRIALS
+                if random.random() < JOIN_COND_SELECTIVITY or (secondary in influentials and random.random() < probmatch):
+                #################### UNEVEN DISTRIBUTION TRIALS
                     answer = 1
                     #add pair to primary find pairs
                     primary_item,none,time,current_find_pairs = sim.FindPairsTasks_Dict[primary]
@@ -136,6 +158,7 @@ def syn_load_everything(sim):
             if sim.SecPredTasks_Dict[secondary][3] is True:
                 answer = 1
         sim.JFTasks_Dict[primary] = (primary, "None", JF_TASK_TIME_MEAN, answer)
+
 
 
 #_______________________________ Give a Worker Answer _______________________________#
