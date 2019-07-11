@@ -567,8 +567,14 @@ class JoinSimulation():
                 task = choose_task_IWS1(worker_id, estimator)
             elif JOIN_TYPE == 3.2:
                 task = choose_task_IWS2(worker_id, estimator)
-            else: #JOIN_TYPE is 3.3:
+            elif JOIN_TYPE == 3.3:
                 task = choose_task_IWS3(worker_id, estimator)
+            elif JOIN_TYPE == 3.5:
+                task = choose_task_IWS5(worker_id, estimator)
+            elif JOIN_TYPE == 3.6:
+                task = choose_task_IWS6(worker_id, estimator)
+            elif JOIN_TYPE == 3.7:
+                task = choose_task_IWS7(worker_id, estimator)
 
     
             if type(task) is JFTask:

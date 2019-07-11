@@ -34,7 +34,7 @@ SIMULATE_TIME = False
 TIME_STEP = 1
 USE_IN_PROGRESS = False
 
-if JOIN_TYPE >= 3:
+if JOIN_TYPE >= 3 and JOIN_TYPE < 3.5:
     HAVE_SEC_LIST = True
 
 if JOIN_TYPE == 2.1 or JOIN_TYPE == 2.2:
