@@ -479,8 +479,8 @@ class JoinSimulation():
 
         print "Average Number of PJF Tasks:", np.mean(self.num_tasks_breakdown_arr[3])
         print "Average Number of Find Pairs Tasks (Primary):", np.mean(self.num_tasks_breakdown_arr[1])
-        print "Average Number of Secondary Predicate Tasks:", np.mean(self.num_tasks_breakdown_arr[4])
         print "Average Number of Find Pairs Tasks (Secondary):", np.mean(self.num_tasks_breakdown_arr[5])
+        print "Average Number of Secondary Predicate Tasks:", np.mean(self.num_tasks_breakdown_arr[4])
         print "Average Number of Join Pair Tasks:", np.mean(self.num_tasks_breakdown_arr[2])
         print "Average Number of Joinable Filter Tasks:", np.mean(self.num_tasks_breakdown_arr[0])
 
@@ -561,7 +561,7 @@ class JoinSimulation():
                 task = choose_task_IW1(worker_id, estimator)
             elif JOIN_TYPE == 2 or JOIN_TYPE == 2.1:
                 task = choose_task_PJF(worker_id, estimator)
-            elif JOIN_TYPE == 2.2:
+            elif JOIN_TYPE == 2.2 or JOIN_TYPE == 2.3:
                 task = choose_task_PJF2(worker_id, estimator)
             elif JOIN_TYPE == 3.1:
                 task = choose_task_IWS1(worker_id, estimator)

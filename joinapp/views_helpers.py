@@ -121,8 +121,12 @@ def choose_task_PJF(workerID, estimator):
 # @param estimator the estimator used to determine when the second list is complete
 def choose_task_PJF2(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
+    #for join type 2.3: when we don't start w the secondary list
+    if not estimator.has_2nd_list:
+        prim_items_left = PrimaryItem.objects.filter(found_all_pairs = False)
+        return choose_task_find_pairs(prim_items_left, new_worker, 1)
     #first do secondary predicate tasks
-    if SecondaryItem.objects.exclude(second_pred_result = False).exclude(second_pred_result = True).exists(): #all unevaluated secondary predicate tasks
+    elif SecondaryItem.objects.exclude(second_pred_result = False).exclude(second_pred_result = True).exists(): #all unevaluated secondary predicate tasks
         return choose_task_sec_pred_before_pairs(new_worker)
     #then do pre-join filters
     elif SecondaryItem.objects.filter(second_pred_result = True).filter(pjf = 'false').exists() or PrimaryItem.objects.filter(pjf = 'false').exists(): #unfinished pjfs
@@ -148,8 +152,8 @@ def choose_task_pjf_helper(worker):
         pjf_task = PJFTask.objects.get_or_create(primary_item=prim_item)[0]
     # secondary item pjf tasks
     else:
-        if toggles.JOIN_TYPE is 2.2:
-            sec_items_left = SecondaryItem.objects.filter(pjf='false').filter(sec_pred_result = True)
+        if toggles.JOIN_TYPE == 2.2:
+            sec_items_left = SecondaryItem.objects.filter(pjf='false').filter(second_pred_result = True)
         else:
             sec_items_left = SecondaryItem.objects.filter(pjf='false')
         sec_item = sec_items_left.order_by('?').first() # random secondary item
