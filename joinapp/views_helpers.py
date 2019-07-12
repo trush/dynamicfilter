@@ -714,7 +714,7 @@ def choose_task_PJF2_overnight(workerID, estimator,join_type):
         return choose_task_sec_pred_before_pairs(new_worker)
     #then do pre-join filters
     elif SecondaryItem.objects.filter(second_pred_result = True).filter(pjf = 'false').exists() or PrimaryItem.objects.filter(pjf = 'false').exists(): #unfinished pjfs
-        return choose_task_pjf_helper_overnight(new_worker)
+        return choose_task_pjf_helper_overnight(new_worker,join_type)
     #then do join pairs tasks
     elif PrimaryItem.objects.filter(found_all_pairs = False).exists():
         return choose_task_join_pairs2(new_worker)

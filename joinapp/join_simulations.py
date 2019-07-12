@@ -999,9 +999,9 @@ class JoinSimulation():
             elif join_type == 1.1: # item-wise join  
                 task = choose_task_IW1(worker_id, estimator)
             elif join_type == 2 or join_type == 2.1: 
-                task = choose_task_PJF_overnight(worker_id, estimator)
+                task = choose_task_PJF_overnight(worker_id, estimator,join_type)
             elif join_type == 2.2 or join_type == 2.3:
-                task = choose_task_PJF2_overnight(worker_id, estimator)
+                task = choose_task_PJF2_overnight(worker_id, estimator,join_type)
             elif join_type == 3.1:
                 task = choose_task_IWS1(worker_id, estimator)
             elif join_type == 3.2:
