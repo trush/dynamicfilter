@@ -50,7 +50,7 @@ def syn_load_everything(sim):
 
 
     #################### UNEVEN DISTRIBUTION TRIALS
-    probmatch = 0.3
+    probmatch = 0.5
     probinfluential = 0.2
     influentials = []
     #################### /UNEVEN DISTRIBUTION TRIALS
@@ -283,7 +283,17 @@ def syn_load_sec_pred_tasks_overnight(SecPredTasks_Dict,num_sec,sec_pred_selecti
         value = ("None", str(secondary), time, ground_truth)
         SecPredTasks_Dict[str(secondary)] = value
 
-def syn_load_everything_overnight(sim,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb):
+
+#################### UNEVEN DISTRIBUTION TRIALS
+def syn_load_everything_overnight(sim,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match):
+#################### /UNEVEN DISTRIBUTION TRIALS
+
+    #################### UNEVEN DISTRIBUTION TRIALS
+    probmatch = inf_match
+    probinfluential = prob_inf
+    influentials = []
+    #################### /UNEVEN DISTRIBUTION TRIALS
+
     random.seed()
     #___________________ FILL PJF DICTIONARIES __________________#
     for primary in PrimaryItem.objects.all():
@@ -326,6 +336,15 @@ def syn_load_everything_overnight(sim,num_prim,num_sec,have_sec_list,pjf_list,fl
         sim.FindPairsTasks_Dict[primary] = (primary,"None", FIND_PAIRS_TASK_TIME_MEAN, "")
     for secondary in sim.SecPJFTasks_Dict:
         sim.FindPairsSecTasks_Dict[secondary] = ("None", secondary, FIND_PAIRS_TASK_TIME_MEAN, "")
+        #################### UNEVEN DISTRIBUTION TRIALS
+        if random.random() < probinfluential:
+            influentials += [secondary]
+        #################### UNEVEN DISTRIBUTION TRIALS
+
+    #################### UNEVEN DISTRIBUTION TRIALS
+    print influentials
+    #################### UNEVEN DISTRIBUTION TRIALS
+
     # matches primary items to secondary items
     for primary in sim.PrimPJFTasks_Dict:
         primPJF = sim.PrimPJFTasks_Dict[primary][3]
@@ -333,7 +352,10 @@ def syn_load_everything_overnight(sim,num_prim,num_sec,have_sec_list,pjf_list,fl
             secPJF = sim.SecPJFTasks_Dict[secondary][3]
             if primPJF is secPJF:
                 pjf = primPJF
-                if random.random() < join_cond_selectivity:
+
+                #################### UNEVEN DISTRIBUTION TRIALS:
+                if random.random() < join_cond_selectivity or (secondary in influentials and random.random() < probmatch):
+                #################### UNEVEN DISTRIBUTION TRIALS:
                     answer = 1
                     #add pair to primary find pairs
                     primary_item,none,time,current_find_pairs = sim.FindPairsTasks_Dict[primary]
@@ -349,7 +371,8 @@ def syn_load_everything_overnight(sim,num_prim,num_sec,have_sec_list,pjf_list,fl
                 pjf = "No Match"
                 answer = 0
             sim.JoinPairTasks_Dict[(primary,secondary)] = (pjf, JOIN_PAIRS_TIME_MEAN, answer)
-    
+
+
     # fix none entries
     for primary in sim.PrimPJFTasks_Dict:
         if sim.FindPairsTasks_Dict[primary] is (primary,"None", FIND_PAIRS_TASK_TIME_MEAN, ""):

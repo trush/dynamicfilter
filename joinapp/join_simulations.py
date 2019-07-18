@@ -815,10 +815,7 @@ class JoinSimulation():
             if task.result is not None:
                 total_tasks += [task]
         for task in total_tasks:
-            if int(task.secondary_item.name) < NUM_SEC_ITEMS:
-                a,b,c,ground_truth = self.SecPredTasks_Dict[task.secondary_item.name]
-            else:
-                a,b,c,ground_truth = self.FakeSecPredTasks_Dict[task.secondary_item.name]
+            a,b,c,ground_truth = self.SecPredTasks_Dict[task.secondary_item.name]
             if task.result is ground_truth:
                 correct_tasks += 1
 
@@ -882,7 +879,9 @@ class JoinSimulation():
 
 
 
-    def run_multi_overnight_sim(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb): 
+    #################### /UNEVEN DISTRIBUTION TRIALS
+    def run_multi_overnight_sim(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match):
+    #################### /UNEVEN DISTRIBUTION TRIALS
         prim_accuracy = []
         false_negatives = []
         true_positives = []
@@ -897,7 +896,10 @@ class JoinSimulation():
             #print "---------------------------------------------------------------------"
             j = i+1
             #print "Running simulation",j,"out of",toggles.NUM_SIMS
-            results = self.run_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+
+            #################### /UNEVEN DISTRIBUTION TRIALS
+            results = self.run_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match)
+            #################### /UNEVEN DISTRIBUTION TRIALS
             prim_accuracy.append(results[0])
             false_negatives.append(results[1])
             true_positives.append(results[2])
@@ -949,7 +951,7 @@ class JoinSimulation():
 
 
     ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
-    def run_overnight_sim(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb):
+    def run_overnight_sim(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match):
         random.seed()
 
         #__________________________ LOAD DATA __________________________ #
@@ -973,7 +975,7 @@ class JoinSimulation():
                 estimator.has_2nd_list = True
                 estimator.save()
 
-            syn_load_everything_overnight(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+            syn_load_everything_overnight(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match)
 
         self.generate_worker_ids()
 
@@ -1048,7 +1050,7 @@ class JoinSimulation():
                 task_type = 4
                 my_item = task.secondary_item.name
                 # Check for fake items
-                if REAL_DATA is False and int(my_item) >= NUM_SEC_ITEMS:
+                if REAL_DATA is False and int(my_item) >= num_sec:
                     print "-----------------------A FAKE ITEM REACHED CONSENSUS-----------------------"
                     hit = self.FakeSecPredTasks_Dict[my_item]
                 else:
