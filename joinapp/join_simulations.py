@@ -815,10 +815,7 @@ class JoinSimulation():
             if task.result is not None:
                 total_tasks += [task]
         for task in total_tasks:
-            if int(task.secondary_item.name) < NUM_SEC_ITEMS:
-                a,b,c,ground_truth = self.SecPredTasks_Dict[task.secondary_item.name]
-            else:
-                a,b,c,ground_truth = self.FakeSecPredTasks_Dict[task.secondary_item.name]
+            a,b,c,ground_truth = self.SecPredTasks_Dict[task.secondary_item.name]
             if task.result is ground_truth:
                 correct_tasks += 1
 
@@ -947,6 +944,27 @@ class JoinSimulation():
             print "Average Precision:", precision
             print "Average Recall:", recall
 
+        print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+        print ""
+        print "RESULTS:"
+        print ""
+        print "Total Tasks:", self.num_tasks_completed_arr
+        print ""
+
+        print "PJF Tasks:", self.num_tasks_breakdown_arr[3]
+        print "Find Pairs Tasks (Primary):",self.num_tasks_breakdown_arr[1]
+        print "Find Pairs Tasks (Secondary):", self.num_tasks_breakdown_arr[5]
+        print "Secondary Predicate Tasks:", self.num_tasks_breakdown_arr[4]
+        print "Join Pair Tasks:", self.num_tasks_breakdown_arr[2]
+        print "Joinable Filter Tasks:", self.num_tasks_breakdown_arr[0]
+
+        
+        
+
+        print "Query Accuracy:", prim_accuracy
+        print "Items Evaluated Incorrectly by Missing A True:", missed_true_secs
+        print "Items Evaluated Incorrectly by Mis-evaluating A False:", found_false_secs
+
 
     ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
     def run_overnight_sim(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb):
@@ -1048,7 +1066,7 @@ class JoinSimulation():
                 task_type = 4
                 my_item = task.secondary_item.name
                 # Check for fake items
-                if REAL_DATA is False and int(my_item) >= NUM_SEC_ITEMS:
+                if REAL_DATA is False and int(my_item) >= num_sec:
                     print "-----------------------A FAKE ITEM REACHED CONSENSUS-----------------------"
                     hit = self.FakeSecPredTasks_Dict[my_item]
                 else:
