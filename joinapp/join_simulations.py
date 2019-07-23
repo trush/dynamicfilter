@@ -891,6 +891,12 @@ class JoinSimulation():
         missed_true_secs = []
         found_false_secs = []
 
+
+        #################### /UNEVEN DISTRIBUTION TRIALS
+        manova_independent = [[],[],[]]
+        manova_dependent = [[],[],[]]
+        #################### /UNEVEN DISTRIBUTION TRIALS
+
         # results list is a list of tuples in the form (join_selectivity, num_jf_tasks, num_find_pairs_tasks, num_sec_pred_tasks, self.sim_time, self.num_tasks_completed)
         for i in range(toggles.NUM_SIMS):
             #print "---------------------------------------------------------------------"
@@ -910,6 +916,16 @@ class JoinSimulation():
             found_false_secs.append(results[5])
             
             self.reset_database()
+
+            #################### /UNEVEN DISTRIBUTION TRIALS            
+            manova_independent[0] += [join_type]
+            manova_independent[1] += [prob_inf]
+            manova_independent[2] += [inf_match]
+            manova_dependent[0] += [np.mean(self.sim_time_arr)]
+            manova_dependent[1] += [np.mean(self.sim_time_breakdown_arr[1])]
+            manova_dependent[2] += [np.mean(self.sim_time_breakdown_arr[4])]
+            #################### /UNEVEN DISTRIBUTION TRIALS
+
             #more processing happens here
         print ""
         print "RESULTS:"
@@ -948,6 +964,9 @@ class JoinSimulation():
             print "For Itemwise Only:"
             print "Average Precision:", precision
             print "Average Recall:", recall
+        #################### /UNEVEN DISTRIBUTION TRIALS
+        return (manova_dependent, manova_independent)
+        #################### /UNEVEN DISTRIBUTION TRIALS
 
 
     ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles

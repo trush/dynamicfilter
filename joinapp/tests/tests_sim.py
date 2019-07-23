@@ -5,6 +5,7 @@ from joinapp.join_simulations import *
 from joinapp.toggles import *
 from plotting import *
 from .. import graph_gen
+from statsmodels.multivariate import manova
 
 def print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb):
         print "****************************** JOIN TYPE:", join_type, "******************************"
@@ -35,7 +36,7 @@ def print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pre
         if pjf_amb != PJF_AMBIGUITY:
             print "****************************** PJF AMBIGUITY:", pjf_amb
 
-class Simulation_Tests(TestCase):
+class Simulation_Tests(TransactionTestCase):
     # def test_multi_sim(self):
     #     sim = JoinSimulation()
     #     results = sim.run_multi_sims()
@@ -63,74 +64,16 @@ class Simulation_Tests(TestCase):
 
         
         #################### /UNEVEN DISTRIBUTION TRIALS
-        prob_inf = 0.6 # likelihood an item will be influential
-        inf_match = 0.8 # probability an influential item will match a given primary item even if it is not selected to match by the join predicate selectivity
-
-        # # SIM 1
-        # join_type = 1
-        # have_sec_list = False
-        # pjf_list = [("0", 1)]
-        # join_cond_selectivity = 0.1
-        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        # sim = JoinSimulation()
-        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match)
-        # # SIM 2
-        # join_type = 1.1
-        # have_sec_list = False
-        # join_cond_selectivity = 0.1
-        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        # sim = JoinSimulation()
-        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match)
-                        
-
-        # prob_inf = 0.6 # likelihood an item will be influential
-        # inf_match = 0.9 # probability an influential item will match a given primary item even if it is not selected to match by the join predicate selectivity
-
-        # # SIM 1
-        # join_type = 1
-        # have_sec_list = False
-        # pjf_list = [("0", 1)]
-        # join_cond_selectivity = 0.1
-        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        # sim = JoinSimulation()
-        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match)
-        # # SIM 2
-        # join_type = 1.1
-        # have_sec_list = False
-        # join_cond_selectivity = 0.1
-        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        # sim = JoinSimulation()
-        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match)
-                                 
-
-        # prob_inf = 0.6 # likelihood an item will be influential
-        # inf_match = 1 # probability an influential item will match a given primary item even if it is not selected to match by the join predicate selectivity
-
-        # # SIM 1
-        # join_type = 1
-        # have_sec_list = False
-        # pjf_list = [("0", 1)]
-        # join_cond_selectivity = 0.1
-        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        # sim = JoinSimulation()
-        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match)
-        # # SIM 2
-        # join_type = 1.1
-        # have_sec_list = False
-        # join_cond_selectivity = 0.1
-        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        # sim = JoinSimulation()
-        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match)
-                        
 
 
-        inf_list = [0.9,1]
-        match_list = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]
+        inf_list = [0.2,0.4,0.6,0.8]
+        match_list = [0.2,0.4,0.6,0.8]
+        aggregate_manova = ([[],[],[]],[[],[],[]])
 
 
-        for i in range(4):
-            for inf in inf_list:
-                for match_prob in match_list:
+        for inf in inf_list:
+            for match_prob in match_list:
+                for i in range(1):
                     prob_inf = inf
                     inf_match = match_prob
                     print "--------------------------------------------------------------------"
@@ -143,6 +86,12 @@ class Simulation_Tests(TestCase):
                     print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
                     sim = JoinSimulation()
                     results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match)
+                    
+                    for i in range(3):
+                        aggregate_manova[0][i] += results[0][i]
+                    for i in range(3):
+                        aggregate_manova[1][i] += results[1][i]
+                    
                     # SIM 2
                     join_type = 1.1
                     have_sec_list = False
@@ -152,6 +101,15 @@ class Simulation_Tests(TestCase):
                     results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb, prob_inf, inf_match)
                     print inf, match_prob
                     print "--------------------------------------------------------------------"
+
+                    for i in range(3):
+                        aggregate_manova[0][i] += results[0][i]
+                    for i in range(3):
+                        aggregate_manova[1][i] += results[1][i]
+                    
+                    print aggregate_manova
+
+        print manova.MANOVA(aggregate_manova[0], aggregate_manova[1])
         #################### /UNEVEN DISTRIBUTION TRIALS
         
         # # SIM 3
