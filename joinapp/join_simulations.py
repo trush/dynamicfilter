@@ -22,14 +22,14 @@ class JoinSimulation():
 
         ## Total number of tasks issued/completed in one simulation
         self.num_tasks_completed = 0
-        # [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
-        # Index is task type
+        ## [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
+        ## Index is task type
         self.num_tasks_breakdown = [0,0,0,0,0,0]
 
         ## Amount of worker-time spent during the simulation
         self.sim_time = 0
-        # [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
-        # Index is task type
+        ## [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
+        ## Index is task type
         self.sim_time_breakdown = [0,0,0,0,0,0]
 
         ## For graphing # of primary items left vs. number of tasks completed
@@ -104,6 +104,7 @@ class JoinSimulation():
                 print "Error reading item "
         f.close()
 
+    ## @brief Loads real data answers into database
     def load_real_data(self):
         if JOIN_TYPE == 0:
             fn = path.join(path.dirname(__file__), REAL_DATA_JF)
@@ -512,7 +513,7 @@ class JoinSimulation():
 
         #return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr, num_prim_left_arr)
 
-    ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
+    ## @brief Main function for running a simulation. Changes to the simulation can be made in toggles
     def run_sim(self):
         random.seed()
 
@@ -776,6 +777,8 @@ class JoinSimulation():
     ########################################################################################################################################################################
     ########################################################################################################################################################################
     ########################################################################################################################################################################
+    ## @brief Print accuracy for synthetic data. This is for running sims overnight with multiple toggles (a copy so we didn't mess
+    # up the original)
     def accuracy_syn_data_overnight(self,join_type):
         #___ JF Task Accuracy ___#
         if join_type == 0:
@@ -881,7 +884,8 @@ class JoinSimulation():
 
 
 
-
+    ## @brief runs run_sim with the same settings NUM_SIMS times. This is for running sims overnight with multiple toggles (a copy so we didn't mess
+    # up the original)
     def run_multi_overnight_sim(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb): 
         prim_accuracy = []
         false_negatives = []
@@ -948,7 +952,8 @@ class JoinSimulation():
             print "Average Recall:", recall
 
 
-    ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
+    ## @brief Main function for running a simulation. Changes to the simulation can be made in toggles. This is for running sims overnight with multiple toggles (a copy so we didn't mess
+    # up the original)
     def run_overnight_sim(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb):
         random.seed()
 

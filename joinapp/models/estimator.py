@@ -12,6 +12,7 @@ class FStatistic(models.Model):
     ## relations to keep track of which items are seen times_seen times
     estimator = models.ForeignKey('Estimator')
 
+    ##@brief ToString method
     def __str__(self):
         return "FStats for " + str(self.times_seen) + " with " + str(self.num_of_items) + " items."
 
@@ -27,6 +28,7 @@ class Estimator(models.Model):
     ## Used in the enumeration estimate in chao_estimator()
     total_sample_size = models.IntegerField(default=0)
 
+    ## @brief ToString method
     def __str__(self):
         return "Estimator for Species Enumeration"
 

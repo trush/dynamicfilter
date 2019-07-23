@@ -89,7 +89,7 @@ class JFTask(models.Model):
     ## average time per worker spent processing this task:
     average_time = models.FloatField(default=0)
 
-    # Whether this task is being worked on/already has progress towards consensus
+    ## Whether this task is being worked on/already has progress towards consensus
     # Default set to true when created (we only create as needed), and set to false when we reach consensus
     in_progress = models.BooleanField(default=True)
 
@@ -161,7 +161,7 @@ class FindPairsTask(models.Model):
     total_time = models.FloatField(default=0)
     ## average time per worker spent processing this task:
     average_time = models.FloatField(default=0)
-    # Whether this task is being worked on/already has progress towards consensus
+    ## Whether this task is being worked on/already has progress towards consensus
     # Default set to true when created (we only create as needed), and set to false when we reach consensus
     in_progress = models.BooleanField(default=True) 
 
@@ -355,7 +355,7 @@ class JoinPairTask(models.Model):
     total_time = models.FloatField(default=0)
     ## average time per worker spent processing this task:
     average_time = models.FloatField(default=0)
-    # Whether this task is being worked on/already has progress towards consensus
+    ## Whether this task is being worked on/already has progress towards consensus
     # Default set to true when created (we only create as needed), and set to false when we reach consensus
     in_progress = models.BooleanField(default=True)
 
@@ -463,7 +463,7 @@ class PJFTask(models.Model):
     total_time = models.FloatField(default=0)
     ## average time per worker spent processing this task:
     average_time = models.FloatField(default=0)    
-    # Whether this task is being worked on/already has progress towards consensus
+    ## Whether this task is being worked on/already has progress towards consensus
     # Default set to true when created (we only create as needed), and set to false when we reach consensus
     in_progress = models.BooleanField(default=True)
 
@@ -543,9 +543,6 @@ class PJFTask(models.Model):
 ## Used for reaching consensus on a pre-join filter for PJFTask
 @python_2_unicode_compatible
 class ItemPJFPair(models.Model):
-    """
-    Model representing pairs of items and pre-join filter tasks.
-    """
     ## primary item associated with this join
     primary_item = models.ForeignKey('PrimaryItem', default=None, null=True)
     ## secondary item associated with this join
@@ -557,7 +554,7 @@ class ItemPJFPair(models.Model):
     ## many to one relationship used for finding consensus
     pjf_task = models.ForeignKey(PJFTask)
 
-    # Whether this task is being worked on/already has progress towards consensus
+    ## Whether this task is being worked on/already has progress towards consensus
     # Default set to true when created (we only create as needed), and set to false when we reach consensus
     in_progress = models.BooleanField(default=True)
 
@@ -613,7 +610,7 @@ class SecPredTask(models.Model):
     total_time = models.FloatField(default=0)
     ## average time per worker spent processing this task:
     average_time = models.FloatField(default=0)
-    # Whether this task is being worked on/already has progress towards consensus
+    ## Whether this task is being worked on/already has progress towards consensus
     # Default set to true when created (we only create as needed), and set to false when we reach consensus
     in_progress = models.BooleanField(default=True)
 
