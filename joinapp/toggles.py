@@ -16,12 +16,8 @@ HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no
 PJF_LIST = [("0",0.20), ("1",0.20), ("2",0.20), ("3",0.20),("4",0.20)]
 
 #_________________ For The Crowd _________________#
-<<<<<<< HEAD
-FLOOR_AMBIGUITY_FIND_PAIRS = 1
-=======
 ## the worker gives a random percent between floor ambiguity and 1 of all the items in a find pairs task
 FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
->>>>>>> 5b658a300b39aa95535e0ff47b540d7ea78ec168
 
 #________ Simulation Settings ________#
 REAL_DATA = False # real or synthetic data
@@ -35,18 +31,11 @@ REAL_DATA = False # real or synthetic data
 # 2.3 = pre-join filtered join - secondary predicates first
 # 3.1 = item-wise join on second list (all sec preds then find pairs) (breadth-first)
 # 3.2 = item-wise join on second list (all find pairs then sec preds)
-<<<<<<< HEAD
-# 3.3 = item-wise join on second list (item-by-item, sec preds first)
-JOIN_TYPE = 1
-NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 50 # number of simulations to run
-=======
 # 3.3 = item-wise join on second list (item-by-item, sec preds first) (depth-first)
 JOIN_TYPE = 3.1
 NUM_WORKERS = 200 # number of distinct workers
 ## number of sims that run_multi_sim() runs
 NUM_SIMS = 10 # number of simulations to run
->>>>>>> 5b658a300b39aa95535e0ff47b540d7ea78ec168
 SIMULATE_TIME = False
 TIME_STEP = 1
 ## only for find pairs tasks to finish tasks that have been started before starting a new task
@@ -71,15 +60,10 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 
 
 #_______ Selectivity and Ambiguity Settings _________#
-<<<<<<< HEAD
-SEC_PRED_SELECTIVITY = 0
-JOIN_COND_SELECTIVITY = 0 #likelyhood of being a pair given that they are in the same PJF
-=======
 ## what percent of secondary items pass the secondary predicate
 SEC_PRED_SELECTIVITY = 0.3
 ## likelyhood of being a pair given that they are in the same PJF
 JOIN_COND_SELECTIVITY = 0.5 
->>>>>>> 5b658a300b39aa95535e0ff47b540d7ea78ec168
 
 ## how likely it is that a worker will give a random answer instead of the correct answer for each task type
 JF_AMBIGUITY = 0
