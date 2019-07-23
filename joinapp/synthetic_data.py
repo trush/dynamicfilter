@@ -11,12 +11,12 @@ from views_helpers import parse_pairs
 def syn_load_list():
     ## NOTE: weird range bc we use pks throughout the code for primary items
     ## and pks start from 1. 
-    for i in range(toggles.NUM_PRIM_ITEMS): #TODO TOGGLES
+    for i in range(toggles.NUM_PRIM_ITEMS):
         PrimaryItem.objects.create(name = str(i))
 
 ## @brief load/create instance of secondary list (when toggle is set so that secondary list exists)
 def syn_load_second_list():
-    for i in range(NUM_SEC_ITEMS): #TODO TOGGLES
+    for i in range(NUM_SEC_ITEMS): 
         SecondaryItem.objects.create(name = str(i))
 
 
@@ -26,15 +26,16 @@ def syn_load_second_list():
 #   @param SecPredTasks_Dict simulation dictionary for secondary predicate tasks
 def syn_load_sec_pred_tasks(SecPredTasks_Dict):
     random.seed()
-    for secondary in range(NUM_SEC_ITEMS): #TODO TOGGLES
-        if random.random() < SEC_PRED_SELECTIVITY: #TODO TOGGLES
+    for secondary in range(NUM_SEC_ITEMS): 
+        if random.random() < SEC_PRED_SELECTIVITY: 
             ground_truth = True
         else:
             ground_truth = False
         time = SEC_PRED_TASK_TIME_MEAN
         value = ("None", str(secondary), time, ground_truth)
         SecPredTasks_Dict[str(secondary)] = value
-
+## @brief Populates the FakeSecPredTasks_Dict with fake secondary predicate tasks
+# We haven't been using fake secondary items
 def syn_load_fake_sec_pred_tasks(FakeSecPredTasks_Dict):
     for fake in FAKE_SEC_ITEM_LIST:
         if random.random() < SEC_PRED_SELECTIVITY:
@@ -45,7 +46,7 @@ def syn_load_fake_sec_pred_tasks(FakeSecPredTasks_Dict):
         value = ("None", fake, time, ground_truth)
         FakeSecPredTasks_Dict[fake] = value
 
-
+## @brief Populates the dictionaries with tasks
 def syn_load_everything(sim):
     random.seed()
     #___________________ FILL PJF DICTIONARIES __________________#

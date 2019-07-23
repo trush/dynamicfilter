@@ -19,17 +19,17 @@ class SecondaryItem(models.Model):
     ## Name of secondary item
     name = models.CharField(max_length=100)
 
-    ## NOTE: Maybe unnecessary? In our case this would be restaurant
+    ## Type of secondary item (hospitals, restaurants, etc.)
     item_type = models.CharField(max_length=50)
 
     ## If this item has not yet reached consensus on matching some primary item, it should not give out tasks
     matches_some = models.BooleanField(db_index=True, default=False)
 
-    ## Consensus - None if not reached, True if item fulfills predicate, False if not
+    ## None if consensus not reached, True if item fulfills predicate, False if not
     second_pred_result = models.NullBooleanField(db_index=True, default=None)
 
     ## Is this item done being processed or not
-    ## True if second_pred_result is False, or second_pred_result and found_all_pairs is true
+    ## True if second_pred_result is False, or if second_pred_result and found_all_pairs is true
     is_done = models.BooleanField(db_index=True, default=False)
 
     ## Number of primary items related to this item
@@ -51,6 +51,7 @@ class SecondaryItem(models.Model):
     def __str__(self):
         return str(self.name)          
 
+    ## @brief updates is_done for item
     def update_state(self):
         if self.found_all_pairs is True:
             if self.second_pred_result is True:
@@ -63,6 +64,7 @@ class SecondaryItem(models.Model):
         elif self.found_all_pairs is True and self.matches_some is False:
             self.is_done = True
         self.save()
+
 ## @brief Model representing an item in the primary list
 # In our example, primary items are hotels
 @python_2_unicode_compatible
@@ -70,7 +72,7 @@ class PrimaryItem(models.Model):
     ## Name of primary item
     name = models.CharField(max_length=100)
 
-    ## NOTE: Maybe unnecessary? In our case this would be hotel
+    ## Type of primary item (hotel, restaurant, etc.)
     item_type = models.CharField(max_length=50)
 
     ## Boolean representing whether or not this primary item passes the joinable filter
