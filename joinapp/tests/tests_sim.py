@@ -84,73 +84,124 @@ class Simulation_Tests(TestCase):
         print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
         print "just join type printed? All good"
 
-    ### NUM PRIMARY
+    ####### TESTING ########
+        print "testing"
+        #### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         #reset toggles
         num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
         #new toggles
-        join_type = 0
+        join_type = 3.7
         have_sec_list = set_have_sec_list(join_type)
+        sec_pred_selectivity = 0.5
+        join_cond_selectivity = 1
         print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
         #run sim
         sim = JoinSimulation()
         results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        
-
-
-
-        ## --------- SIM 1
-        #reset toggles
-        num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        #new toggles
-        join_type = 2.2
-        have_sec_list = True
-        print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        #run sim
-        sim = JoinSimulation()
-        results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        ## --------- SIM 2
-        #reset toggles
-        num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        #new toggles
-        join_type = 2.3
-        have_sec_list = False
-        print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        #run sim
-        sim = JoinSimulation()
-        results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        ## --------- SIM 3
-        #reset toggles
-        num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        #new toggles
-        join_type = 2
-        have_sec_list = False
-        print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        #run sim
-        sim = JoinSimulation()
-        results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        ## --------- SIM 4
-        #reset toggles
-        num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        #new toggles
-        join_type = 2.1
-        have_sec_list = True
-        print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-        #run sim
-        sim = JoinSimulation()
-        results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-
-
-
-
-
+        # #### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # #reset toggles
+        # num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #new toggles
+        # join_type = 3.7
+        # have_sec_list = set_have_sec_list(join_type)
+        # sec_pred_selectivity = 0.5
+        # join_cond_selectivity = 1
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #run sim
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # #reset toggles
+        # num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #new toggles
+        # join_type = 3.7
+        # have_sec_list = set_have_sec_list(join_type)
+        # sec_pred_selectivity = 0.5
+        # join_cond_selectivity = 0.3
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #run sim
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # #reset toggles
+        # num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #new toggles
+        # join_type = 3.7
+        # have_sec_list = set_have_sec_list(join_type)
+        # sec_pred_selectivity = 0.5
+        # join_cond_selectivity = 0.4
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #run sim
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # #reset toggles
+        # num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #new toggles
+        # join_type = 3.7
+        # have_sec_list = set_have_sec_list(join_type)
+        # sec_pred_selectivity = 0.5
+        # join_cond_selectivity = 0.5
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #run sim
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # #reset toggles
+        # num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #new toggles
+        # join_type = 3.7
+        # have_sec_list = set_have_sec_list(join_type)
+        # sec_pred_selectivity = 0.5
+        # join_cond_selectivity = 0.6
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #run sim
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # #reset toggles
+        # num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #new toggles
+        # join_type = 3.7
+        # have_sec_list = set_have_sec_list(join_type)
+        # sec_pred_selectivity = 0.5
+        # join_cond_selectivity = 0.7
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #run sim
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # #reset toggles
+        # num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #new toggles
+        # join_type = 3.7
+        # have_sec_list = set_have_sec_list(join_type)
+        # sec_pred_selectivity = 0.5
+        # join_cond_selectivity = 0.8
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #run sim
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #### --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # #reset toggles
+        # num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #new toggles
+        # join_type = 3.7
+        # have_sec_list = set_have_sec_list(join_type)
+        # sec_pred_selectivity = 0.5
+        # join_cond_selectivity = 0.9
+        # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+        # #run sim
+        # sim = JoinSimulation()
+        # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
    
-#EXAMPLE SIMULATION:
-    ###### RESET TOGGLES:
-    # num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-    ###### SET NEW TOGGLES:
-    # join_type = 2.1
-    # have_sec_list = True
-    # print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
-    ###### RUN SIMULATION
-    # sim = JoinSimulation()
-    # results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+# EXAMPLE SIMULATION:
+#     ##### RESET TOGGLES:
+#     num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb = reset_toggles(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+#     ##### SET NEW TOGGLES:
+#     join_type = 2.1
+#     have_sec_list = True
+#     print_dif(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)
+#     ##### RUN SIMULATION
+#     sim = JoinSimulation()
+#     results = sim.run_multi_overnight_sim(num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb)

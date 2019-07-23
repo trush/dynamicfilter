@@ -13,7 +13,7 @@ HAVE_SEC_LIST = False #Do we start with the secondary list populated yes/no
 PJF_LIST = [("0",0.20), ("1",0.20), ("2",0.20), ("3",0.20),("4",0.20)]
 
 #_________________ For The Crowd _________________#
-FLOOR_AMBIGUITY_FIND_PAIRS = 0.95
+FLOOR_AMBIGUITY_FIND_PAIRS = 1
 
 #________ Simulation Settings ________#
 REAL_DATA = False # real or synthetic data
@@ -27,9 +27,9 @@ REAL_DATA = False # real or synthetic data
 # 3.1 = item-wise join on second list (all sec preds then find pairs)
 # 3.2 = item-wise join on second list (all find pairs then sec preds)
 # 3.3 = item-wise join on second list (item-by-item, sec preds first)
-JOIN_TYPE = 3.1
+JOIN_TYPE = 1
 NUM_WORKERS = 200 # number of distinct workers
-NUM_SIMS = 10 # number of simulations to run
+NUM_SIMS = 50 # number of simulations to run
 SIMULATE_TIME = False
 TIME_STEP = 1
 USE_IN_PROGRESS = False
@@ -53,8 +53,8 @@ UPDATE_ON_CONSENSUS = False #decides whether the task statistics are updated for
 
 
 #_______ Selectivity and Ambiguity Settings _________#
-SEC_PRED_SELECTIVITY = 0.3
-JOIN_COND_SELECTIVITY = 0.5 #likelyhood of being a pair given that they are in the same PJF
+SEC_PRED_SELECTIVITY = 0
+JOIN_COND_SELECTIVITY = 0 #likelyhood of being a pair given that they are in the same PJF
 
 JF_AMBIGUITY = 0
 SEC_PRED_AMBIGUITY = 0
