@@ -59,7 +59,7 @@ def set_have_sec_list(join_type):
         have_sec_list = False
     return have_sec_list
 
-class Simulation_Tests(TestCase):
+class Simulation_Tests(TransactionTestCase):
     # def test_multi_sim(self):
     #     sim = JoinSimulation()
     #     results = sim.run_multi_sims()

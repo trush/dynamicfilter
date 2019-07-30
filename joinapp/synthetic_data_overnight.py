@@ -1,22 +1,17 @@
+from synthetic_data import *
 
-import random
-import numpy as np
-from toggles import *
-from models import *
-from views_helpers import parse_pairs
-
-#___________ Load Synthetic Data ___________#
-
-## @brief Load/create instances of the primary list
-def syn_load_list():
+####################################################################################################################################################################################################
+################################################ OVERNIGHT OVERNIGHT OVERNIGHT OVERNIGHT OVERNIGHT #################################################################################################
+####################################################################################################################################################################################################
+def syn_load_list_overnight(num_prim):
     ## NOTE: weird range bc we use pks throughout the code for primary items
     ## and pks start from 1. 
-    for i in range(toggles.NUM_PRIM_ITEMS):
+    for i in range(num_prim):
         PrimaryItem.objects.create(name = str(i))
 
 ## @brief load/create instance of secondary list (when toggle is set so that secondary list exists)
-def syn_load_second_list():
-    for i in range(NUM_SEC_ITEMS): 
+def syn_load_second_list_overnight(num_sec):
+    for i in range(num_sec):
         SecondaryItem.objects.create(name = str(i))
 
 
@@ -24,45 +19,25 @@ def syn_load_second_list():
 #   keys: secondary item number
 #   values: ("NA", secondary item name, task time, ground truth)
 #   @param SecPredTasks_Dict simulation dictionary for secondary predicate tasks
-def syn_load_sec_pred_tasks(SecPredTasks_Dict):
+def syn_load_sec_pred_tasks_overnight(SecPredTasks_Dict,num_sec,sec_pred_selectivity):
     random.seed()
-    for secondary in range(NUM_SEC_ITEMS): 
-        if random.random() < SEC_PRED_SELECTIVITY: 
+    for secondary in range(num_sec):
+        if random.random() < sec_pred_selectivity:
             ground_truth = True
         else:
             ground_truth = False
         time = SEC_PRED_TASK_TIME_MEAN
         value = ("None", str(secondary), time, ground_truth)
         SecPredTasks_Dict[str(secondary)] = value
-## @brief Populates the FakeSecPredTasks_Dict with fake secondary predicate tasks
-# We haven't been using fake secondary items
-def syn_load_fake_sec_pred_tasks(FakeSecPredTasks_Dict):
-    for fake in FAKE_SEC_ITEM_LIST:
-        if random.random() < SEC_PRED_SELECTIVITY:
-            ground_truth = True
-        else:
-            ground_truth = False
-        time = SEC_PRED_TASK_TIME_MEAN
-        value = ("None", fake, time, ground_truth)
-        FakeSecPredTasks_Dict[fake] = value
 
-## @brief Populates the dictionaries with tasks
-def syn_load_everything(sim):
-
-
-    #################### UNEVEN DISTRIBUTION TRIALS
-    probmatch = 0.3
-    probinfluential = 0.2
-    influentials = []
-    #################### /UNEVEN DISTRIBUTION TRIALS
-
+def syn_load_everything_overnight(sim,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb):
     random.seed()
     #___________________ FILL PJF DICTIONARIES __________________#
     for primary in PrimaryItem.objects.all():
         choice = random.random()
         sofar = 0
         pjf = False
-        for prejoin in PJF_LIST: #TODO TOGGLES
+        for prejoin in pjf_list: 
             if choice < prejoin[1] + sofar:
                 pjf = prejoin[0]
                 break
@@ -75,11 +50,11 @@ def syn_load_everything(sim):
         value = (primary.name, "None", PJF_TIME_MEAN, pjf)
         sim.PrimPJFTasks_Dict[primary.name] = value
 
-    for secondary in range(NUM_SEC_ITEMS): #TODO TOGGLES
+    for secondary in range(num_sec):
         choice = random.random()
         sofar = 0
         pjf = False
-        for prejoin in PJF_LIST: #TODO TOGGLES
+        for prejoin in pjf_list:
             if choice < prejoin[1] + sofar:
                 pjf = prejoin[0]
                 break
@@ -92,23 +67,12 @@ def syn_load_everything(sim):
         value = ("None", str(secondary), PJF_TIME_MEAN, pjf)
         sim.SecPJFTasks_Dict[str(secondary)] = value
 
-
     #_________________ FILL JOIN PAIRS, FIND PAIRS PRIM AND FIND PAIRS SEC _________________#
     # populates find pairs dictionaries w/ empty entries
     for primary in sim.PrimPJFTasks_Dict:
         sim.FindPairsTasks_Dict[primary] = (primary,"None", FIND_PAIRS_TASK_TIME_MEAN, "")
     for secondary in sim.SecPJFTasks_Dict:
         sim.FindPairsSecTasks_Dict[secondary] = ("None", secondary, FIND_PAIRS_TASK_TIME_MEAN, "")
-        #################### UNEVEN DISTRIBUTION TRIALS
-        if random.random() < probinfluential:
-            influentials += [secondary]
-        #################### UNEVEN DISTRIBUTION TRIALS
-    
-    #################### UNEVEN DISTRIBUTION TRIALS
-    print influentials
-    #################### UNEVEN DISTRIBUTION TRIALS
-
-
     # matches primary items to secondary items
     for primary in sim.PrimPJFTasks_Dict:
         primPJF = sim.PrimPJFTasks_Dict[primary][3]
@@ -116,10 +80,7 @@ def syn_load_everything(sim):
             secPJF = sim.SecPJFTasks_Dict[secondary][3]
             if primPJF is secPJF:
                 pjf = primPJF
-
-                #################### UNEVEN DISTRIBUTION TRIALS
-                if random.random() < JOIN_COND_SELECTIVITY or (secondary in influentials and random.random() < probmatch):
-                #################### UNEVEN DISTRIBUTION TRIALS
+                if random.random() < join_cond_selectivity:
                     answer = 1
                     #add pair to primary find pairs
                     primary_item,none,time,current_find_pairs = sim.FindPairsTasks_Dict[primary]
@@ -145,8 +106,7 @@ def syn_load_everything(sim):
             sim.FindPairsSecTasks_Dict[secondary] = ("None", secondary, FIND_PAIRS_TASK_TIME_MEAN, "None")
 
     #______________ FILL SECONDARY PREDICATE AND FAKE SECONDARY PREDICATE TASKS ______________#
-    syn_load_sec_pred_tasks(sim.SecPredTasks_Dict)
-    #syn_load_fake_sec_pred_tasks(sim.FakeSecPredTasks_Dict)
+    syn_load_sec_pred_tasks_overnight(sim.SecPredTasks_Dict,num_sec,sec_pred_selectivity)
 
     #______________ FILL JOINABLE FILTER DICTIONARIES ____________#
     for primary in sim.FindPairsTasks_Dict:
@@ -166,19 +126,17 @@ def syn_load_everything(sim):
 
 ## @brief gives a worker response to a find pairs task based on a FindPairsTasks_Dict hit
 #   @param hit tuple with information about the ground truth for this task
-def syn_answer_find_pairs_task(hit):
+def syn_answer_find_pairs_task_overnight(hit,floor_fp):
     random.seed()
     (primary, secondary, task_time, truth) = hit
     real_secondaries = parse_pairs(truth)
 
-    min_responses = int(len(real_secondaries) * FLOOR_AMBIGUITY_FIND_PAIRS) #TODO TOGGLES
+    min_responses = int(len(real_secondaries) * floor_fp)
     max_responses = int(len(real_secondaries))+1
     if max_responses - min_responses is 0:
         num_sec = max_responses
     else:
         num_sec = np.random.randint(low = min_responses, high = max_responses)
-
-    #num_sec = max_responses
 
     if num_sec is not 0:
         this_secondaries = np.random.choice(real_secondaries, size = num_sec, replace = False)
@@ -192,12 +150,12 @@ def syn_answer_find_pairs_task(hit):
 
 ## @brief gives a worker response to a joinable filter task based on a JFTasks_Dict hit
 #   @param hit tuple with information about the ground truth for this task
-def syn_answer_joinable_filter_task(hit):
+def syn_answer_joinable_filter_task_overnight(hit,jf_amb):
     (primary,secondary,task_time,truth) = hit
 
     #determine answer
     random.seed()
-    if random.random() > JF_AMBIGUITY: #TODO TOGGLES
+    if random.random() > jf_amb:
         answer = truth
     else:
         answer = random.choice([0,1])
@@ -206,12 +164,12 @@ def syn_answer_joinable_filter_task(hit):
 
 ## @brief gives a worker response to a secondary predicate task based on a SecPredTasks_Dict hit
 #   @param hit tuple with information about the ground truth for this task
-def syn_answer_sec_pred_task(hit):
+def syn_answer_sec_pred_task_overnight(hit,sec_pred_amb):
     (primary,secondary,task_time,truth) = hit
 
     #determine answer
     random.seed()
-    if random.random() > SEC_PRED_AMBIGUITY: #TODO TOGGLES
+    if random.random() > sec_pred_amb: 
         if truth is True:
             answer = 1
         elif truth is False:
@@ -226,12 +184,12 @@ def syn_answer_sec_pred_task(hit):
 ## @brief gives a worker response to a join pair task based on a JoinPairTasks_Dict hit
 #   @remarks Not used in current implementation
 #   @param hit tuple with information about the ground truth for this task
-def syn_answer_join_pair_task(hit):
+def syn_answer_join_pair_task_overnight(hit,join_cond_amb):
     (pjf, task_time, truth) = hit
 
     #determine answer
     random.seed()
-    if random.random() > JOIN_COND_AMBIGUITY: #TODO TOGGLES
+    if random.random() > join_cond_amb:
         answer = truth
     else:
         answer = random.choice([0,1])
@@ -240,16 +198,15 @@ def syn_answer_join_pair_task(hit):
 
 ## @brief gives a worker response to a pjf task based on a PJF Dictionary hit
 #   @param hit tuple with information about the ground truth for this task
-def syn_answer_pjf_task(hit):
+def syn_answer_pjf_task_overnight(hit,pjf_amb,pjf_list):
     (primary,secondary,task_time,truth) = hit
 
     #determine answer
     random.seed()
-    if random.random() > PJF_AMBIGUITY: #TODO TOGGLES
+    if random.random() > pjf_amb:
         answer = truth
     else:
-        answer = random.choice(PJF_LIST) #TODO TOGGLES
+        answer = random.choice(pjf_list)
     time = np.random.normal(PJF_TIME_MEAN, PJF_TIME_SD, 1)
     return (answer,time)
-
 
