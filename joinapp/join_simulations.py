@@ -22,14 +22,14 @@ class JoinSimulation():
 
         ## Total number of tasks issued/completed in one simulation
         self.num_tasks_completed = 0
-        # [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
-        # Index is task type
+        ## [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
+        ## Index is task type
         self.num_tasks_breakdown = [0,0,0,0,0,0]
 
         ## Amount of worker-time spent during the simulation
         self.sim_time = 0
-        # [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
-        # Index is task type
+        ## [Joinable Filter, Find Pairs on Primaries, Join Pairs, PJF, Secondary Predicates, Find Pairs on Secondaries]
+        ## Index is task type
         self.sim_time_breakdown = [0,0,0,0,0,0]
 
         ## For graphing # of primary items left vs. number of tasks completed
@@ -104,6 +104,7 @@ class JoinSimulation():
                 print "Error reading item "
         f.close()
 
+    ## @brief Loads real data answers into database
     def load_real_data(self):
         if JOIN_TYPE == 0:
             fn = path.join(path.dirname(__file__), REAL_DATA_JF)
@@ -512,7 +513,7 @@ class JoinSimulation():
 
         #return (join_selectivity_arr, num_jf_assignments_arr, num_find_pairs_assignments_arr, num_sec_pred_assignments_arr, time_arr, total_assignments_arr, num_prim_left_arr)
 
-    ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
+    ## @brief Main function for running a simulation. Changes to the simulation can be made in toggles
     def run_sim(self):
         random.seed()
 
@@ -776,6 +777,8 @@ class JoinSimulation():
     ########################################################################################################################################################################
     ########################################################################################################################################################################
     ########################################################################################################################################################################
+    ## @brief Print accuracy for synthetic data. This is for running sims overnight with multiple toggles (a copy so we didn't mess
+    # up the original)
     def accuracy_syn_data_overnight(self,join_type):
         #___ JF Task Accuracy ___#
         if join_type == 0:
@@ -815,10 +818,7 @@ class JoinSimulation():
             if task.result is not None:
                 total_tasks += [task]
         for task in total_tasks:
-            if int(task.secondary_item.name) < NUM_SEC_ITEMS:
-                a,b,c,ground_truth = self.SecPredTasks_Dict[task.secondary_item.name]
-            else:
-                a,b,c,ground_truth = self.FakeSecPredTasks_Dict[task.secondary_item.name]
+            a,b,c,ground_truth = self.SecPredTasks_Dict[task.secondary_item.name]
             if task.result is ground_truth:
                 correct_tasks += 1
 
@@ -881,7 +881,8 @@ class JoinSimulation():
 
 
 
-
+    ## @brief runs run_sim with the same settings NUM_SIMS times. This is for running sims overnight with multiple toggles (a copy so we didn't mess
+    # up the original)
     def run_multi_overnight_sim(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb): 
         prim_accuracy = []
         false_negatives = []
@@ -947,8 +948,30 @@ class JoinSimulation():
             print "Average Precision:", precision
             print "Average Recall:", recall
 
+        print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+        print ""
+        print "RESULTS:"
+        print ""
+        print "Total Tasks:", self.num_tasks_completed_arr
+        print ""
 
-    ## @brief Main function for running a simmulation. Changes to the simmulation can be made in toggles
+        print "PJF Tasks:", self.num_tasks_breakdown_arr[3]
+        print "Find Pairs Tasks (Primary):",self.num_tasks_breakdown_arr[1]
+        print "Find Pairs Tasks (Secondary):", self.num_tasks_breakdown_arr[5]
+        print "Secondary Predicate Tasks:", self.num_tasks_breakdown_arr[4]
+        print "Join Pair Tasks:", self.num_tasks_breakdown_arr[2]
+        print "Joinable Filter Tasks:", self.num_tasks_breakdown_arr[0]
+
+        
+        
+
+        print "Query Accuracy:", prim_accuracy
+        print "Items Evaluated Incorrectly by Missing A True:", missed_true_secs
+        print "Items Evaluated Incorrectly by Mis-evaluating A False:", found_false_secs
+
+
+    ## @brief Main function for running a simulation. Changes to the simulation can be made in toggles. This is for running sims overnight with multiple toggles (a copy so we didn't mess
+    # up the original)
     def run_overnight_sim(self,num_prim,num_sec,have_sec_list,pjf_list,floor_fp,join_type,sec_pred_selectivity,join_cond_selectivity, jf_amb, sec_pred_amb,join_cond_amb, pjf_amb):
         random.seed()
 
@@ -999,9 +1022,9 @@ class JoinSimulation():
             elif join_type == 1.1: # item-wise join  
                 task = choose_task_IW1(worker_id, estimator)
             elif join_type == 2 or join_type == 2.1: 
-                task = choose_task_PJF_overnight(worker_id, estimator)
+                task = choose_task_PJF_overnight(worker_id, estimator,join_type)
             elif join_type == 2.2 or join_type == 2.3:
-                task = choose_task_PJF2_overnight(worker_id, estimator)
+                task = choose_task_PJF2_overnight(worker_id, estimator,join_type)
             elif join_type == 3.1:
                 task = choose_task_IWS1(worker_id, estimator)
             elif join_type == 3.2:
@@ -1048,7 +1071,7 @@ class JoinSimulation():
                 task_type = 4
                 my_item = task.secondary_item.name
                 # Check for fake items
-                if REAL_DATA is False and int(my_item) >= NUM_SEC_ITEMS:
+                if REAL_DATA is False and int(my_item) >= num_sec:
                     print "-----------------------A FAKE ITEM REACHED CONSENSUS-----------------------"
                     hit = self.FakeSecPredTasks_Dict[my_item]
                 else:

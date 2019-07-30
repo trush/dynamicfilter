@@ -15,7 +15,7 @@ def choose_task_JF(workerID):
     return choose_task_joinable_filter_helper(new_worker)
 
 ## @brief chooses the next task to issue for an item-wise join where all 
-## find pairs tasks are evaluated first, then secondary predicate tasks
+## find pairs tasks are evaluated first, then secondary predicate tasks (path 1)
 # @param workerID workerID of the worker this task is going to
 # @param estimator the estimator used to determine when the second list is complete
 def choose_task_IW(workerID, estimator):
@@ -30,7 +30,7 @@ def choose_task_IW(workerID, estimator):
         return choose_task_sec_pred(new_worker)
 
 ## @brief chooses the next task to issue for an item-wise join where one
-## find pairs task is evaluated first, then a secondary predicate task (item by item)
+## find pairs task is evaluated first, then a secondary predicate task (path 1.1)
 # @param workerID workerID of the worker this task is going to
 # @param estimator the estimator used to determine when the second list is complete
 def choose_task_IW1(workerID, estimator):
@@ -42,19 +42,11 @@ def choose_task_IW1(workerID, estimator):
     prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False).exclude(is_done=True)
     if prim_items_left.exists():
         return choose_task_find_pairs(prim_items_left, new_worker, 1)
-        
-## Finds all pairs, then chooses a primary item then evaluates all secondary predicates related to that item
-## Then chooses another primary item (that has not yet passed the query) then repeats
-def choose_task_IW2(workerID, estimator):
-    new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
-    prim_items_left = PrimaryItem.objects.filter(found_all_pairs=False).filter(is_done = False)
-    if prim_items_left.exists():
-        return choose_task_find_pairs(prim_items_left, new_worker, 1)
-    else:
-        prim_item = PrimaryItem.objects.filter(is_done=False).order_by('?').first()
-        return choose_task_sec_pred_by_prim(new_worker,prim_item)
 
-## Itemwise join on secondary list - all sec preds then find pairs on trues
+## @brief chooses the next task to issue for an item-wise secondary join where all
+## secondary predicates are evaluated first, then find pairs tasks (path 3.1)
+# @param workerID workerID of the worker this task is going to
+# @param estimator the estimator used to determine when the second list is complete
 def choose_task_IWS1(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
 
@@ -65,7 +57,10 @@ def choose_task_IWS1(workerID, estimator):
         true_secs = SecondaryItem.objects.filter(second_pred_result=True)
         return choose_task_find_pairs(true_secs, new_worker, 2)
 
-## Itemwise join on secondary list - all find pairs then secondary preds
+## @brief chooses the next task to issue for an item-wise secondary join where all
+## find pairs tasks are evaluated first, then secondary predicate tasks (path 3.2)
+# @param workerID workerID of the worker this task is going to
+# @param estimator the estimator used to determine when the second list is complete
 def choose_task_IWS2(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
     sec_items_need_pairs = SecondaryItem.objects.filter(found_all_pairs=False)
@@ -83,7 +78,10 @@ def choose_task_IWS2(workerID, estimator):
     else:
         return choose_task_sec_pred(new_worker)
 
-
+## @brief chooses the next task to issue for an item-wise secondary join where a
+## secondary predicate task is evaluated first, then a find pairs task (path 3.3)
+# @param workerID workerID of the worker this task is going to
+# @param estimator the estimator used to determine when the second list is complete
 ## Itemwise join on secondary list - sec pred by sec pred
 def choose_task_IWS3(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
@@ -94,7 +92,7 @@ def choose_task_IWS3(workerID, estimator):
     else:
         return choose_task_sec_pred_before_pairs(new_worker)
 
-## Itemwise join on secondary list - all sec preds then find pairs on trues WITHOUT SECOND LIST
+## @brief path 3.1 starting without secondary item list
 def choose_task_IWS5(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
     
@@ -109,7 +107,7 @@ def choose_task_IWS5(workerID, estimator):
         true_secs = SecondaryItem.objects.filter(second_pred_result=True)
         return choose_task_find_pairs(true_secs, new_worker, 2)
 
-## Itemwise join on secondary list - all find pairs then secondary preds WITHOUT SECOND LIST
+## @brief path 3.2 starting without secondary item list
 def choose_task_IWS6(workerID, estimator):
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
 
@@ -133,7 +131,7 @@ def choose_task_IWS6(workerID, estimator):
         return choose_task_sec_pred(new_worker)
 
 
-## Itemwise join on secondary list - sec pred by sec pred WITHOUT SECOND LIST
+## @brief path 3.3 starting without secondary item list
 def choose_task_IWS7(workerID, estimator):
     
     new_worker = Worker.objects.get_or_create(worker_id=workerID)[0]
@@ -153,7 +151,7 @@ def choose_task_IWS7(workerID, estimator):
 
 
 
-## @brief chooses the next task to issue for a pre-join filter join
+## @brief chooses the next task to issue for a pre-join filter join (path 2 and 2.1)
 # @param workerID workerID of the worker this task is going to
 # @param estimator the estimator used to determine when the second list is complete
 def choose_task_PJF(workerID, estimator):
@@ -171,7 +169,7 @@ def choose_task_PJF(workerID, estimator):
     else:
         return choose_task_sec_pred(new_worker)
 
-## @brief chooses the next task to issue for a pre-join filter join w/ secondary predicates first
+## @brief chooses the next task to issue for a pre-join filter join w/ secondary predicates first (path 2.2 and 2.3)
 # @param workerID workerID of the worker this task is going to
 # @param estimator the estimator used to determine when the second list is complete
 def choose_task_PJF2(workerID, estimator):
@@ -246,9 +244,6 @@ def choose_task_joinable_filter_helper(worker):
 # @param prim_items_list the current primary list objects available
 # @param worker workerID of the worker this task is going to
 def choose_task_find_pairs(items_list,worker, find_pairs_type):
-    #TODO: Toggle for in_progress if-statement?
-    #NOTE: IF WE DON"T WANT IN PROGRESS FOR FIND PAIRS, COMMENT OUT IF STATEMENT
-    #      AND HAVE THE FUNCTION JUST BE WHAT"S INSIDE THE ELSE STATEMENT AND THE STUFF AFTER6
     if toggles.USE_IN_PROGRESS and FindPairsTask.objects.filter(in_progress=True).exists():
         #Possible bugs with concurrency (multiple tasks in progress)
         find_pairs_task = FindPairsTask.objects.get(in_progress=True)
@@ -419,14 +414,8 @@ def choose_task_sec_pred(worker):
     sec_pred_task.save()
     return sec_pred_task
 
-def choose_task_sec_pred_by_prim(worker, prim_item):
-    if SecPredTask.objects.filter(in_progress=True).exists():
-        sec_pred_task = SecPredTask.objects.filter(in_progress=True).order_by('-num_tasks').first()
-    else:
-        for sec in prim_item.secondary_items.all():
-            sec_pred_task = SecPredTask.objects.get_or_create(secondary_item=sec)[0]
-    return sec_pred_task
-
+## @brief chooses a secondary predicate task based on a worker for IWS
+# @param worker workerID of the worker this task is going to
 def choose_task_sec_pred_before_pairs(worker):
     if SecPredTask.objects.filter(in_progress=True).exists():
         sec_pred_task = SecPredTask.objects.filter(in_progress=True).first()
@@ -478,7 +467,10 @@ def gather_task(task_type, answer, cost, item1_id = "None", item2_id = "None"):
 
 #_____GATHER TASKS HELPERS____#
 
-## Collect joinable filter task
+## @brief Collect joinable filter task
+# @param answer 0 or 1
+# @param cost How long the task took to complete
+# @param item1_id primary item id
 def collect_joinable_filter(answer, cost, item1_id):
     #load primary item from db
     primary_item = PrimaryItem.objects.get(name = item1_id)
@@ -499,8 +491,11 @@ def collect_joinable_filter(answer, cost, item1_id):
     this_task.refresh_from_db()
     return this_task.result
 
-## Collect find pairs task
+## @brief Collect find pairs task
 ## find_pairs_type: 1 is itemwise on primary, 2 is on secondary
+# @param answer list of items
+# @param cost How long the task took to complete
+# @param item_id primary item id
 def collect_find_pairs(answer, cost, item_id, find_pairs_type):
     #load primary item from db
     if find_pairs_type is 1:
@@ -565,7 +560,7 @@ def collect_find_pairs(answer, cost, item_id, find_pairs_type):
         this_task.refresh_from_db()
     return this_task.consensus
 
-## takes a string of entries (separated by the string {{NEWENTRY}}) for find_pairs and parses them
+## @brief takes a string of entries (separated by the string {{NEWENTRY}}) for find_pairs and parses them
 def parse_pairs(pairs):
     if pairs is None or pairs is "" or pairs == 'None':
         return []
@@ -597,7 +592,11 @@ def disambiguate_str(sec_item_str):
         addr = ""
     return addr
     
-## Collect Join Pair task
+## @ brief Collect Join Pair task
+# @param answer 0 or 1
+# @param cost How long the task took to complete
+# @param item1_id primary item id
+# @param item2_id secondary item id
 def collect_join_pair(answer, cost, item1_id, item2_id):
     #load primary item from db
     primary_item = PrimaryItem.objects.get(name = item1_id)
@@ -625,7 +624,11 @@ def collect_join_pair(answer, cost, item1_id, item2_id):
     this_task.refresh_from_db()
     return this_task.result
 
-## Collect Prejoin Filter task
+## @brief Collect Prejoin Filter task
+# @param string representing prejoin filter
+# @param cost How long the task took to complete
+# @param item1_id primary item id
+# @param item2_id secondary item id
 def collect_prejoin_filter(answer, cost, item1_id="None", item2_id="None"):
     # primary item task
     if item1_id is not "None":
@@ -659,7 +662,10 @@ def collect_prejoin_filter(answer, cost, item1_id="None", item2_id="None"):
     this_task.refresh_from_db()
     return this_task.consensus
 
-## Collect secondary predicate task
+## @brief Collect secondary predicate task
+# @param answer 0 or 1
+# @param cost How long the task took to complete
+# @param item2_id secondary item id
 def collect_secondary_predicate(answer, cost, item2_id):
     #load secondary item from db
     secondary_item = SecondaryItem.objects.get(name = item2_id)
@@ -684,6 +690,7 @@ def collect_secondary_predicate(answer, cost, item2_id):
 
 
 ######################################################## OVERNIGHT
+##### Copies of everything so that we don't mess things up for the overnight sims
 def choose_task_pjf_helper_overnight(worker,join_type):
     # first does all primary item pjf tasks
     prim_items_left = PrimaryItem.objects.filter(pjf='false')
@@ -714,7 +721,7 @@ def choose_task_PJF2_overnight(workerID, estimator,join_type):
         return choose_task_sec_pred_before_pairs(new_worker)
     #then do pre-join filters
     elif SecondaryItem.objects.filter(second_pred_result = True).filter(pjf = 'false').exists() or PrimaryItem.objects.filter(pjf = 'false').exists(): #unfinished pjfs
-        return choose_task_pjf_helper_overnight(new_worker)
+        return choose_task_pjf_helper_overnight(new_worker,join_type)
     #then do join pairs tasks
     elif PrimaryItem.objects.filter(found_all_pairs = False).exists():
         return choose_task_join_pairs2(new_worker)
