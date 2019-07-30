@@ -7,7 +7,7 @@ import responseTimeDistribution
 # ****************************** DEBUG FLAG ****************************** #
 # ************************************************************************ #
 DEBUG_FLAG = False
-SIM_TIME_STEP = 60
+SIM_TIME_STEP = 180
 # ************************************************************************ #
 
 
@@ -18,17 +18,17 @@ REAL_DATA = False # if False, use synethic data
 
 # ______ REAL DATA SETTINGS ______ #
 INPUT_PATH = 'dynamicfilterapp/simulation_files/hotels/'
-ITEM_TYPE = "Hotel"       # "Hotel" or "Restaurant"
+ITEM_TYPE = "Hotel"                   # "Hotel" or "Restaurant"
 IP_PAIR_DATA_FILE = 'hotel_cleaned_data.csv'
 REAL_DISTRIBUTION_FILE = 'workerDist.csv'
 TRUE_TIMES, FALSE_TIMES = responseTimeDistribution.importResponseTimes(INPUT_PATH + IP_PAIR_DATA_FILE)
 
 # ___ SYNTHETIC DATA SETTINGS ____ #
-NUM_QUESTIONS = 2
+NUM_QUESTIONS = 6
 NUM_ITEMS = 100
 SIN = -1
 SELECTIVITY_GRAPH = False
-switch_list = [(0, (0.3,0), (0.3,0))]
+switch_list = [(0, (0,0), (0,0), (0,0), (0,0), (0,0), (0,0))]
 
 # SIN tuple is of the form (SIN, amp, period, samplingFrac, trans). If trans is 0, it starts at the
 # selectvity of the previous timestep
@@ -48,7 +48,7 @@ else:
 # ************************** ALGORITHM SETTINGS ************************** #
 # ************************************************************************ #
 
-EDDY_SYS = 5
+EDDY_SYS = 11
 ITEM_SYS = 0
 SLIDING_WINDOW = False
 LIFETIME = 150
@@ -75,61 +75,10 @@ REWARD = 1.7
 
 
 
-# ************************** JOIN SETTINGS ************************** #
-# ************************************************************************ #
-#see the Join class in models.py for more information
-USE_JOINS = True
-PROPORTION_JOINS = 1.0
-STARTED_JOIN_RATIO = 0.5
-## Settings #-----------------------###############
-
-
-    ## join data
-JOIN_SELECTIVITY = 0.2
-JOIN_TIME = 4.0 
-JOIN_TIME_STD = 0.5
-JOIN_AMBIGUITY = 0.0
-
-    ## PJFjoin in particular
-PJF_SELECTIVITY = 0.6
-TIME_TO_EVAL_PJF = 10.0
-PJF_TIME_STD = 2.0
-PJF_AMBIGUITY = 0.0
-
-    ## PWJoin in particular 
-BASE_FIND_MATCHES = 6.0     #Basic requirement to find some matches
-FIND_SINGLE_MATCH_TIME = 0.70 #cost per match found
-AVG_MATCHES = 5 #average matches per item
-STDDEV_MATCHES = 1 #standard deviation of matches
-
-    ## small predicate in particular
-SMALL_P_SELECTIVITY = 0.5
-TIME_TO_EVAL_SMALL_P = 3.0
-SMALL_P_TIME_STD = 0.5
-SP_AMBIGUITY = 0.0
-
-    ## Other private variables used for simulations
-HAS_LIST2 = False
-EXPLORATION_REQ = 5 #once join has two lists, it will try each path this many times at least
-private_list2 = [ "Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Mauve", "Peridot", "Periwinkle", "Gold", "Gray", "Burgundy", "Silver", "Taupe", "Brown", "Ochre", "Jasper", "Lavender", "Violet", "Pink", "Magenta" ] 
-pjf_dict = {"PJF1": (0.3, 10.0), "PJF2": (0.75, 2.0), "PJF3": (0.35, 14.0), "PJF4": (0.66, 7.0)}
-GEN_PJF_AMBIGUITY = 0.1
-GEN_PJF_TIME = 5.0
-GEN_PJF_STD = 1.0
-
-#denotes how close the actual number of estimated 2nd list items must be found
-# to the estimated number for species estimation
-THRESHOLD = 0.1
-
-
-# ************************************************************************ #
-
-
-
 # ************************** CONSENSUS SETTINGS ************************** #
 # ************************************************************************ #
 
-NUM_CERTAIN_VOTES = 5            # Recomended val: 5 (unless using agressive bayes)
+NUM_CERTAIN_VOTES = 5               # Recomended val: 5 (unless using agressive bayes)
 ##VoteCutOff
 CUT_OFF = 21
                  #TODO test more stuff on synth data
@@ -163,13 +112,13 @@ CUBIC_B = (0.8)
 # ************************** SIMULATION SETTINGS ************************* #
 # ************************************************************************ #
 
-NUM_WORKERS = 100000
-DISTRIBUTION_TYPE = 0            # tells pick_worker how to choose workers
+NUM_WORKERS = 1000
+DISTRIBUTION_TYPE = 0               # tells pick_worker how to choose workers
 DUMMY_TASKS = True
 DUMMY_TASK_OPTION = 0
-RESPONSE_SAMPLING_REPLACEMENT = True
+RESPONSE_SAMPLING_REPLACEMENT = False
 
-NUM_SIM = 1
+NUM_SIM = 0
 
 SIMULATE_TIME = True # simulate time passing/concurrency
 
@@ -181,7 +130,7 @@ BUFFER_TIME = 0
 MAX_TASKS_OUT = 40
 MAX_TASKS_COLLECTED = CUT_OFF
 
-MULTI_SIM = False 
+MULTI_SIM = True 
 MULTI_SIM_ARRAY = [(1,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9,.25))],5,1,[(0, 0, 0), (1, 10, 40), (10, 150, 200), (50, 350, 450)], 100, 1, 4, 100, (0, 1))]
 # (number of simulations, switch_list, EDDY_SYS, BATCH_ASSIGNMENT, ACTIVE_TASKS_ARRAY, REFILL_PERIOD, TICKETING_SYS, ADAPTIVE_QUEUE_MODE, QUEUE_LENGTH_ARRAY/PENDING_QUEUE_SIZE, (IP_LIMIT_SYS, ITEM_IP_LIMIT))
 
@@ -195,7 +144,7 @@ MULTI_SIM_ARRAY = [(1,[(0, (.1,.25), (.3,.25), (.5,.25), (.5,.25), (.7,.25), (.9
 # ___ FILE MANAGEMENT ____ #
 RUN_NAME = 'aaa_test' + "_" + str(now.date())+ "_" + str(now.time())[:-7]
 OUTPUT_PATH = 'dynamicfilterapp/simulation_files/output/'
-GEN_GRAPHS = False
+GEN_GRAPHS = True
 PACKING=True
 
 if GEN_GRAPHS:
@@ -213,7 +162,6 @@ GEN_HIST = True         # in multiRunSims
 
 # ___ DATA COLLECTION: REAL DATA ____ #
 RUN_DATA_STATS = True
-RUN_TASKS_STATS = True
 
 RUN_AVERAGE_COST = True
 COST_SAMPLES = 1
@@ -289,13 +237,8 @@ VARLIST =  ['RUN_NAME','ITEM_TYPE','INPUT_PATH','OUTPUT_PATH','IP_PAIR_DATA_FILE
             'SELECTIVITY_GRAPH', 'CONSENSUS_STATUS_LIMITS', 'ACCURACY_COUNT', 'TRACK_SIZE',
             'ADAPTIVE_CONSENSUS', 'CONSENSUS_SIZE_LIMITS', 'RENO_BONUS_RATIO', 'BAYES_ENABLED', 'RESIZE_ACTIVE_TASKS',
             'TASKS_PER_SECOND', 'EPSILON', 'REWARD',
-            'MULTI_SIM', 'MULTI_SIM_ARRAY', 'USE_JOINS', 'TRACK_SELECTIVITIES', 'JOIN_SELECTIVITY', 'PJF_SELECTIVITY',
-            'JOIN_TIME', 'TIME_TO_EVAL_PJF', 'BASE_FIND_MATCHES', 'FIND_SINGLE_MATCH_TIME',
-            'AVG_MATCHES', 'STDDEV_MATCHES', 'SMALL_P_SELECTIVITY', 'TIME_TO_EVAL_SMALL_P',
-            'HAS_LIST2', 'private_list2', 'THRESHOLD', 'EXPLORATION_REQ', 'JOIN_AMBIGUITY',
-            'SP_AMBIGUITY', 'PJF_AMBIGUITY', 'SMALL_P_TIME_STD', 'JOIN_TIME_STD', 'PJF_TIME_STD',
-            'pjf_dict', 'GEN_PJF_TIME', 'GEN_PJF_STD', 'GEN_PJF_AMBIGUITY', 'PROPORTION_JOINS', 'STARTED_JOIN_RATIO','RUN_TASKS_STATS']
-
+            'MULTI_SIM', 'MULTI_SIM_ARRAY', 'TRACK_SELECTIVITIES'
+]
 
 #This is a blocklist. the variables to store in config.ini is now auto-generated from this file
     # THIS MEANS NEW VARIABLES WILL BE AUTO ADDED IN PLACE

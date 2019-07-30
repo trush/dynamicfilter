@@ -44,7 +44,7 @@ def worker_done(ID):
 		worker_done_time = end - start
 		return False, worker_done_time
 
-def pending_eddy(ID, active_joins = None):
+def pending_eddy(ID):
 	"""
 	This function chooses which system to use for choosing the next ip_pair
 	"""
@@ -53,7 +53,7 @@ def pending_eddy(ID, active_joins = None):
 	# if all IP_Pairs are done
 	unfinishedList = IP_Pair.objects.filter(isDone=False)
 	if not unfinishedList:
-		raise Exception("entered pending eddy without unfinished IP pairs")
+		return None
 
 	#filter through to find viable ip_pairs to choose from
 	completedTasks = Task.objects.filter(workerID=ID)
@@ -113,19 +113,8 @@ def pending_eddy(ID, active_joins = None):
 	if toggles.IP_LIMIT_SYS >= 2: # hard or soft limit
 		incompleteIP = unfinishedList.exclude(item__pairs_out__gte=toggles.ITEM_IP_LIMIT, inQueue = False)
 
-	if toggles.EDDY_SYS == 5:
-		if active_joins is not None:
-			chosenIP = nu_pending_eddy(incompleteIP, active_joins)
-		else:
-			chosenIP = nu_pending_eddy(incompleteIP)
-		#check whether ip pair or predicate
-		if type(chosenIP) is Predicate:
-			#TODO:do we need to start()?
-			end = time.time()
-			runTime = end - start
-			if toggles.SIMULATE_TIME:
-				return chosenIP, runTime
-			return chosenIP
+	if toggles.EDDY_SYS == 5 or toggles.EDDY_SYS == 14:
+		chosenIP = nu_pending_eddy(incompleteIP)
 		if chosenIP == None: 
 			if toggles.IP_LIMIT_SYS == 3: # soft limit
 
@@ -134,45 +123,65 @@ def pending_eddy(ID, active_joins = None):
 				chosenIP = nu_pending_eddy(incompleteIP)
 		
 		if chosenIP != None and toggles.IP_LIMIT_SYS == 1: # adaptive limit
-			predLim = adaptive_predicate_limit(chosenIP) #TODO: don't do this for predicates
+			predLim = adaptive_predicate_limit(chosenIP)
 			if chosenIP.item.pairs_out > predLim: # if too many pairs out, pick another IP 
 				incompleteIP = incompleteIP.exclude(item = chosenIP.item, predicate = chosenIP.predicate)
 				chosenIP = nu_pending_eddy(incompleteIP)
 			
 		if chosenIP == None:
 			if toggles.DEBUG_FLAG:
-				print "Warning: no IP pair or predicate for worker "
+				print "Warning: no IP pair for worker "
+	elif toggles.EDDY_SYS == 8:
+		chosenIP = full_knowledge_pick(incompleteIP)
+		if chosenIP == None:
+			if toggles.DEBUG_FLAG:
+				print "Warning: no IP pair for worker "
+	elif toggles.EDDY_SYS == 9: 
+		chosenIP = best_predicate_pick(incompleteIP)
+		if chosenIP == None:
+			if toggles.DEBUG_FLAG:
+				print "Warning: no IP pair for worker "
+	elif toggles.EDDY_SYS == 10: 
+		chosenIP = worst_predicate_pick(incompleteIP)
+		if chosenIP == None:
+			if toggles.DEBUG_FLAG:
+				print "Warning: no IP pair for worker "
+	elif toggles.EDDY_SYS == 11: 
+		chosenIP = best_pick(incompleteIP)
+		if chosenIP == None:
+			if toggles.DEBUG_FLAG:
+				print "Warning: no IP pair for worker "
+	elif toggles.EDDY_SYS == 12: 
+		chosenIP = worst_pick(incompleteIP)
+		if chosenIP == None:
+			if toggles.DEBUG_FLAG:
+				print "Warning: no IP pair for worker "
+	else:
+	## standard epsilon-greedy MAB and decreasing epsilon-greedy MAB.
+	# Chooses a predicate using selectPred if EDDY_SYS = 6 and annealingselectPred if EDDY_SYS = 7.
+	# chooses an IP with that predicate at random. Once IP is chosen,
+	# tasks are issued for only that IP until it passes or fails
+		if incompleteIP.exists():
+			predicatevalues = incompleteIP.values('predicate')
+			predicates = Predicate.objects.filter(id__in=predicatevalues)
+			
+			#standard epsilon-greedy MAB
+			if (toggles.EDDY_SYS == 6):
+				chosenPred = selectPred(predicates)
+			#decreasing epsilon-greedy MAB
+			if (toggles.EDDY_SYS == 7):
+				chosenPred = annealingSelectPred(predicates)
+			predIPs = incompleteIP.filter(predicate=chosenPred)
+			chosenIP = choice(predIPs)
+			if not chosenIP.is_in_queue:
+				chosenIP.add_to_queue()
+				chosenIP.refresh_from_db()
+	 	else:
+	 		chosenIP = None
 
-	# else:
-	# ## standard epsilon-greedy MAB and decreasing epsilon-greedy MAB.
-	# # Chooses a predicate using selectPred if EDDY_SYS = 6 and annealingselectPred if EDDY_SYS = 7.
-	# # chooses an IP with that predicate at random. Once IP is chosen,
-	# # tasks are issued for only that IP until it passes or fails
-	# 	if incompleteIP.exists():
-	# 		startedIPs = incompleteIP.filter(isStarted=True)
-	# 		if len(startedIPs) != 0:
-	# 			incompleteIP = startedIPs
-	# 		predicates = [ip.predicate for ip in incompleteIP]
-	# 		#list of predicates are unique
-	# 		seen = set()
-	# 		seen_add = seen.add
-	# 		predicates = [pred for pred in predicates if not (pred in seen or seen_add(pred))]
-	# 		#standard epsilon-greedy MAB
-	# 		if (toggles.EDDY_SYS == 6):
-	# 			chosenPred = selectPred(predicates)
-	# 		#decreasing epsilon-greedy MAB
-	# 		if (toggles.EDDY_SYS == 7):
-	# 			chosenPred = annealingSelectPred(predicates)
-	# 		predIPs = incompleteIP.filter(predicate=chosenPred)
-	# 		chosenIP = choice(predIPs)
-	# 	else:
-	# 		chosenIP = None
-
-	if chosenIP is None:
-		print "we do not have a real task"
 
 	if chosenIP is not None:
-		chosenIP.start()#TODO:don't do this if predicate
+		chosenIP.start()
 	end = time.time()
 	runTime = end - start
 	if toggles.SIMULATE_TIME:
@@ -212,7 +221,7 @@ def adaptive_predicate_limit (chosenIP):
 	
 
 
-def nu_pending_eddy(incompleteIP, active_joins=None):
+def nu_pending_eddy(incompleteIP):
 	#Filter incomplete IP to the set of IP pairs that are actually available to receive new tasks
 	incompleteIP = incompleteIP.exclude(predicate__queue_is_full=True, inQueue=False)
 	if incompleteIP.exists():
@@ -227,67 +236,19 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 		probList = np.true_divide(weightList, totalTickets)
 		chosenPred = np.random.choice(predicates, p=probList)
 
-		if toggles.USE_JOINS:
-			if active_joins is not None and chosenPred in active_joins:
-				cur_join = active_joins[chosenPred]
-				# if we are not using an ip_pair we are using a pred 
-				if not cur_join.use_item():
-					task_types = cur_join.assign_join_tasks() # note: theoretically is use_item() is False, then assign_join_tasks will be for pred
-					print str(chosenPred) + " receives task types " + str(task_types)
-					# if we don't have tasks to do, get some!
-					if chosenPred.task_types == "" or chosenPred.get_task_types() == []:
-						chosenPred.set_task_types(task_types)
-						chosenPred.save(update_fields=["task_types"])
-					# otherwise we should have tasks to do, so return the predicate so that we do them
-					return chosenPred
-			
-		
-			# return a pred instead of an IP pair
-		# TODO: do we want to code it to give up in the middles of a process? right now is keeps assigning tasks until the 
-		# process is over. Note: we might want to do this because then PJFs will be processed before their joins. Con: we jump
-		# around between IP_Pairs normally, but then we go through all the PJF tasks once one of the IP_Pairs trigger the PJF tasks
-		# on list 2.
-
 		pickFrom = incompleteIP.filter(predicate = chosenPred)
-
-		#if our predicate is joinable, we prefer IP pairs that have been started
-		# our preference is measured by the toggle STARTED_JOIN_RATIO
-		if chosenPred in active_joins:
-			r = random.random()
-			if r < toggles.STARTED_JOIN_RATIO:
-				tempPick = pickFrom.filter(isStarted = True)
-				if not tempPick:
-					pass
-				else:
-					pickFrom = tempPick
-		
 
 		# Choose an available pair from the chosen predicate
 		if pickFrom.exists():
 			# print "*"*10 + " Condition 6 invoked " + "*"*10
-			#TODO: this if statement does nothing. Why?
 			if (toggles.ITEM_SYS == 3): #item_inacive assignment
 				minTasks = pickFrom.aggregate(Min('tasks_out')).values()[0]
 				minTaskIP = pickFrom.filter(tasks_out = minTasks) # IP pairs with minimum tasks out
 				pickFrom = minTaskIP
 			chosenIP = choice(pickFrom)
-			chosenIP.refresh_from_db()
-			if not chosenIP.task_types == "" and chosenIP.get_task_types() == []:
-				print chosenIP
-				print chosenIP.isDone
-				raise Exception("this task is done")
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
 				chosenIP.refresh_from_db()
-			if active_joins is not None and chosenIP.predicate in active_joins:
-				cur_join = active_joins[chosenIP.predicate]
-				task_types = cur_join.assign_join_tasks()
-				if  chosenIP.task_types == "" or chosenIP.get_task_types() == []:
-					if "PWl2" in task_types:
-						raise Exception("assigning predicate tasks to IP pairs")
-					chosenIP.set_task_types(task_types)
-					print str(chosenIP) + " receives task types " + str(task_types)
-					chosenIP.save(update_fields=["task_types"])
 			return chosenIP 
 
 		
@@ -308,12 +269,6 @@ def nu_pending_eddy(incompleteIP, active_joins=None):
 			if not chosenIP.is_in_queue:
 				chosenIP.add_to_queue()
 				chosenIP.refresh_from_db()
-			if active_joins is not None and chosenIP.predicate in active_joins:
-				cur_join = active_joins[chosenIP.predicate]
-				task_types = cur_join.assign_join_tasks()
-				if chosenIP.task_types == "" or chosenIP.get_task_types() == []  :
-					chosenIP.set_task_types(task_types)
-					print str(chosenIP) + " receives task types " + str(task_types)
 			return chosenIP
 
 		# if there's literally nothing left to be done, issue a placeholder task
@@ -591,10 +546,15 @@ def annealingSelectPred(predList):
 		chosenPred = random.choice(predList)
 		return chosenPred
 
-def give_task(active_tasks, workerID, active_joins = None):
-	ip_pair, eddy_time = pending_eddy(workerID, active_joins)
+def give_task(active_tasks, workerID):
+	ip_pair, eddy_time = pending_eddy(workerID)
 	if ip_pair is not None:
+		# print "IP pair selected"
 		ip_pair.distribute_task()
+
+	else:
+		pass
+
 	return ip_pair, eddy_time
 
 #____________LOTTERY SYSTEMS____________#
@@ -711,7 +671,6 @@ def useLottery(ipSet):
 def updateCounts(workerTask, chosenIP):
 	start = time.time()
 	if chosenIP is not None:
-
 		chosenIP.refresh_from_db()
 		workerTask.refresh_from_db()
 		# update stats counting tasks completed
@@ -719,7 +678,7 @@ def updateCounts(workerTask, chosenIP):
 		chosenIP.refresh_from_db()
 
 		# update stats counting numbers of votes (only if IP not completed)
-		chosenIP.record_vote(workerTask) #TODO
+		chosenIP.record_vote(workerTask)
 		chosenIP.refresh_from_db()
 
 		# if we're using queueing, remove the IP pair from the queue if appropriate
@@ -734,12 +693,11 @@ def updateCounts(workerTask, chosenIP):
 			chosenIP.predicate.adapt_queue_length()
 			chosenIP.predicate.refresh_from_db()
 
-		chosenIP.predicate.check_queue_full() #TODO
+		chosenIP.predicate.check_queue_full()
 		chosenIP.predicate.refresh_from_db()
 		end = time.time()
 		return end-start
 	else:
-		#TODO: implement predicate case of updateCounts
 		return 0
 
 #____________IMPORT/EXPORT CSV FILE____________#
