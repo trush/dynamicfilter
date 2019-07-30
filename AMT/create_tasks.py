@@ -47,7 +47,7 @@ for line in f:
         Keywords = 'text, enumeration, matching',
         QualificationRequirements = [{
             'QualificationTypeId':"000000000000000000L0",
-            'Comparator':"GreaterThan",
+            'Comparator':"GreaterThanOrEqualTo",
             'IntegerValues':[99]}],
         Reward = '0.10',
         MaxAssignments = 9,
@@ -78,7 +78,7 @@ for line in f:
         Keywords = 'text, enumeration, matching',
         QualificationRequirements = [{
             'QualificationTypeId':"000000000000000000L0",
-            'Comparator':"GreaterThan",
+            'Comparator':"GreaterThanOrEqualTo",
             'IntegerValues':[99]}],
         Reward = '0.15',
         MaxAssignments = 9,
@@ -101,7 +101,7 @@ for line in f:
       Keywords = 'text, enumeration, matching',
       QualificationRequirements = [{
           'QualificationTypeId':"000000000000000000L0",
-          'Comparator':"GreaterThan",
+          'Comparator':"GreaterThanOrEqualTo",
           'IntegerValues':[99]}],
       Reward = '0.15',
       MaxAssignments = 9,
