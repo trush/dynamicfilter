@@ -3,7 +3,7 @@
 HMC summer research project
 
 To get started: 
-1. Run `doxygen` in the base directory (where the `Doxyfile` is). This generates documentation in `active/docs`. 
+1. Run `doxygen` in the base directory (where the `Doxyfile` is). This generates documentation in `docs`. 
 1. Open `docs/html/index.html` in a web browser.
 1. Check out the installation guide.
 
