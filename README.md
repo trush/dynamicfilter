@@ -12,3 +12,10 @@ Dependencies:
 - Django 1.11
 - PostGreSQL
 - Python Packages (psycopg2, numpy, scipy, seaborn, matplotlib)
+
+To Run a Simulation:
+- Install dynamicfilter
+- Make migrations (python manage.py makemigrations) and migrate (python manage.py migrate)
+- Go to joinapp/toggles.py to check and set parameters
+- Go to tests_sim.py to check which function you're running (overnight vs single simulation)
+- Run test with (python manage.py test joinapp.tests.tests_sim)
