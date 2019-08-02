@@ -14,9 +14,11 @@ Dependencies:
 - Python Packages (psycopg2, numpy, scipy, seaborn, matplotlib)
 
 To run a simulation:
-- Install dynamicfilter
+- Install dynamicfilter (complete the installation guide)
 - Start postgres `pg_ctl -D /usr/local/var/postgres start`
 - Make migrations `python manage.py makemigrations` and migrate `python manage.py migrate`
 - Go to `joinapp/toggles.py` to check and set parameters
-- Go to `joinapp/tests/tests_sim.py` to check which function you're running (overnight vs single simulation)
+  - Set the settings to control values (you can find in `controls.py`), but you can try different `JOIN_TYPE` settings. This will run 10 simulations before it finishes.
+- Go to `joinapp/tests/tests_sim.py` to check which function you're running
+  - There should be a function called test_overnight_sim() and one called test_multi_sim(). Comment out overnight and make sure multi is not commented out.
 - Run test with `python manage.py test joinapp.tests.tests_sim`
